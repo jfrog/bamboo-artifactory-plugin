@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (C) 2010 JFrog Ltd.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.jfrog.bamboo</groupId>
+    <artifactId>bamboo-artifactory-plugin</artifactId>
+    <version>1.4.x-SNAPSHOT</version>
+    <name>Bamboo Artifactory Plugin</name>
+    <description>Artifactory Build Info plugin for Atlassian Bamboo.</description>
+
+    <developers>
+        <developer>
+            <id>noamt</id>
+            <name>Noam Y. Tenne</name>
+            <email>noamt at jfrog.org</email>
+            <roles>
+                <role>Lead Developer</role>
+            </roles>
+        </developer>
+    </developers>
+    <inceptionYear>2010</inceptionYear>
+    <organization>
+        <name>JFrog Ltd.</name>
+        <url>http://www.jfrog.org/</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>rjo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>http://subversion.jfrog.org/jfrog/bamboo-artifactory-plugin/trunk/</url>
+        <connection>scm:svn:http://subversion.jfrog.org/jfrog/bamboo-artifactory-plugin/trunk/</connection>
+    </scm>
+
+    <properties>
+        <bamboo.version>3.2.2</bamboo.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
+        Atlassian plugin descriptor -->
+        <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
+        <gradle.version>2.0.x-SNAPSHOT</gradle.version>
+        <ivy.version>2.0.2</ivy.version>
+        <maven.version>2.0.x-SNAPSHOT</maven.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.atlassian.bamboo</groupId>
+            <artifactId>atlassian-bamboo-api</artifactId>
+            <version>${bamboo.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.bamboo</groupId>
+            <artifactId>atlassian-bamboo-core</artifactId>
+            <version>${bamboo.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.bamboo</groupId>
+            <artifactId>atlassian-bamboo-web</artifactId>
+            <version>${bamboo.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.bamboo.plugins</groupId>
+            <artifactId>atlassian-bamboo-plugin-git</artifactId>
+            <version>1.5.3</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-extractor-gradle</artifactId>
+            <version>${gradle.version}</version>
+            <classifier>uber</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-extractor-ivy</artifactId>
+            <version>${ivy.version}</version>
+            <classifier>uber</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-extractor-maven3</artifactId>
+            <version>${maven.version}</version>
+            <classifier>uber</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-extractor-maven3</artifactId>
+            <version>${maven.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>3.0.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-embedder</artifactId>
+            <version>3.0.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>5.14.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-bamboo-plugin</artifactId>
+                <version>3.4</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <productVersion>${bamboo.version}</productVersion>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <id>unpack-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>META-INF/**/*</excludes>
+                            <excludeClassifiers>uber</excludeClassifiers>
+                            <includeArtifactIds>build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,httpclient,httpcore,jackson-core-asl,jackson-mapper-asl</includeArtifactIds>
+                            <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.jfrog.buildinfo</groupId>
+                                    <artifactId>build-info-extractor-maven3</artifactId>
+                                    <version>${maven.version}</version>
+                                    <type>jar</type>
+                                    <classifier>uber</classifier>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
+                                    <destFileName>build-info-extractor-maven3-${maven.version}-uber.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.jfrog.buildinfo</groupId>
+                                    <artifactId>build-info-extractor-gradle</artifactId>
+                                    <version>${gradle.version}</version>
+                                    <type>jar</type>
+                                    <classifier>uber</classifier>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
+                                    <destFileName>build-info-extractor-gradle-${gradle.version}-uber.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.jfrog.buildinfo</groupId>
+                                    <artifactId>build-info-extractor-ivy</artifactId>
+                                    <version>${ivy.version}</version>
+                                    <type>jar</type>
+                                    <classifier>uber</classifier>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
+                                    <destFileName>build-info-extractor-ivy-${ivy.version}-uber.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.9</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.9</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.codehaus.jackson</pattern>
+                                    <shadedPattern>org.jfrog.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.common.collect</pattern>
+                                    <shadedPattern>com.jfrog.common.collect</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <shadedGroupFilter>org.codehaus.jackson</shadedGroupFilter>
+                            <shadedGroupFilter>com.google.guava</shadedGroupFilter>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

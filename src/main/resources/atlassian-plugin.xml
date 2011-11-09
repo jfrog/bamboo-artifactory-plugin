@@ -1,0 +1,270 @@
+<!--
+  ~ Copyright (C) 2010 JFrog Ltd.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<atlassian-plugin key="${groupId}.${artifactId}" name="${project.name}" enabled="true">
+
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    </plugin-info>
+    <component name="Artifactory Server Configuration Management Component" key="artifactoryServerConfigManager"
+               class="org.jfrog.bamboo.admin.ServerConfigManager"/>
+
+    <xwork key="manageArtifactoryServersAdmin" name="Artifactory Plugin">
+        <package name="artifactoryServersPluginAdmin" extends="admin">
+            <action name="manageArtifactoryServers" class="org.jfrog.bamboo.admin.ManageArtifactoryServersAction">
+                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+            </action>
+            <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction"
+                    method="browse">
+                <result name="success" type="freemarker">existingArtifactoryServerView.ftl</result>
+            </action>
+            <action name="configureArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction">
+                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+                <result name="success" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+            </action>
+            <action name="createServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="create">
+                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="success" type="redirect-action">
+                    <param name="actionName">manageArtifactoryServers</param>
+                </result>
+            </action>
+            <action name="editServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="edit">
+                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+                <param name="mode">edit</param>
+            </action>
+            <action name="updateServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="update">
+                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+                <result name="success" type="redirect-action">
+                    <param name="actionName">manageArtifactoryServers</param>
+                </result>
+                <param name="mode">edit</param>
+            </action>
+            <action name="deleteServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="delete">
+                <result name="error" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+            </action>
+        </package>
+    </xwork>
+
+    <xwork key="viewArtifactoryReleaseManagement" name="Artifactory Release Promotion">
+        <package name="artifactoryReleasePlugin" extends="buildView">
+            <action name="viewArtifactoryReleaseManagement"
+                    class="org.jfrog.bamboo.result.ViewReleaseManagementAction">
+                <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
+                If changing anything here, remember to modify the PluginDescriptorValidityTest -->
+                <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
+                <result name="error" type="freemarker">/error.ftl</result>
+            </action>
+            <action name="promote" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="promote">
+                <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
+                If changing anything here, remember to modify the PluginDescriptorValidityTest -->
+                <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
+                <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
+            </action>
+
+            <action name="getLog" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="getLog">
+                <result name="success" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
+                 <param name="buildNumber">${buildNumber}</param>
+                <param name="buildKey">${buildKey}</param>
+            </action>
+        </package>
+    </xwork>
+
+    <web-item key="manageArtifactoryServersMenuItem" name="Artifactory Plugin" section="system.admin/Plugins"
+              weight="10">
+        <label key="Artifactory Plugin"/>
+        <link linkId="manageArtifactoryServersMenuItem">/admin/manageArtifactoryServers.action</link>
+    </web-item>
+
+    <web-item key="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}"
+              name="View Artifactory Build Info Result Summary"
+              section="results.subMenu/results" weight="20">
+        <label key="Artifactory"/>
+        <link linkId="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}
+        </link>
+        <condition class="org.jfrog.bamboo.result.ViewArtifactoryReleaseManagementCondition"/>
+    </web-item>
+
+    <!-- <builder key="artifactoryMaven3Builder" name="Artifactory Maven 3 Builder"
+             class="org.jfrog.bamboo.builder.ArtifactoryMaven3Builder">
+        <description>Artifactory Maven3 builder</description>
+        <resource type="freemarker" name="edit" location="templates/plugins/builder/artifactoryMaven3BuilderEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/builder/artifactoryMaven3BuilderView.ftl"/>
+    </builder>
+
+    <builder key="artifactoryIvyBuilder" name="Artifactory Ivy Builder"
+             class="org.jfrog.bamboo.builder.ArtifactoryIvyBuilder">
+        <description>Artifactory Ivy builder</description>
+        <resource type="freemarker" name="edit" location="templates/plugins/builder/artifactoryIvyBuilderEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/builder/artifactoryIvyBuilderView.ftl"/>
+    </builder>
+
+    <builder key="artifactoryGradleBuilder" name="Artifactory Gradle Builder"
+             class="org.jfrog.bamboo.builder.ArtifactoryGradleBuilder">
+        <description>Artifactory Gradle builder</description>
+        <resource type="freemarker" name="edit" location="templates/plugins/builder/artifactoryGradleBuilderEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/builder/artifactoryGradleBuilderView.ftl"/>
+    </builder>-->
+
+    <taskType key="artifactoryGradleTask" name="Artifactory Gradle Task"
+              class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
+        <description>Artifactory Gradle task</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
+        <category name="builder"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capibility.GradleCapabilityHelper"/>
+        <executable key="gradle" pathHelpKey="builder.gradle.pathHelp"/>
+        <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryGradleBuilderEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryGradleBuilderView.ftl"/>
+    </taskType>
+
+
+    <taskType key="artifactoryIvyTask" name="Artifactory Ivy Task"
+              class="org.jfrog.bamboo.task.ArtifactoryIvyTask">
+        <description>Artifactory Ivy task</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryIvyConfiguration"/>
+        <category name="builder"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capibility.IvyCapabilityHelper"/>
+        <executable key="ivy" pathHelpKey="builder.ivy.pathHelp"/>
+        <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryIvyBuilderEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryIvyBuilderView.ftl"/>
+    </taskType>
+
+    <taskType key="maven3Task" name="Artifactory Maven 3 Task"
+              class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">
+        <description>Artifactory Maven 3 Task</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
+        <category name="builder"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capibility.Maven3CapabilityHelper"/>
+        <executable key="maven" pathHelpKey="builder.maven.pathHelp"/>
+        <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryMaven3BuilderEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryMaven3BuilderView.ftl"/>
+    </taskType>
+
+    <builder2TaskConverter key="ArtifactoryMavenConverter" name="Artifactory Maven Builder Converter"
+                           class="org.jfrog.bamboo.converter.MavenBuilder2TaskConverter">
+        <description>A configuration converter for Maven builders</description>
+        <builderKeyPattern>${groupId}.${artifactId}:artifactoryMaven3Builder</builderKeyPattern>
+    </builder2TaskConverter>
+
+    <builder2TaskConverter key="ArtifactoryGradleConverter" name="Artifactory Gradle Builder Converter"
+                           class="org.jfrog.bamboo.converter.GradleBuilder2TaskConverter">
+        <description>A configuration converter for Gradle builders</description>
+        <builderKeyPattern>${groupId}.${artifactId}:artifactoryGradleBuilder</builderKeyPattern>
+    </builder2TaskConverter>
+
+    <builder2TaskConverter key="ArtifactoryIvyConverter" name="Artifactory Ivy Builder Converter"
+                           class="org.jfrog.bamboo.converter.IvyBuilder2TaskConverter">
+        <description>A configuration converter for Ivy builders</description>
+        <builderKeyPattern>${groupId}.${artifactId}:artifactoryIvyBuilder</builderKeyPattern>
+    </builder2TaskConverter>
+
+    <buildProcessor key="artifactoryChainCompleteAction" name="Artifactory Release Management Staging"
+                    class="org.jfrog.bamboo.release.action.ArtifactoryPostBuildCompleteAction">
+        <skipIfFailed>false</skipIfFailed>
+        <description>Post build processor for Artifactory Release.</description>
+    </buildProcessor>
+
+    <buildProcessor key="artifactoryBuildInfoCopier" name="Artifactory Build Info Copier"
+                    class="org.jfrog.bamboo.release.action.BuildInfoCopier">
+        <skipIfFailed>true</skipIfFailed>
+        <description>Post build processor to copy build info to artifact storage.</description>
+    </buildProcessor>
+
+    <buildProcessor key="artifactoryGradlePropertiesCopier" name="Artifactory Gradle Properties Info Copier"
+                    class="org.jfrog.bamboo.release.action.GradlePropertiesCopier">
+        <skipIfFailed>true</skipIfFailed>
+        <description>Post build processor to copy gradle properties to artifact storage.</description>
+    </buildProcessor>
+
+
+    <servlet name="Artifactory Configuration Servlet" key="artifactoryConfigServlet"
+             class="org.jfrog.bamboo.admin.ArtifactoryConfigServlet">
+        <url-pattern>/artifactoryConfigServlet</url-pattern>
+    </servlet>
+
+    <servlet name="Artifactory Build Servlet" key="artifactoryBuildServlet"
+             class="org.jfrog.bamboo.admin.BuildServlet">
+        <url-pattern>/artifactoryBuildServlet</url-pattern>
+    </servlet>
+
+    <servlet name="Artifactory Administration Configuration Servlet" key="artifactoryAdminConfigServlet"
+             class="org.jfrog.bamboo.admin.ArtifactoryAdminConfigServlet">
+        <url-pattern>/artifactoryAdminConfigServlet</url-pattern>
+    </servlet>
+
+    <resource type="download" name="builder/dependencies/" location="META-INF/lib/"/>
+
+    <resource type="download" name="artifactory-icon.png" location="images/artifactory-icon.png"/>
+    <resource type="download" name="artifactory-release.png" location="images/artifactory-release.png"/>
+
+    <!--release management-->
+
+    <web-resource key="releaseCSS" name="releaseCSS">
+        <resource type="download" name="release.css" location="release.css"/>
+    </web-resource>
+
+    <web-item key="brmpTab:${buildKey}" name="brmpTab" section="build.subMenu/build" weight="130">
+        <label key="Artifactory Release Management"/>
+        <link linkId="brmpViewLink:${buildKey}">/build/release/viewVersions.action?buildKey=${buildKey}</link>
+        <condition class="org.jfrog.bamboo.release.condition.UserAllowedReleaseCondition"/>
+    </web-item>
+
+
+    <xwork key="brmpAdminActions" name="Release Management Admin Actions">
+
+        <package name="brmpResults" extends="buildView" namespace="/build/release">
+            <action name="viewVersions" class="org.jfrog.bamboo.release.action.ViewVersions">
+                <result name="input" type="freemarker">/templates/plugins/release/viewVersions.ftl</result>
+                <result name="error" type="freemarker">/error.ftl</result>
+            </action>
+
+            <action name="releaseBuild" extends="buildView" namespace="/build/release"
+                    class="org.jfrog.bamboo.release.action.ViewVersions" method="releaseBuild">
+                <result name="success" type="redirect">/browse/${buildKey}/log</result>
+            </action>
+        </package>
+    </xwork>
+
+    <additionalBuildConfigurationPlugin key="releasePlanConfiguration" name="Release Management Configuration"
+                                        class="org.jfrog.bamboo.release.configuration.ReleaseManagementConfigurator">
+        <description>Plugin to allow custom cofiguration of release management per plan</description>
+        <resource type="freemarker" name="edit" location="templates/releaseEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/brmpView.ftl"/>
+    </additionalBuildConfigurationPlugin>
+
+
+    <preBuildAction key="artifactoryPreBuildAction" name="Artifactory Release Staging"
+                    class="org.jfrog.bamboo.release.action.ArtifactoryPreBuildAction">
+        <description>A custom action that reads the identifier of a source repository version and stores it into the
+            custom data map of a build.
+        </description>
+    </preBuildAction>
+
+    <!--Generic build action-->
+
+     <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy Task"
+              class="org.jfrog.bamboo.task.ArtifactoryGenericTask">
+        <description>Artifactory Generic Deploy Task</description>
+        <configuration class="org.jfrog.bamboo.generic.ArtifactoryGenericBuildConfiguration"/>
+        <category name="deployment"/>
+        <executable key="generic"/>
+        <resource type="freemarker" name="edit" location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
+    </taskType>
+</atlassian-plugin>

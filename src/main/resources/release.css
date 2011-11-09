@@ -1,0 +1,249 @@
+div.brmp_test {
+    vertical-align: top;
+    margin-top: 0.15em;
+    padding: 0 0 5px 0;
+    float: left;
+}
+
+.brmp_test_table {
+
+}
+
+#brmpConfigTestTable {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 12px;
+    margin: 45px;
+    width: 480px;
+    text-align: left;
+    border-collapse: collapse;
+    border: 1px solid #69c;
+}
+
+#brmpConfigTestTable th {
+    padding: 8px 2px;
+    font-weight: normal;
+    font-size: 14px;
+    border-bottom: 2px solid #6678b1;
+    border-right: 30px solid #fff;
+    border-left: 30px solid #fff;
+    color: #039;
+}
+
+#brmpConfigTestTable td {
+    padding: 12px 2px 0px 2px;
+    border-right: 30px solid #fff;
+    border-left: 30px solid #fff;
+    color: #669;
+}
+
+#brmpBuilderTabs .brmp_panel .brmp_panel_box, #brmpPostTabs .brmp_panel .brmp_panel_box {
+    min-height: 250px;
+}
+
+#brmpBuilderTabs .brmp_panel .brmp_panel_box .helpTextArea, #brmpPostTabs .brmp_panel .brmp_panel_box .helpTextArea {
+    margin-bottom: 20px;
+    color: #2f2f2f;
+}
+
+#brmpBuilderTabs .brmp_panel .brmp_panel_header, #brmpPostTabs .brmp_panel .brmp_panel_header {
+    color: #2f2f2f;
+}
+
+.bambooForm #brmpBuilderTabs .fieldArea, .bambooForm #brmpPostTabs .fieldArea {
+    clear: none;
+
+}
+
+/* Vertical Tabs
+----------------------------------*/
+
+#brmpBuilderTabs, #brmpPostTabs {
+    height: 100%;
+}
+
+#brmpBuilderTabs > ul > li, #brmpPostTabs > ul > li {
+    cursor: pointer;
+    background-color: #EBF1F7 !important;
+    list-style-type: none;
+    display: block;
+    text-align: center;
+    margin: auto;
+    padding: 5px;
+
+    border: 1px solid #A9C2DB;
+    position: relative;
+    border-right: none;
+}
+
+#brmpBuilderTabs > ul > li.selected, #brmpPostTabs > ul > li.selected {
+    border: 1px solid #005AB5;
+    border-right: none;
+    z-index: 10;
+    background-color: #C8E0F7 !important;
+    position: relative;
+}
+
+#brmpBuilderTabs > ul, #brmpPostTabs > ul {
+    float: left;
+    text-align: left;
+    display: block;
+    margin: auto 0;
+    padding: 0;
+    position: relative;
+    top: 30px;
+    width: 150px;
+}
+
+#brmpBuilderTabs > div, #brmpPostTabs > div {
+    background-color: #C8E0F7 !important;
+    margin-left: 150px;
+    border: 1px solid #A9C2DB;
+    min-height: 150px;
+    padding: 12px;
+    position: relative;
+    z-index: 9;
+    -moz-border-radius: 20px;
+    overflow: hidden;
+}
+
+div.brmp_panel {
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+div.brmp_panel_header {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 2px 4px 2px 4px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+}
+
+div.brmp_panel_box {
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-top: 0px;
+    padding: 10px 4px 2px 4px;
+
+}
+
+div.brmp_panel_box .fieldArea {
+    float: left;
+}
+
+/*  TABLES  */
+table.brmp_versiontypes {
+    margin: 10px auto 10px auto;
+    width: auto;
+}
+
+table.brmp_versiontypes th {
+    padding: 2px;
+}
+
+table.brmp_versiontypes .checkboxCell {
+    text-align: center;
+    padding: 0;
+    width: 10%;
+    vertical-align: middle;
+}
+
+table.brmp_versiontypes .buttons {
+    padding: 5px 0 5px 0;
+    border-top: 1px solid #BBD0E5;
+    background-color: #EBF1F7;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.brmpVariableHelp {
+    margin-left: 15em;
+    margin-bottom: 12px;
+}
+
+.brmpTable  .checkboxCell {
+    text-align: center;
+    padding: 0;
+    vertical-align: middle;
+}
+
+.brmpTable th {
+    background-color: #3C78B5;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.brmpTable tr:nth-child(even) td {
+    background-color: #EBF1F7;
+}
+
+.brmpTable tr:nth-child(odd) td {
+    background-color: #ffffff;
+}
+
+.brmpViewQualifierTable {
+    width: 80%;
+}
+
+.brmpEditQualifierTable {
+    margin: 15px auto 15px auto;
+}
+
+.brmp_versionrow h2 {
+    margin-top: 15px;
+
+}
+
+table.brmptagger_versiontypes {
+    margin: 10px 100px 10px 100px;
+    width: auto;
+}
+
+table.brmptagger_versiontypes th {
+    padding: 2px;
+}
+
+table.brmptagger_versiontypes .checkboxCell {
+    text-align: center;
+    padding: 0;
+    width: 10%;
+    vertical-align: middle;
+}
+
+/* ------- LICENSE TABLE ---------*/
+#brmpLicenseInfo .brmpLicenseTable {
+    border: 1px solid #CCCCCC;
+    cellpadding: 3px;
+    cellspacing: 1px;
+    width: 100%;
+}
+
+#brmpLicenseInfo .brmpLicenseTable .brmpLicenseTableHeader {
+    background-color: #f0f0f0;
+    width: 20%;
+    vertical-align: top;
+    text-align: right;
+    padding-right: 8px;
+}
+
+#brmpLicenseInfo .brmpLicenseTable .brmpLicenseTableInfo {
+    background-color: #ffffff;
+}
+
+.brmpLicenseValid {
+    color: green;
+    font-weight: bold;
+}
+
+#brmpBuilderTabs > ul > li.testTab {
+    background-color: #C2FFBD !important;
+}
+
+#brmpBuilderTabs > ul > li.testTab .selected {
+    background-color: #98F990 !important;
+}
