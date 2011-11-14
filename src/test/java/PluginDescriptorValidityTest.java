@@ -38,6 +38,6 @@ public class PluginDescriptorValidityTest {
         String pluginDescriptorContent = IOUtils.toString(pluginDescriptorStream);
         Assert.assertTrue(pluginDescriptorContent.contains("<result name=\"input\" type=\"freemarker\">/" +
                 "templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>"),
-                "Could not find expected summary template declaration. What the line wrapped again?");
+                "Could not find expected summary template declaration. Was the line wrapped again?");
     }
 }
