@@ -16,7 +16,6 @@
 
 package org.jfrog.bamboo.builder;
 
-import com.atlassian.bamboo.agent.bootstrap.AgentClassLoader;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.configuration.AdministrationConfigurationManager;
 import org.apache.commons.httpclient.HttpClient;
@@ -33,7 +32,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.net.URL;
 
 /**
  * @author Noam Y. Tenne
@@ -104,8 +102,6 @@ public class BuilderDependencyHelper implements Serializable {
     /**
      * Returns the base URL of this Bamboo instance.<br> This method is needed since we must download dependencies from
      * the Bamboo server.<br> The URL can generally be found in {@link com.atlassian.bamboo.configuration.AdministrationConfiguration},
-     * but the service is inaccessible when running within a remote agent, so we must discover the URL in an ugly
-     * manner.
      *
      * @param context
      * @return Bamboo base URL if found. Null if running in an un-recognized type of agent.
@@ -117,11 +113,6 @@ public class BuilderDependencyHelper implements Serializable {
             return administrationConfigurationManager.getAdministrationConfiguration().getBaseUrl();
         } else if (StringUtils.isNotBlank(context.getBaseUrl())) {
             return context.getBaseUrl();
-        } else if (Thread.currentThread().getContextClassLoader() instanceof AgentClassLoader) {
-            URL resource = Thread.currentThread().getContextClassLoader().getResource("/atlassian-plugin.xml");
-            return new StringBuilder(resource.getProtocol()).append("://").append(resource.getHost()).append(":").
-                    append(resource.getPort()).append("/").append(resource.getFile().substring(0, resource.getFile().
-                    indexOf("agentServer"))).toString();
         }
         return null;
     }

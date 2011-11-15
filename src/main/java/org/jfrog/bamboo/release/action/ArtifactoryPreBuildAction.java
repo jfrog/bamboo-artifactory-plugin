@@ -59,7 +59,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
             log.debug("[RELEASE] Release management is not active, resuming normally");
             return buildContext;
         }
-        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, planKey, logger);
+        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger);
         if (provider == null) {
             String message = "Release Provider could not be built";
             log.error(logger.addBuildLogEntry(message));
@@ -69,8 +69,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
         log.info(logger.addBuildLogEntry("[RELEASE] Release Build Active"));
         provider.prepare();
         provider.beforeReleaseVersionChange();
-        boolean modified =
-                provider.transformDescriptor(configuration, true, buildContext.getPlanKey());
+        boolean modified = provider.transformDescriptor(configuration, true);
         customBuildData.put(ReleaseProvider.MODIFIED_FILES_FOR_RELEASE, String.valueOf(modified));
         customBuildData.put(ReleaseProvider.CURRENT_CHECKOUT_BRANCH, provider.getCurrentCheckoutBranch());
         customBuildData.put(ReleaseProvider.CURRENT_WORKING_BRANCH, provider.getCurrentWorkingBranch());

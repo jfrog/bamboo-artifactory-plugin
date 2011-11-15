@@ -1,10 +1,10 @@
 package org.jfrog.bamboo.release.scm.svn;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.repository.svn.SvnRepository;
+import com.atlassian.bamboo.v2.build.BuildContext;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
 import org.tmatesoft.svn.core.SVNCommitInfo;
@@ -31,24 +31,22 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
     private static final Logger log = Logger.getLogger(SubversionManager.class);
 
     private SVNClientManager manager;
-    private final PlanKey planKey;
     private final BuildLogger buildLogger;
 
-    public SubversionManager(Repository repository, SVNClientManager manager, PlanKey planKey,
+    public SubversionManager(BuildContext context, Repository repository, SVNClientManager manager,
             BuildLogger buildLogger) {
-        super(repository, buildLogger);
+        super(context, repository, buildLogger);
         this.manager = manager;
-        this.planKey = planKey;
         this.buildLogger = buildLogger;
     }
 
     public void commitWorkingCopy(String commitMessage) throws IOException, InterruptedException {
         try {
-            File workingCopy = getBambooScm().getSourceCodeDirectory(planKey);
+            File checkoutDir = getAndValidateCheckoutDirectory();
             SVNCommitClient commitClient = manager.getCommitClient();
-            log(String.format("Committing working copy: '%s'", workingCopy));
+            log(String.format("Committing working copy: '%s'", checkoutDir));
             log(commitMessage);
-            SVNCommitInfo commitInfo = commitClient.doCommit(new File[]{workingCopy}, true,
+            SVNCommitInfo commitInfo = commitClient.doCommit(new File[]{checkoutDir}, true,
                     commitMessage, null, null, true, true, SVNDepth.INFINITY);
             SVNErrorMessage errorMessage = commitInfo.getErrorMessage();
             if (errorMessage != null) {
@@ -58,20 +56,16 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
             String message = "[RELEASE] An error " + e.getMessage() + " occurred while committing the working copy";
             log.error(buildLogger.addBuildLogEntry(message));
             throw new IOException(message, e);
-        } catch (RepositoryException e) {
-            String message = "[RELEASE] An error " + e.getMessage() + " occurred while committing the working copy";
-            log.error(buildLogger.addBuildLogEntry(message));
-            throw new IOException(e);
         }
     }
 
     public void createTag(String tagUrl, String commitMessage) throws IOException, InterruptedException {
         try {
             SVNURL svnUrl = SVNURL.parseURIEncoded(tagUrl);
-            File workingCopy = getBambooScm().getSourceCodeDirectory(planKey);
             SVNCopyClient copyClient = manager.getCopyClient();
             log("Creating subversion tag: " + tagUrl);
-            SVNCopySource source = new SVNCopySource(SVNRevision.WORKING, SVNRevision.WORKING, workingCopy);
+            File checkoutDir = getAndValidateCheckoutDirectory();
+            SVNCopySource source = new SVNCopySource(SVNRevision.WORKING, SVNRevision.WORKING, checkoutDir);
             SVNCommitInfo commitInfo = copyClient.doCopy(new SVNCopySource[]{source},
                     svnUrl, false, true, true, commitMessage, new SVNProperties());
             SVNErrorMessage errorMessage = commitInfo.getErrorMessage();
@@ -82,10 +76,6 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
             String message = "[RELEASE] An error " + e.getMessage() + " occurred while creating tag: " + tagUrl;
             log.error(buildLogger.addBuildLogEntry(message));
             throw new IOException("Subversion tag creation failed: " + e.getMessage());
-        } catch (RepositoryException e) {
-            String message = "[RELEASE] An error " + e.getMessage() + " occurred while creating tag: " + tagUrl;
-            log.error(buildLogger.addBuildLogEntry(message));
-            throw new IOException("Subversion tag creation failed: " + e.getMessage());
         }
     }
 
@@ -93,11 +83,11 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
      * Revert all the working copy changes.
      */
     public void revertWorkingCopy() throws IOException, InterruptedException, RepositoryException {
-        File workingCopy = getBambooScm().getSourceCodeDirectory(planKey);
+        File checkoutDir = getAndValidateCheckoutDirectory();
         SVNWCClient wcClient = manager.getWCClient();
-        log("Reverting working copy: " + workingCopy);
+        log("Reverting working copy: " + checkoutDir);
         try {
-            wcClient.doRevert(new File[]{workingCopy}, SVNDepth.INFINITY, null);
+            wcClient.doRevert(new File[]{checkoutDir}, SVNDepth.INFINITY, null);
         } catch (SVNException e) {
             log.error(buildLogger
                     .addErrorLogEntry("[RELEASE] Failed to revert working copy: " + e.getLocalizedMessage()));
@@ -140,11 +130,11 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
     }
 
     private void cleanupWorkingCopy() throws IOException, InterruptedException, RepositoryException {
-        File workingCopy = getBambooScm().getSourceCodeDirectory(planKey);
+        File checkoutDir = getAndValidateCheckoutDirectory();
         SVNWCClient wcClient = manager.getWCClient();
         try {
-            log("Cleanup working copy: " + workingCopy);
-            wcClient.doCleanup(workingCopy);
+            log("Cleanup working copy: " + checkoutDir);
+            wcClient.doCleanup(checkoutDir);
         } catch (SVNException e) {
             String message = "[RELEASE] Failed to revert working copy on the 2nd attempt: " + e.getLocalizedMessage();
             log.error(buildLogger.addErrorLogEntry(message));

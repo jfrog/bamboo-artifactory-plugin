@@ -5,10 +5,10 @@ import com.atlassian.bamboo.build.CustomBuildProcessor;
 import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.plan.PlanKeys;
+import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
-import com.atlassian.bamboo.v2.build.repository.RepositoryV2;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closeables;
@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,11 +40,12 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
     private BuildLoggerManager buildLoggerManager;
 
     @NotNull
-    public BuildContext call() throws InterruptedException, Exception {
-        BuildLogger buildLogger = buildLoggerManager.getBuildLogger(buildContext.getPlanResultKey());
-        buildLogger.startStreamingBuildLogs(buildContext.getPlanResultKey());
-        RepositoryV2 repository = buildContext.getBuildDefinition().getRepositoryV2();
-        if (repository == null) {
+    public BuildContext call() throws Exception {
+        PlanResultKey planResultKey = buildContext.getPlanResultKey();
+        BuildLogger buildLogger = buildLoggerManager.getBuildLogger(planResultKey);
+        buildLogger.startStreamingBuildLogs(planResultKey);
+        File checkoutDir = ScmHelper.getCheckoutDirectory(buildContext);
+        if (checkoutDir == null) {
             return buildContext;
         }
         List<TaskDefinition> definitions = buildContext.getBuildDefinition().getTaskDefinitions();
@@ -58,8 +60,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
         if (StringUtils.isNotBlank(directory)) {
             location = directory + "/" + location;
         }
-        File buildInfo = new File(new File(repository.getSourceCodeDirectory(
-                PlanKeys.getPlanKey(buildContext.getPlanKey())), location), "build-info.json");
+        File buildInfo = new File(new File(checkoutDir, location), "build-info.json");
         if (buildInfo.exists()) {
             log.info(buildLogger.addBuildLogEntry("Copying the buildinfo artifacts for " +
                     "build: " + buildContext.getBuildResultKey()));
@@ -69,10 +70,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
             artifact.setLocation(location);
             artifact.setCopyPattern(buildInfoZip.getName());
             artifact.setProducerJobKey(PlanKeys.getPlanKey(buildContext.getPlanKey()));
-            artifactManager.publish(buildLogger,
-                    buildContext.getPlanResultKey(),
-                    repository.getSourceCodeDirectory(buildContext.getPlanResultKey().getPlanKey()), artifact, false,
-                    1);
+            artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, false, 1);
         }
         return buildContext;
     }

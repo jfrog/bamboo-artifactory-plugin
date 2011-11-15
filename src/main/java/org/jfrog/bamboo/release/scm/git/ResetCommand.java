@@ -68,7 +68,7 @@ import java.text.MessageFormat;
  * @see <a href="http://www.kernel.org/pub/software/scm/git/docs/git-reset.html" >Git documentation about Reset</a>
  *      <p/>
  *      <p/>
- *      This class is based on {@link org.shaded.eclipse.jgit.api.ResetCommand} TODO: WHEN PLUGIN IS UPDATED REMOVE THIS
+ *      This class is based on {@link org.eclipse.jgit.api.ResetCommand} TODO: WHEN PLUGIN IS UPDATED REMOVE THIS
  *      CLASS.
  */
 public class ResetCommand extends GitCommand<Ref> {
@@ -220,8 +220,7 @@ public class ResetCommand extends GitCommand<Ref> {
         DirCache dc = null;
         try {
             dc = repo.lockDirCache();
-            DirCacheCheckout checkout = new DirCacheCheckout(repo, dc,
-                    commit.getTree());
+            DirCacheCheckout checkout = new DirCacheCheckout(repo, dc, commit.getTree());
             checkout.setFailOnConflict(false);
             checkout.checkout();
         } finally {

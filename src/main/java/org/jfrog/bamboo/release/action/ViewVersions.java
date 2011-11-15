@@ -1,9 +1,9 @@
 package org.jfrog.bamboo.release.action;
 
-import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.atlassian.bamboo.plugins.git.GitHubRepository;
 import com.atlassian.bamboo.plugins.git.GitRepository;
@@ -53,7 +53,6 @@ public class ViewVersions extends BuildActionSupport {
                     ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
                     ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
     private String moduleVersionConfiguration = ReleaseProvider.CFG_ONE_VERSION;
-    private BuildLoggerManager buildLoggerManager;
     private boolean createVcsTag = true;
     private String tagUrl;
     private String tagComment;
@@ -93,17 +92,18 @@ public class ViewVersions extends BuildActionSupport {
                 log.warn("No task definitions defined");
                 return Lists.newArrayList();
             }
-            TaskDefinition definition = taskDefinitions.get(0);
-            AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
-            if (context == null) {
-                return Lists.newArrayList();
+            for (TaskDefinition definition : taskDefinitions) {
+                AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
+                if (context != null) {
+                    VersionHelper versionHelper =
+                            VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
+                    if (versionHelper != null) {
+                        int latestBuildNumberWithBuildInfo = findLatestBuildNumberWithBuildInfo();
+                        setVersions(
+                                versionHelper.filterPropertiesForRelease(getPlan(), latestBuildNumberWithBuildInfo));
+                    }
+                }
             }
-            VersionHelper versionHelper = VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
-            if (versionHelper == null) {
-                return Lists.newArrayList();
-            }
-            int latestBuildNumberWithBuildInfo = findLatestBuildNumberWithBuildInfo();
-            setVersions(versionHelper.filterPropertiesForRelease(getPlan(), latestBuildNumberWithBuildInfo));
         }
         OgnlValueStack stack = ActionContext.getContext().getValueStack();
         stack.push(versions);
@@ -165,8 +165,7 @@ public class ViewVersions extends BuildActionSupport {
      * @return True if this build is using GIT as its SCM.
      */
     public boolean isGit() {
-        Job job = getPlanJob();
-        Repository repository = job.getBuildDefinition().getRepository();
+        Repository repository = getRepository();
         if (repository == null) {
             return false;
         }
@@ -175,12 +174,15 @@ public class ViewVersions extends BuildActionSupport {
                 "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(className);
     }
 
+    private Repository getRepository() {
+        return PlanHelper.getDefaultRepository(getPlan()).getRepository();
+    }
+
     public boolean isUseShallowClone() {
         if (!isGit()) {
             return false;
         }
-        Job job = getPlanJob();
-        Repository repository = job.getBuildDefinition().getRepository();
+        Repository repository = getRepository();
         if (repository == null) {
             return false;
         }
@@ -382,8 +384,7 @@ public class ViewVersions extends BuildActionSupport {
     }
 
     private String getBaseTagUrlAccordingToScm(String baseTagUrl) {
-        Job job = getPlanJob();
-        Repository repository = job.getBuildDefinition().getRepository();
+        Repository repository = getRepository();
         if (repository == null) {
             return baseTagUrl;
         }
@@ -391,10 +392,6 @@ public class ViewVersions extends BuildActionSupport {
             return baseTagUrl + "/";
         }
         return baseTagUrl;
-    }
-
-    public void setBuildLoggerManager(BuildLoggerManager buildLoggerManager) {
-        this.buildLoggerManager = buildLoggerManager;
     }
 
     public boolean isUseReleaseBranch() {

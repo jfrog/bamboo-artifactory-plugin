@@ -9,6 +9,7 @@ import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
 import com.atlassian.bamboo.task.TaskDefinition;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,12 +31,16 @@ public class UserAllowedReleaseCondition extends AbstractPlanPermissionCondition
         if (job == null) {
             return false;
         }
-        TaskDefinition definition = job.getBuildDefinition().getTaskDefinitions().get(0);
-        AbstractBuildContext buildContext = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
-        if (buildContext == null) {
-            return false;
+        List<TaskDefinition> taskDefs = job.getBuildDefinition().getTaskDefinitions();
+        for (TaskDefinition taskDef : taskDefs) {
+            AbstractBuildContext buildContext = AbstractBuildContext.createContextFromMap(taskDef.getConfiguration());
+            if (buildContext != null) {
+                if (checkPlanPermission(context, BambooPermission.BUILD) &&
+                        buildContext.releaseManagementContext.isReleaseMgmtEnabled()) {
+                    return true;
+                }
+            }
         }
-        return checkPlanPermission(context, BambooPermission.BUILD) &&
-                buildContext.releaseManagementContext.isReleaseMgmtEnabled();
+        return false;
     }
 }

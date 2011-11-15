@@ -2,7 +2,6 @@ package org.jfrog.bamboo.release.scm.svn;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
-import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
@@ -19,21 +18,17 @@ import java.util.Map;
  */
 public class SubversionCoordinator extends AbstractScmCoordinator {
     private SubversionManager scmManager;
-    private SVNClientManager svnClientManager;
     private final Map<String, String> configuration;
-    private final PlanKey planKey;
     private boolean tagCreated;
 
-    public SubversionCoordinator(Repository repository, Map<String, String> configuration, PlanKey planKey,
+    public SubversionCoordinator(BuildContext context, Repository repository, Map<String, String> configuration,
             BuildLogger buildLogger) {
-        super(repository, buildLogger);
+        super(context, repository, buildLogger);
         this.configuration = configuration;
-        this.planKey = planKey;
     }
 
     public void prepare() throws IOException {
-        svnClientManager = getClientManager();
-        scmManager = new SubversionManager(repository, svnClientManager, planKey, buildLogger);
+        scmManager = new SubversionManager(context, repository, getClientManager(), buildLogger);
     }
 
     public void beforeReleaseVersionChange() throws IOException {

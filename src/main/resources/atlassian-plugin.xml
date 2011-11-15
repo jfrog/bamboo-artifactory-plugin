@@ -68,19 +68,22 @@
                     class="org.jfrog.bamboo.result.ViewReleaseManagementAction">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
+                <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl
+                </result>
                 <result name="error" type="freemarker">/error.ftl</result>
             </action>
             <action name="promote" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="promote">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
-                <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
+                <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl
+                </result>
+                <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}
+                </result>
             </action>
 
             <action name="getLog" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="getLog">
                 <result name="success" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
-                 <param name="buildNumber">${buildNumber}</param>
+                <param name="buildNumber">${buildNumber}</param>
                 <param name="buildKey">${buildKey}</param>
             </action>
         </package>
@@ -100,27 +103,6 @@
         </link>
         <condition class="org.jfrog.bamboo.result.ViewArtifactoryReleaseManagementCondition"/>
     </web-item>
-
-    <!-- <builder key="artifactoryMaven3Builder" name="Artifactory Maven 3 Builder"
-             class="org.jfrog.bamboo.builder.ArtifactoryMaven3Builder">
-        <description>Artifactory Maven3 builder</description>
-        <resource type="freemarker" name="edit" location="templates/plugins/builder/artifactoryMaven3BuilderEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/plugins/builder/artifactoryMaven3BuilderView.ftl"/>
-    </builder>
-
-    <builder key="artifactoryIvyBuilder" name="Artifactory Ivy Builder"
-             class="org.jfrog.bamboo.builder.ArtifactoryIvyBuilder">
-        <description>Artifactory Ivy builder</description>
-        <resource type="freemarker" name="edit" location="templates/plugins/builder/artifactoryIvyBuilderEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/plugins/builder/artifactoryIvyBuilderView.ftl"/>
-    </builder>
-
-    <builder key="artifactoryGradleBuilder" name="Artifactory Gradle Builder"
-             class="org.jfrog.bamboo.builder.ArtifactoryGradleBuilder">
-        <description>Artifactory Gradle builder</description>
-        <resource type="freemarker" name="edit" location="templates/plugins/builder/artifactoryGradleBuilderEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/plugins/builder/artifactoryGradleBuilderView.ftl"/>
-    </builder>-->
 
     <taskType key="artifactoryGradleTask" name="Artifactory Gradle Task"
               class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
@@ -243,7 +225,7 @@
 
     <additionalBuildConfigurationPlugin key="releasePlanConfiguration" name="Release Management Configuration"
                                         class="org.jfrog.bamboo.release.configuration.ReleaseManagementConfigurator">
-        <description>Plugin to allow custom cofiguration of release management per plan</description>
+        <description>Plugin to allow custom configuration of release management per plan</description>
         <resource type="freemarker" name="edit" location="templates/releaseEdit.ftl"/>
         <resource type="freemarker" name="view" location="templates/brmpView.ftl"/>
     </additionalBuildConfigurationPlugin>
@@ -258,13 +240,15 @@
 
     <!--Generic build action-->
 
-     <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy Task"
+    <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy Task"
               class="org.jfrog.bamboo.task.ArtifactoryGenericTask">
         <description>Artifactory Generic Deploy Task</description>
         <configuration class="org.jfrog.bamboo.generic.ArtifactoryGenericBuildConfiguration"/>
         <category name="deployment"/>
         <executable key="generic"/>
-        <resource type="freemarker" name="edit" location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
     </taskType>
 </atlassian-plugin>

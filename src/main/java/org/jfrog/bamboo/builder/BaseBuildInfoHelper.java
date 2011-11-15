@@ -16,7 +16,6 @@
 
 package org.jfrog.bamboo.builder;
 
-import com.atlassian.bamboo.agent.bootstrap.AgentClassLoader;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.configuration.AdministrationConfigurationManager;
 import com.atlassian.bamboo.utils.EscapeChars;
@@ -41,7 +40,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 
@@ -133,7 +131,8 @@ public abstract class BaseBuildInfoHelper {
                     inputStream = new FileInputStream(propFile);
                     fileProperties.load(inputStream);
                 } catch (IOException ioe) {
-                    log.error("Error occurred while tring to resolve build info properties from: " + propFilePath, ioe);
+                    log.error("Error occurred while trying to resolve build info properties from: " + propFilePath,
+                            ioe);
                 } finally {
                     IOUtils.closeQuietly(inputStream);
                 }
@@ -248,8 +247,7 @@ public abstract class BaseBuildInfoHelper {
     /**
      * Determines the base URL of this Bamboo instance.<br> This method is needed since we query the plugin's servlets
      * for build information that isn't accessible to a remote agent.<br> The URL can generally be found in {@link
-     * com.atlassian.bamboo.configuration.AdministrationConfiguration}, but the service is inaccessible when running
-     * within a remote agent, so we must discover the URL in an ugly manner.
+     * com.atlassian.bamboo.configuration.AdministrationConfiguration}
      *
      * @return Bamboo base URL if found. Null if running in an un-recognized type of agent.
      */
@@ -258,20 +256,6 @@ public abstract class BaseBuildInfoHelper {
             return administrationConfiguration.getBaseUrl();
         } else if (administrationConfigurationManager != null) {
             return administrationConfigurationManager.getAdministrationConfiguration().getBaseUrl();
-        } else if (Thread.currentThread().getContextClassLoader() instanceof AgentClassLoader) {
-            URL resource = Thread.currentThread().getContextClassLoader().getResource("atlassian-plugin.xml");
-            StringBuilder builder =
-                    new StringBuilder(resource.getProtocol()).append("://").append(resource.getHost()).append(":").
-                            append(resource.getPort());
-            String contextName = resource.getFile().substring(0, resource.getFile().indexOf("agentServer"));
-            if (!contextName.startsWith("/")) {
-                builder.append("/");
-            }
-            String baseUrl = builder.append(contextName).toString();
-            if (baseUrl.endsWith("/")) {
-                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-            }
-            return baseUrl;
         }
         return null;
     }

@@ -1,10 +1,11 @@
 package org.jfrog.bamboo.release.provider;
 
+import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.TaskHelper;
 import org.jfrog.build.extractor.release.PropertiesTransformer;
 
 import java.io.File;
@@ -18,14 +19,19 @@ import java.util.Map;
  */
 public class GradleReleaseProvider extends AbstractReleaseProvider {
 
-    protected GradleReleaseProvider(AbstractBuildContext buildContext, BuildContext plan, PlanKey planKey,
+    protected GradleReleaseProvider(AbstractBuildContext internalContext, BuildContext context,
             BuildLogger buildLogger) {
-        super(buildContext, plan, planKey, buildLogger);
+        super(internalContext, context, buildLogger);
     }
 
-    public boolean transformDescriptor(Map<String, String> conf, boolean release, String planKey)
+    @Override
+    protected Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition) {
+        return TaskHelper.findGradleBuild(definition.getTaskDefinitions()).getConfiguration();
+    }
+
+    public boolean transformDescriptor(Map<String, String> conf, boolean release)
             throws RepositoryException, IOException, InterruptedException {
-        File rootDir = getSourceDir(planKey);
+        File rootDir = getSourceDir();
         if (rootDir == null) {
             return false;
         }

@@ -30,6 +30,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.ExtractorUtils;
+import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.client.ArtifactoryClientConfiguration;
@@ -112,7 +113,7 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.info.setBuildNumber(buildNumber);
         clientConf.publisher.addMatrixParam("build.number", buildNumber);
 
-        String vcsRevision = context.getBuildChanges().getVcsRevisionKey();
+        String vcsRevision = ScmHelper.getRevisionKey(context);
         if (StringUtils.isNotBlank(vcsRevision)) {
             clientConf.info.setVcsRevision(vcsRevision);
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);

@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.util.version;
 
-import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
@@ -9,7 +8,6 @@ import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -38,16 +36,6 @@ public abstract class VersionHelper {
      */
     public abstract void addVersionFieldsToConfiguration(Map parameters, Map<String, String> configuration,
             String versionConfiguration, Map<String, String> taskConfiguration);
-
-
-    protected File getSourceCodeDirectory(Plan plan) throws RepositoryException {
-        Job next = getPlanJob(plan);
-        return next.getSourceCodeDirectory();
-    }
-
-    private Job getPlanJob(Plan plan) {
-        return (Job) plan;
-    }
 
     public String calculateReleaseVersion(String fromVersion) {
         return fromVersion.replace("-SNAPSHOT", "");

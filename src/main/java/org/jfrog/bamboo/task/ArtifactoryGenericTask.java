@@ -3,12 +3,9 @@ package org.jfrog.bamboo.task;
 import com.atlassian.bamboo.build.artifact.AbstractArtifactManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
-import com.atlassian.bamboo.plan.PlanKey;
-import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContext;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
@@ -33,6 +30,7 @@ import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.PublishedItemsHelper;
+import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.util.FileChecksumCalculator;
 import org.jfrog.build.client.ArtifactoryBuildInfoClient;
@@ -68,7 +66,8 @@ public class ArtifactoryGenericTask implements TaskType {
             log.error(logger.addErrorLogEntry("Artifactory Generic Task must run as a final Task!"));
             return TaskResultBuilder.create(taskContext).success().build();
         }
-        CurrentBuildResult result = taskContext.getBuildContext().getBuildResult();
+        BuildContext context = taskContext.getBuildContext();
+        CurrentBuildResult result = context.getBuildResult();
         // if build wasn't a success don't do anything
         if (result.getBuildState().equals(BuildState.FAILED) || !result.getBuildErrors().isEmpty()) {
             log.error(logger.addErrorLogEntry("Build failed, not deploying to Artifactory."));
@@ -78,14 +77,14 @@ public class ArtifactoryGenericTask implements TaskType {
         Map<String, String> env = Maps.newHashMap();
         env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
         env.putAll(environmentVariableAccessor.getEnvironment());
-        String vcsRevision = taskContext.getBuildContext().getBuildChanges().getVcsRevisionKey();
+        String vcsRevision = ScmHelper.getRevisionKey(context);
         if (StringUtils.isBlank(vcsRevision)) {
             vcsRevision = "";
         }
         buildInfoHelper = new GenericBuildInfoHelper(env, vcsRevision);
-        buildInfoHelper.init(taskContext.getBuildContext());
+        buildInfoHelper.init(context);
         try {
-            File sourceCodeDirectory = getWorkingDirectory(taskContext);
+            File sourceCodeDirectory = getWorkingDirectory(context, taskContext);
             if (sourceCodeDirectory == null) {
                 log.error(logger.addErrorLogEntry("No build directory found!"));
                 return TaskResultBuilder.create(taskContext).success().build();
@@ -98,19 +97,17 @@ public class ArtifactoryGenericTask implements TaskType {
             log.error(message, e);
             return TaskResultBuilder.create(taskContext).failedWithError().build();
         }
-        BuildContext buildContext = taskContext.getBuildContext();
-        Map<String, String> customBuildData = buildContext.getBuildResult().getCustomBuildData();
+        Map<String, String> customBuildData = result.getCustomBuildData();
         if (!customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
             customBuildData.put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
         }
         return TaskResultBuilder.create(taskContext).success().build();
     }
 
-    private File getWorkingDirectory(TaskContext taskContext) throws RepositoryException {
-        Repository repository = taskContext.getBuildContext().getBuildDefinition().getRepository();
-        if (repository != null) {
-            PlanKey key = PlanKeys.getPlanKey(taskContext.getBuildContext().getPlanKey());
-            return repository.getSourceCodeDirectory(key);
+    private File getWorkingDirectory(BuildContext context, TaskContext taskContext) throws RepositoryException {
+        File checkoutDir = ScmHelper.getCheckoutDirectory(context);
+        if (checkoutDir != null) {
+            return checkoutDir;
         } else {
             return taskContext.getWorkingDirectory();
         }

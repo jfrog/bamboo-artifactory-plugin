@@ -16,6 +16,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
     private BuildLoggerManager buildLoggerManager;
 
     @NotNull
-    public BuildContext call() throws InterruptedException, Exception {
+    public BuildContext call() throws Exception {
         PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
         BuildLogger logger = buildLoggerManager.getBuildLogger(planKey);
         setBuildLogger(logger);
@@ -56,7 +57,8 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
             log.debug("[RELEASE] Release management is not active, resuming normally");
             return buildContext;
         }
-        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, planKey, logger);
+
+        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger);
         if (provider == null) {
             return buildContext;
         }
@@ -81,12 +83,12 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
                 log("Build completed successfully");
                 provider.afterSuccessfulReleaseVersionBuild();
                 provider.beforeDevelopmentVersionChange();
-                Repository repository = buildContext.getBuildDefinition().getRepository();
+                Repository repository = ScmHelper.getRepository(buildContext);
                 if (repository == null) {
                     log("No VCS repository found, resuming normally");
                     return buildContext;
                 }
-                boolean modified = provider.transformDescriptor(configuration, false, buildContext.getPlanKey());
+                boolean modified = provider.transformDescriptor(configuration, false);
                 provider.afterDevelopmentVersionChange(modified);
             }
         } finally {

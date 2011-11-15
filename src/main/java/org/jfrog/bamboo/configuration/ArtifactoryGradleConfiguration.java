@@ -2,10 +2,10 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.google.common.collect.Lists;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -20,7 +20,6 @@ import java.util.Set;
  * @author Tomer Cohen
  */
 public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfiguration {
-    private static final Logger log = Logger.getLogger(ArtifactoryGradleConfiguration.class);
     protected static final String DEFAULT_TEST_REPORTS_XML = "**/build/test-results/*.xml";
 
     private static final Set<String> FIELDS_TO_COPY = GradleBuildContext.getFieldsToCopy();
@@ -40,7 +39,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         context.put("selectedServerId", -1);
         context.put("selectedResolutionRepoKey", "");
         context.put("selectedPublishingRepoKey", "");
-        Repository repository = plan.getBuildDefinition().getRepository();
+        Repository repository = PlanHelper.getDefaultRepository(plan).getRepository();
         if (repository != null) {
             String host = repository.getHost();
             context.put("builder.artifactoryGradleBuilder.vcsTagBase", host);
