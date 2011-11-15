@@ -64,21 +64,17 @@
 
     <xwork key="viewArtifactoryReleaseManagement" name="Artifactory Release Promotion">
         <package name="artifactoryReleasePlugin" extends="buildView">
-            <action name="viewArtifactoryReleaseManagement"
-                    class="org.jfrog.bamboo.result.ViewReleaseManagementAction">
+            <action name="viewArtifactoryReleaseManagement" class="org.jfrog.bamboo.result.ViewReleaseManagementAction">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl
-                </result>
+                <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
                 <result name="error" type="freemarker">/error.ftl</result>
             </action>
             <action name="promote" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="promote">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl
-                </result>
-                <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}
-                </result>
+                <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
+                <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
             </action>
 
             <action name="getLog" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="getLog">
@@ -96,11 +92,9 @@
     </web-item>
 
     <web-item key="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}"
-              name="View Artifactory Build Info Result Summary"
-              section="results.subMenu/results" weight="20">
+              name="View Artifactory Build Info Result Summary" section="results.subMenu/results" weight="20">
         <label key="Artifactory"/>
-        <link linkId="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}
-        </link>
+        <link linkId="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
         <condition class="org.jfrog.bamboo.result.ViewArtifactoryReleaseManagementCondition"/>
     </web-item>
 
@@ -246,9 +240,7 @@
         <configuration class="org.jfrog.bamboo.generic.ArtifactoryGenericBuildConfiguration"/>
         <category name="deployment"/>
         <executable key="generic"/>
-        <resource type="freemarker" name="edit"
-                  location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
-        <resource type="freemarker" name="view"
-                  location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
+        <resource type="freemarker" name="edit" location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
     </taskType>
 </atlassian-plugin>
