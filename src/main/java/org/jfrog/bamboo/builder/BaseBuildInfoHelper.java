@@ -31,6 +31,7 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -165,7 +167,9 @@ public abstract class BaseBuildInfoHelper {
      * @return Global variable map. Empty if remote resource was not found
      */
     private Map<String, String> getGlobalVariables() {
-        String requestUrl = prepareRequestUrl(ADMIN_CONFIG_SERVLET_CONTEXT_NAME, Maps.<String, String>newHashMap());
+        HashMap<String, String> params = Maps.newHashMap();
+        params.put(ConstantValues.PLAN_KEY_PARAM, context.getPlanKey());
+        String requestUrl = prepareRequestUrl(ADMIN_CONFIG_SERVLET_CONTEXT_NAME, params);
         GetMethod getMethod = new GetMethod(requestUrl);
         InputStream responseStream = null;
         try {
