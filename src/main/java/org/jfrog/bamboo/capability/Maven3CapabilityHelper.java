@@ -14,7 +14,6 @@ import org.apache.tools.ant.taskdefs.ExecuteWatchdog;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.util.PluginUtils;
 
 import java.io.File;
 import java.util.List;
@@ -27,7 +26,6 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     private static final String MAVEN3_HOME_POSIX = "/usr/share/maven3/";
     private static final Pattern MAVEN_VERSION_3 = Pattern.compile("3\\.\\d+\\.\\d+");
     private static final String M2_EXECUTABLE_NAME = "mvn";
-    private static final String KEY = PluginUtils.getPluginDescriptorKey() + ".maven3Task";
     private static final long GET_VERSION_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
     private static final Pattern VERSION_PATTERN = Pattern.compile("Apache Maven (\\S+) .*");
 
@@ -68,6 +66,7 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
             this.pattern = pattern;
         }
 
+        @Override
         public boolean apply(@Nullable final File input) {
             return input != null && pattern.matcher(getMavenVersion(input)).matches();
         }

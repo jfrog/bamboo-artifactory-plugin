@@ -27,7 +27,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.ExtractorUtils;
 import org.jfrog.bamboo.util.MavenPropertyHelper;
-import org.jfrog.bamboo.util.PluginUtils;
+import org.jfrog.bamboo.util.PluginProperties;
 
 import java.io.File;
 import java.io.IOException;
@@ -261,7 +261,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(workingDir, context, PluginUtils.MAVEN3_KEY);
+        return dependencyHelper.downloadDependenciesAndGetPath(workingDir, context,
+                PluginProperties.MAVEN3_DEPENDENCY_FILENAME_KEY);
     }
 
     /**

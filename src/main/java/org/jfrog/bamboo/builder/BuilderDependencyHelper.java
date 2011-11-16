@@ -25,7 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.PluginUtils;
+import org.jfrog.bamboo.util.PluginProperties;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,10 +46,10 @@ public class BuilderDependencyHelper implements Serializable {
         this.builderKey = builderKey;
     }
 
-    public String downloadDependenciesAndGetPath(File buildDir, AbstractBuildContext context, String... dependencyKeys)
+    public String downloadDependenciesAndGetPath(File buildDir, AbstractBuildContext context, String dependencyKey)
             throws IOException {
-        String pluginKey = PluginUtils.getPluginKey();
-        String pluginDescriptorKey = PluginUtils.getPluginDescriptorKey();
+        String pluginKey = PluginProperties.getPluginKey();
+        String pluginDescriptorKey = PluginProperties.getPluginDescriptorKey();
 
         if (buildDir == null) {
             return null;
@@ -84,7 +84,7 @@ public class BuilderDependencyHelper implements Serializable {
             String dependencyBaseUrl = builder.append("download/resources/")
                     .append(pluginDescriptorKey).append("/builder/dependencies/").toString();
             try {
-                downloadDependencies(dependencyBaseUrl, builderDependencyDir, dependencyKeys);
+                downloadDependencies(dependencyBaseUrl, builderDependencyDir, dependencyKey);
                 return builderDependencyDir.getCanonicalPath();
             } catch (IOException ioe) {
                 FileUtils.deleteDirectory(builderDependencyDir);
@@ -117,42 +117,40 @@ public class BuilderDependencyHelper implements Serializable {
         return null;
     }
 
-    private void downloadDependencies(String dependencyBaseUrl, File builderDependencyDir, String... dependencyKeys)
+    private void downloadDependencies(String dependencyBaseUrl, File builderDependencyDir, String dependencyKey)
             throws IOException {
         HttpClient client = new HttpClient();
-        for (String dependencyKey : dependencyKeys) {
-            String dependencyFileName = PluginUtils.getPluginProperty(dependencyKey);
-            String dependencyUrl = dependencyBaseUrl + dependencyFileName;
-            GetMethod getMethod = new GetMethod(dependencyUrl);
+        String dependencyFileName = PluginProperties.getPluginProperty(dependencyKey);
+        String dependencyUrl = dependencyBaseUrl + dependencyFileName;
+        GetMethod getMethod = new GetMethod(dependencyUrl);
 
-            InputStream responseBodyAsStream = null;
-            FileOutputStream fileOutputStream = null;
+        InputStream responseBodyAsStream = null;
+        FileOutputStream fileOutputStream = null;
 
-            try {
-                int responseStatus = client.executeMethod(getMethod);
-                if (responseStatus == HttpStatus.SC_NOT_FOUND) {
-                    throw new IOException("Unable to find required dependency: " + dependencyUrl);
-                } else if (responseStatus != HttpStatus.SC_OK) {
-                    throw new IOException("Error while requesting required dependency: " + dependencyUrl + ". Status: "
-                            + responseStatus + ", Message: " + getMethod.getStatusText());
-                }
-
-                responseBodyAsStream = getMethod.getResponseBodyAsStream();
-                if (responseBodyAsStream == null) {
-                    throw new IOException("Requested dependency: " + dependencyUrl +
-                            ", but received a null response stream.");
-                }
-
-                File file = new File(builderDependencyDir, dependencyFileName);
-                if (!file.isFile()) {
-                    fileOutputStream = new FileOutputStream(file);
-                    IOUtils.copy(responseBodyAsStream, fileOutputStream);
-                }
-            } finally {
-                getMethod.releaseConnection();
-                IOUtils.closeQuietly(responseBodyAsStream);
-                IOUtils.closeQuietly(fileOutputStream);
+        try {
+            int responseStatus = client.executeMethod(getMethod);
+            if (responseStatus == HttpStatus.SC_NOT_FOUND) {
+                throw new IOException("Unable to find required dependency: " + dependencyUrl);
+            } else if (responseStatus != HttpStatus.SC_OK) {
+                throw new IOException("Error while requesting required dependency: " + dependencyUrl + ". Status: "
+                        + responseStatus + ", Message: " + getMethod.getStatusText());
             }
+
+            responseBodyAsStream = getMethod.getResponseBodyAsStream();
+            if (responseBodyAsStream == null) {
+                throw new IOException("Requested dependency: " + dependencyUrl +
+                        ", but received a null response stream.");
+            }
+
+            File file = new File(builderDependencyDir, dependencyFileName);
+            if (!file.isFile()) {
+                fileOutputStream = new FileOutputStream(file);
+                IOUtils.copy(responseBodyAsStream, fileOutputStream);
+            }
+        } finally {
+            getMethod.releaseConnection();
+            IOUtils.closeQuietly(responseBodyAsStream);
+            IOUtils.closeQuietly(fileOutputStream);
         }
     }
 
