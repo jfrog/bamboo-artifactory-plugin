@@ -27,7 +27,7 @@ import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.build.api.builder.PromotionBuilder;
 import org.jfrog.build.api.release.Promotion;
 import org.jfrog.build.client.ArtifactoryBuildInfoClient;
@@ -92,7 +92,8 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
 
     public boolean isReleaseBuild() {
         Plan plan = getPlan();
-        TaskDefinition task = TaskHelper.findMavenOrGradleTask(plan.getBuildDefinition().getTaskDefinitions());
+        TaskDefinition task =
+                TaskDefinitionHelper.findMavenOrGradleTask(plan.getBuildDefinition().getTaskDefinitions());
         if (task == null) {
             return false;
         }
@@ -151,7 +152,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         if (definitions.isEmpty()) {
             return null;
         }
-        TaskDefinition definition = TaskHelper.findMavenOrGradleTask(definitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(definitions);
         return definition;
     }
 

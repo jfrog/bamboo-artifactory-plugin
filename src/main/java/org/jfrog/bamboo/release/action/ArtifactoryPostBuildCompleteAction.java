@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
         setBuildLogger(logger);
         logger.startStreamingBuildLogs(buildContext.getPlanResultKey());
         List<TaskDefinition> definitions = buildContext.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition definition = TaskHelper.findMavenOrGradleTask(definitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(definitions);
         if (definition == null) {
             log.debug("[RELEASE] Task definition is not Maven or Gradle");
             return buildContext;

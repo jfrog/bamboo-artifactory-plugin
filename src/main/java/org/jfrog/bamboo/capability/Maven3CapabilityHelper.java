@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.capibility;
+package org.jfrog.bamboo.capability;
 
 import com.atlassian.bamboo.command.SimpleExecuteStreamHandler;
 import com.atlassian.bamboo.utils.SystemProperty;

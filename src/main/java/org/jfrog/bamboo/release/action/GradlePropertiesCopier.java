@@ -13,7 +13,7 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.io.File;
@@ -45,7 +45,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
             return buildContext;
         }
         List<TaskDefinition> definitions = definition.getTaskDefinitions();
-        TaskDefinition taskDefinition = TaskHelper.findGradleBuild(definitions);
+        TaskDefinition taskDefinition = TaskDefinitionHelper.findGradleBuild(definitions);
         if (taskDefinition == null) {
             log.debug("Current build is not a gradle build");
             return buildContext;

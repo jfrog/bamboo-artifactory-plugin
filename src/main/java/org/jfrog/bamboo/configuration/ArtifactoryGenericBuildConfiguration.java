@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.generic;
+package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.AbstractTaskConfigurator;

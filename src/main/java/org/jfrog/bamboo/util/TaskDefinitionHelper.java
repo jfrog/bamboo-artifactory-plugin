@@ -13,9 +13,9 @@ import java.util.List;
  *
  * @author Tomer Cohen
  */
-public abstract class TaskHelper {
+public abstract class TaskDefinitionHelper {
 
-    private TaskHelper() {
+    private TaskDefinitionHelper() {
         throw new IllegalAccessError();
     }
 
@@ -41,10 +41,13 @@ public abstract class TaskHelper {
     /**
      * @return True if this task is of type {@link ArtifactoryGradleTask}
      */
-    public static TaskDefinition findGradleBuild(List<TaskDefinition> taskDefinition) {
-        for (TaskDefinition definition : taskDefinition) {
-            if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryGradleTask.TASK_NAME)) {
-                return definition;
+    @Nullable
+    public static TaskDefinition findGradleBuild(List<TaskDefinition> taskDefinitions) {
+        if (taskDefinitions != null) {
+            for (TaskDefinition definition : taskDefinitions) {
+                if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryGradleTask.TASK_NAME)) {
+                    return definition;
+                }
             }
         }
         return null;
@@ -53,10 +56,13 @@ public abstract class TaskHelper {
     /**
      * @return True if this task is of type {@link ArtifactoryMaven3Task}
      */
-    public static TaskDefinition findMavenBuild(List<TaskDefinition> taskDefinition) {
-        for (TaskDefinition definition : taskDefinition) {
-            if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryMaven3Task.TASK_NAME)) {
-                return definition;
+    @Nullable
+    public static TaskDefinition findMavenBuild(List<TaskDefinition> taskDefinitions) {
+        if (taskDefinitions != null) {
+            for (TaskDefinition definition : taskDefinitions) {
+                if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryMaven3Task.TASK_NAME)) {
+                    return definition;
+                }
             }
         }
         return null;

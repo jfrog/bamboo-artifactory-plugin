@@ -8,7 +8,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.build.extractor.maven.reader.ModuleName;
 import org.jfrog.build.extractor.maven.reader.ProjectReader;
 import org.jfrog.build.extractor.maven.transformer.PomTransformer;
@@ -31,7 +31,7 @@ public class MavenReleaseProvider extends AbstractReleaseProvider {
 
     @Override
     protected Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition) {
-        return TaskHelper.findMavenBuild(definition.getTaskDefinitions()).getConfiguration();
+        return TaskDefinitionHelper.findMavenBuild(definition.getTaskDefinitions()).getConfiguration();
     }
 
     public boolean transformDescriptor(Map<String, String> conf, boolean release)

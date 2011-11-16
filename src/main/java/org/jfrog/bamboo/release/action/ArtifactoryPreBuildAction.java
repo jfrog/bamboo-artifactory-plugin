@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +41,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
             log("No task definitions found for this build");
             return buildContext;
         }
-        TaskDefinition definition = TaskHelper.findMavenOrGradleTask(definitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(definitions);
         if (definition == null) {
             log.debug("[RELEASE] Build is not a Maven or Gradle build");
             return buildContext;

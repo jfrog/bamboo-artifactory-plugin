@@ -16,7 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.io.File;
@@ -49,7 +49,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
             return buildContext;
         }
         List<TaskDefinition> definitions = buildContext.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition taskDefinition = TaskHelper.findMavenBuild(definitions);
+        TaskDefinition taskDefinition = TaskDefinitionHelper.findMavenBuild(definitions);
         if (taskDefinition == null) {
             log.debug("No Maven task definition found");
             return buildContext;

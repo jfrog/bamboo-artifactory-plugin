@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.capibility;
+package org.jfrog.bamboo.capability;
 
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilitySet;

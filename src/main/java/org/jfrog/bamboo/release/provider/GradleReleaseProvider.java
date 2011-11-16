@@ -5,7 +5,7 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.build.extractor.release.PropertiesTransformer;
 
 import java.io.File;
@@ -26,7 +26,7 @@ public class GradleReleaseProvider extends AbstractReleaseProvider {
 
     @Override
     protected Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition) {
-        return TaskHelper.findGradleBuild(definition.getTaskDefinitions()).getConfiguration();
+        return TaskDefinitionHelper.findGradleBuild(definition.getTaskDefinitions()).getConfiguration();
     }
 
     public boolean transformDescriptor(Map<String, String> conf, boolean release)
