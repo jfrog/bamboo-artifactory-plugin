@@ -143,7 +143,7 @@ public class ViewVersions extends BuildActionSupport {
     public boolean isGradle() {
         Job job = getPlanJob();
         List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-        return TaskDefinitionHelper.findGradleBuild(definitions) != null;
+        return TaskDefinitionHelper.findGradleDefinition(definitions) != null;
     }
 
     /**
@@ -155,7 +155,7 @@ public class ViewVersions extends BuildActionSupport {
     public boolean isMaven() {
         Job job = getPlanJob();
         List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-        return TaskDefinitionHelper.findMavenBuild(definitions) != null;
+        return TaskDefinitionHelper.findMavenDefinition(definitions) != null;
     }
 
     /**
@@ -236,7 +236,7 @@ public class ViewVersions extends BuildActionSupport {
         String createVcsTag = createVcsTagParam != null ? createVcsTagParam[0] : "false";
         configuration.put(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG, createVcsTag);
         configuration.put(ReleaseProvider.MODULE_VERSION_CONFIGURATION, getModuleVersionConfiguration());
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(taskDefinitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
         if (definition == null) {
             log.error("No Maven or Gradle task found in job");
             return ERROR;
@@ -255,7 +255,7 @@ public class ViewVersions extends BuildActionSupport {
         if (taskDefinitions.isEmpty()) {
             return "";
         }
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(taskDefinitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
         if (definition == null) {
             return "";
         }
@@ -350,7 +350,7 @@ public class ViewVersions extends BuildActionSupport {
     public String getReleasePublishingRepo() {
         if (StringUtils.isBlank(releasePublishingRepo)) {
             List<TaskDefinition> definitions = getPlanJob().getBuildDefinition().getTaskDefinitions();
-            TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(definitions);
+            TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
             if (definition == null) {
                 return "";
             }
@@ -373,7 +373,7 @@ public class ViewVersions extends BuildActionSupport {
     private String getDefaultTagUrl() {
         Job job = getPlanJob();
         List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(definitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
         if (definition == null) {
             return "";
         }
@@ -408,7 +408,7 @@ public class ViewVersions extends BuildActionSupport {
             if (taskDefinitions.isEmpty()) {
                 return "";
             }
-            TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(taskDefinitions);
+            TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
             if (definition == null) {
                 return "";
             }

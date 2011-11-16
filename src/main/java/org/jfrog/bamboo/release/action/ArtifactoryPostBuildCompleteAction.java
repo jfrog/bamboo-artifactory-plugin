@@ -32,19 +32,20 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
 
     private BuildLoggerManager buildLoggerManager;
 
+    @Override
     @NotNull
     public BuildContext call() throws Exception {
         PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
         BuildLogger logger = buildLoggerManager.getBuildLogger(planKey);
         setBuildLogger(logger);
         logger.startStreamingBuildLogs(buildContext.getPlanResultKey());
-        List<TaskDefinition> definitions = buildContext.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(definitions);
-        if (definition == null) {
+        List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
+        TaskDefinition mavenOrGradleDefinition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
+        if (mavenOrGradleDefinition == null) {
             log.debug("[RELEASE] Task definition is not Maven or Gradle");
             return buildContext;
         }
-        Map<String, String> configuration = definition.getConfiguration();
+        Map<String, String> configuration = mavenOrGradleDefinition.getConfiguration();
         BuildContext parentBuildContext = buildContext.getParentBuildContext();
         if (parentBuildContext == null) {
             log.debug("[RELEASE] No parent build context found, resuming normally");

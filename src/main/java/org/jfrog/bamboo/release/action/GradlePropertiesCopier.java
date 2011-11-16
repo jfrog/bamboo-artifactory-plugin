@@ -34,6 +34,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
     private volatile ArtifactManager artifactManager;
     private BuildLoggerManager buildLoggerManager;
 
+    @Override
     @NotNull
     public BuildContext call() throws Exception {
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
@@ -44,9 +45,9 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
         if (checkoutDir == null) {
             return buildContext;
         }
-        List<TaskDefinition> definitions = definition.getTaskDefinitions();
-        TaskDefinition taskDefinition = TaskDefinitionHelper.findGradleBuild(definitions);
-        if (taskDefinition == null) {
+        List<TaskDefinition> taskDefinitions = definition.getTaskDefinitions();
+        TaskDefinition gradleDefinition = TaskDefinitionHelper.findGradleDefinition(taskDefinitions);
+        if (gradleDefinition == null) {
             log.debug("Current build is not a gradle build");
             return buildContext;
         }

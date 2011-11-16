@@ -31,9 +31,10 @@ public class MavenReleaseProvider extends AbstractReleaseProvider {
 
     @Override
     protected Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition) {
-        return TaskDefinitionHelper.findMavenBuild(definition.getTaskDefinitions()).getConfiguration();
+        return TaskDefinitionHelper.findMavenDefinition(definition.getTaskDefinitions()).getConfiguration();
     }
 
+    @Override
     public boolean transformDescriptor(Map<String, String> conf, boolean release)
             throws IOException, InterruptedException, RepositoryException {
         String moduleVersionConf = conf.get(MODULE_VERSION_CONFIGURATION);

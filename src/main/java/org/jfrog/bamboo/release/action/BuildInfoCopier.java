@@ -15,6 +15,7 @@ import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
@@ -39,6 +40,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
     private volatile ArtifactManager artifactManager;
     private BuildLoggerManager buildLoggerManager;
 
+    @Override
     @NotNull
     public BuildContext call() throws Exception {
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
@@ -48,13 +50,13 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
         if (checkoutDir == null) {
             return buildContext;
         }
-        List<TaskDefinition> definitions = buildContext.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition taskDefinition = TaskDefinitionHelper.findMavenBuild(definitions);
-        if (taskDefinition == null) {
+        List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
+        TaskDefinition mavenDefinition = TaskDefinitionHelper.findMavenDefinition(taskDefinitions);
+        if (mavenDefinition == null) {
             log.debug("No Maven task definition found");
             return buildContext;
         }
-        Maven3BuildContext conf = new Maven3BuildContext(taskDefinition.getConfiguration());
+        Maven3BuildContext conf = new Maven3BuildContext(mavenDefinition.getConfiguration());
         String location = "target";
         String directory = conf.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(directory)) {
@@ -66,19 +68,26 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
                     "build: " + buildContext.getBuildResultKey()));
             ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl();
             File buildInfoZip = createBuildInfoZip(buildInfo);
-            artifact.setName("buildInfo");
-            artifact.setLocation(location);
-            artifact.setCopyPattern(buildInfoZip.getName());
-            artifact.setProducerJobKey(PlanKeys.getPlanKey(buildContext.getPlanKey()));
-            artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, false, 1);
+            if (buildInfoZip != null) {
+                artifact.setName("buildInfo");
+                artifact.setLocation(location);
+                artifact.setCopyPattern(buildInfoZip.getName());
+                artifact.setProducerJobKey(PlanKeys.getPlanKey(buildContext.getPlanKey()));
+                artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, false, 1);
+            }
         }
         return buildContext;
     }
 
+    @Nullable
     private File createBuildInfoZip(File buildInfoFile) throws IOException {
         File buildInfoZipFile = new File(buildInfoFile.getParent(), "build-info.json.zip");
         if (!buildInfoZipFile.exists()) {
-            buildInfoZipFile.createNewFile();
+            if (!buildInfoZipFile.createNewFile()) {
+                log.error("Unable to create build info archive: the file '" + buildInfoZipFile.getAbsolutePath() +
+                        "' could not be created.");
+                return null;
+            }
         }
         FileInputStream buildInfoFileStream = null;
         GZIPOutputStream stream = null;

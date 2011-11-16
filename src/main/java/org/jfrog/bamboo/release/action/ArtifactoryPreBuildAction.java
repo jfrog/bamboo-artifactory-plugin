@@ -30,23 +30,24 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
 
     private BuildLoggerManager buildLoggerManager;
 
+    @Override
     @NotNull
     public BuildContext call() throws Exception {
         PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
         BuildLogger logger = buildLoggerManager.getBuildLogger(planKey);
         setBuildLogger(logger);
         logger.startStreamingBuildLogs(buildContext.getPlanResultKey());
-        List<TaskDefinition> definitions = buildContext.getBuildDefinition().getTaskDefinitions();
-        if (definitions.isEmpty()) {
+        List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
+        if (taskDefinitions.isEmpty()) {
             log("No task definitions found for this build");
             return buildContext;
         }
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(definitions);
-        if (definition == null) {
+        TaskDefinition mavenOrGradleDefinition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
+        if (mavenOrGradleDefinition == null) {
             log.debug("[RELEASE] Build is not a Maven or Gradle build");
             return buildContext;
         }
-        Map<String, String> configuration = definition.getConfiguration();
+        Map<String, String> configuration = mavenOrGradleDefinition.getConfiguration();
         BuildContext parentBuildContext = buildContext.getParentBuildContext();
         if (parentBuildContext == null) {
             log.debug("[RELEASE] Release management is not active, resuming normally");

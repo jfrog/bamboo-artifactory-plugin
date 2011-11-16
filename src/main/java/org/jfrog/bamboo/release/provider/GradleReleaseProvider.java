@@ -26,9 +26,10 @@ public class GradleReleaseProvider extends AbstractReleaseProvider {
 
     @Override
     protected Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition) {
-        return TaskDefinitionHelper.findGradleBuild(definition.getTaskDefinitions()).getConfiguration();
+        return TaskDefinitionHelper.findGradleDefinition(definition.getTaskDefinitions()).getConfiguration();
     }
 
+    @Override
     public boolean transformDescriptor(Map<String, String> conf, boolean release)
             throws RepositoryException, IOException, InterruptedException {
         File rootDir = getSourceDir();

@@ -92,16 +92,13 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
 
     public boolean isReleaseBuild() {
         Plan plan = getPlan();
-        TaskDefinition task =
-                TaskDefinitionHelper.findMavenOrGradleTask(plan.getBuildDefinition().getTaskDefinitions());
-        if (task == null) {
+        TaskDefinition mavenOrGradleDefinition =
+                TaskDefinitionHelper.findMavenOrGradleDefinition(plan.getBuildDefinition().getTaskDefinitions());
+        if (mavenOrGradleDefinition == null) {
             return false;
         }
         ResultsSummary summary = getResultsSummary();
-        if (summary == null) {
-            return false;
-        }
-        return shouldShow(summary.getCustomBuildData());
+        return summary != null && shouldShow(summary.getCustomBuildData());
     }
 
     private boolean shouldShow(Map<String, String> customData) {
@@ -152,7 +149,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         if (definitions.isEmpty()) {
             return null;
         }
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleTask(definitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
         return definition;
     }
 
