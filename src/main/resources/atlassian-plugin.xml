@@ -103,7 +103,7 @@
         <description>Artifactory Gradle task</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
         <category name="builder"/>
-        <capabilityDefaultsHelper class="org.jfrog.bamboo.capibility.GradleCapabilityHelper"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.GradleCapabilityHelper"/>
         <executable key="gradle" pathHelpKey="builder.gradle.pathHelp"/>
         <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryGradleBuilderEdit.ftl"/>
         <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryGradleBuilderView.ftl"/>
@@ -115,7 +115,7 @@
         <description>Artifactory Ivy task</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryIvyConfiguration"/>
         <category name="builder"/>
-        <capabilityDefaultsHelper class="org.jfrog.bamboo.capibility.IvyCapabilityHelper"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.IvyCapabilityHelper"/>
         <executable key="ivy" pathHelpKey="builder.ivy.pathHelp"/>
         <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryIvyBuilderEdit.ftl"/>
         <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryIvyBuilderView.ftl"/>
@@ -126,7 +126,7 @@
         <description>Artifactory Maven 3 Task</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
         <category name="builder"/>
-        <capabilityDefaultsHelper class="org.jfrog.bamboo.capibility.Maven3CapabilityHelper"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.Maven3CapabilityHelper"/>
         <executable key="maven" pathHelpKey="builder.maven.pathHelp"/>
         <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryMaven3BuilderEdit.ftl"/>
         <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryMaven3BuilderView.ftl"/>
@@ -201,7 +201,6 @@
         <condition class="org.jfrog.bamboo.release.condition.UserAllowedReleaseCondition"/>
     </web-item>
 
-
     <xwork key="brmpAdminActions" name="Release Management Admin Actions">
 
         <package name="brmpResults" extends="buildView" namespace="/build/release">
@@ -237,7 +236,7 @@
     <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy Task"
               class="org.jfrog.bamboo.task.ArtifactoryGenericTask">
         <description>Artifactory Generic Deploy Task</description>
-        <configuration class="org.jfrog.bamboo.generic.ArtifactoryGenericBuildConfiguration"/>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
         <category name="deployment"/>
         <executable key="generic"/>
         <resource type="freemarker" name="edit" location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
