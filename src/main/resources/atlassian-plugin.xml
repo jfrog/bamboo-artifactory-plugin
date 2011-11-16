@@ -243,4 +243,6 @@
         <resource type="freemarker" name="edit" location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
         <resource type="freemarker" name="view" location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
     </taskType>
+
+    <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
 </atlassian-plugin>
