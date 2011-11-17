@@ -194,7 +194,8 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
 
     private void addClientProperties(ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig,
             GradleBuildContext buildContext) {
-        clientConf.setContextUrl(serverConfig.getUrl());
+        clientConf.publisher.setContextUrl(serverConfig.getUrl());
+        clientConf.resolver.setContextUrl(serverConfig.getUrl());
         clientConf.setTimeout(serverConfig.getTimeout());
         clientConf.publisher.setRepoKey(buildContext.getPublishingRepo());
         if (StringUtils.isNotBlank(buildContext.releaseManagementContext.getReleaseRepoKey())) {
