@@ -189,7 +189,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
 
     protected void addClientProperties(AbstractBuildContext buildContext, ArtifactoryClientConfiguration clientConf,
             ServerConfig serverConfig) {
-        clientConf.setContextUrl(serverConfig.getUrl());
+        clientConf.publisher.setContextUrl(serverConfig.getUrl());
         clientConf.setTimeout(serverConfig.getTimeout());
         clientConf.publisher.setRepoKey(buildContext.getPublishingRepo());
         if (StringUtils.isNotBlank(buildContext.releaseManagementContext.getReleaseRepoKey())) {
