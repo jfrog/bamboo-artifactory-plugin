@@ -81,7 +81,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         builder.principal(principal);
         Map<String, String> props = filterAndGetGlobalVariables();
         props.putAll(env);
-        props = ExtractorUtils.getEscapedEnvMap(props);
+        props = TaskUtils.getEscapedEnvMap(props);
         Properties properties = new Properties();
         properties.putAll(props);
         builder.properties(properties);

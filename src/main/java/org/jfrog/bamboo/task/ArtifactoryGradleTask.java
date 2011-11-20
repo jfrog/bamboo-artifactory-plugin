@@ -32,8 +32,8 @@ import org.jfrog.bamboo.builder.GradleInitScriptHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
-import org.jfrog.bamboo.util.ExtractorUtils;
 import org.jfrog.bamboo.util.PluginProperties;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.gradle.plugin.artifactory.extractor.BuildInfoTask;
 
 import java.io.File;
@@ -127,7 +127,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                 command.add("-I");
                 command.add(Commandline.quoteArgument(pathHolder.getInitScriptPath()));
             }
-            ExtractorUtils.appendBuildInfoPropertiesArgument(command, pathHolder.getClientConfPath());
+            TaskUtils.appendBuildInfoPropertiesArgument(command, pathHolder.getClientConfPath());
             command.add(BuildInfoTask.BUILD_INFO_TASK_NAME);
         }
 

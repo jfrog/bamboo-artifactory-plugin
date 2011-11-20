@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
-import org.jfrog.bamboo.util.ExtractorUtils;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.NullLog;
@@ -147,8 +147,8 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
 
         Map<String, String> globalVars = filterAndGetGlobalVariables();
-        globalVars = ExtractorUtils.getEscapedEnvMap(globalVars);
-        globalVars.putAll(ExtractorUtils.getEscapedEnvMap(taskEnv));
+        globalVars = TaskUtils.getEscapedEnvMap(globalVars);
+        globalVars.putAll(TaskUtils.getEscapedEnvMap(taskEnv));
         clientConf.info.addBuildVariables(globalVars);
         clientConf.fillFromProperties(globalVars);
         return clientConf;

@@ -28,7 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.ExtractorUtils;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.client.ArtifactoryClientConfiguration;
@@ -136,7 +136,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         Map<String, String> props = filterAndGetGlobalVariables();
         props.putAll(environment);
         props.putAll(generalEnv);
-        props = ExtractorUtils.getEscapedEnvMap(props);
+        props = TaskUtils.getEscapedEnvMap(props);
         clientConf.info.addBuildVariables(props);
         clientConf.fillFromProperties(props);
     }
