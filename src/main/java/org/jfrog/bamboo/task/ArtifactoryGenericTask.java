@@ -17,12 +17,10 @@ import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.resources.FileResource;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
@@ -32,14 +30,12 @@ import org.jfrog.bamboo.util.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.PublishedItemsHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.Build;
-import org.jfrog.build.api.util.FileChecksumCalculator;
 import org.jfrog.build.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.client.DeployDetails;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,6 +55,7 @@ public class ArtifactoryGenericTask implements TaskType {
         this.environmentVariableAccessor = environmentVariableAccessor;
     }
 
+    @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         logger = taskContext.getBuildLogger();
@@ -90,7 +87,9 @@ public class ArtifactoryGenericTask implements TaskType {
                 return TaskResultBuilder.create(taskContext).success().build();
             }
             Multimap<String, FileSet> fileSetMap = buildTargetPathToFiles(sourceCodeDirectory, genericContext);
-            deploy(fileSetMap, genericContext, taskContext, sourceCodeDirectory);
+            if (!fileSetMap.isEmpty()) {
+                deploy(fileSetMap, genericContext, taskContext, sourceCodeDirectory);
+            }
         } catch (Exception e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);
@@ -175,17 +174,8 @@ public class ArtifactoryGenericTask implements TaskType {
     }
 
     private void deploy(Multimap<String, FileSet> fileSetMap, GenericContext context, TaskContext taskContext,
-            File rootDir)
-            throws IOException, NoSuchAlgorithmException {
-        if (fileSetMap.isEmpty()) {
-            return;
-        }
-        Set<DeployDetails> details = Sets.newHashSet();
-        for (Map.Entry<String, FileSet> entry : fileSetMap.entries()) {
-            details.addAll(
-                    buildDeployDetailsFromFileSet(entry.getValue(), context.getRepoKey(), entry.getKey(), rootDir
-                    ));
-        }
+            File rootDir) throws IOException, NoSuchAlgorithmException {
+
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(context.getSelectedServerId());
         String username = context.getUsername();
@@ -199,6 +189,10 @@ public class ArtifactoryGenericTask implements TaskType {
         ArtifactoryBuildInfoClient client =
                 new ArtifactoryBuildInfoClient(serverConfig.getUrl(), username, password, new BambooBuildInfoLog(log));
         try {
+            BuildContext buildContext = taskContext.getBuildContext();
+            Build build = buildInfoHelper.extractBuildInfo(buildContext, username);
+            Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, fileSetMap,
+                    rootDir, buildContext, context);
             for (DeployDetails detail : details) {
                 StringBuilder deploymentPathBuilder = new StringBuilder(serverConfig.getUrl());
                 deploymentPathBuilder.append("/").append(detail.getTargetRepository());
@@ -209,45 +203,13 @@ public class ArtifactoryGenericTask implements TaskType {
                 logger.addBuildLogEntry(("Deploying artifact: " + deploymentPathBuilder.toString()));
                 client.deployArtifact(detail);
             }
-            Build build = buildInfoHelper.extractBuildInfo(taskContext.getBuildContext(), details, username);
             String url = serverConfig.getUrl() + "/api/build";
             logger.addBuildLogEntry("Deploying build info to: " + url);
             client.sendBuildInfo(build);
-            taskContext.getBuildContext().getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
+            buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
                     serverConfig.getUrl());
         } finally {
             client.shutdown();
         }
-    }
-
-
-    private Set<DeployDetails> buildDeployDetailsFromFileSet(FileSet fileSet, String targetRepository,
-            String targetPath, File rootDir) throws IOException, NoSuchAlgorithmException {
-        Set<DeployDetails> result = Sets.newHashSet();
-        Iterator<FileResource> iterator = fileSet.iterator();
-        while (iterator.hasNext()) {
-            FileResource fileResource = iterator.next();
-            File file = fileResource.getFile();
-
-            String relativePath = file.getAbsolutePath();
-            if (StringUtils.startsWith(relativePath, rootDir.getAbsolutePath())) {
-                relativePath = StringUtils.removeStart(file.getAbsolutePath(), rootDir.getAbsolutePath());
-            } else {
-                File fileBaseDir = fileResource.getBaseDir();
-                if (fileBaseDir != null) {
-                    relativePath = StringUtils.removeStart(file.getAbsolutePath(), fileBaseDir.getAbsolutePath());
-                }
-            }
-            relativePath = FilenameUtils.separatorsToUnix(relativePath);
-            relativePath = StringUtils.removeStart(relativePath, "/");
-            String path = PublishedItemsHelper.calculateTargetPath(relativePath, targetPath, file.getName());
-            path = StringUtils.replace(path, "//", "/");
-            Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(file, "SHA1", "MD5");
-            DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(file).md5(checksums.get("MD5"))
-                    .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path);
-            buildInfoHelper.addCommonProperties(deployDetails);
-            result.add(deployDetails.build());
-        }
-        return result;
     }
 }
