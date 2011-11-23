@@ -16,8 +16,7 @@ public abstract class ScmHelper {
 
     @Nullable
     public static File getCheckoutDirectory(BuildContext buildContext) {
-        RepositoryDefinition repoDef = getFirstRepoDef(buildContext);
-        if (repoDef != null) {
+        for (RepositoryDefinition repoDef : buildContext.getRepositoryDefinitions()) {
             String checkoutLocation = buildContext.getCheckoutLocation().get(repoDef.getId());
             if (StringUtils.isNotBlank(checkoutLocation)) {
                 return new File(checkoutLocation);
@@ -28,28 +27,21 @@ public abstract class ScmHelper {
 
     @Nullable
     public static String getRevisionKey(BuildContext buildContext) {
-        RepositoryDefinition repoDef = getFirstRepoDef(buildContext);
-        if (repoDef != null) {
-            return buildContext.getBuildChanges().getVcsRevisionKey(repoDef.getId());
+        for (RepositoryDefinition repoDef : buildContext.getRepositoryDefinitions()) {
+            String key = buildContext.getBuildChanges().getVcsRevisionKey(repoDef.getId());
+            if (StringUtils.isNotBlank(key)) {
+                return key;
+            }
         }
-
         return null;
     }
 
     @Nullable
     public static Repository getRepository(BuildContext buildContext) {
-        RepositoryDefinition repoDef = getFirstRepoDef(buildContext);
-        if (repoDef != null) {
-            return repoDef.getRepository();
+        Iterator<RepositoryDefinition> repoDefIterator = buildContext.getRepositoryDefinitions().iterator();
+        if (repoDefIterator.hasNext()) {
+            return repoDefIterator.next().getRepository();
         }
         return null;
-    }
-
-    private static RepositoryDefinition getFirstRepoDef(BuildContext buildContext) {
-        Iterator<RepositoryDefinition> repoDefs = buildContext.getRepositoryDefinitions().iterator();
-        if (repoDefs.hasNext()) {
-            return repoDefs.next();
-        }
-        return repoDefs.next();
     }
 }
