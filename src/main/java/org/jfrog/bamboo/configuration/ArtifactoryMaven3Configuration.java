@@ -60,6 +60,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         if (resolutionRepo == null) {
             resolutionRepo = "";
         }
+        context.put("selectedResolutionArtifactoryServerId", buildContext.getResolutionArtifactoryServerId());
         context.put("selectedResolutionRepoKey", resolutionRepo);
         context.put("selectedServerId", buildContext.getArtifactoryServerId());
         context.put("hasTests", buildContext.isTestChecked());
