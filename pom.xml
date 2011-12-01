@@ -61,9 +61,9 @@
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <gradle.version>2.0.x-SNAPSHOT</gradle.version>
-        <ivy.version>2.0.x-SNAPSHOT</ivy.version>
-        <maven.version>2.0.x-SNAPSHOT</maven.version>
+        <gradle.version>2.0.7</gradle.version>
+        <ivy.version>2.0.3</ivy.version>
+        <maven.version>2.0.5</maven.version>
     </properties>
 
     <dependencies>
