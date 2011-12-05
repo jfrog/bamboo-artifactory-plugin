@@ -208,17 +208,22 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             clientConf.resolver.setRepoKey(resolutionRepo);
         }
 
+        String globalServerUsername = serverConfig.getUsername();
+        String globalServerPassword = serverConfig.getPassword();
+        clientConf.resolver.setUsername(globalServerUsername);
+        clientConf.resolver.setPassword(globalServerPassword);
+
         String deployerUsername = buildContext.getDeployerUsername();
         if (StringUtils.isBlank(deployerUsername)) {
-            deployerUsername = serverConfig.getUsername();
+            deployerUsername = globalServerUsername;
         }
-        String password = buildContext.getDeployerPassword();
-        if (StringUtils.isBlank(password)) {
-            password = serverConfig.getPassword();
+        String deployerPassword = buildContext.getDeployerPassword();
+        if (StringUtils.isBlank(deployerPassword)) {
+            deployerPassword = globalServerPassword;
         }
         if (StringUtils.isNotBlank(deployerUsername)) {
             clientConf.publisher.setUsername(deployerUsername);
-            clientConf.publisher.setPassword(password);
+            clientConf.publisher.setPassword(deployerPassword);
         }
         boolean publishArtifacts = buildContext.isPublishArtifacts();
         clientConf.publisher.setPublishArtifacts(publishArtifacts);
