@@ -30,62 +30,62 @@ descriptionKey='The password of the user entered above.'/]
 [@ww.checkbox labelKey='Deploy Artifacts' name='deployArtifacts' toggle='true'
 descriptionKey='Uncheck if you do not wish to deploy artifacts from the plugin.'/]
 
-[@ui.bambooSection dependsOn='deployArtifacts' showOn='true']
-[@ww.textfield labelKey='Deployment Include Patterns'
-name='builder.artifactoryIvyBuilder.deployIncludePatterns'
-descriptionKey='Comma or space-separated list of
+[@ui.bambooSection dependsOn='deployArtifacts' showOn=true]
+    [@ww.textfield labelKey='Deployment Include Patterns'
+    name='builder.artifactoryIvyBuilder.deployIncludePatterns'
+    descriptionKey='Comma or space-separated list of
     <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
     of files that will be included in publishing. Include patterns are applied on the published file path before any
     exclude patterns.'/]
-[@ww.textfield labelKey='Deployment Exclude Patterns'
-name='builder.artifactoryIvyBuilder.deployExcludePatterns'
-descriptionKey='Comma or space-separated list of
+    [@ww.textfield labelKey='Deployment Exclude Patterns'
+    name='builder.artifactoryIvyBuilder.deployExcludePatterns'
+    descriptionKey='Comma or space-separated list of
     <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
     of files that will be excluded from publishing. Exclude patterns are applied on the published file path before any
     exclude patterns.'/]
 
-[@ww.checkbox labelKey='Use Maven 2 Compatible Patterns' name='useM2CompatiblePatterns' toggle='true'
-descriptionKey='Whether to use the default Maven 2 patterns when publishing artifacts and Ivy descriptors, or to use custom patterns.'/]
+    [@ww.checkbox labelKey='Use Maven 2 Compatible Patterns' name='useM2CompatiblePatterns' toggle='true'
+    descriptionKey='Whether to use the default Maven 2 patterns when publishing artifacts and Ivy descriptors, or to use custom patterns.'/]
 
-[@ui.bambooSection dependsOn='useM2CompatiblePatterns' showOn='false']
-[@ww.textfield labelKey='Ivy Pattern' name='builder.artifactoryIvyBuilder.ivyPattern'
-descriptionKey='The <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">pattern</a> to use for published Ivy descriptors.'/]
-[@ww.textfield labelKey='Artifact Pattern' name='builder.artifactoryIvyBuilder.artifactPattern'
-descriptionKey='The <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">pattern</a> to use for published artifacts.'/]
-[/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='useM2CompatiblePatterns' showOn='false']
+        [@ww.textfield labelKey='Ivy Pattern' name='builder.artifactoryIvyBuilder.ivyPattern'
+        descriptionKey='The <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">pattern</a> to use for published Ivy descriptors.'/]
+        [@ww.textfield labelKey='Artifact Pattern' name='builder.artifactoryIvyBuilder.artifactPattern'
+        descriptionKey='The <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">pattern</a> to use for published artifacts.'/]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 
 [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
 toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
 
-[@ui.bambooSection dependsOn='runLicenseChecks' showOn='true']
-[@ww.textfield labelKey='Send License Violation Notifications To'
-name='builder.artifactoryIvyBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
+[@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
+    [@ww.textfield labelKey='Send License Violation Notifications To'
+    name='builder.artifactoryIvyBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
 
-[@ww.textfield labelKey='Limit Checks To The Following Scopes'
-name='builder.artifactoryIvyBuilder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
+    [@ww.textfield labelKey='Limit Checks To The Following Scopes'
+    name='builder.artifactoryIvyBuilder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
 
-[@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryIvyBuilder.includePublishedArtifacts'
-toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
+    [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryIvyBuilder.includePublishedArtifacts'
+    toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
                 as dependencies for other modules in this build."/]
 
-[@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryIvyBuilder.disableAutoLicenseDiscovery'
-toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
+    [@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryIvyBuilder.disableAutoLicenseDiscovery'
+    toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
                 upon deployment. You can still attach license information manually by running 'Auto-Find' from the build's
                 Licenses tab in Artifactory."/]
 [/@ui.bambooSection]
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']
-[@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
+    [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
 
-[@ui.bambooSection dependsOn='testChecked' showOn='true']
-[@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
-listKey='key' listValue='value' toggle='true'
-list=testDirectoryTypes ]
-[/@ww.radio]
-[@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
-[@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryIvyBuilder.testResultsDirectory' /]
-[/@ui.bambooSection]
-[/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='testChecked' showOn=true]
+        [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
+        listKey='key' listValue='value' toggle='true'
+        list=testDirectoryTypes ]
+        [/@ww.radio]
+        [@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
+            [@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryIvyBuilder.testResultsDirectory' /]
+        [/@ui.bambooSection]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 </div>
 
@@ -112,11 +112,11 @@ list=testDirectoryTypes ]
 
     function loadIvyRepoKeys(serverId) {
         AJS.$.ajax({
-            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
                     '&deployableRepos=true',
-            dataType: 'json',
-            cache: false,
-            success: function (json) {
+            dataType:'json',
+            cache:false,
+            success:function (json) {
                 var repoSelect = document.getElementsByName('builder.artifactoryIvyBuilder.deployableRepo')[0];
                 repoSelect.innerHTML = '';
                 if (serverId >= 0) {
@@ -135,7 +135,7 @@ list=testDirectoryTypes ]
                     }
                 }
             },
-            error : function (XMLHttpRequest, textStatus, errorThrown) {
+            error:function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the target repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {

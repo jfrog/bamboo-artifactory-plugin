@@ -46,14 +46,14 @@ If your project applies the Artifactory plugin using a custom init script, make 
 [@ww.checkbox labelKey='Capture and Publish Build Info' name='publishBuildInfo'
 toggle='true' descriptionKey='Check if you wish to publish build information to Artifactory.'/]
 
-[@ui.bambooSection dependsOn='publishBuildInfo' showOn='true']
+[@ui.bambooSection dependsOn='publishBuildInfo' showOn=true]
     [@ww.checkbox labelKey='Include All Environment Variables' name='builder.artifactoryGradleBuilder.includeEnvVars'
     toggle='true' descriptionKey='Check if you wish to include all environment variables accessible by the builds process.'/]
 
     [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
     toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
 
-    [@ui.bambooSection dependsOn='runLicenseChecks' showOn='true']
+    [@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
         [@ww.textfield labelKey='Send License Violation Notifications to'
         name='builder.artifactoryGradleBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
 
@@ -74,7 +74,7 @@ toggle='true' descriptionKey='Check if you wish to publish build information to 
 [@ww.checkbox labelKey='Publish Artifacts to Artifactory' name='publishArtifacts' toggle='true'
 descriptionKey='Check if you wish to publish produced build artifacts to Artifactory.'/]
 
-[@ui.bambooSection dependsOn='publishArtifacts' showOn='true']
+[@ui.bambooSection dependsOn='publishArtifacts' showOn=true]
 
     [@ww.checkbox labelKey='Publish Maven Descriptors' name='builder.artifactoryGradleBuilder.publishMavenDescriptors' toggle='true'
     descriptionKey='Check if you wish to publish Gradle-generated POM files to Artifactory. Note: Maven descriptors are always deployed according to the Maven layout convention.'/]
@@ -109,7 +109,7 @@ descriptionKey='Check if you wish to publish produced build artifacts to Artifac
 [@ww.checkbox labelKey='Enable Release Management' name='enableReleaseManagement' toggle='true'
 descriptionKey='Enable Release Management to Artifactory'/]
 
-[@ui.bambooSection dependsOn='enableReleaseManagement' showOn='true']
+[@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
     [@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryGradleBuilder.vcsTagBase'
     descriptionKey='For subversion this is the URL of the tags location, for Git this is the name of the tag.'/]
     [@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryGradleBuilder.gitReleaseBranch'
@@ -125,7 +125,7 @@ descriptionKey='Enable Release Management to Artifactory'/]
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']
     [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
 
-    [@ui.bambooSection dependsOn='testChecked' showOn='true']
+    [@ui.bambooSection dependsOn='testChecked' showOn=true]
         [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
         listKey='key' listValue='value' toggle='true'
         list=testDirectoryTypes ]

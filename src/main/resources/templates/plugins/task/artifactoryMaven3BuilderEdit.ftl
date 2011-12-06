@@ -19,7 +19,7 @@ descriptionKey='Space-separated parameters to pass as MAVEN_OPTS (e.g.: -Dmaven.
 
 [@ww.checkbox labelKey='Resolve artifacts from Artifactory' name='resolveFromArtifacts' toggle='true'
 descriptionKey="Check if you wish all dependency resolution to go through Artifactory. <br/> Notice: this will override any external repository definition in Maven settings or POM files."/]
-[@ui.bambooSection dependsOn='resolveFromArtifacts' showOn='true']
+[@ui.bambooSection dependsOn='resolveFromArtifacts' showOn=true]
     [@ww.select name='builder.artifactoryMaven3Builder.resolutionArtifactoryServerId' labelKey='Resolution Artifactory Server URL' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayResolutionMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
     descriptionKey='Select an Artifactory server.'/]
@@ -51,7 +51,7 @@ descriptionKey='The password of the user entered above.'/]
 [@ww.checkbox labelKey='Deploy Maven Artifacts' name='deployMavenArtifacts' toggle='true'
 descriptionKey="Uncheck if you do not wish to deploy Maven artifacts from the plugin (a more efficient alternative to Maven's own 'deploy' goal)."/]
 
-[@ui.bambooSection dependsOn='deployMavenArtifacts' showOn='true']
+[@ui.bambooSection dependsOn='deployMavenArtifacts' showOn=true]
     [@ww.textfield labelKey='Deployment Include Patterns'
     name='builder.artifactoryMaven3Builder.deployIncludePatterns'
     descriptionKey='Comma or space-separated list of
@@ -69,7 +69,7 @@ descriptionKey="Uncheck if you do not wish to deploy Maven artifacts from the pl
     [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
 toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
 
-[@ui.bambooSection dependsOn='runLicenseChecks' showOn='true']
+[@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
     [@ww.textfield labelKey='Send License Violation Notifications to'
     name='builder.artifactoryMaven3Builder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
 
@@ -89,7 +89,7 @@ toggle='true' descriptionKey='Check if you wish that automatic license scanning 
 [@ww.checkbox labelKey='Enable Release Management' name='enableReleaseManagement' toggle='true'
 descriptionKey='Enable Release Management to Artifactory'/]
 
-[@ui.bambooSection dependsOn='enableReleaseManagement' showOn='true']
+[@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
     [@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryMaven3Builder.vcsTagBase'
     descriptionKey='For subversion this is the URL of the tags location, for Git this is the name of the tag.'/]
     [@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryMaven3Builder.gitReleaseBranch'
@@ -102,7 +102,7 @@ descriptionKey='Enable Release Management to Artifactory'/]
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']
     [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
 
-    [@ui.bambooSection dependsOn='testChecked' showOn='true']
+    [@ui.bambooSection dependsOn='testChecked' showOn=true]
         [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
         listKey='key' listValue='value' toggle='true'
         list=testDirectoryTypes ]
