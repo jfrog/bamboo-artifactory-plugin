@@ -10,11 +10,12 @@
         [@ww.textfield labelKey='Release branch: ' name='releaseBranch'/]
     [/@ui.bambooSection]
 [/#if]
-[@ww.checkbox labelKey='Create VCS Tag' name='createVcsTag' toggle='true'/]
-[@ui.bambooSection dependsOn='createVcsTag' showOn=true]
-    [@ww.textfield labelKey='Tag URL/name: ' name='tagUrl'/]
-    [@ww.textarea labelKey='Tag comment' name='tagComment' rows='4' /]
-[/@ui.bambooSection]
+[@ww.checkbox labelKey='Create VCS Tag' name='createVcsTag' toggle='true' value='true'/]
+[#--TODO: RE-ENABLE SECTION WHEN DEVING FOR 2.4--]
+[#--[@ui.bambooSection dependsOn='createVcsTag' showOn=true]--]
+[@ww.textfield labelKey='Tag URL/name: ' name='tagUrl'/]
+[@ww.textarea labelKey='Tag comment' name='tagComment' rows='4' /]
+[#--[/@ui.bambooSection]--]
 [@ww.textarea labelKey='Next development version comment' name='nextDevelopmentComment' rows='4' /]
 <div id="artifactoryConfigDiv">
 [@ww.select name='releasePublishingRepo' labelKey='Publishing Repository' list='publishingRepos'
