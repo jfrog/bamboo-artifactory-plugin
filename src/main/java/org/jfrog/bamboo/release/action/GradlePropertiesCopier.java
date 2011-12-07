@@ -11,8 +11,11 @@ import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
@@ -57,10 +60,22 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
             ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl();
             artifact.setName("gradle");
             artifact.setLocation("");
-            File gradleProps = new File(checkoutDir, "gradle.properties");
+
+            StringBuilder buildPropertiesLocation = new StringBuilder();
+            GradleBuildContext gradleBuildContext =
+                    (GradleBuildContext) AbstractBuildContext.createContextFromMap(gradleDefinition.getConfiguration());
+            String buildScriptSubDir = gradleBuildContext.getBuildScript();
+            if (StringUtils.isNotBlank(buildScriptSubDir)) {
+                buildPropertiesLocation.append(buildScriptSubDir);
+                if (!buildScriptSubDir.endsWith(File.separator)) {
+                    buildPropertiesLocation.append(File.separator);
+                }
+            }
+            buildPropertiesLocation.append("gradle.properties");
+            File gradleProps = new File(checkoutDir, buildPropertiesLocation.toString());
             artifact.setCopyPattern(gradleProps.getName());
             artifact.setProducerJobKey(PlanKeys.getPlanKey(buildContext.getPlanKey()));
-            artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, false, 1);
+            artifactManager.publish(buildLogger, planResultKey, gradleProps.getParentFile(), artifact, false, 1);
         }
         return buildContext;
     }
