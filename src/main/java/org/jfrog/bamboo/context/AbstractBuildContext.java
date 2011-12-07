@@ -9,6 +9,7 @@ import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Container object for common build environment properties that is based on the configuration's namespace. Each context
@@ -291,7 +292,7 @@ public abstract class AbstractBuildContext {
             List<ModuleVersionHolder> result = Lists.newArrayList();
             String releaseProps = env.get(prefix + RELEASE_PROPS);
             if (StringUtils.isNotBlank(releaseProps)) {
-                List<String> split = Lists.newArrayList(StringUtils.split(releaseProps, " ,"));
+                List<String> split = Lists.newArrayList(splitAndTrim(releaseProps));
                 for (Map.Entry<String, String> entry : props.entrySet()) {
                     if (Iterables.contains(split, entry.getKey())) {
                         result.add(new ModuleVersionHolder(entry.getKey(), entry.getValue(), true));
@@ -300,19 +301,20 @@ public abstract class AbstractBuildContext {
             }
             String nextIntegProps = env.get(prefix + NEXT_INTEG_PROPS);
             if (StringUtils.isNotBlank(nextIntegProps)) {
-                List<String> split = Lists.newArrayList(StringUtils.split(nextIntegProps, " ,"));
+                List<String> split = Lists.newArrayList(splitAndTrim(nextIntegProps));
                 for (Map.Entry<String, String> entry : props.entrySet()) {
                     final String propertyKey = entry.getKey();
                     if (Iterables.contains(split, propertyKey)) {
-                        ModuleVersionHolder existingReleaseProp =
-                                Iterables.find(result, new Predicate<ModuleVersionHolder>() {
-                                    public boolean apply(ModuleVersionHolder holder) {
-                                        return (holder != null) && holder.getKey().equals(propertyKey);
-                                    }
-                                });
-                        if (existingReleaseProp != null) {
+                        ModuleVersionHolder existingReleaseProp;
+                        try {
+                            existingReleaseProp = Iterables.find(result, new Predicate<ModuleVersionHolder>() {
+                                @Override
+                                public boolean apply(ModuleVersionHolder holder) {
+                                    return (holder != null) && holder.getKey().equals(propertyKey);
+                                }
+                            });
                             existingReleaseProp.setReleaseProp(false);
-                        } else {
+                        } catch (NoSuchElementException e) {
                             result.add(new ModuleVersionHolder(propertyKey, entry.getValue(), false));
                         }
                     }
@@ -344,5 +346,16 @@ public abstract class AbstractBuildContext {
         public String getNextIntegProps() {
             return env.get(prefix + NEXT_INTEG_PROPS);
         }
+    }
+
+    private List<String> splitAndTrim(String releaseProps) {
+        List<String> tokens = Lists.newArrayList();
+        for (String token : StringUtils.split(releaseProps, ",")) {
+            if (StringUtils.isNotBlank(token)) {
+                tokens.add(token.trim());
+            }
+        }
+
+        return tokens;
     }
 }
