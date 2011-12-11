@@ -58,7 +58,9 @@ public class BuilderDependencyHelper implements Serializable {
 
         //Search for older plugin dirs and remove if any exist
         for (File buildDirChild : buildDirParent.listFiles()) {
-            if (buildDirChild.getName().startsWith(pluginDescriptorKey) && !buildDirChild.getName().equals(pluginKey)) {
+            String buildDirChildName = buildDirChild.getName();
+            if (buildDirChildName.startsWith(pluginDescriptorKey) &&
+                    (!buildDirChildName.equals(pluginKey) || buildDirChildName.endsWith("-SNAPSHOT"))) {
                 FileUtils.deleteQuietly(buildDirChild);
                 buildDirChild.delete();
             }
