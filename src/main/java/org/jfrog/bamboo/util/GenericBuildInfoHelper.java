@@ -7,10 +7,17 @@ import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.resources.FileResource;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
+import org.jfrog.bamboo.context.GenericContext;
+import org.jfrog.bamboo.util.generic.PublishedItemsHelper;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.BuildAgent;
@@ -19,11 +26,18 @@ import org.jfrog.build.api.BuildType;
 import org.jfrog.build.api.builder.ArtifactBuilder;
 import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
+import org.jfrog.build.api.util.FileChecksumCalculator;
+import org.jfrog.build.client.ClientProperties;
 import org.jfrog.build.client.DeployDetails;
+import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -42,16 +56,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         this.vcsRevision = vcsRevision;
     }
 
-    public void addCommonProperties(DeployDetails.Builder details) {
-        details.addProperty(BuildInfoFields.BUILD_NAME, context.getPlanName());
-        details.addProperty(BuildInfoFields.BUILD_NUMBER, String.valueOf(context.getBuildNumber()));
-        if (StringUtils.isNotBlank(vcsRevision)) {
-            details.addProperty(BuildInfoFields.VCS_REVISION, vcsRevision);
-        }
-        addBuildParentProperties(details, context.getTriggerReason());
-    }
-
-    public Build extractBuildInfo(BuildContext buildContext, Set<DeployDetails> details, String username) {
+    public Build extractBuildInfo(BuildContext buildContext, String username) {
         String url = determineBambooBaseUrl();
         StringBuilder summaryUrl = new StringBuilder(url);
         if (!url.endsWith("/")) {
@@ -69,11 +74,6 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         if (StringUtils.isNotBlank(vcsRevision)) {
             builder.vcsRevision(vcsRevision);
         }
-        List<Artifact> artifacts = convertDeployDetailsToArtifacts(details);
-        ModuleBuilder moduleBuilder =
-                new ModuleBuilder().id(buildContext.getPlanName() + ":" + buildContext.getBuildNumber())
-                        .artifacts(artifacts);
-        builder.addModule(moduleBuilder.build());
         String principal = getTriggeringUserNameRecursively(buildContext);
         if (StringUtils.isBlank(principal)) {
             principal = "auto";
@@ -81,7 +81,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         builder.principal(principal);
         Map<String, String> props = filterAndGetGlobalVariables();
         props.putAll(env);
-        props = ExtractorUtils.getEscapedEnvMap(props);
+        props = TaskUtils.getEscapedEnvMap(props);
         Properties properties = new Properties();
         properties.putAll(props);
         builder.properties(properties);
@@ -116,6 +116,73 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return principal;
     }
 
+    public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, FileSet> fileSetMap,
+            File rootDir, BuildContext buildContext, GenericContext genericContext)
+            throws IOException, NoSuchAlgorithmException {
+        Set<DeployDetails> details = Sets.newHashSet();
+        Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
+
+        for (Map.Entry<String, FileSet> entry : fileSetMap.entries()) {
+            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), rootDir,
+                    dynamicPropertyMap));
+        }
+        List<Artifact> artifacts = convertDeployDetailsToArtifacts(details);
+        ModuleBuilder moduleBuilder =
+                new ModuleBuilder().id(buildContext.getPlanName() + ":" + buildContext.getBuildNumber())
+                        .artifacts(artifacts);
+        build.setModules(Lists.newArrayList(moduleBuilder.build()));
+        return details;
+    }
+
+    private Map<String, String> getDynamicPropertyMap(Build build) {
+        Properties dynamicProperties = BuildInfoExtractorUtils.filterDynamicProperties(
+                build.getProperties(), BuildInfoExtractorUtils.MATRIX_PARAM_PREDICATE);
+        Properties prefixLessDynamicProperties = BuildInfoExtractorUtils.stripPrefixFromProperties(dynamicProperties,
+                ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX);
+        return Maps.fromProperties(prefixLessDynamicProperties);
+    }
+
+    private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, FileSet> fileSetEntry,
+            String targetRepository, File rootDir, Map<String, String> propertyMap) throws IOException,
+            NoSuchAlgorithmException {
+        Set<DeployDetails> result = Sets.newHashSet();
+        String targetPath = fileSetEntry.getKey();
+        Iterator<FileResource> iterator = fileSetEntry.getValue().iterator();
+        while (iterator.hasNext()) {
+            FileResource fileResource = iterator.next();
+            File file = fileResource.getFile();
+
+            String relativePath = file.getAbsolutePath();
+            if (StringUtils.startsWith(relativePath, rootDir.getAbsolutePath())) {
+                relativePath = StringUtils.removeStart(file.getAbsolutePath(), rootDir.getAbsolutePath());
+            } else {
+                File fileBaseDir = fileResource.getBaseDir();
+                if (fileBaseDir != null) {
+                    relativePath = StringUtils.removeStart(file.getAbsolutePath(), fileBaseDir.getAbsolutePath());
+                }
+            }
+            relativePath = FilenameUtils.separatorsToUnix(relativePath);
+            relativePath = StringUtils.removeStart(relativePath, "/");
+            String path = PublishedItemsHelper.calculateTargetPath(relativePath, targetPath, file.getName());
+            path = StringUtils.replace(path, "//", "/");
+            Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(file, "SHA1", "MD5");
+            DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(file).md5(checksums.get("MD5"))
+                    .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path);
+            addCommonProperties(deployDetails);
+            deployDetails.addProperties(propertyMap);
+            result.add(deployDetails.build());
+        }
+        return result;
+    }
+
+    private void addCommonProperties(DeployDetails.Builder details) {
+        details.addProperty(BuildInfoFields.BUILD_NAME, context.getPlanName());
+        details.addProperty(BuildInfoFields.BUILD_NUMBER, String.valueOf(context.getBuildNumber()));
+        if (StringUtils.isNotBlank(vcsRevision)) {
+            details.addProperty(BuildInfoFields.VCS_REVISION, vcsRevision);
+        }
+        addBuildParentProperties(details, context.getTriggerReason());
+    }
 
     private void addBuildParentProperties(DeployDetails.Builder details, TriggerReason triggerReason) {
         if (triggerReason instanceof DependencyTriggerReason) {

@@ -29,7 +29,8 @@ import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
-import org.jfrog.bamboo.util.ExtractorUtils;
+import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.client.ArtifactoryClientConfiguration;
@@ -112,7 +113,7 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.info.setBuildNumber(buildNumber);
         clientConf.publisher.addMatrixParam("build.number", buildNumber);
 
-        String vcsRevision = context.getBuildChanges().getVcsRevisionKey();
+        String vcsRevision = ScmHelper.getRevisionKey(context);
         if (StringUtils.isNotBlank(vcsRevision)) {
             clientConf.info.setVcsRevision(vcsRevision);
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);
@@ -146,8 +147,8 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
 
         Map<String, String> globalVars = filterAndGetGlobalVariables();
-        globalVars = ExtractorUtils.getEscapedEnvMap(globalVars);
-        globalVars.putAll(ExtractorUtils.getEscapedEnvMap(taskEnv));
+        globalVars = TaskUtils.getEscapedEnvMap(globalVars);
+        globalVars.putAll(TaskUtils.getEscapedEnvMap(taskEnv));
         clientConf.info.addBuildVariables(globalVars);
         clientConf.fillFromProperties(globalVars);
         return clientConf;
@@ -207,17 +208,22 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             clientConf.resolver.setRepoKey(resolutionRepo);
         }
 
+        String globalServerUsername = serverConfig.getUsername();
+        String globalServerPassword = serverConfig.getPassword();
+        clientConf.resolver.setUsername(globalServerUsername);
+        clientConf.resolver.setPassword(globalServerPassword);
+
         String deployerUsername = buildContext.getDeployerUsername();
         if (StringUtils.isBlank(deployerUsername)) {
-            deployerUsername = serverConfig.getUsername();
+            deployerUsername = globalServerUsername;
         }
-        String password = buildContext.getDeployerPassword();
-        if (StringUtils.isBlank(password)) {
-            password = serverConfig.getPassword();
+        String deployerPassword = buildContext.getDeployerPassword();
+        if (StringUtils.isBlank(deployerPassword)) {
+            deployerPassword = globalServerPassword;
         }
         if (StringUtils.isNotBlank(deployerUsername)) {
             clientConf.publisher.setUsername(deployerUsername);
-            clientConf.publisher.setPassword(password);
+            clientConf.publisher.setPassword(deployerPassword);
         }
         boolean publishArtifacts = buildContext.isPublishArtifacts();
         clientConf.publisher.setPublishArtifacts(publishArtifacts);

@@ -15,7 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
+import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -31,19 +32,20 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
 
     private BuildLoggerManager buildLoggerManager;
 
+    @Override
     @NotNull
-    public BuildContext call() throws InterruptedException, Exception {
+    public BuildContext call() throws Exception {
         PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
         BuildLogger logger = buildLoggerManager.getBuildLogger(planKey);
         setBuildLogger(logger);
         logger.startStreamingBuildLogs(buildContext.getPlanResultKey());
-        List<TaskDefinition> definitions = buildContext.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition definition = TaskHelper.findMavenOrGradleTask(definitions);
-        if (definition == null) {
+        List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
+        TaskDefinition mavenOrGradleDefinition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
+        if (mavenOrGradleDefinition == null) {
             log.debug("[RELEASE] Task definition is not Maven or Gradle");
             return buildContext;
         }
-        Map<String, String> configuration = definition.getConfiguration();
+        Map<String, String> configuration = mavenOrGradleDefinition.getConfiguration();
         BuildContext parentBuildContext = buildContext.getParentBuildContext();
         if (parentBuildContext == null) {
             log.debug("[RELEASE] No parent build context found, resuming normally");
@@ -56,7 +58,8 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
             log.debug("[RELEASE] Release management is not active, resuming normally");
             return buildContext;
         }
-        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, planKey, logger);
+
+        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger);
         if (provider == null) {
             return buildContext;
         }
@@ -81,12 +84,12 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
                 log("Build completed successfully");
                 provider.afterSuccessfulReleaseVersionBuild();
                 provider.beforeDevelopmentVersionChange();
-                Repository repository = buildContext.getBuildDefinition().getRepository();
+                Repository repository = ScmHelper.getRepository(buildContext);
                 if (repository == null) {
                     log("No VCS repository found, resuming normally");
                     return buildContext;
                 }
-                boolean modified = provider.transformDescriptor(configuration, false, buildContext.getPlanKey());
+                boolean modified = provider.transformDescriptor(configuration, false);
                 provider.afterDevelopmentVersionChange(modified);
             }
         } finally {

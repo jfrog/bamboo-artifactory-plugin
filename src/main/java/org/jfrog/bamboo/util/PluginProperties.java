@@ -26,13 +26,13 @@ import java.util.Properties;
 /**
  * @author Noam Y. Tenne
  */
-public class PluginUtils {
+public class PluginProperties {
 
     private static final String PLUGIN_KEY = "plugin.key";
     private static final String PLUGIN_DESCRIPTOR_KEY = "plugin.descriptor.key";
-    public static final String GRADLE_KEY = "gradle.dependency.file.name";
-    public static final String IVY_KEY = "ivy.dependency.file.name";
-    public static final String MAVEN3_KEY = "maven3.dependency.file.name";
+    public static final String GRADLE_DEPENDENCY_FILENAME_KEY = "gradle.dependency.file.name";
+    public static final String IVY_DEPENDENCY_FILENAME_KEY = "ivy.dependency.file.name";
+    public static final String MAVEN3_DEPENDENCY_FILENAME_KEY = "maven3.dependency.file.name";
 
     private static Properties pluginProperties;
 
@@ -47,7 +47,8 @@ public class PluginUtils {
     public static String getPluginKey() {
         String pluginKey = pluginProperties.getProperty(PLUGIN_KEY);
         if (StringUtils.isBlank(pluginKey)) {
-            throw new IllegalStateException("Could not find " + PLUGIN_KEY + " property within artifactory.plugin.properties.");
+            throw new IllegalStateException(
+                    "Could not find " + PLUGIN_KEY + " property within artifactory.plugin.properties.");
         }
 
         return pluginKey;
@@ -66,7 +67,8 @@ public class PluginUtils {
     public static String getPluginProperty(String propertyName) {
         String maven3DependencyFileName = pluginProperties.getProperty(propertyName);
         if (StringUtils.isBlank(maven3DependencyFileName)) {
-            throw new IllegalStateException("Could not find " + propertyName + " property within artifactory.plugin.properties.");
+            throw new IllegalStateException(
+                    "Could not find " + propertyName + " property within artifactory.plugin.properties.");
         }
 
         return maven3DependencyFileName;

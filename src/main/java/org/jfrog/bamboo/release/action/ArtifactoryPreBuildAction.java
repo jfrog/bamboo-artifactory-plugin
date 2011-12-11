@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,23 +30,24 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
 
     private BuildLoggerManager buildLoggerManager;
 
+    @Override
     @NotNull
     public BuildContext call() throws Exception {
         PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
         BuildLogger logger = buildLoggerManager.getBuildLogger(planKey);
         setBuildLogger(logger);
         logger.startStreamingBuildLogs(buildContext.getPlanResultKey());
-        List<TaskDefinition> definitions = buildContext.getBuildDefinition().getTaskDefinitions();
-        if (definitions.isEmpty()) {
+        List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
+        if (taskDefinitions.isEmpty()) {
             log("No task definitions found for this build");
             return buildContext;
         }
-        TaskDefinition definition = TaskHelper.findMavenOrGradleTask(definitions);
-        if (definition == null) {
+        TaskDefinition mavenOrGradleDefinition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
+        if (mavenOrGradleDefinition == null) {
             log.debug("[RELEASE] Build is not a Maven or Gradle build");
             return buildContext;
         }
-        Map<String, String> configuration = definition.getConfiguration();
+        Map<String, String> configuration = mavenOrGradleDefinition.getConfiguration();
         BuildContext parentBuildContext = buildContext.getParentBuildContext();
         if (parentBuildContext == null) {
             log.debug("[RELEASE] Release management is not active, resuming normally");
@@ -59,7 +60,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
             log.debug("[RELEASE] Release management is not active, resuming normally");
             return buildContext;
         }
-        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, planKey, logger);
+        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger);
         if (provider == null) {
             String message = "Release Provider could not be built";
             log.error(logger.addBuildLogEntry(message));
@@ -69,8 +70,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
         log.info(logger.addBuildLogEntry("[RELEASE] Release Build Active"));
         provider.prepare();
         provider.beforeReleaseVersionChange();
-        boolean modified =
-                provider.transformDescriptor(configuration, true, buildContext.getPlanKey());
+        boolean modified = provider.transformDescriptor(configuration, true);
         customBuildData.put(ReleaseProvider.MODIFIED_FILES_FOR_RELEASE, String.valueOf(modified));
         customBuildData.put(ReleaseProvider.CURRENT_CHECKOUT_BRANCH, provider.getCurrentCheckoutBranch());
         customBuildData.put(ReleaseProvider.CURRENT_WORKING_BRANCH, provider.getCurrentWorkingBranch());

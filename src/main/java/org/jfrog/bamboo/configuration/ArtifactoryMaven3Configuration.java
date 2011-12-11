@@ -2,6 +2,7 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.google.common.collect.Lists;
@@ -22,14 +23,12 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     private static final Set<String> FIELDS_TO_COPY = Maven3BuildContext.getFieldsToCopy();
     private static final String DEFAULT_TEST_RESULTS_FILE_PATTERN = "**/target/surefire-reports/*.xml";
 
-
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
         context.put("maven3Task", this);
         context.put("builderType", this);
         context.put("builder", this);
-        //context.put("adminConfig", administrationConfiguration);
         context.put("baseUrl", administrationConfiguration.getBaseUrl());
         Plan plan = (Plan) context.get("plan");
         context.put("build", plan);
@@ -40,7 +39,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("selectedRepoKey", "");
         context.put("resolutionArtifactoryServerId", -1);
         context.put("selectedResolutionRepoKey", "");
-        Repository repository = plan.getBuildDefinition().getRepository();
+        Repository repository = PlanHelper.getDefaultRepository(plan).getRepository();
         if (repository != null) {
             String host = repository.getHost();
             context.put("builder.artifactoryMaven3Builder.vcsTagBase", host);
@@ -61,6 +60,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         if (resolutionRepo == null) {
             resolutionRepo = "";
         }
+        context.put("selectedResolutionArtifactoryServerId", buildContext.getResolutionArtifactoryServerId());
         context.put("selectedResolutionRepoKey", resolutionRepo);
         context.put("selectedServerId", buildContext.getArtifactoryServerId());
         context.put("hasTests", buildContext.isTestChecked());

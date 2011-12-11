@@ -46,61 +46,61 @@ If your project applies the Artifactory plugin using a custom init script, make 
 [@ww.checkbox labelKey='Capture and Publish Build Info' name='publishBuildInfo'
 toggle='true' descriptionKey='Check if you wish to publish build information to Artifactory.'/]
 
-[@ui.bambooSection dependsOn='publishBuildInfo' showOn='true']
-[@ww.checkbox labelKey='Include All Environment Variables' name='builder.artifactoryGradleBuilder.includeEnvVars'
-toggle='true' descriptionKey='Check if you wish to include all environment variables accessible by the builds process.'/]
+[@ui.bambooSection dependsOn='publishBuildInfo' showOn=true]
+    [@ww.checkbox labelKey='Include All Environment Variables' name='builder.artifactoryGradleBuilder.includeEnvVars'
+    toggle='true' descriptionKey='Check if you wish to include all environment variables accessible by the builds process.'/]
 
-[@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
-toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
+    [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
+    toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
 
-[@ui.bambooSection dependsOn='runLicenseChecks' showOn='true']
-[@ww.textfield labelKey='Send License Violation Notifications to'
-name='builder.artifactoryGradleBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
+    [@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
+        [@ww.textfield labelKey='Send License Violation Notifications to'
+        name='builder.artifactoryGradleBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
 
-[@ww.textfield labelKey='Limit Checks to The Following Scopes'
-name='builder.artifactoryGradleBuilder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
+        [@ww.textfield labelKey='Limit Checks to The Following Scopes'
+        name='builder.artifactoryGradleBuilder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
 
-[@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryGradleBuilder.includePublishedArtifacts'
-toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
+        [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryGradleBuilder.includePublishedArtifacts'
+        toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
                 as dependencies for other modules in this build."/]
 
-[@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryGradleBuilder.disableAutoLicenseDiscovery'
-toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
+        [@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryGradleBuilder.disableAutoLicenseDiscovery'
+        toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
                 upon deployment. You can still attach license information manually by running 'Auto-Find' from the build's
                 Licenses tab in Artifactory."/]
-[/@ui.bambooSection]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 
 [@ww.checkbox labelKey='Publish Artifacts to Artifactory' name='publishArtifacts' toggle='true'
 descriptionKey='Check if you wish to publish produced build artifacts to Artifactory.'/]
 
-[@ui.bambooSection dependsOn='publishArtifacts' showOn='true']
+[@ui.bambooSection dependsOn='publishArtifacts' showOn=true]
 
-[@ww.checkbox labelKey='Publish Maven Descriptors' name='builder.artifactoryGradleBuilder.publishMavenDescriptors' toggle='true'
-descriptionKey='Check if you wish to publish Gradle-generated POM files to Artifactory. Note: Maven descriptors are always deployed according to the Maven layout convention.'/]
+    [@ww.checkbox labelKey='Publish Maven Descriptors' name='builder.artifactoryGradleBuilder.publishMavenDescriptors' toggle='true'
+    descriptionKey='Check if you wish to publish Gradle-generated POM files to Artifactory. Note: Maven descriptors are always deployed according to the Maven layout convention.'/]
 
-[@ww.checkbox labelKey='Publish Ivy Descriptors' name='builder.artifactoryGradleBuilder.publishIvyDescriptors' toggle='true'
-descriptionKey='Check if you wish to publish Gradle-generated ivy.xml descriptor files to Artifactory.'/]
+    [@ww.checkbox labelKey='Publish Ivy Descriptors' name='builder.artifactoryGradleBuilder.publishIvyDescriptors' toggle='true'
+    descriptionKey='Check if you wish to publish Gradle-generated ivy.xml descriptor files to Artifactory.'/]
 
-[@ww.checkbox labelKey='Use Maven 2 Compatible Patterns' name='useM2CompatiblePatterns' toggle='true'
-descriptionKey='Whether to use the default Maven 2 patterns when publishing artifacts and Ivy descriptors, or to use custom patterns.'/]
+    [@ww.checkbox labelKey='Use Maven 2 Compatible Patterns' name='useM2CompatiblePatterns' toggle='true'
+    descriptionKey='Whether to use the default Maven 2 patterns when publishing artifacts and Ivy descriptors, or to use custom patterns.'/]
 
-[@ui.bambooSection dependsOn='useM2CompatiblePatterns' showOn='false']
-[@ww.textfield labelKey='Ivy Pattern' name='builder.artifactoryGradleBuilder.ivyPattern'
-descriptionKey='The <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">pattern</a> to use for published Ivy descriptors.'/]
-[@ww.textfield labelKey='Artifact Pattern' name='builder.artifactoryGradleBuilder.artifactPattern'
-descriptionKey='The <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">pattern</a> to use for published artifacts.'/]
-[/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='useM2CompatiblePatterns' showOn='false']
+        [@ww.textfield labelKey='Ivy Pattern' name='builder.artifactoryGradleBuilder.ivyPattern'
+        descriptionKey='The <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">pattern</a> to use for published Ivy descriptors.'/]
+        [@ww.textfield labelKey='Artifact Pattern' name='builder.artifactoryGradleBuilder.artifactPattern'
+        descriptionKey='The <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">pattern</a> to use for published artifacts.'/]
+    [/@ui.bambooSection]
 
-[@ww.textfield labelKey='Publication Include Patterns'
-name='builder.artifactoryGradleBuilder.publishIncludePatterns'
-descriptionKey='Comma or space-separated list of
+    [@ww.textfield labelKey='Publication Include Patterns'
+    name='builder.artifactoryGradleBuilder.publishIncludePatterns'
+    descriptionKey='Comma or space-separated list of
     <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
     of files that will be included in publishing. Include patterns are applied on the published file path before any
     exclude patterns.'/]
-[@ww.textfield labelKey='Publication Exclude Patterns'
-name='builder.artifactoryGradleBuilder.publishExcludePatterns'
-descriptionKey='Comma or space-separated list of
+    [@ww.textfield labelKey='Publication Exclude Patterns'
+    name='builder.artifactoryGradleBuilder.publishExcludePatterns'
+    descriptionKey='Comma or space-separated list of
     <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
     of files that will be excluded from publishing. Exclude patterns are applied on the published file path before any
     exclude patterns.'/]
@@ -109,31 +109,31 @@ descriptionKey='Comma or space-separated list of
 [@ww.checkbox labelKey='Enable Release Management' name='enableReleaseManagement' toggle='true'
 descriptionKey='Enable Release Management to Artifactory'/]
 
-[@ui.bambooSection dependsOn='enableReleaseManagement' showOn='true']
-[@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryGradleBuilder.vcsTagBase'
-descriptionKey='For subversion this is the URL of the tags location, for Git this is the name of the tag.'/]
-[@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryGradleBuilder.gitReleaseBranch'
-descriptionKey='The prefix of the release branch name (applicable only to Git).'/]
-[@ww.textfield labelKey='Release Properties' name='builder.artifactoryGradleBuilder.releaseProps'
-descriptionKey='Properties in your projects gradle.properties file whose value should change upon release.'/]
-[@ww.textfield labelKey='Next Integration Properties' name='builder.artifactoryGradleBuilder.nextIntegProps'
-descriptionKey='Properties in your projects gradle.properties file whose value should change upon release, but also for work on the next integration/development version after the release has been created. '/]
-[@ww.textfield labelKey='Alternative Gradle Tasks and Options' name='builder.artifactoryGradleBuilder.alternativeTasks'
-descriptionKey='Alternative tasks and options to execute for a Gradle build running as part of the release. If left empty, the build will use original tasks and options instead of replacing them. '/]
+[@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
+    [@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryGradleBuilder.vcsTagBase'
+    descriptionKey='For subversion this is the URL of the tags location, for Git this is the name of the tag.'/]
+    [@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryGradleBuilder.gitReleaseBranch'
+    descriptionKey='The prefix of the release branch name (applicable only to Git).'/]
+    [@ww.textfield labelKey='Release Properties' name='builder.artifactoryGradleBuilder.releaseProps'
+    descriptionKey='Properties in your projects gradle.properties file whose value should change upon release.'/]
+    [@ww.textfield labelKey='Next Integration Properties' name='builder.artifactoryGradleBuilder.nextIntegProps'
+    descriptionKey='Properties in your projects gradle.properties file whose value should change upon release, but also for work on the next integration/development version after the release has been created. '/]
+    [@ww.textfield labelKey='Alternative Gradle Tasks and Options' name='builder.artifactoryGradleBuilder.alternativeTasks'
+    descriptionKey='Alternative tasks and options to execute for a Gradle build running as part of the release. If left empty, the build will use original tasks and options instead of replacing them. '/]
 [/@ui.bambooSection]
 
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']
-[@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
+    [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
 
-[@ui.bambooSection dependsOn='testChecked' showOn='true']
-[@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
-listKey='key' listValue='value' toggle='true'
-list=testDirectoryTypes ]
-[/@ww.radio]
-[@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
-[@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryGradleBuilder.testResultsDirectory' /]
-[/@ui.bambooSection]
-[/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='testChecked' showOn=true]
+        [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
+        listKey='key' listValue='value' toggle='true'
+        list=testDirectoryTypes ]
+        [/@ww.radio]
+        [@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
+            [@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryGradleBuilder.testResultsDirectory' /]
+        [/@ui.bambooSection]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 </div>
 
@@ -153,18 +153,18 @@ list=testDirectoryTypes ]
                     break;
                 }
             }
-            loadGradleResovlingRepoKeys(serverId)
+            loadGradleResolvingRepoKeys(serverId)
             loadGradlePublishRepoKeys(serverId)
         }
     }
 
     function loadGradlePublishRepoKeys(serverId) {
         AJS.$.ajax({
-            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
                     '&deployableRepos=true',
-            dataType: 'json',
-            cache: false,
-            success: function (json) {
+            dataType:'json',
+            cache:false,
+            success:function (json) {
                 var repoSelect = document
                         .getElementsByName('builder.artifactoryGradleBuilder.publishingRepo')[0];
                 repoSelect.innerHTML = '';
@@ -184,7 +184,7 @@ list=testDirectoryTypes ]
                     }
                 }
             },
-            error : function (XMLHttpRequest, textStatus, errorThrown) {
+            error:function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the publishing repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {
@@ -199,13 +199,13 @@ list=testDirectoryTypes ]
         });
     }
 
-    function loadGradleResovlingRepoKeys(serverId) {
+    function loadGradleResolvingRepoKeys(serverId) {
         AJS.$.ajax({
-            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
                     '&resolvingRepos=true',
-            dataType: 'json',
-            cache: false,
-            success: function (json) {
+            dataType:'json',
+            cache:false,
+            success:function (json) {
                 var repoSelect = document
                         .getElementsByName('builder.artifactoryGradleBuilder.resolutionRepo')[0];
                 repoSelect.innerHTML = '';
@@ -231,7 +231,7 @@ list=testDirectoryTypes ]
                     }
                 }
             },
-            error : function (XMLHttpRequest, textStatus, errorThrown) {
+            error:function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the resolving repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {

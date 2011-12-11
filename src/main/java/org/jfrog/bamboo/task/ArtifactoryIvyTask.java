@@ -28,7 +28,7 @@ import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
 import org.jfrog.bamboo.util.IvyPropertyHelper;
-import org.jfrog.bamboo.util.PluginUtils;
+import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 
 import java.io.File;
@@ -162,7 +162,8 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(workingDirectory, context, PluginUtils.IVY_KEY);
+        return dependencyHelper.downloadDependenciesAndGetPath(workingDirectory, context,
+                PluginProperties.IVY_DEPENDENCY_FILENAME_KEY);
     }
 
     @Override

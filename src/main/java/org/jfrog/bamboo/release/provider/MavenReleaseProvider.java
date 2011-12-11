@@ -1,13 +1,14 @@
 package org.jfrog.bamboo.release.provider;
 
+import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.build.extractor.maven.reader.ModuleName;
 import org.jfrog.build.extractor.maven.reader.ProjectReader;
 import org.jfrog.build.extractor.maven.transformer.PomTransformer;
@@ -24,11 +25,17 @@ import java.util.Map;
 public class MavenReleaseProvider extends AbstractReleaseProvider {
 
     protected MavenReleaseProvider(AbstractBuildContext buildContext, BuildContext buildDefinition,
-            PlanKey planKey, BuildLogger buildLogger) {
-        super(buildContext, buildDefinition, planKey, buildLogger);
+            BuildLogger buildLogger) {
+        super(buildContext, buildDefinition, buildLogger);
     }
 
-    public boolean transformDescriptor(Map<String, String> conf, boolean release, String planKey)
+    @Override
+    protected Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition) {
+        return TaskDefinitionHelper.findMavenDefinition(definition.getTaskDefinitions()).getConfiguration();
+    }
+
+    @Override
+    public boolean transformDescriptor(Map<String, String> conf, boolean release)
             throws IOException, InterruptedException, RepositoryException {
         String moduleVersionConf = conf.get(MODULE_VERSION_CONFIGURATION);
         if (StringUtils.isBlank(moduleVersionConf)) {
@@ -37,7 +44,7 @@ public class MavenReleaseProvider extends AbstractReleaseProvider {
         if (CFG_USE_EXISTING_VERSION.equals(moduleVersionConf)) {
             return false;
         }
-        File rootDir = getSourceDir(planKey);
+        File rootDir = getSourceDir();
         if (rootDir == null) {
             return false;
         }

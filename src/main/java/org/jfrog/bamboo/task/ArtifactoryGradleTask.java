@@ -32,8 +32,8 @@ import org.jfrog.bamboo.builder.GradleInitScriptHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
-import org.jfrog.bamboo.util.ExtractorUtils;
-import org.jfrog.bamboo.util.PluginUtils;
+import org.jfrog.bamboo.util.PluginProperties;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.gradle.plugin.artifactory.extractor.BuildInfoTask;
 
 import java.io.File;
@@ -127,7 +127,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                 command.add("-I");
                 command.add(Commandline.quoteArgument(pathHolder.getInitScriptPath()));
             }
-            ExtractorUtils.appendBuildInfoPropertiesArgument(command, pathHolder.getClientConfPath());
+            TaskUtils.appendBuildInfoPropertiesArgument(command, pathHolder.getClientConfPath());
             command.add(BuildInfoTask.BUILD_INFO_TASK_NAME);
         }
 
@@ -152,7 +152,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     }
 
     private ConfigurationPathHolder getGradleInitScriptFile(TaskContext taskContext, GradleBuildContext buildContext) {
-        File gradleJarFile = new File(gradleDependenciesDir, PluginUtils.getPluginProperty(PluginUtils.GRADLE_KEY));
+        File gradleJarFile = new File(gradleDependenciesDir, PluginProperties
+                .getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
         if (!gradleJarFile.exists()) {
             log.warn("Unable to locate the Gradle extractor. Build-info task will not be added.");
             return null;
@@ -239,7 +240,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(workingDirectory, context, PluginUtils.GRADLE_KEY);
+        return dependencyHelper.downloadDependenciesAndGetPath(workingDirectory, context,
+                PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY);
     }
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {

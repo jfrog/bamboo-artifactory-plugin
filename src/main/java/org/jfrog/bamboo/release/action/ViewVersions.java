@@ -1,9 +1,9 @@
 package org.jfrog.bamboo.release.action;
 
-import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.atlassian.bamboo.plugins.git.GitHubRepository;
 import com.atlassian.bamboo.plugins.git.GitRepository;
@@ -30,7 +30,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.util.ConstantValues;
-import org.jfrog.bamboo.util.TaskHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VersionHelper;
 
 import java.io.IOException;
@@ -53,7 +53,6 @@ public class ViewVersions extends BuildActionSupport {
                     ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
                     ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
     private String moduleVersionConfiguration = ReleaseProvider.CFG_ONE_VERSION;
-    private BuildLoggerManager buildLoggerManager;
     private boolean createVcsTag = true;
     private String tagUrl;
     private String tagComment;
@@ -93,17 +92,18 @@ public class ViewVersions extends BuildActionSupport {
                 log.warn("No task definitions defined");
                 return Lists.newArrayList();
             }
-            TaskDefinition definition = taskDefinitions.get(0);
-            AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
-            if (context == null) {
-                return Lists.newArrayList();
+            for (TaskDefinition definition : taskDefinitions) {
+                AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
+                if (context != null) {
+                    VersionHelper versionHelper =
+                            VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
+                    if (versionHelper != null) {
+                        int latestBuildNumberWithBuildInfo = findLatestBuildNumberWithBuildInfo();
+                        setVersions(
+                                versionHelper.filterPropertiesForRelease(getPlan(), latestBuildNumberWithBuildInfo));
+                    }
+                }
             }
-            VersionHelper versionHelper = VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
-            if (versionHelper == null) {
-                return Lists.newArrayList();
-            }
-            int latestBuildNumberWithBuildInfo = findLatestBuildNumberWithBuildInfo();
-            setVersions(versionHelper.filterPropertiesForRelease(getPlan(), latestBuildNumberWithBuildInfo));
         }
         OgnlValueStack stack = ActionContext.getContext().getValueStack();
         stack.push(versions);
@@ -143,7 +143,7 @@ public class ViewVersions extends BuildActionSupport {
     public boolean isGradle() {
         Job job = getPlanJob();
         List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-        return TaskHelper.findGradleBuild(definitions) != null;
+        return TaskDefinitionHelper.findGradleDefinition(definitions) != null;
     }
 
     /**
@@ -155,7 +155,7 @@ public class ViewVersions extends BuildActionSupport {
     public boolean isMaven() {
         Job job = getPlanJob();
         List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-        return TaskHelper.findMavenBuild(definitions) != null;
+        return TaskDefinitionHelper.findMavenDefinition(definitions) != null;
     }
 
     /**
@@ -165,8 +165,7 @@ public class ViewVersions extends BuildActionSupport {
      * @return True if this build is using GIT as its SCM.
      */
     public boolean isGit() {
-        Job job = getPlanJob();
-        Repository repository = job.getBuildDefinition().getRepository();
+        Repository repository = getRepository();
         if (repository == null) {
             return false;
         }
@@ -175,12 +174,15 @@ public class ViewVersions extends BuildActionSupport {
                 "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(className);
     }
 
+    private Repository getRepository() {
+        return PlanHelper.getDefaultRepository(getPlan()).getRepository();
+    }
+
     public boolean isUseShallowClone() {
         if (!isGit()) {
             return false;
         }
-        Job job = getPlanJob();
-        Repository repository = job.getBuildDefinition().getRepository();
+        Repository repository = getRepository();
         if (repository == null) {
             return false;
         }
@@ -234,7 +236,7 @@ public class ViewVersions extends BuildActionSupport {
         String createVcsTag = createVcsTagParam != null ? createVcsTagParam[0] : "false";
         configuration.put(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG, createVcsTag);
         configuration.put(ReleaseProvider.MODULE_VERSION_CONFIGURATION, getModuleVersionConfiguration());
-        TaskDefinition definition = TaskHelper.findMavenOrGradleTask(taskDefinitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
         if (definition == null) {
             log.error("No Maven or Gradle task found in job");
             return ERROR;
@@ -253,7 +255,7 @@ public class ViewVersions extends BuildActionSupport {
         if (taskDefinitions.isEmpty()) {
             return "";
         }
-        TaskDefinition definition = TaskHelper.findMavenOrGradleTask(taskDefinitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
         if (definition == null) {
             return "";
         }
@@ -348,7 +350,7 @@ public class ViewVersions extends BuildActionSupport {
     public String getReleasePublishingRepo() {
         if (StringUtils.isBlank(releasePublishingRepo)) {
             List<TaskDefinition> definitions = getPlanJob().getBuildDefinition().getTaskDefinitions();
-            TaskDefinition definition = TaskHelper.findMavenOrGradleTask(definitions);
+            TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
             if (definition == null) {
                 return "";
             }
@@ -371,7 +373,7 @@ public class ViewVersions extends BuildActionSupport {
     private String getDefaultTagUrl() {
         Job job = getPlanJob();
         List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition definition = TaskHelper.findMavenOrGradleTask(definitions);
+        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
         if (definition == null) {
             return "";
         }
@@ -382,8 +384,7 @@ public class ViewVersions extends BuildActionSupport {
     }
 
     private String getBaseTagUrlAccordingToScm(String baseTagUrl) {
-        Job job = getPlanJob();
-        Repository repository = job.getBuildDefinition().getRepository();
+        Repository repository = getRepository();
         if (repository == null) {
             return baseTagUrl;
         }
@@ -391,10 +392,6 @@ public class ViewVersions extends BuildActionSupport {
             return baseTagUrl + "/";
         }
         return baseTagUrl;
-    }
-
-    public void setBuildLoggerManager(BuildLoggerManager buildLoggerManager) {
-        this.buildLoggerManager = buildLoggerManager;
     }
 
     public boolean isUseReleaseBranch() {
@@ -411,7 +408,7 @@ public class ViewVersions extends BuildActionSupport {
             if (taskDefinitions.isEmpty()) {
                 return "";
             }
-            TaskDefinition definition = TaskHelper.findMavenOrGradleTask(taskDefinitions);
+            TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
             if (definition == null) {
                 return "";
             }

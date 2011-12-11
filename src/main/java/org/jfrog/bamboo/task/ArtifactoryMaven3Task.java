@@ -11,13 +11,16 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
+import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +28,9 @@ import org.jfrog.bamboo.builder.ArtifactoryBuildInfoPropertyHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.ExtractorUtils;
 import org.jfrog.bamboo.util.MavenPropertyHelper;
-import org.jfrog.bamboo.util.PluginUtils;
+import org.jfrog.bamboo.util.PluginProperties;
+import org.jfrog.bamboo.util.TaskUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +45,8 @@ import java.util.Map;
  */
 public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     private static final Logger log = Logger.getLogger(ArtifactoryMaven3Task.class);
+
+    private static final String JDK_LABEL_KEY = "system.jdk.";
 
     public static final String TASK_NAME = "maven3Task";
     private BuilderDependencyHelper dependencyHelper;
@@ -141,7 +146,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             log.error("No Maven executable found");
             return command;
         }
-        if (ExtractorUtils.IS_WINDOWS) {
+        if (SystemUtils.IS_OS_WINDOWS) {
             command.add("cmd.exe");
             command.add("/c");
             command.add("call");
@@ -173,7 +178,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     private void appendClassPathArguments(List<String> arguments, String mavenHomePath) {
         arguments.add("-cp");
 
-        StringBuilder classPathBuilder = ExtractorUtils.getPathBuilder(mavenHomePath).append("boot");
+        StringBuilder classPathBuilder = getPathBuilder(mavenHomePath).append("boot");
         String mavenBootPath = classPathBuilder.toString();
 
         File mavenBootFolder = new File(mavenBootPath);
@@ -186,7 +191,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             if (StringUtils.startsWithIgnoreCase(bootJar, "plexus-classworlds") &&
                     StringUtils.endsWithIgnoreCase(bootJar, ".jar")) {
                 classPathBuilder.append(File.separator).append(bootJar);
-                String classPath = ExtractorUtils.getCanonicalPath(classPathBuilder.toString());
+                String classPath = getCanonicalPath(classPathBuilder.toString());
                 arguments.add(Commandline.quoteArgument(classPath));
                 return;
             }
@@ -214,9 +219,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      * @param mavenHomePath Path to Maven installation home
      */
     private void appendClassWorldsConfArgument(List<String> arguments, String mavenHomePath) {
-        String originalConfPath =
-                ExtractorUtils.getPathBuilder(mavenHomePath).append("bin").append(File.separator).append("m2.conf").
-                        toString();
+        String originalConfPath = getPathBuilder(mavenHomePath).append("bin").append(File.separator).append("m2.conf").
+                toString();
 
         String m2ConfPath;
 
@@ -244,7 +248,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
 
     private void appendBuildInfoPropertiesArgument(List<String> arguments) {
         if (activateBuildInfoRecording) {
-            ExtractorUtils.appendBuildInfoPropertiesArgument(arguments, buildInfoPropertiesFile);
+            TaskUtils.appendBuildInfoPropertiesArgument(arguments, buildInfoPropertiesFile);
         }
     }
 
@@ -261,7 +265,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(workingDir, context, PluginUtils.MAVEN3_KEY);
+        return dependencyHelper.downloadDependenciesAndGetPath(workingDir, context,
+                PluginProperties.MAVEN3_DEPENDENCY_FILENAME_KEY);
     }
 
     /**
@@ -271,7 +276,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      */
     @Override
     public String getExecutable(AbstractBuildContext context) throws TaskException {
-        return ExtractorUtils.getJavaHome(context, capabilityContext);
+        return getJavaHome(context, capabilityContext);
     }
 
     private void appendAdditionalMavenParameters(List<String> arguments, Maven3BuildContext context) {
@@ -294,5 +299,75 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
 
     private String getStringWithoutNewLines(String stringToModify) {
         return StringUtils.replaceChars(stringToModify, "\r\n", "  ");
+    }
+
+    /**
+     * Get the path to the Java home that was defined for the build.
+     *
+     * @param context           The build context that is defined for the current build environment.
+     * @param capabilityContext The capability context of the build.
+     * @return The path to the Java home.
+     */
+    public String getJavaHome(AbstractBuildContext context, CapabilityContext capabilityContext) {
+        String jdkHome;
+        String jdkCapabilityKey = (new StringBuilder()).append(JDK_LABEL_KEY).append(context.getJdkLabel()).toString();
+        ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
+        if (capabilitySet == null) {
+            return null;
+        }
+        Capability capability = capabilitySet.getCapability(jdkCapabilityKey);
+        if (capability != null) {
+            jdkHome = capability.getValue();
+        } else {
+            return null;
+        }
+        if (StringUtils.isBlank(jdkHome)) {
+            return null;
+        }
+        StringBuilder binPathBuilder = getPathBuilder(jdkHome);
+        if (SystemUtils.IS_OS_WINDOWS) {
+            binPathBuilder.append("bin").append(File.separator).append("java.exe");
+        } else {
+            // IBM's AIX JDK has different locations
+            String aixJdkLocation = "jre" + File.separator + "sh" + File.separator + "java";
+            File aixJdk = new File(binPathBuilder.toString() + aixJdkLocation);
+            if (aixJdk.isFile()) {
+                binPathBuilder.append(aixJdkLocation);
+            } else {
+                binPathBuilder.append("bin").append(File.separator).append("java");
+            }
+        }
+        String binPath = binPathBuilder.toString();
+        binPath = getCanonicalPath(binPath);
+        return binPath;
+    }
+
+    /**
+     * Returns a {@link StringBuilder} starting with a given base path and ending with a file-system separator
+     *
+     * @param basePath Base path
+     * @return String builder
+     */
+    public StringBuilder getPathBuilder(String basePath) {
+        StringBuilder confPathBuilder = new StringBuilder(basePath);
+        if (!basePath.endsWith(File.separator)) {
+            confPathBuilder.append(File.separator);
+        }
+        return confPathBuilder;
+    }
+
+    /**
+     * @return The canonical path for a path.
+     */
+    public String getCanonicalPath(String path) {
+        if (StringUtils.contains(path, " ")) {
+            try {
+                File f = new File(path);
+                path = f.getCanonicalPath();
+            } catch (IOException e) {
+                throw new RuntimeException("IO Exception trying to get canonical path of item: " + path, e);
+            }
+        }
+        return path;
     }
 }

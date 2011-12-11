@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright (C) 2010 JFrog Ltd.
   ~
@@ -14,16 +13,12 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jfrog.bamboo</groupId>
     <artifactId>bamboo-artifactory-plugin</artifactId>
-    <version>1.4.x-SNAPSHOT</version>
+    <version>1.5.x-SNAPSHOT</version>
     <name>Bamboo Artifactory Plugin</name>
     <description>Artifactory Build Info plugin for Atlassian Bamboo.</description>
 
@@ -55,15 +50,15 @@
     </scm>
 
     <properties>
-        <bamboo.version>3.2.2</bamboo.version>
+        <bamboo.version>3.3.2</bamboo.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <gradle.version>2.0.x-SNAPSHOT</gradle.version>
-        <ivy.version>2.0.2</ivy.version>
-        <maven.version>2.0.x-SNAPSHOT</maven.version>
+        <gradle.version>2.0.8</gradle.version>
+        <ivy.version>2.0.3</ivy.version>
+        <maven.version>2.0.5</maven.version>
     </properties>
 
     <dependencies>
@@ -88,7 +83,7 @@
         <dependency>
             <groupId>com.atlassian.bamboo.plugins</groupId>
             <artifactId>atlassian-bamboo-plugin-git</artifactId>
-            <version>1.5.3</version>
+            <version>1.6.5</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -135,7 +130,13 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>5.14.2</version>
+            <version>6.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -151,7 +152,7 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-bamboo-plugin</artifactId>
-                <version>3.4</version>
+                <version>3.7</version>
                 <extensions>true</extensions>
                 <configuration>
                     <productVersion>${bamboo.version}</productVersion>
@@ -175,8 +176,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -246,17 +247,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.9</version>
+                <version>2.10</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.9</version>
+                <version>2.10</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <version>1.5</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

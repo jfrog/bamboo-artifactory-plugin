@@ -1,14 +1,13 @@
 package org.jfrog.bamboo.release.scm.git;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plugins.git.GitAuthenticationType;
 import com.atlassian.bamboo.plugins.git.GitHubRepository;
 import com.atlassian.bamboo.plugins.git.GitRepository;
 import com.atlassian.bamboo.repository.AbstractRepository;
 import com.atlassian.bamboo.repository.Repository;
-import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.security.StringEncrypter;
+import com.atlassian.bamboo.v2.build.BuildContext;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -53,13 +52,11 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
 
     private BuildLogger buildLogger;
     private TextProvider textProvider;
-    private final PlanKey planKey;
     private String username = "";
     private String password = "";
 
-    public GitManager(Repository repository, PlanKey planKey, BuildLogger buildLogger) {
-        super(repository, buildLogger);
-        this.planKey = planKey;
+    public GitManager(BuildContext context, Repository repository, BuildLogger buildLogger) {
+        super(context, repository, buildLogger);
         this.buildLogger = buildLogger;
         HierarchicalConfiguration configuration = repository.toConfiguration();
         StringEncrypter encrypter = new StringEncrypter();
@@ -310,17 +307,12 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         return new Git(builder.setup().build());
     }
 
-    private File getGitDir() throws IOException {
-        try {
-            File workingDir = getBambooScm().getSourceCodeDirectory(planKey);
-            File gitDirectory = new File(workingDir, Constants.DOT_GIT);
-            if (!gitDirectory.exists()) {
-                throw new IllegalArgumentException("Git Dir: " + gitDirectory.getAbsolutePath() + " Does not exist");
-            }
-            return gitDirectory;
-        } catch (RepositoryException e) {
-            throw new IOException(e);
+    private File getGitDir() {
+        File gitDirectory = new File(getAndValidateCheckoutDirectory(), Constants.DOT_GIT);
+        if (!gitDirectory.exists()) {
+            throw new IllegalStateException("Git Dir: " + gitDirectory.getAbsolutePath() + " Does not exist");
         }
+        return gitDirectory;
     }
 
     private Transport createTransport() throws IOException {

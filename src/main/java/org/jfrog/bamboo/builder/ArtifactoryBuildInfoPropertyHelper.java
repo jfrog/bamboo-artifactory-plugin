@@ -28,7 +28,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.ExtractorUtils;
+import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.client.ArtifactoryClientConfiguration;
 
@@ -90,10 +91,6 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
     private void addBuilderInfoProperties(AbstractBuildContext buildContext, ServerConfig serverConfig,
             ArtifactoryClientConfiguration clientConf, Map<String, String> environment,
             Map<String, String> generalEnv) {
-        /*if (builder.isHaveBuilderSpecificActivationCommand()) {
-            setProperty(properties, builder.getBuilderSpecificActivationCommand(), "true");
-        }*/
-
         String buildName = context.getPlanName();
         clientConf.info.setBuildName(buildName);
         clientConf.publisher.addMatrixParam("build.name", buildName);
@@ -102,7 +99,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         clientConf.info.setBuildNumber(buildNumber);
         clientConf.publisher.addMatrixParam("build.number", buildNumber);
 
-        String vcsRevision = context.getBuildChanges().getVcsRevisionKey();
+        String vcsRevision = ScmHelper.getRevisionKey(context);
         if (StringUtils.isNotBlank(vcsRevision)) {
             clientConf.info.setVcsRevision(vcsRevision);
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);
@@ -139,7 +136,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         Map<String, String> props = filterAndGetGlobalVariables();
         props.putAll(environment);
         props.putAll(generalEnv);
-        props = ExtractorUtils.getEscapedEnvMap(props);
+        props = TaskUtils.getEscapedEnvMap(props);
         clientConf.info.addBuildVariables(props);
         clientConf.fillFromProperties(props);
     }

@@ -19,13 +19,13 @@ descriptionKey='Space-separated parameters to pass as MAVEN_OPTS (e.g.: -Dmaven.
 
 [@ww.checkbox labelKey='Resolve artifacts from Artifactory' name='resolveFromArtifacts' toggle='true'
 descriptionKey="Check if you wish all dependency resolution to go through Artifactory. <br/> Notice: this will override any external repository definition in Maven settings or POM files."/]
-[@ui.bambooSection dependsOn='resolveFromArtifacts' showOn='true']
-[@ww.select name='builder.artifactoryMaven3Builder.resolutionArtifactoryServerId' labelKey='Resolution Artifactory Server URL' list=serverConfigManager.allServerConfigs
-listKey='id' listValue='url' onchange='javascript: displayResolutionMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
-descriptionKey='Select an Artifactory server.'/]
+[@ui.bambooSection dependsOn='resolveFromArtifacts' showOn=true]
+    [@ww.select name='builder.artifactoryMaven3Builder.resolutionArtifactoryServerId' labelKey='Resolution Artifactory Server URL' list=serverConfigManager.allServerConfigs
+    listKey='id' listValue='url' onchange='javascript: displayResolutionMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
+    descriptionKey='Select an Artifactory server.'/]
 <div id="maven3ArtifactoryResolutionConfigDiv">
-[@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='Resolution repository' list=dummyList
-listKey='repoKey' listValue='repoKey' toggle='true' descriptionKey=''/]
+    [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='Resolution repository' list=dummyList
+    listKey='repoKey' listValue='repoKey' toggle='true' descriptionKey=''/]
 [@ww.textfield labelKey='Resolver Username' name='builder.artifactoryMaven3Builder.resolverUsername'
 descriptionKey='Name of a user with read permissions on the target repository.'/]
 [@ww.password labelKey='Resolver Password' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true'
@@ -51,16 +51,16 @@ descriptionKey='The password of the user entered above.'/]
 [@ww.checkbox labelKey='Deploy Maven Artifacts' name='deployMavenArtifacts' toggle='true'
 descriptionKey="Uncheck if you do not wish to deploy Maven artifacts from the plugin (a more efficient alternative to Maven's own 'deploy' goal)."/]
 
-[@ui.bambooSection dependsOn='deployMavenArtifacts' showOn='true']
-[@ww.textfield labelKey='Deployment Include Patterns'
-name='builder.artifactoryMaven3Builder.deployIncludePatterns'
-descriptionKey='Comma or space-separated list of
+[@ui.bambooSection dependsOn='deployMavenArtifacts' showOn=true]
+    [@ww.textfield labelKey='Deployment Include Patterns'
+    name='builder.artifactoryMaven3Builder.deployIncludePatterns'
+    descriptionKey='Comma or space-separated list of
     <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
     of files that will be included in publishing. Include patterns are applied on the published file path before any
     exclude patterns.'/]
-[@ww.textfield labelKey='Deployment Exclude Patterns'
-name='builder.artifactoryMaven3Builder.deployExcludePatterns'
-descriptionKey='Comma or space-separated list of
+    [@ww.textfield labelKey='Deployment Exclude Patterns'
+    name='builder.artifactoryMaven3Builder.deployExcludePatterns'
+    descriptionKey='Comma or space-separated list of
     <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
     of files that will be excluded from publishing. Exclude patterns are applied on the published file path before any
     exclude patterns.'/]
@@ -69,19 +69,19 @@ descriptionKey='Comma or space-separated list of
     [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
 toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
 
-[@ui.bambooSection dependsOn='runLicenseChecks' showOn='true']
-[@ww.textfield labelKey='Send License Violation Notifications to'
-name='builder.artifactoryMaven3Builder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
+[@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
+    [@ww.textfield labelKey='Send License Violation Notifications to'
+    name='builder.artifactoryMaven3Builder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
 
-[@ww.textfield labelKey='Limit Checks To The Following Scopes'
-name='builder.artifactoryMaven3Builder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
+    [@ww.textfield labelKey='Limit Checks To The Following Scopes'
+    name='builder.artifactoryMaven3Builder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
 
-[@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryMaven3Builder.includePublishedArtifacts'
-toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
+    [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryMaven3Builder.includePublishedArtifacts'
+    toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
                 as dependencies for other modules in this build."/]
 
-[@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryMaven3Builder.disableAutoLicenseDiscovery'
-toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
+    [@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryMaven3Builder.disableAutoLicenseDiscovery'
+    toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
                 upon deployment. You can still attach license information manually by running 'Auto-Find' from the build's
                 Licenses tab in Artifactory."/]
 [/@ui.bambooSection]
@@ -89,35 +89,34 @@ toggle='true' descriptionKey="Tells Artifactory to not try and automatically ana
 [@ww.checkbox labelKey='Enable Release Management' name='enableReleaseManagement' toggle='true'
 descriptionKey='Enable Release Management to Artifactory'/]
 
-[@ui.bambooSection dependsOn='enableReleaseManagement' showOn='true']
-[@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryMaven3Builder.vcsTagBase'
-descriptionKey='For subversion this is the URL of the tags location, for Git this is the name of the tag.'/]
-[@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryMaven3Builder.gitReleaseBranch'
-descriptionKey='The prefix of the release branch name (applicable only to Git).'/]
-[@ww.textfield labelKey='Alternative Maven Tasks and Options' name='builder.artifactoryMaven3Builder.alternativeTasks'
-descriptionKey='Alternative Maven and options to execute for a Maven build running as part of the release. If left empty, the build will use original tasks and options instead of replacing them. '/]
+[@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
+    [@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryMaven3Builder.vcsTagBase'
+    descriptionKey='For subversion this is the URL of the tags location, for Git this is the name of the tag.'/]
+    [@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryMaven3Builder.gitReleaseBranch'
+    descriptionKey='The prefix of the release branch name (applicable only to Git).'/]
+    [@ww.textfield labelKey='Alternative Maven Tasks and Options' name='builder.artifactoryMaven3Builder.alternativeTasks'
+    descriptionKey='Alternative Maven and options to execute for a Maven build running as part of the release. If left empty, the build will use original tasks and options instead of replacing them. '/]
 [/@ui.bambooSection]
 
 
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']
-[@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
+    [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
 
-[@ui.bambooSection dependsOn='testChecked' showOn='true']
-[@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
-listKey='key' listValue='value' toggle='true'
-list=testDirectoryTypes ]
-[/@ww.radio]
-[@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
-[@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryMaven3Builder.testResultsDirectory' /]
-[/@ui.bambooSection]
-[/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='testChecked' showOn=true]
+        [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
+        listKey='key' listValue='value' toggle='true'
+        list=testDirectoryTypes ]
+        [/@ww.radio]
+        [@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
+            [@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryMaven3Builder.testResultsDirectory' /]
+        [/@ui.bambooSection]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 </div>
 
 <script>
     function displayMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryConfigDiv');
-
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -151,17 +150,17 @@ list=testDirectoryTypes ]
                     break;
                 }
             }
-            loadMaven3ResovlingRepoKeys(serverId)
+            loadMaven3ResolvingRepoKeys(serverId)
         }
     }
 
     function loadMaven3RepoKeys(serverId) {
         AJS.$.ajax({
-            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
                     '&deployableRepos=true',
-            dataType: 'json',
-            cache: false,
-            success: function (json) {
+            dataType:'json',
+            cache:false,
+            success:function (json) {
                 var repoSelect = document
                         .getElementsByName('builder.artifactoryMaven3Builder.deployableRepo')[0];
                 repoSelect.innerHTML = '';
@@ -181,7 +180,7 @@ list=testDirectoryTypes ]
                     }
                 }
             },
-            error : function (XMLHttpRequest, textStatus, errorThrown) {
+            error:function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the target repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {
@@ -196,15 +195,14 @@ list=testDirectoryTypes ]
         });
     }
 
-    function loadMaven3ResovlingRepoKeys(serverId) {
+    function loadMaven3ResolvingRepoKeys(serverId) {
         AJS.$.ajax({
-            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
                     '&resolvingRepos=true',
-            dataType: 'json',
-            cache: false,
-            success: function (json) {
-                var repoSelect = document
-                        .getElementsByName('builder.artifactoryMaven3Builder.resolutionRepo')[0];
+            dataType:'json',
+            cache:false,
+            success:function (json) {
+                var repoSelect = document.getElementsByName('builder.artifactoryMaven3Builder.resolutionRepo')[0];
                 repoSelect.innerHTML = '';
                 if (serverId >= 0) {
 
@@ -228,7 +226,7 @@ list=testDirectoryTypes ]
                     }
                 }
             },
-            error : function (XMLHttpRequest, textStatus, errorThrown) {
+            error:function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the resolving repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {
@@ -245,6 +243,6 @@ list=testDirectoryTypes ]
 
 
     displayMaven3ArtifactoryConfigs(${selectedServerId});
-    displayResolutionMaven3ArtifactoryConfigs(${selectedServerId});
+    displayResolutionMaven3ArtifactoryConfigs(${selectedResolutionArtifactoryServerId});
 
 </script>

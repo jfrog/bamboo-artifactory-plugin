@@ -48,11 +48,10 @@ public interface ReleaseProvider {
      *
      * @param conf    The configuration of the Module->Version to change.
      * @param release Flag to indicate to transform the versions into a release version or a snapshot version.
-     * @param planKey The plan key of the current plan
      * @return True if a change has taken place in the descriptor, false otherwise.
      */
-    boolean transformDescriptor(Map<String, String> conf, boolean release, String planKey)
-            throws RepositoryException, IOException, InterruptedException;
+    boolean transformDescriptor(Map<String, String> conf, boolean release) throws RepositoryException, IOException,
+            InterruptedException;
 
     /**
      * Event that is called <b>after</b> the release version has been changed in the descriptor/property file. If the
