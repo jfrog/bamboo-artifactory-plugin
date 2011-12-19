@@ -69,6 +69,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         }
     }
 
+    @Override
     public void commitWorkingCopy(String commitMessage) throws IOException, InterruptedException {
         Git git = createGitApi();
         try {
@@ -82,6 +83,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     }
 
 
+    @Override
     public void createTag(String tagUrl, String commitMessage) throws IOException, InterruptedException {
         Git git = createGitApi();
         try {
@@ -93,6 +95,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         }
     }
 
+    @Override
     public String getRemoteUrl() {
         AbstractRepository scm = getBambooScm();
         HierarchicalConfiguration configuration = scm.toConfiguration();

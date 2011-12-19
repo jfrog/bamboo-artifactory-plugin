@@ -103,6 +103,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
 
     public static Maven3BuildContext createContextFromMap(Map<String, Object> map) {
         Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
+            @Override
             public String apply(Object input) {
                 if (input == null) {
                     return "";

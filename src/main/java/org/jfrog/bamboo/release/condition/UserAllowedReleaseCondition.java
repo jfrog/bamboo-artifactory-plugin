@@ -25,6 +25,7 @@ public class UserAllowedReleaseCondition extends AbstractPlanPermissionCondition
         this.planManager = planManager;
     }
 
+    @Override
     public boolean shouldDisplay(Map<String, Object> context) {
         String planKey = (String) context.get("planKey");
         Job job = (DefaultJob) planManager.getPlanByKey(PlanKeys.getPlanKey(planKey));

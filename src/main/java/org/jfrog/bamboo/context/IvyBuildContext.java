@@ -73,6 +73,7 @@ public class IvyBuildContext extends AbstractBuildContext {
 
     public static IvyBuildContext createContextFromMap(Map<String, Object> map) {
         Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
+            @Override
             public String apply(Object input) {
                 return input.toString();
             }

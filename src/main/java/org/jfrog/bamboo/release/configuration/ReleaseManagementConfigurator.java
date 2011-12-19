@@ -14,6 +14,7 @@ import java.util.Map;
 public class ReleaseManagementConfigurator extends BaseConfigurablePlugin
         implements MiscellaneousBuildConfigurationPlugin {
 
+    @Override
     public boolean isApplicableTo(@NotNull Plan plan) {
         return false;
     }

@@ -58,6 +58,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         return null;
     }
 
+    @Override
     public void prepare() throws IOException {
         if (isReleaseEnabled) {
             try {
@@ -69,6 +70,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         }
     }
 
+    @Override
     public void afterDevelopmentVersionChange(boolean modified) throws IOException {
         try {
             coordinator.afterDevelopmentVersionChange(modified);
@@ -78,6 +80,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         }
     }
 
+    @Override
     public void beforeReleaseVersionChange() throws IOException, InterruptedException {
         try {
             coordinator.beforeReleaseVersionChange();
@@ -87,6 +90,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         }
     }
 
+    @Override
     public void afterReleaseVersionChange(boolean modified) throws IOException {
         try {
             coordinator.afterReleaseVersionChange(modified);
@@ -96,6 +100,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         }
     }
 
+    @Override
     public void afterSuccessfulReleaseVersionBuild() throws IOException {
         try {
             coordinator.afterSuccessfulReleaseVersionBuild();
@@ -105,6 +110,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         }
     }
 
+    @Override
     public void beforeDevelopmentVersionChange() throws IOException {
         try {
             coordinator.beforeDevelopmentVersionChange();
@@ -114,6 +120,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         }
     }
 
+    @Override
     public void buildCompleted(BuildContext buildContext) throws IOException {
         try {
             coordinator.buildCompleted(buildContext);
@@ -129,34 +136,42 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         result.setBuildState(BuildState.FAILED);
     }
 
+    @Override
     public String getCurrentCheckoutBranch() {
         return coordinator.getCheckoutBranch();
     }
 
+    @Override
     public void setCurrentCheckoutBranch(String checkoutBranch) {
         coordinator.setCheckoutBranch(checkoutBranch);
     }
 
+    @Override
     public String getCurrentWorkingBranch() {
         return coordinator.getCurrentWorkingBranch();
     }
 
+    @Override
     public void setCurrentWorkingBranch(String currentWorkingBranch) {
         coordinator.setCurrentWorkingBranch(currentWorkingBranch);
     }
 
+    @Override
     public void setBaseCommitIsh(String commitIsh) {
         coordinator.setCommitIsh(commitIsh);
     }
 
+    @Override
     public String getBaseCommitIsh() {
         return coordinator.getCommitIsh();
     }
 
+    @Override
     public void setReleaseBranchCreated(boolean releaseBranchCreated) {
         coordinator.setReleaseBranchCreated(releaseBranchCreated);
     }
 
+    @Override
     public boolean isReleaseBranchCreated() {
         return coordinator.isReleaseBranchCreated();
     }

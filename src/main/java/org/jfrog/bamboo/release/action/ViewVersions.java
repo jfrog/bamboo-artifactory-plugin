@@ -113,6 +113,7 @@ public class ViewVersions extends BuildActionSupport {
     private int findLatestBuildNumberWithBuildInfo() {
         List<ResultsSummary> summaries = resultsSummaryManager.getResultSummariesForPlan(getPlan(), 0, 100);
         Collections.sort(summaries, new Comparator<ResultsSummary>() {
+            @Override
             public int compare(ResultsSummary o1, ResultsSummary o2) {
                 if (o1.getBuildNumber() > o2.getBuildNumber()) {
                     return -1;
@@ -261,6 +262,7 @@ public class ViewVersions extends BuildActionSupport {
         }
         Map<String, String> configuration = definition.getConfiguration();
         Map<String, String> filtered = Maps.filterKeys(configuration, new Predicate<String>() {
+            @Override
             public boolean apply(String input) {
                 return StringUtils.endsWith(input, AbstractBuildContext.SERVER_ID_PARAM);
             }
@@ -356,6 +358,7 @@ public class ViewVersions extends BuildActionSupport {
             }
             Map<String, String> configuration = definition.getConfiguration();
             Map<String, String> filtered = Maps.filterKeys(configuration, new Predicate<String>() {
+                @Override
                 public boolean apply(String input) {
                     return StringUtils.endsWith(input, AbstractBuildContext.PUBLISHING_REPO_PARAM) ||
                             StringUtils.endsWith(input, Maven3BuildContext.DEPLOYABLE_REPO_KEY);

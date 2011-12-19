@@ -110,6 +110,7 @@ public class ResetCommand extends GitCommand<Ref> {
      *
      * @return the Ref after reset
      */
+    @Override
     public Ref call() throws IOException {
         checkCallable();
 

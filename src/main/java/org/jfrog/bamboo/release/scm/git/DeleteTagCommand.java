@@ -98,6 +98,7 @@ public class DeleteTagCommand extends GitCommand<Object> {
      *                               by calling {@link Exception#getCause()}. Expect only {@code IOException's} to be
      *                               wrapped.
      */
+    @Override
     public RefUpdate.Result call() throws JGitInternalException,
             ConcurrentRefUpdateException, InvalidTagNameException, NoHeadException {
         checkCallable();

@@ -42,6 +42,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
         this.buildLogger = buildLogger;
     }
 
+    @Override
     public void prepare() throws IOException {
         releaseBranch = configuration.get(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH);
         scmManager = new GitManager(context, repository, buildLogger);
@@ -49,6 +50,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
         checkoutBranch = scmManager.getCurrentBranch();
     }
 
+    @Override
     public void beforeReleaseVersionChange() throws IOException {
         if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH))) {
             scmManager.checkoutBranch(releaseBranch, true);
@@ -61,6 +63,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
         }
     }
 
+    @Override
     public void afterSuccessfulReleaseVersionBuild() throws IOException, InterruptedException {
         if (modifiedFilesForReleaseVersion) {
             // commit local changes
@@ -111,6 +114,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
         }
     }
 
+    @Override
     public void buildCompleted(BuildContext buildContext) throws IOException, InterruptedException {
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
         CurrentBuildResult result = buildContext.getBuildResult();
@@ -142,6 +146,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
         }
     }
 
+    @Override
     public String getRemoteUrlForPom() {
         return null;
     }
@@ -201,6 +206,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
         state.releaseBranchCreated = releaseBranchCreated;
     }
 
+    @Override
     public boolean isGit() {
         return true;
     }
