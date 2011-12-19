@@ -13,7 +13,9 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jfrog.bamboo</groupId>
@@ -45,18 +47,18 @@
         </license>
     </licenses>
     <scm>
-        <url>http://subversion.jfrog.org/jfrog/bamboo-artifactory-plugin/trunk/</url>
-        <connection>scm:svn:http://subversion.jfrog.org/jfrog/bamboo-artifactory-plugin/trunk/</connection>
+        <url>https://github.com/JFrogDev/bamboo-artifactory-plugin</url>
+        <connection>scm:git:git@github.com:JFrogDev/bamboo-artifactory-plugin.git</connection>
     </scm>
 
     <properties>
-        <bamboo.version>3.3.2</bamboo.version>
+        <bamboo.version>3.4</bamboo.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <gradle.version>2.0.8</gradle.version>
+        <gradle.version>2.0.x-SNAPSHOT</gradle.version>
         <ivy.version>2.0.3</ivy.version>
         <maven.version>2.0.5</maven.version>
     </properties>
@@ -83,7 +85,7 @@
         <dependency>
             <groupId>com.atlassian.bamboo.plugins</groupId>
             <artifactId>atlassian-bamboo-plugin-git</artifactId>
-            <version>1.6.5</version>
+            <version>1.7-m5</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -152,7 +154,7 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-bamboo-plugin</artifactId>
-                <version>3.7</version>
+                <version>3.7.2</version>
                 <extensions>true</extensions>
                 <configuration>
                     <productVersion>${bamboo.version}</productVersion>
