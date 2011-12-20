@@ -104,6 +104,17 @@ descriptionKey='Check if you wish to publish produced build artifacts to Artifac
     <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
     of files that will be excluded from publishing. Exclude patterns are applied on the published file path before any
     exclude patterns.'/]
+
+    [@ww.textarea labelKey='Artifact Properties' name='builder.artifactoryGradleBuilder.artifactSpecs' rows='10' cols='200'
+    cssClass="long-field" descriptionKey="A line-seperated list of properties to attach to deployed artifacts.<br>
+    Each lines specifies filtering rules by which to apply properties, in the format of:<br><br>
+    <i>configurationName artifactFilter properties</i><br><br>
+    <table border='0'>
+    <tbody><tr>
+    <td><i>configurationName: </i></td><td>The Gradle configuration. You can specify all to apply for all configurations.</td></tr>
+    <tr><td><i>artifactFilter:</i></td><td>a filter in the format of group:artifact:version:classifier@ext - all fileds are mandatory and can take Ant-like wildcard patterns using * and ?. For example: org.acme:*:1.0.?_*:*@tgz</td></tr>
+    <tr><td><i>properties:</i></td><td>a list of properties in the format of key1:val1, key2:val2, key3:val3<br></td>
+    </tr></tbody></table><br>"/]
 [/@ui.bambooSection]
 
 [@ww.checkbox labelKey='Enable Release Management' name='enableReleaseManagement' toggle='true'

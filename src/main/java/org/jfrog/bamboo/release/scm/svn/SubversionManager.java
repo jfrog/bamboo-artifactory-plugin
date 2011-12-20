@@ -40,6 +40,7 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
         this.buildLogger = buildLogger;
     }
 
+    @Override
     public void commitWorkingCopy(String commitMessage) throws IOException, InterruptedException {
         try {
             File checkoutDir = getAndValidateCheckoutDirectory();
@@ -59,6 +60,7 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
         }
     }
 
+    @Override
     public void createTag(String tagUrl, String commitMessage) throws IOException, InterruptedException {
         try {
             SVNURL svnUrl = SVNURL.parseURIEncoded(tagUrl);
@@ -142,6 +144,7 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
         }
     }
 
+    @Override
     public String getRemoteUrl() {
         return getBambooScm().getRepositoryUrl();
     }

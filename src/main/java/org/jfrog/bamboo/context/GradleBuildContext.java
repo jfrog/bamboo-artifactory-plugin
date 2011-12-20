@@ -46,8 +46,13 @@ public class GradleBuildContext extends AbstractBuildContext {
         return env.get(PREFIX + NEXT_INTEG_PROPS);
     }
 
+    public String getArtifactSpecs() {
+        return env.get(PREFIX + ARTIFACT_SPECS_PARAM);
+    }
+
     public static GradleBuildContext createContextFromMap(Map<String, Object> map) {
         Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
+            @Override
             public String apply(Object input) {
                 if (input == null) {
                     return "";
@@ -73,8 +78,8 @@ public class GradleBuildContext extends AbstractBuildContext {
                 PREFIX + PUBLISH_IVY_DESCRIPTORS_PARAM, USE_M2_COMPATIBLE_PATTERNS_PARAM,
                 PREFIX + IVY_PATTERN_PARAM, PREFIX + JDK,
                 PREFIX + ARTIFACT_PATTERN_PARAM, PREFIX + PUBLISH_INCLUDE_PATTERNS_PARAM,
-                PREFIX + PUBLISH_EXCLUDE_PATTERNS_PARAM, PREFIX + EXECUTABLE, TEST_CHECKED,
-                PREFIX + TEST_RESULT_DIRECTORY, TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT,
+                PREFIX + PUBLISH_EXCLUDE_PATTERNS_PARAM, PREFIX + ARTIFACT_SPECS_PARAM, PREFIX + EXECUTABLE,
+                TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY, TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS,
                 PREFIX + RELEASE_PROPS,
                 PREFIX + NEXT_INTEG_PROPS);

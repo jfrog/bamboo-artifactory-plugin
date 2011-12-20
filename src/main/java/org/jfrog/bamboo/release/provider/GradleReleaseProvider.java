@@ -4,7 +4,9 @@ import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.build.extractor.release.PropertiesTransformer;
 
@@ -37,7 +39,17 @@ public class GradleReleaseProvider extends AbstractReleaseProvider {
             return false;
         }
         Map<String, String> map = buildMapAccordingToStatus(conf, release);
-        File fileToTransform = new File(rootDir, "gradle.properties");
+        StringBuilder buildPropertiesLocation = new StringBuilder();
+        GradleBuildContext gradleBuildContext = (GradleBuildContext) AbstractBuildContext.createContextFromMap(conf);
+        String buildScriptSubDir = gradleBuildContext.getBuildScript();
+        if (StringUtils.isNotBlank(buildScriptSubDir)) {
+            buildPropertiesLocation.append(buildScriptSubDir);
+            if (!buildScriptSubDir.endsWith(File.separator)) {
+                buildPropertiesLocation.append(File.separator);
+            }
+        }
+        buildPropertiesLocation.append("gradle.properties");
+        File fileToTransform = new File(rootDir, buildPropertiesLocation.toString());
         String transformMessage = release ? "release" : "next development";
         log("Transforming: " + fileToTransform.getAbsolutePath() + " to " + transformMessage);
         PropertiesTransformer transformer = new PropertiesTransformer(fileToTransform, map);

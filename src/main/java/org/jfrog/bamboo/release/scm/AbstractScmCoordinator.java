@@ -67,41 +67,52 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
                 "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(repository.getClass().getName());
     }
 
+    @Override
     public void beforeDevelopmentVersionChange() throws IOException {
     }
 
+    @Override
     public void afterDevelopmentVersionChange(boolean modified) throws IOException, InterruptedException {
         modifiedFilesForDevVersion = modified;
     }
 
+    @Override
     public String getCheckoutBranch() {
         return "";
     }
 
+    @Override
     public void setCheckoutBranch(String checkoutBranch) {
     }
 
+    @Override
     public String getCurrentWorkingBranch() {
         return "";
     }
 
+    @Override
     public void setCurrentWorkingBranch(String currentWorkingBranch) {
     }
 
+    @Override
     public void setCommitIsh(String commitIsh) {
     }
 
+    @Override
     public String getCommitIsh() {
         return "";
     }
 
+    @Override
     public boolean isReleaseBranchCreated() {
         return false;
     }
 
+    @Override
     public void setReleaseBranchCreated(boolean releaseBranchCreated) {
     }
 
+    @Override
     public void afterReleaseVersionChange(boolean modified) throws IOException {
         modifiedFilesForReleaseVersion = modified;
     }

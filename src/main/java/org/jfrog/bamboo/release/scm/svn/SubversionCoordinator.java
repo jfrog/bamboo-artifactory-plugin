@@ -27,13 +27,16 @@ public class SubversionCoordinator extends AbstractScmCoordinator {
         this.configuration = configuration;
     }
 
+    @Override
     public void prepare() throws IOException {
         scmManager = new SubversionManager(context, repository, getClientManager(), buildLogger);
     }
 
+    @Override
     public void beforeReleaseVersionChange() throws IOException {
     }
 
+    @Override
     public void afterSuccessfulReleaseVersionBuild() throws IOException {
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
         boolean createTag = context.releaseManagementContext.isCreateVcsTag();
@@ -59,6 +62,7 @@ public class SubversionCoordinator extends AbstractScmCoordinator {
         }
     }
 
+    @Override
     public void buildCompleted(BuildContext buildContext) throws IOException, InterruptedException {
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
         CurrentBuildResult result = buildContext.getBuildResult();
@@ -73,10 +77,12 @@ public class SubversionCoordinator extends AbstractScmCoordinator {
         }
     }
 
+    @Override
     public String getRemoteUrlForPom() {
         return scmManager.getRemoteUrl();
     }
 
+    @Override
     public boolean isGit() {
         return false;
     }

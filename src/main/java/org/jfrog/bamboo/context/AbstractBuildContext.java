@@ -45,6 +45,7 @@ public abstract class AbstractBuildContext {
     public static final String ARTIFACT_PATTERN_PARAM = "artifactPattern";
     public static final String PUBLISH_INCLUDE_PATTERNS_PARAM = "publishIncludePatterns";
     public static final String PUBLISH_EXCLUDE_PATTERNS_PARAM = "publishExcludePatterns";
+    public static final String ARTIFACT_SPECS_PARAM = "artifactSpecs";
     public static final String NO_RESOLUTION_REPO_KEY_CONFIGURED = "noResolutionRepoKeyConfigured";
     public static final String NO_PUBLISHING_REPO_KEY_CONFIGURED = "noPublishingRepoKeyConfigured";
     public static final String JDK = "buildJdk";

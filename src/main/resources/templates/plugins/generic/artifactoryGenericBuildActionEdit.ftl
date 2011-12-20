@@ -1,10 +1,10 @@
 [@ui.bambooSection titleKey='Artifactory Generic Deploy']
-[@ww.select name='artifactory.generic.artifactoryServerId' labelKey='Artifactory Server URL' list=serverConfigManager.allServerConfigs
-listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
-descriptionKey='Select an Artifactory server.'/]
+    [@ww.select name='artifactory.generic.artifactoryServerId' labelKey='Artifactory Server URL' list=serverConfigManager.allServerConfigs
+    listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
+    descriptionKey='Select an Artifactory server.'/]
 <div id="genericArtifactoryConfigDiv">
-[@ww.select name='artifactory.generic.deployableRepo' labelKey='Target Repository' list=dummyList
-listKey='repoKey' listValue='repoKey' toggle='true' descriptionKey='Select a target deployment repository.'/]
+    [@ww.select name='artifactory.generic.deployableRepo' labelKey='Target Repository' list=dummyList
+    listKey='repoKey' listValue='repoKey' toggle='true' descriptionKey='Select a target deployment repository.'/]
 [@ww.textfield name='artifactory.generic.username' labelKey='Deployer username' descriptionKey='User with deploy permissions to Artifactory'/]
 [@ww.password name='artifactory.generic.password' labelKey='Deployer password' descriptionKey='Password with deploy permissions to Artifactory' showPassword='true'/]
 [@ww.textarea name='artifactory.generic.deployPattern' label='Edit Published Artifacts' rows='10' cols='80'
@@ -43,11 +43,11 @@ are target directories.' cssClass="long-field" /]
 
     function loadGenericRepoKeys(serverId) {
         AJS.$.ajax({
-            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
                     '&deployableRepos=true',
-            dataType: 'json',
-            cache: false,
-            success: function (json) {
+            dataType:'json',
+            cache:false,
+            success:function (json) {
                 var repoSelect = document.getElementsByName('artifactory.generic.deployableRepo')[0];
                 repoSelect.innerHTML = '';
                 if (serverId >= 0) {
@@ -66,7 +66,7 @@ are target directories.' cssClass="long-field" /]
                     }
                 }
             },
-            error : function (XMLHttpRequest, textStatus, errorThrown) {
+            error:function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the target repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {

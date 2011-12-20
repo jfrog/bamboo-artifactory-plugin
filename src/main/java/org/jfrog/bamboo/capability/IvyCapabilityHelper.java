@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class IvyCapabilityHelper implements CapabilityDefaultsHelper {
 
+    @Override
     @NotNull
     public CapabilitySet addDefaultCapabilities(@NotNull CapabilitySet capabilitySet) {
         return capabilitySet;

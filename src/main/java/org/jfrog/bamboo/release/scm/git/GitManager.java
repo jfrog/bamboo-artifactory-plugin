@@ -25,10 +25,10 @@ import org.shaded.eclipse.jgit.lib.PersonIdent;
 import org.shaded.eclipse.jgit.lib.RefUpdate;
 import org.shaded.eclipse.jgit.storage.file.FileRepository;
 import org.shaded.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.shaded.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.shaded.eclipse.jgit.transport.OpenSshConfig;
 import org.shaded.eclipse.jgit.transport.PushResult;
 import org.shaded.eclipse.jgit.transport.RefSpec;
-import org.shaded.eclipse.jgit.transport.SshConfigSessionFactory;
 import org.shaded.eclipse.jgit.transport.SshSessionFactory;
 import org.shaded.eclipse.jgit.transport.SshTransport;
 import org.shaded.eclipse.jgit.transport.Transport;
@@ -69,6 +69,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         }
     }
 
+    @Override
     public void commitWorkingCopy(String commitMessage) throws IOException, InterruptedException {
         Git git = createGitApi();
         try {
@@ -82,6 +83,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     }
 
 
+    @Override
     public void createTag(String tagUrl, String commitMessage) throws IOException, InterruptedException {
         Git git = createGitApi();
         try {
@@ -93,6 +95,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         }
     }
 
+    @Override
     public String getRemoteUrl() {
         AbstractRepository scm = getBambooScm();
         HierarchicalConfiguration configuration = scm.toConfiguration();
@@ -354,7 +357,8 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     }
 
 
-    private static class GitSshSessionFactory extends SshConfigSessionFactory {
+    private static class GitSshSessionFactory extends JschConfigSessionFactory {
+
         final private String key;
         final private String passphrase;
 
