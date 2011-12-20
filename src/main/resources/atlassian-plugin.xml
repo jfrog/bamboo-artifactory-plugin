@@ -30,9 +30,8 @@
                 <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
                 <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
             </action>
-            <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction"
-                    method="browse">
-                <result name="success" type="freemarker">existingArtifactoryServerView.ftl</result>
+            <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction" method="browse">
+            <result name="success" type="freemarker">existingArtifactoryServerView.ftl</result>
             </action>
             <action name="configureArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction">
                 <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
@@ -67,17 +66,14 @@
             <action name="viewArtifactoryReleaseManagement" class="org.jfrog.bamboo.result.ViewReleaseManagementAction">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl
-                </result>
+                <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
                 <result name="error" type="freemarker">/error.ftl</result>
             </action>
             <action name="promote" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="promote">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl
-                </result>
-                <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}
-                </result>
+                <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
+                <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
             </action>
 
             <action name="getLog" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="getLog">
@@ -244,10 +240,8 @@
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
         <category name="deployment"/>
         <executable key="generic"/>
-        <resource type="freemarker" name="edit"
-                  location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
-        <resource type="freemarker" name="view"
-                  location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
+        <resource type="freemarker" name="edit" location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
+        <resource type="freemarker" name="view" location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
     </taskType>
 </atlassian-plugin>
