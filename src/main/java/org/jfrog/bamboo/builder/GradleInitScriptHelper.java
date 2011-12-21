@@ -240,6 +240,9 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
         clientConf.publisher.setIvy(buildContext.isPublishIvyDescriptors());
         clientConf.publisher.setMaven(buildContext.isPublishMavenDescriptors());
-        clientConf.publisher.setArtifactSpecs(buildContext.getArtifactSpecs());
+        String artifactSpecs = buildContext.getArtifactSpecs();
+        if (StringUtils.isNotBlank(artifactSpecs)) {
+            clientConf.publisher.setArtifactSpecs(artifactSpecs);
+        }
     }
 }
