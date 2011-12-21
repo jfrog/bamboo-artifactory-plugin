@@ -106,7 +106,7 @@ descriptionKey='Check if you wish to publish produced build artifacts to Artifac
     exclude patterns.'/]
 
     [@ww.textarea labelKey='Artifact Properties' name='builder.artifactoryGradleBuilder.artifactSpecs' rows='10' cols='200'
-    cssClass="long-field" descriptionKey="A line-seperated list of properties to attach to deployed artifacts.<br>
+    wrap='off' cssClass="long-field" descriptionKey="A line-seperated list of properties to attach to deployed artifacts.<br>
     Each lines specifies filtering rules by which to apply properties, in the format of:<br><br>
     <i>configurationName artifactFilter properties</i><br><br>
     <table border='0'>
