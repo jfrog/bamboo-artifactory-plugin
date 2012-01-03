@@ -74,7 +74,7 @@ toggle='true' descriptionKey='Check if you wish that automatic license scanning 
     name='builder.artifactoryMaven3Builder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
 
     [@ww.textfield labelKey='Limit Checks To The Following Scopes'
-    name='builder.artifactoryMaven3Builder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
+    name='builder.artifactoryMaven3Builder.limitChecksToScopes' descriptionKey='Space-separated list of scopes.'/]
 
     [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryMaven3Builder.includePublishedArtifacts'
     toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used

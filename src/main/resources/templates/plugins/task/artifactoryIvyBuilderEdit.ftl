@@ -10,7 +10,7 @@ list=uiConfigBean.getExecutableLabels('ivy')
 extraUtility=addExecutableLink required='true' /]
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryIvyBuilder.environmentVariables'
 descriptionKey='Space-separated key-value pairs of extra environment variables to pass to the build process (e.g. EXT_PATH=/var/lib/ext).' /]
-[@ww.textfield labelKey='Ant Opts' name='builder.artifactoryIvyBuilder.antOpts' descriptionKey='Space-seperated parameters to pass as ANT_OPTS (Note that ANT_OPTS will be ignored if added as System Environment Variables).'/]
+[@ww.textfield labelKey='Ant Opts' name='builder.artifactoryIvyBuilder.antOpts' descriptionKey='Space-separated parameters to pass as ANT_OPTS (Note that ANT_OPTS will be ignored if added as System Environment Variables).'/]
 [@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryIvyBuilder.workingSubDirectory' helpUri='working-directory.ftl' /]
 
 [@ww.select name='builder.artifactoryIvyBuilder.artifactoryServerId' labelKey='Artifactory Server URL' list=serverConfigManager.allServerConfigs
@@ -63,7 +63,7 @@ toggle='true' descriptionKey='Check if you wish that automatic license scanning 
     name='builder.artifactoryIvyBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
 
     [@ww.textfield labelKey='Limit Checks To The Following Scopes'
-    name='builder.artifactoryIvyBuilder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
+    name='builder.artifactoryIvyBuilder.limitChecksToScopes' descriptionKey='Space-separated list of scopes.'/]
 
     [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryIvyBuilder.includePublishedArtifacts'
     toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used

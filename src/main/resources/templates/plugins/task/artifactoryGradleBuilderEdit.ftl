@@ -58,7 +58,7 @@ toggle='true' descriptionKey='Check if you wish to publish build information to 
         name='builder.artifactoryGradleBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
 
         [@ww.textfield labelKey='Limit Checks to The Following Scopes'
-        name='builder.artifactoryGradleBuilder.limitChecksToScopes' descriptionKey='Space-seperated list of scopes.'/]
+        name='builder.artifactoryGradleBuilder.limitChecksToScopes' descriptionKey='Space-separated list of scopes.'/]
 
         [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryGradleBuilder.includePublishedArtifacts'
         toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
@@ -106,7 +106,7 @@ descriptionKey='Check if you wish to publish produced build artifacts to Artifac
     exclude patterns.'/]
 
     [@ww.textarea labelKey='Artifact Properties' name='builder.artifactoryGradleBuilder.artifactSpecs' rows='10' cols='200'
-    wrap='off' cssClass="long-field" descriptionKey="A line-seperated list of properties to attach to deployed artifacts.<br>
+    wrap='off' cssClass="long-field" descriptionKey="A line-separated list of properties to attach to deployed artifacts.<br>
     Each lines specifies filtering rules by which to apply properties, in the format of:<br><br>
     <i>configurationName artifactFilter properties</i><br><br>
     <table border='0'>
