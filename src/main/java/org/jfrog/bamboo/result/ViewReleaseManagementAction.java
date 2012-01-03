@@ -3,6 +3,8 @@ package org.jfrog.bamboo.result;
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
+import com.atlassian.bamboo.security.BambooPermissionManager;
+import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
@@ -54,6 +56,8 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
     private boolean includeDependencies;
     private boolean useCopy;
 
+    private BambooPermissionManager bambooPermissionManager;
+
     @Override
     public String doDefault() throws Exception {
         super.doExecute(); // to populate all the stuff
@@ -70,6 +74,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         if (ERROR.equals(superResult)) {
             return ERROR;
         }
+
         ResultsSummary summary = getBuildResultsSummary();
         if (summary == null) {
             log.error("This build has no results summary");
@@ -99,6 +104,11 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         }
         ResultsSummary summary = getResultsSummary();
         return summary != null && shouldShow(summary.getCustomBuildData());
+    }
+
+    public boolean isPermittedToPromote() {
+        return bambooPermissionManager
+                .hasPlanPermission(BambooPermission.determineNameFromPermission(BambooPermission.BUILD), getPlanKey());
     }
 
     private boolean shouldShow(Map<String, String> customData) {
@@ -165,6 +175,10 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         if (getPlan() == null) {
             return INPUT;
         }
+        if (!isPermittedToPromote()) {
+            log.error("You are not permitted to execute build promotion.");
+            return ERROR;
+        }
         ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
                 ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
         TaskDefinition definition = getMavenOrGradleTaskDefinition();
@@ -214,6 +228,10 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         }
         client.setConnectionTimeout(serverConfig.getTimeout());
         return client;
+    }
+
+    public void setBambooPermissionManager(BambooPermissionManager bambooPermissionManager) {
+        this.bambooPermissionManager = bambooPermissionManager;
     }
 
     /**
