@@ -5,6 +5,7 @@ import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +24,10 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     private static final Set<String> FIELDS_TO_COPY = Maven3BuildContext.getFieldsToCopy();
     private static final String DEFAULT_TEST_RESULTS_FILE_PATTERN = "**/target/surefire-reports/*.xml";
 
+    public ArtifactoryMaven3Configuration() {
+        super(Maven3BuildContext.PREFIX, CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven");
+    }
+
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
@@ -37,7 +42,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("testDirectoryOption", "standardTestDirectory");
         context.put("selectedServerId", -1);
         context.put("selectedRepoKey", "");
-        context.put("resolutionArtifactoryServerId", -1);
+        context.put("selectedResolutionArtifactoryServerId", -1);
         context.put("selectedResolutionRepoKey", "");
         Repository repository = PlanHelper.getDefaultRepository(plan).getRepository();
         if (repository != null) {
@@ -114,6 +119,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         return DEFAULT_TEST_RESULTS_FILE_PATTERN;
     }
 
+    @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition definition) {
         return new Maven3BuildContext(definition.getConfiguration()).isTestChecked();
     }

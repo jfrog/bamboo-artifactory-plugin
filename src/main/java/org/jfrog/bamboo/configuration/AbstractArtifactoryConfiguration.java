@@ -1,15 +1,20 @@
 package org.jfrog.bamboo.configuration;
 
+import com.atlassian.bamboo.build.Buildable;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.task.AbstractTaskConfigurator;
+import com.atlassian.bamboo.task.BuildTaskRequirementSupport;
+import com.atlassian.bamboo.task.TaskConfigConstants;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.TaskTestResultsSupport;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
-import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigBean;
+import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
+import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
 import com.atlassian.spring.container.ComponentNotFoundException;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +26,7 @@ import org.jfrog.bamboo.util.ConstantValues;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Base class for all {@link com.atlassian.bamboo.task.TaskConfigurator}s that are used by the plugin. It sets the
@@ -30,18 +36,23 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfigurator implements
-        TaskTestResultsSupport {
+        TaskTestResultsSupport, BuildTaskRequirementSupport {
 
     protected transient ServerConfigManager serverConfigManager;
     protected AdministrationConfiguration administrationConfiguration;
-    protected UIConfigBean uiConfigBean;
+    protected UIConfigSupport uiConfigSupport;
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
     private static final Map TEST_RESULTS_FILE_PATTERN_TYPES = ImmutableMap
             .of(CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD, "Look in the standard test results directory.",
                     CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM, "Specify custom results directories");
+    private String builderContextPrefix;
+    private String capabilityPrefix;
 
-    protected AbstractArtifactoryConfiguration() {
+    protected AbstractArtifactoryConfiguration(String builderContextPrefix, String capabilityPrefix) {
+        this.builderContextPrefix = builderContextPrefix;
+        this.capabilityPrefix = capabilityPrefix;
+
         try {
             if (ContainerManager.isContainerSetup()) {
                 serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
@@ -135,9 +146,20 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         }
     }
 
+    @NotNull
+    @Override
+    public Set<Requirement> calculateRequirements(@NotNull TaskDefinition definition, @NotNull Buildable buildable) {
+        Set<Requirement> requirements = Sets.newHashSet();
+        taskConfiguratorHelper.addJdkRequirement(requirements, definition,
+                builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
+        taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, definition,
+                builderContextPrefix + AbstractBuildContext.EXECUTABLE, capabilityPrefix);
+        return requirements;
+    }
+
     // populate common objects into context
     private void populateContextForAllOperations(@NotNull Map<String, Object> context) {
-        context.put("uiConfigBean", uiConfigBean);
+        context.put("uiConfigBean", uiConfigSupport);
         context.put("testDirectoryTypes", TEST_RESULTS_FILE_PATTERN_TYPES);
     }
 
@@ -146,10 +168,10 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      * Sets the UI config bean from bamboo. NOTE: This method is called from Bamboo upon instantiation of this class by
      * reflection.
      *
-     * @param uiConfigBean The UI config bean for select values.
+     * @param uiConfigSupport The UI config bean for select values.
      */
-    public void setUiConfigBean(UIConfigBean uiConfigBean) {
-        this.uiConfigBean = uiConfigBean;
+    public void setUiConfigSupport(UIConfigSupport uiConfigSupport) {
+        this.uiConfigSupport = uiConfigSupport;
     }
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {

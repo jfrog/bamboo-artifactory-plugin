@@ -2,6 +2,7 @@ package org.jfrog.bamboo.capability;
 
 import com.atlassian.bamboo.v2.build.agent.capability.AbstractHomeDirectoryCapabilityDefaultsHelper;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
+import com.atlassian.bamboo.v2.build.agent.capability.ExecutablePathUtils;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,7 @@ public class GradleCapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @NotNull
     @Override
     protected String getExecutableName() {
-        return GRADLE_EXECUTABLE_NAME;
+        return ExecutablePathUtils.makeBatchIfOnWindows(GRADLE_EXECUTABLE_NAME);
     }
 
     @Nullable

@@ -4,6 +4,7 @@ import com.atlassian.bamboo.command.SimpleExecuteStreamHandler;
 import com.atlassian.bamboo.utils.SystemProperty;
 import com.atlassian.bamboo.v2.build.agent.capability.AbstractHomeDirectoryCapabilityDefaultsHelper;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
+import com.atlassian.bamboo.v2.build.agent.capability.ExecutablePathUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
@@ -22,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefaultsHelper {
-    private static final Logger log = Logger.getLogger(GradleCapabilityHelper.class);
+    private static final Logger log = Logger.getLogger(Maven3CapabilityHelper.class);
     private static final String MAVEN3_HOME_POSIX = "/usr/share/maven3/";
     private static final Pattern MAVEN_VERSION_3 = Pattern.compile("3\\.\\d+\\.\\d+");
     private static final String M2_EXECUTABLE_NAME = "mvn";
@@ -33,7 +34,7 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @NotNull
     @Override
     protected String getExecutableName() {
-        return M2_EXECUTABLE_NAME;
+        return ExecutablePathUtils.makeBatchIfOnWindows(M2_EXECUTABLE_NAME);
     }
 
     @Nullable
@@ -51,7 +52,7 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @Override
     @NotNull
     protected String getCapabilityKey() {
-        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + "." + "maven.Maven 3";
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven.Maven 3";
     }
 
     @Override

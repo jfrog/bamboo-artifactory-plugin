@@ -5,9 +5,10 @@
 [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryIvyBuilder.buildJdk' cssClass="jdkSelectWidget"
 list=uiConfigBean.jdkLabels required='true'
 extraUtility=addJdkLink /]
+
+[#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='ivy'/][/#assign]
 [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryIvyBuilder.executable'
-list=uiConfigBean.getExecutableLabels('ivy')
-extraUtility=addExecutableLink required='true' /]
+list=uiConfigBean.getExecutableLabels('ivy') extraUtility=addExecutableLink required='true' /]
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryIvyBuilder.environmentVariables'
 descriptionKey='Space-separated key-value pairs of extra environment variables to pass to the build process (e.g. EXT_PATH=/var/lib/ext).' /]
 [@ww.textfield labelKey='Ant Opts' name='builder.artifactoryIvyBuilder.antOpts' descriptionKey='Space-separated parameters to pass as ANT_OPTS (Note that ANT_OPTS will be ignored if added as System Environment Variables).'/]

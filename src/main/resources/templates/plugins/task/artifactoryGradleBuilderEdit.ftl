@@ -15,9 +15,9 @@ descriptionKey='If your gradle build script is not named build.gradle, specify t
 [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryGradleBuilder.buildJdk' cssClass="jdkSelectWidget"
 list=uiConfigBean.jdkLabels required='true'
 extraUtility=addJdkLink /]
+[#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='gradle'/][/#assign]
 [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryGradleBuilder.executable'
-list=uiConfigBean.getExecutableLabels('gradle')
-extraUtility=addExecutableLink required='true' /]
+list=uiConfigBean.getExecutableLabels('gradle') extraUtility=addExecutableLink required='true' /]
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryGradleBuilder.environmentVariables'
 descriptionKey='Space-separated key-value pairs of extra environment variables to pass to the build process (e.g. EXT_PATH=/var/lib/ext).' /]
 

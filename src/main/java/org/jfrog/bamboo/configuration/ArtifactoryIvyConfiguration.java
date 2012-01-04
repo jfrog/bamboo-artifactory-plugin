@@ -2,8 +2,8 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -18,9 +18,12 @@ import java.util.Set;
  * @author Tomer Cohen
  */
 public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguration {
-    private static final Logger log = Logger.getLogger(ArtifactoryIvyConfiguration.class);
     protected static final String DEFAULT_TEST_REPORTS_XML = "**/test-reports/*.xml";
     private static final Set<String> FIELDS_TO_COPY = IvyBuildContext.getFieldsToCopy();
+
+    public ArtifactoryIvyConfiguration() {
+        super(IvyBuildContext.PREFIX, CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".ivy");
+    }
 
     @Override
     protected String getKey() {
@@ -92,6 +95,7 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         return configMap;
     }
 
+    @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition definition) {
         return new IvyBuildContext(definition.getConfiguration()).isTestChecked();
     }

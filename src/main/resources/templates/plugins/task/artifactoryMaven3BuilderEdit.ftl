@@ -7,9 +7,9 @@
 list=uiConfigBean.jdkLabels required='true'
 extraUtility=addJdkLink /]
 
+[#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='maven'/][/#assign]
 [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryMaven3Builder.executable'
-list=uiConfigBean.getExecutableLabels('maven')
-extraUtility=addExecutableLink required='true' /]
+list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink required='true' /]
 
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryMaven3Builder.environmentVariables'
 descriptionKey='Space-separated key-value pairs of extra environment variables to pass to the build process (e.g. EXT_PATH=/var/lib/ext).'/]
