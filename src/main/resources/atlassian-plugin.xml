@@ -97,7 +97,7 @@
         <condition class="org.jfrog.bamboo.result.ViewArtifactoryReleaseManagementCondition"/>
     </web-item>
 
-    <taskType key="artifactoryGradleTask" name="Artifactory Gradle Task"
+    <taskType key="artifactoryGradleTask" name="Artifactory Gradle"
               class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
         <description>Artifactory Gradle task</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
@@ -109,7 +109,7 @@
         <resource type="download" name="icon" location="images/artifactory-gradle-icon.png"/>
     </taskType>
 
-    <taskType key="artifactoryIvyTask" name="Artifactory Ivy Task"
+    <taskType key="artifactoryIvyTask" name="Artifactory Ivy"
               class="org.jfrog.bamboo.task.ArtifactoryIvyTask">
         <description>Artifactory Ivy task</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryIvyConfiguration"/>
@@ -121,7 +121,7 @@
         <resource type="download" name="icon" location="images/artifactory-ivy-icon.png"/>
     </taskType>
 
-    <taskType key="maven3Task" name="Artifactory Maven 3 Task"
+    <taskType key="maven3Task" name="Artifactory Maven 3"
               class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">
         <description>Artifactory Maven 3 Task</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
@@ -234,7 +234,7 @@
 
     <!--Generic build action-->
 
-    <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy Task"
+    <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy"
               class="org.jfrog.bamboo.task.ArtifactoryGenericTask">
         <description>Artifactory Generic Deploy Task</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
