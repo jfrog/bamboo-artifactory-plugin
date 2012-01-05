@@ -46,10 +46,7 @@
             <distribution>rjo</distribution>
         </license>
     </licenses>
-    <scm>
-        <url>https://github.com/JFrogDev/bamboo-artifactory-plugin</url>
-        <connection>scm:git:git@github.com:JFrogDev/bamboo-artifactory-plugin.git</connection>
-    </scm>
+    
 
     <properties>
         <bamboo.version>3.4.2</bamboo.version>
