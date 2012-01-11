@@ -96,16 +96,26 @@ public class PromotionThread extends Thread {
             executeRequestParams.put(StringUtils.removeStart(nexusPushVarEntry.getKey(), NEXUS_PUSH_PROPERTY_PREFIX),
                     nexusPushVarEntry.getValue().getValue());
         }
-        HttpResponse nexusPushResponse = client.executeUserPlugin(NEXUS_PUSH_PLUGIN_NAME, executeRequestParams);
-        StatusLine responseStatusLine = nexusPushResponse.getStatusLine();
-        if (HttpStatus.SC_OK == responseStatusLine.getStatusCode()) {
-            logMessageToUiAndLogger("Plugin successfully executed!");
-            return true;
-        } else {
-            String responseContent = entityToString(nexusPushResponse);
-            String message = "Plugin execution failed: " + responseStatusLine + "<br/>" + responseContent;
-            logErrorToUiAndLogger(message);
-            return false;
+        HttpResponse nexusPushResponse = null;
+        try {
+            nexusPushResponse = client.executeUserPlugin(NEXUS_PUSH_PLUGIN_NAME, executeRequestParams);
+            StatusLine responseStatusLine = nexusPushResponse.getStatusLine();
+            if (HttpStatus.SC_OK == responseStatusLine.getStatusCode()) {
+                logMessageToUiAndLogger("Plugin successfully executed!");
+                return true;
+            } else {
+                String responseContent = entityToString(nexusPushResponse);
+                String message = "Plugin execution failed: " + responseStatusLine + "<br/>" + responseContent;
+                logErrorToUiAndLogger(message);
+                return false;
+            }
+        } finally {
+            if (nexusPushResponse != null) {
+                HttpEntity entity = nexusPushResponse.getEntity();
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            }
         }
     }
 
@@ -119,14 +129,29 @@ public class PromotionThread extends Thread {
         logMessageToUiAndLogger("Performing dry run promotion (no changes are made during dry run) ...");
         String buildName = action.getBuild().getName();
         String buildNumber = action.getBuildNumber().toString();
-        HttpResponse dryResponse =
-                client.stageBuild(buildName, buildNumber, promotionBuilder.build());
-        if (checkSuccess(dryResponse, true)) {
-            logMessageToUiAndLogger("Dry run finished successfully. Performing promotion ...");
-            HttpResponse wetResponse =
-                    client.stageBuild(buildName, buildNumber, promotionBuilder.dryRun(false).build());
-            if (checkSuccess(wetResponse, false)) {
-                logMessageToUiAndLogger("Promotion completed successfully!");
+        HttpResponse dryResponse = null;
+        HttpResponse wetResponse = null;
+        try {
+            dryResponse = client.stageBuild(buildName, buildNumber, promotionBuilder.build());
+            if (checkSuccess(dryResponse, true)) {
+                logMessageToUiAndLogger("Dry run finished successfully. Performing promotion ...");
+                wetResponse = client.stageBuild(buildName, buildNumber, promotionBuilder.dryRun(false).build());
+                if (checkSuccess(wetResponse, false)) {
+                    logMessageToUiAndLogger("Promotion completed successfully!");
+                }
+            }
+        } finally {
+            if (dryResponse != null) {
+                HttpEntity entity = dryResponse.getEntity();
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            }
+            if (wetResponse != null) {
+                HttpEntity entity = wetResponse.getEntity();
+                if (entity != null) {
+                    entity.consumeContent();
+                }
             }
         }
     }
