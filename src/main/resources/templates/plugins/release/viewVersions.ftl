@@ -4,7 +4,7 @@
 </head>
 
 <body>
-<img width="48px" hight="48px"
+<img width="48px" height="48px"
      src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>
 [#assign singlePlan = false]
 [#assign sort = false]
