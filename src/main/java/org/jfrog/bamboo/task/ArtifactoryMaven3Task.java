@@ -68,6 +68,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         ContainerManager.autowireComponent(dependencyHelper);
     }
 
+    @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         BuildLogger logger = getBuildLogger(taskContext);
