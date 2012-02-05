@@ -58,6 +58,7 @@
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
+        <buildinfo.version>2.0.x-SNAPSHOT</buildinfo.version>
         <gradle.version>2.0.10</gradle.version>
         <ivy.version>2.0.3</ivy.version>
         <maven.version>2.0.5</maven.version>
@@ -93,6 +94,21 @@
             <artifactId>servlet-api</artifactId>
             <version>2.4</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-api</artifactId>
+            <version>${buildinfo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-client</artifactId>
+            <version>${buildinfo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-extractor</artifactId>
+            <version>${buildinfo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
