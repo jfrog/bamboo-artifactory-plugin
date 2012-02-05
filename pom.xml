@@ -61,7 +61,7 @@
         <buildinfo.version>2.0.x-SNAPSHOT</buildinfo.version>
         <gradle.version>2.0.10</gradle.version>
         <ivy.version>2.0.3</ivy.version>
-        <maven.version>2.0.5</maven.version>
+        <maven.version>2.0.x-SNAPSHOT</maven.version>
     </properties>
 
     <dependencies>
