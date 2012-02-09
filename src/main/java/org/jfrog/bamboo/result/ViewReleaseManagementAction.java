@@ -143,16 +143,16 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
         ArtifactoryBuildInfoClient client = createClient(serverConfig, context);
         try {
-            Map<String, List<Map<String, String>>> userPluginInfo = client.getUserPluginInfo();
-            if (!userPluginInfo.containsKey("execute")) {
+            Map<String, List<Map>> userPluginInfo = client.getUserPluginInfo();
+            if (!userPluginInfo.containsKey("executions")) {
                 log.debug("No special promotion modes enabled: no 'execute' user plugins could be found.");
             }
-            List<Map<String, String>> executionPlugins = userPluginInfo.get("execute");
-            Iterables.find(executionPlugins, new Predicate<Map<String, String>>() {
+            List<Map> executionPlugins = userPluginInfo.get("executions");
+            Iterables.find(executionPlugins, new Predicate<Map>() {
                 @Override
-                public boolean apply(Map<String, String> pluginInfo) {
+                public boolean apply(Map pluginInfo) {
                     if ((pluginInfo != null) && pluginInfo.containsKey("name")) {
-                        String pluginName = pluginInfo.get("name");
+                        String pluginName = pluginInfo.get("name").toString();
                         return NEXUS_PUSH_PLUGIN_NAME.equals(pluginName);
                     }
                     return false;
