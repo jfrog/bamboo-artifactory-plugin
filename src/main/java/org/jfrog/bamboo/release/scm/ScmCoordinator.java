@@ -16,6 +16,7 @@
 
 package org.jfrog.bamboo.release.scm;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -106,4 +107,11 @@ public interface ScmCoordinator {
     public void setReleaseBranchCreated(boolean releaseBranchCreated);
 
     boolean isGit();
+
+    /**
+     * Called before a file is modified.
+     *
+     * @param file The file that is about to be modified.
+     */
+    void edit(File file) throws IOException, InterruptedException;
 }

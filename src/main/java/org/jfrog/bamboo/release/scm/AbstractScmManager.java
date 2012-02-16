@@ -46,4 +46,8 @@ public abstract class AbstractScmManager<T extends Repository> implements ScmMan
     protected void log(String message) {
         log.info(buildLogger.addBuildLogEntry("[RELEASE] " + message));
     }
+
+    protected BuildContext getContext() {
+        return context;
+    }
 }
