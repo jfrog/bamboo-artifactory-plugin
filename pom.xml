@@ -59,7 +59,7 @@
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
         <buildinfo.version>2.0.6</buildinfo.version>
-        <gradle.version>2.0.11</gradle.version>
+        <gradle.version>2.0.12</gradle.version>
         <ivy.version>2.0.3</ivy.version>
         <maven.version>2.0.x-SNAPSHOT</maven.version>
     </properties>
@@ -213,7 +213,9 @@
                         <configuration>
                             <excludes>META-INF/**/*</excludes>
                             <excludeClassifiers>uber</excludeClassifiers>
-                            <includeArtifactIds>build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,httpclient,httpcore,jackson-core-asl,jackson-mapper-asl</includeArtifactIds>
+                            <includeArtifactIds>
+                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,httpclient,httpcore,jackson-core-asl,jackson-mapper-asl
+                            </includeArtifactIds>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                             <overWriteReleases>true</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>
