@@ -69,14 +69,7 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
             // set again the working branch/checkout branch/ and the base commit hash (this is for git mainly) that was
             // brought from the pre-release action, this is due to the fact that the current provider/coordinator
             // are completely new objects, and need to be set to the proper state prior to continuing
-            String checkoutBranch = configuration.get(ReleaseProvider.CURRENT_CHECKOUT_BRANCH);
-            provider.setCurrentCheckoutBranch(checkoutBranch);
-            String workingBranch = configuration.get(ReleaseProvider.CURRENT_WORKING_BRANCH);
-            provider.setCurrentWorkingBranch(workingBranch);
-            String baseCommitIsh = configuration.get(ReleaseProvider.BASE_COMMIT_ISH);
-            provider.setBaseCommitIsh(baseCommitIsh);
-            String releaseBranchCreated = configuration.get(ReleaseProvider.RELEASE_BRANCH_CREATED);
-            provider.setReleaseBranchCreated(Boolean.parseBoolean(releaseBranchCreated));
+            provider.reloadFromConfig(configuration);
             provider.afterReleaseVersionChange(
                     Boolean.parseBoolean(customBuildData.get(ReleaseProvider.MODIFIED_FILES_FOR_RELEASE)));
             CurrentBuildResult result = buildContext.getBuildResult();

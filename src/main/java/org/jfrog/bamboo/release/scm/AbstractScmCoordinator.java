@@ -44,7 +44,7 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
      * @return SCM coordinator according to the repository type.
      */
     public static ScmCoordinator createScmCoordinator(BuildContext context,
-                                                      Map<? extends String, ? extends String> configuration, BuildLogger buildLogger) {
+            Map<? extends String, ? extends String> configuration, BuildLogger buildLogger) {
 
         Repository repository = ScmHelper.getRepository(context);
         Map<String, String> combined = Maps.newHashMap();
@@ -129,5 +129,14 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
 
     @Override
     public void edit(File file) throws IOException, InterruptedException {
+    }
+
+    @Override
+    public int getCurrentChangeListId() {
+        return 0;
+    }
+
+    @Override
+    public void setCurrentChangeListId(int currentChangeListId) {
     }
 }

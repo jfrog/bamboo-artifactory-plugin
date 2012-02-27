@@ -58,7 +58,7 @@
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <buildinfo.version>2.0.6</buildinfo.version>
+        <buildinfo.version>2.0.x-SNAPSHOT</buildinfo.version>
         <gradle.version>2.0.12</gradle.version>
         <ivy.version>2.0.3</ivy.version>
         <maven.version>2.0.x-SNAPSHOT</maven.version>
@@ -70,12 +70,24 @@
             <artifactId>atlassian-bamboo-api</artifactId>
             <version>${bamboo.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.tek42.perforce</groupId>
+                    <artifactId>p4java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.atlassian.bamboo</groupId>
             <artifactId>atlassian-bamboo-core</artifactId>
             <version>${bamboo.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.tek42.perforce</groupId>
+                    <artifactId>p4java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.atlassian.bamboo</groupId>
@@ -103,6 +115,11 @@
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-client</artifactId>
+            <version>${buildinfo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-vcs</artifactId>
             <version>${buildinfo.version}</version>
         </dependency>
         <dependency>
@@ -214,7 +231,7 @@
                             <excludes>META-INF/**/*</excludes>
                             <excludeClassifiers>uber</excludeClassifiers>
                             <includeArtifactIds>
-                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,httpclient,httpcore,jackson-core-asl,jackson-mapper-asl
+                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,httpclient,httpcore,jackson-core-asl,jackson-mapper-asl,build-info-vcs,p4java
                             </includeArtifactIds>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                             <overWriteReleases>true</overWriteReleases>

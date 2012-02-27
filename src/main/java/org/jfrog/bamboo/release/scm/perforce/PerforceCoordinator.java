@@ -19,51 +19,54 @@ import java.util.Map;
  */
 public class PerforceCoordinator extends AbstractScmCoordinator {
 
-    private PerforceManager perforceManager;
+    private PerforceManager perforce;
+
     private final Map<String, String> configuration;
     private boolean tagCreated;
+    private int currentChangeListId;
 
-    public PerforceCoordinator(BuildContext context, Repository repository, Map<String, String> configuration, BuildLogger buildLogger) {
+    public PerforceCoordinator(BuildContext context, Repository repository, Map<String, String> configuration,
+            BuildLogger buildLogger) {
         super(context, repository, buildLogger);
         this.configuration = configuration;
     }
 
     @Override
     public void prepare() throws IOException {
-        perforceManager = new PerforceManager(context, repository, buildLogger);
+        perforce = new PerforceManager(context, repository, buildLogger);
+        perforce.prepare();
     }
 
     @Override
     public void beforeReleaseVersionChange() throws IOException {
-
+        currentChangeListId = perforce.createNewChangeList();
     }
 
     @Override
     public void afterSuccessfulReleaseVersionBuild() throws IOException, InterruptedException {
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
         AbstractBuildContext.ReleaseManagementContext releaseManagementContext = context.releaseManagementContext;
+        String labelChangeListId = configuration.get("repository.revision.number");
         if (modifiedFilesForReleaseVersion) {
             log("Submitting release version changes");
-            perforceManager.commitWorkingCopy(releaseManagementContext.getTagComment());
-
-            /*log("Shelving release version");
-            Depot perforceDepot = perforceManager.getBambooScm().getPerforceDepot();
-            perforceManager.shelveWorkingCopy(releaseManagementContext.getReleaseProps());
-            perforceManager.revertWorkingCopy();
-            //perforceManager.commitWorkingCopy(releaseManagementContext.getNextDevelopmentComment());
-            try {
-                List<Integer> changeNumbers = perforceDepot.getChanges().getChangeNumbers(perforceManager.getBambooScm().getDepot(), -1, 1);
-                releaseShelveChangeList = changeNumbers.get(0);
-            } catch (PerforceException e) {
-                log("Failed to retrieve latest change number: " + e.getLocalizedMessage());
-            }*/
+            labelChangeListId = currentChangeListId + "";
+            perforce.commitWorkingCopy(currentChangeListId, releaseManagementContext.getTagComment());
+        } else {
+            perforce.deleteChangeList(currentChangeListId);
+            currentChangeListId = perforce.getDefaultChangeListId();
         }
 
         if (releaseManagementContext.isCreateVcsTag()) {
-            log("Creating label: '" + releaseManagementContext.getTagUrl() + "'");
-            perforceManager.createTag(releaseManagementContext.getTagUrl(), releaseManagementContext.getTagComment());
+            log("Creating label: '" + releaseManagementContext.getTagUrl() + "' with change list id: " + labelChangeListId);
+            perforce.createTag(releaseManagementContext.getTagUrl(), releaseManagementContext.getTagComment(),
+                    labelChangeListId);
             tagCreated = true;
         }
+    }
+
+    @Override
+    public void beforeDevelopmentVersionChange() throws IOException {
+        currentChangeListId = perforce.getDefaultChangeListId();
     }
 
     @Override
@@ -72,21 +75,15 @@ public class PerforceCoordinator extends AbstractScmCoordinator {
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
         AbstractBuildContext.ReleaseManagementContext releaseManagementContext = context.releaseManagementContext;
         if (modified) {
-            // submit the next development version
             log("Submitting next development version changes");
-            perforceManager.commitWorkingCopy(context.releaseManagementContext.getNextDevelopmentComment());
-
-            /*log("Shelving next development version");
-            perforceManager.shelveWorkingCopy(releaseManagementContext.getNextIntegProps());
-            perforceManager.revertWorkingCopy();
-            Depot perforceDepot = perforceManager.getBambooScm().getPerforceDepot();
-            try {
-                List<Integer> changeNumbers = perforceDepot.getChanges().getChangeNumbers(perforceManager.getBambooScm().getDepot(), -1, 1);
-                devShelveChangeList = changeNumbers.get(0);
-            } catch (PerforceException e) {
-                log("Failed to retrieve latest change number: " + e.getLocalizedMessage());
-            }*/
+            perforce.commitWorkingCopy(currentChangeListId, releaseManagementContext.getNextDevelopmentComment());
         }
+    }
+
+    @Override
+    public void edit(File file) throws IOException, InterruptedException {
+        log("Opening file: '" + file.getAbsolutePath() + "' for editing");
+        perforce.edit(currentChangeListId, file);
     }
 
     @Override
@@ -98,22 +95,25 @@ public class PerforceCoordinator extends AbstractScmCoordinator {
             if (tagCreated) {
                 safeDeleteLabel(context.releaseManagementContext.getTagUrl());
             }
+        } else {
+            log("Closing connection to perforce server");
+            perforce.closeConnection();
         }
     }
 
     private void safeRevertWorkingCopy() {
         log("Reverting local changes");
         try {
-            perforceManager.revertWorkingCopy();
+            perforce.revertWorkingCopy(currentChangeListId);
         } catch (Exception e) {
             log("Failed to revert: " + e.getLocalizedMessage());
         }
     }
 
-    private void safeDeleteLabel(String tagUrl) throws IOException {
-        log("Deleting label '" + tagUrl + "'");
+    private void safeDeleteLabel(String label) throws IOException {
+        log("Deleting label '" + label + "'");
         try {
-            perforceManager.deleteLabel(tagUrl);
+            perforce.deleteLabel(label);
         } catch (Exception e) {
             log("Failed to delete label: " + e.getLocalizedMessage());
         }
@@ -130,7 +130,12 @@ public class PerforceCoordinator extends AbstractScmCoordinator {
     }
 
     @Override
-    public void edit(File file) throws IOException, InterruptedException {
-        perforceManager.edit(file);
+    public int getCurrentChangeListId() {
+        return currentChangeListId;
+    }
+
+    @Override
+    public void setCurrentChangeListId(int currentChangeListId) {
+        this.currentChangeListId = currentChangeListId;
     }
 }

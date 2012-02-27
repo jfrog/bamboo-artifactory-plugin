@@ -114,4 +114,8 @@ public interface ScmCoordinator {
      * @param file The file that is about to be modified.
      */
     void edit(File file) throws IOException, InterruptedException;
+
+    int getCurrentChangeListId();
+
+    void setCurrentChangeListId(int currentChangeListId);
 }

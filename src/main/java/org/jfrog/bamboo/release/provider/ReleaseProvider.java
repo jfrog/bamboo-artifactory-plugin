@@ -23,6 +23,7 @@ public interface ReleaseProvider {
     String CFG_USE_EXISTING_VERSION = "useExistingVersion";
     String CFG_VERSION_PER_MODULE = "versionPerModule";
     String CFG_ONE_VERSION = "oneVersionAllModules";
+    String CURRENT_CHANGE_LIST_ID = "currentChangeListId";
 
     /**
      * Initial event of the build. Prepare the provider, set up the SCM client.
@@ -129,4 +130,10 @@ public interface ReleaseProvider {
     public boolean isReleaseBranchCreated();
 
     public void setReleaseBranchCreated(boolean releaseBranchCreated);
+
+    public int getCurrentChangeListId();
+
+    public void setCurrentChangeListId(int changeListId);
+
+    void reloadFromConfig(Map<String, String> configuration);
 }
