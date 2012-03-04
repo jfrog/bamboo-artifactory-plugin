@@ -17,7 +17,6 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.resources.FileResource;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.bamboo.util.generic.PublishedItemsHelper;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.BuildAgent;
@@ -30,6 +29,7 @@ import org.jfrog.build.api.util.FileChecksumCalculator;
 import org.jfrog.build.client.ClientProperties;
 import org.jfrog.build.client.DeployDetails;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
+import org.jfrog.build.util.PublishedItemsHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
