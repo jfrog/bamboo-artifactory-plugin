@@ -163,7 +163,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
             }
             relativePath = FilenameUtils.separatorsToUnix(relativePath);
             relativePath = StringUtils.removeStart(relativePath, "/");
-            String path = PublishedItemsHelper.calculateTargetPath(relativePath, targetPath, file.getName());
+            String path = PublishedItemsHelper.calculateTargetPath(targetPath, file, relativePath);
             path = StringUtils.replace(path, "//", "/");
             Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(file, "SHA1", "MD5");
             DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(file).md5(checksums.get("MD5"))
