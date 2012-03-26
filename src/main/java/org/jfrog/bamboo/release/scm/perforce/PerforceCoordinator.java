@@ -52,7 +52,7 @@ public class PerforceCoordinator extends AbstractScmCoordinator {
             labelChangeListId = currentChangeListId + "";
             perforce.commitWorkingCopy(currentChangeListId, releaseManagementContext.getTagComment());
         } else {
-            perforce.deleteChangeList(currentChangeListId);
+            safeRevertWorkingCopy();
             currentChangeListId = perforce.getDefaultChangeListId();
         }
 
@@ -77,6 +77,9 @@ public class PerforceCoordinator extends AbstractScmCoordinator {
         if (modified) {
             log("Submitting next development version changes");
             perforce.commitWorkingCopy(currentChangeListId, releaseManagementContext.getNextDevelopmentComment());
+        } else {
+            safeRevertWorkingCopy();
+            currentChangeListId = perforce.getDefaultChangeListId();
         }
     }
 
