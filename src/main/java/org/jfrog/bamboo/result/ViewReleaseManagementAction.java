@@ -146,6 +146,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
             Map<String, List<Map>> userPluginInfo = client.getUserPluginInfo();
             if (!userPluginInfo.containsKey("executions")) {
                 log.debug("No special promotion modes enabled: no 'execute' user plugins could be found.");
+                return false;
             }
             List<Map> executionPlugins = userPluginInfo.get("executions");
             Iterables.find(executionPlugins, new Predicate<Map>() {
