@@ -37,7 +37,10 @@ public class PerforceManager extends AbstractScmManager<PerforceRepository> {
         if (!StringUtils.isEmpty(user)) {
             builder.username(user).password(new StringEncrypter().decrypt(perforceRepository.getEncryptedPassword()));
         }
-
+        String charset = System.getenv("P4CHARSET");
+        if (!StringUtils.isBlank(charset)) {
+            builder.charset(charset);
+        }
         perforce = builder.build();
     }
 
