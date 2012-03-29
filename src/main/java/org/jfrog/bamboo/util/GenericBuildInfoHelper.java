@@ -17,9 +17,9 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.resources.FileResource;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.context.GenericContext;
+import org.jfrog.build.api.Agent;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Build;
-import org.jfrog.build.api.BuildAgent;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.BuildType;
 import org.jfrog.build.api.builder.ArtifactBuilder;
@@ -67,9 +67,10 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         long duration =
                 new Interval(new DateTime(buildContext.getBuildResult().getCustomBuildData().get("buildTimeStamp")),
                         new DateTime()).toDurationMillis();
+
         BuildInfoBuilder builder = new BuildInfoBuilder(buildContext.getPlanName())
                 .number(String.valueOf(buildContext.getBuildNumber())).type(BuildType.GENERIC)
-                .buildAgent(new BuildAgent("Bamboo", BuildUtils.getVersionAndBuild())).artifactoryPrincipal(username)
+                .agent(new Agent("Bamboo", BuildUtils.getVersionAndBuild())).artifactoryPrincipal(username)
                 .startedDate(new Date()).durationMillis(duration).url(buildUrl);
         if (StringUtils.isNotBlank(vcsRevision)) {
             builder.vcsRevision(vcsRevision);
