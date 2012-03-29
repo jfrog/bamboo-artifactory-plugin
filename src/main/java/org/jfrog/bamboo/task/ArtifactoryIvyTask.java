@@ -66,6 +66,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         ContainerManager.autowireComponent(dependencyHelper);
     }
 
+    @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext context) throws TaskException {
         BuildLogger logger = getBuildLogger(context);

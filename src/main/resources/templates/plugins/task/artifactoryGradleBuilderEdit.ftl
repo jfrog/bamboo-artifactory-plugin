@@ -15,9 +15,13 @@ descriptionKey='If your gradle build script is not named build.gradle, specify t
 [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryGradleBuilder.buildJdk' cssClass="jdkSelectWidget"
 list=uiConfigBean.jdkLabels required='true'
 extraUtility=addJdkLink /]
+
+[@ww.checkbox labelKey='Use Gradle Wrapper' name='builder.artifactoryGradleBuilder.useGradleWrapper' toggle='true'/]
+
 [#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='gradle'/][/#assign]
 [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryGradleBuilder.executable'
 list=uiConfigBean.getExecutableLabels('gradle') extraUtility=addExecutableLink required='true' /]
+
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryGradleBuilder.environmentVariables'
 descriptionKey='Space-separated key-value pairs of extra environment variables to pass to the build process (e.g. EXT_PATH=/var/lib/ext).' /]
 
@@ -122,7 +126,7 @@ descriptionKey='Enable Release Management to Artifactory'/]
 
 [@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
     [@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryGradleBuilder.vcsTagBase'
-    descriptionKey='For subversion this is the URL of the tags location, for Git this is the name of the tag.'/]
+    descriptionKey='For subversion this is the URL of the tags location, for Git and Perforce this is the name of the tag/label.'/]
     [@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryGradleBuilder.gitReleaseBranch'
     descriptionKey='The prefix of the release branch name (applicable only to Git).'/]
     [@ww.textfield labelKey='Release Properties' name='builder.artifactoryGradleBuilder.releaseProps'

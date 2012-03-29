@@ -38,9 +38,15 @@ public abstract class ScmHelper {
 
     @Nullable
     public static Repository getRepository(BuildContext buildContext) {
-        Iterator<RepositoryDefinition> repoDefIterator = buildContext.getRepositoryDefinitions().iterator();
-        if (repoDefIterator.hasNext()) {
-            return repoDefIterator.next().getRepository();
+        Iterator<Long> repoIdIterator = buildContext.getRelevantRepositoryIds().iterator();
+        if (repoIdIterator.hasNext()) {
+            long repoId = repoIdIterator.next().longValue();
+            Iterable<RepositoryDefinition> repositoryDefinitions = buildContext.getRepositoryDefinitions();
+            for (RepositoryDefinition repositoryDefinition : repositoryDefinitions) {
+                if (repositoryDefinition.getId() == repoId) {
+                    return repositoryDefinition.getRepository();
+                }
+            }
         }
         return null;
     }

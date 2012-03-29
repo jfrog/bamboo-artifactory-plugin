@@ -22,7 +22,7 @@ import java.util.Map;
 public class GradleReleaseProvider extends AbstractReleaseProvider {
 
     protected GradleReleaseProvider(AbstractBuildContext internalContext, BuildContext context,
-            BuildLogger buildLogger) {
+                                    BuildLogger buildLogger) {
         super(internalContext, context, buildLogger);
     }
 
@@ -52,6 +52,7 @@ public class GradleReleaseProvider extends AbstractReleaseProvider {
         File fileToTransform = new File(rootDir, buildPropertiesLocation.toString());
         String transformMessage = release ? "release" : "next development";
         log("Transforming: " + fileToTransform.getAbsolutePath() + " to " + transformMessage);
+        coordinator.edit(fileToTransform);
         PropertiesTransformer transformer = new PropertiesTransformer(fileToTransform, map);
         return transformer.transform();
     }

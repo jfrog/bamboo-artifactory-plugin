@@ -67,13 +67,14 @@
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
                 <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
-                <result name="error" type="freemarker">/error.ftl</result>
+                <result name="error" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
             </action>
             <action name="promote" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="promote">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
                 <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
                 <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
+                <result name="error" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
             </action>
 
             <action name="getLog" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="getLog">

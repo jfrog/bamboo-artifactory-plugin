@@ -76,6 +76,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
         customBuildData.put(ReleaseProvider.CURRENT_WORKING_BRANCH, provider.getCurrentWorkingBranch());
         customBuildData.put(ReleaseProvider.BASE_COMMIT_ISH, provider.getBaseCommitIsh());
         customBuildData.put(ReleaseProvider.RELEASE_BRANCH_CREATED, String.valueOf(provider.isReleaseBranchCreated()));
+        customBuildData.put(ReleaseProvider.CURRENT_CHANGE_LIST_ID, String.valueOf(provider.getCurrentChangeListId()));
         return buildContext;
     }
 

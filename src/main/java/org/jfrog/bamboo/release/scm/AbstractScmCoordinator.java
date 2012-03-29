@@ -2,14 +2,17 @@ package org.jfrog.bamboo.release.scm;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.Repository;
+import com.atlassian.bamboo.repository.perforce.PerforceRepository;
 import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.release.scm.git.GitCoordinator;
+import org.jfrog.bamboo.release.scm.perforce.PerforceCoordinator;
 import org.jfrog.bamboo.release.scm.svn.SubversionCoordinator;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -54,6 +57,9 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
         // Git is optional SCM so we cannot use the class here
         if (isGitScm(repository)) {
             return new GitCoordinator(context, repository, combined, buildLogger);
+        }
+        if (repository instanceof PerforceRepository) {
+            return new PerforceCoordinator(context, repository, combined, buildLogger);
         }
         throw new UnsupportedOperationException(
                 "Scm of type: " + repository.getClass().getName() + " is not supported");
@@ -119,5 +125,18 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
 
     protected void log(String message) {
         log.info(buildLogger.addBuildLogEntry("[RELEASE] " + message));
+    }
+
+    @Override
+    public void edit(File file) throws IOException, InterruptedException {
+    }
+
+    @Override
+    public int getCurrentChangeListId() {
+        return 0;
+    }
+
+    @Override
+    public void setCurrentChangeListId(int currentChangeListId) {
     }
 }

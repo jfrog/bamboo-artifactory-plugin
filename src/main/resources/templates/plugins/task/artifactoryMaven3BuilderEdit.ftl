@@ -91,7 +91,7 @@ descriptionKey='Enable Release Management to Artifactory'/]
 
 [@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
     [@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryMaven3Builder.vcsTagBase'
-    descriptionKey='For subversion this is the URL of the tags location, for Git this is the name of the tag.'/]
+    descriptionKey='For subversion this is the URL of the tags location, for Git and Perforce this is the name of the tag/label.'/]
     [@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryMaven3Builder.gitReleaseBranch'
     descriptionKey='The prefix of the release branch name (applicable only to Git).'/]
     [@ww.textfield labelKey='Alternative Maven Tasks and Options' name='builder.artifactoryMaven3Builder.alternativeTasks'

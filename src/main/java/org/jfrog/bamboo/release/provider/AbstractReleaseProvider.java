@@ -194,4 +194,31 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
     protected void log(String message) {
         log.info(buildLogger.addBuildLogEntry("[RELEASE] " + message));
     }
+
+    @Override
+    public int getCurrentChangeListId() {
+        return coordinator.getCurrentChangeListId();
+    }
+
+    @Override
+    public void setCurrentChangeListId(int changeListId) {
+        coordinator.setCurrentChangeListId(changeListId);
+    }
+
+    @Override
+    public void reloadFromConfig(Map<String, String> configuration) {
+        // Git variables
+        String checkoutBranch = configuration.get(ReleaseProvider.CURRENT_CHECKOUT_BRANCH);
+        setCurrentCheckoutBranch(checkoutBranch);
+        String workingBranch = configuration.get(ReleaseProvider.CURRENT_WORKING_BRANCH);
+        setCurrentWorkingBranch(workingBranch);
+        String baseCommitIsh = configuration.get(ReleaseProvider.BASE_COMMIT_ISH);
+        setBaseCommitIsh(baseCommitIsh);
+        String releaseBranchCreated = configuration.get(ReleaseProvider.RELEASE_BRANCH_CREATED);
+        setReleaseBranchCreated(Boolean.parseBoolean(releaseBranchCreated));
+
+        // Perforce variables
+        String currentChangeListId = configuration.get(ReleaseProvider.CURRENT_CHANGE_LIST_ID);
+        setCurrentChangeListId(Integer.parseInt(currentChangeListId));
+    }
 }

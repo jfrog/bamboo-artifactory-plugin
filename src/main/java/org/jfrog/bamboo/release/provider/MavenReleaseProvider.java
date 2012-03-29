@@ -25,7 +25,7 @@ import java.util.Map;
 public class MavenReleaseProvider extends AbstractReleaseProvider {
 
     protected MavenReleaseProvider(AbstractBuildContext buildContext, BuildContext buildDefinition,
-            BuildLogger buildLogger) {
+                                   BuildLogger buildLogger) {
         super(buildContext, buildDefinition, buildLogger);
     }
 
@@ -57,6 +57,7 @@ public class MavenReleaseProvider extends AbstractReleaseProvider {
         for (Map.Entry<ModuleName, File> entry : modules.entrySet()) {
             String transformMessage = release ? "release" : "next development";
             log("Transforming: " + entry.getValue().getAbsolutePath() + " to " + transformMessage);
+            coordinator.edit(entry.getValue());
             PomTransformer transformer = new PomTransformer(entry.getKey(), buildVersionByModule, getScmUrl(release));
             changed |= transformer.transform(entry.getValue());
         }

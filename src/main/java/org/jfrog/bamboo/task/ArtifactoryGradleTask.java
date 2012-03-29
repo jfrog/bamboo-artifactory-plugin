@@ -73,6 +73,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         ContainerManager.autowireComponent(dependencyHelper);
     }
 
+    @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext context) throws TaskException {
         BuildLogger logger = getBuildLogger(context);
@@ -213,18 +214,23 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                             "job configuration");
         }
 
-        final String path = new StringBuilder(capability.getValue())
-                .append(File.separator)
-                .append("bin")
-                .append(File.separator)
-                .append(EXECUTABLE_NAME)
-                .toString();
+        String capabilityPath = capability.getValue();
 
-        if (!new File(path).exists()) {
-            throw new TaskException("Executable '" + EXECUTABLE_NAME + "'  does not exist at path '" + path + "'");
+        if ((buildContext instanceof GradleBuildContext) && ((GradleBuildContext) buildContext).isUseGradleWrapper()) {
+            return capabilityPath;
+        } else {
+            String path = new StringBuilder(capabilityPath)
+                    .append(File.separator)
+                    .append("bin")
+                    .append(File.separator)
+                    .append(EXECUTABLE_NAME)
+                    .toString();
+
+            if (!new File(path).exists()) {
+                throw new TaskException("Executable '" + EXECUTABLE_NAME + "'  does not exist at path '" + path + "'");
+            }
+            return path;
         }
-
-        return path;
     }
 
     /**
