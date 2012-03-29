@@ -176,7 +176,7 @@ public class ViewVersions extends BuildActionSupport {
     }
 
     private Repository getRepository() {
-        return PlanHelper.getDefaultRepository(getPlan()).getRepository();
+        return PlanHelper.getDefaultRepository(getPlan());
     }
 
     public boolean isUseShallowClone() {
