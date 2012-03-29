@@ -76,10 +76,10 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         combinedMap.putAll(context.getConfigurationMap());
         combinedMap.putAll(context.getBuildContext().getBuildDefinition().getCustomConfiguration());
         IvyBuildContext buildContext = new IvyBuildContext(combinedMap);
-        File workingDirectory = context.getWorkingDirectory();
+        File rootDirectory = context.getRootDirectory();
         long serverId = buildContext.getArtifactoryServerId();
         try {
-            ivyDependenciesDir = extractIvyDependencies(serverId, workingDirectory, buildContext);
+            ivyDependenciesDir = extractIvyDependencies(serverId, rootDirectory, buildContext);
             log.info(logger.addBuildLogEntry("Ivy dependency directory found at: " + ivyDependenciesDir));
         } catch (IOException ioe) {
             ivyDependenciesDir = null;
@@ -138,10 +138,10 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         }
         String subDirectory = buildContext.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(subDirectory)) {
-            workingDirectory = new File(workingDirectory, subDirectory);
+            rootDirectory = new File(rootDirectory, subDirectory);
         }
         ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(workingDirectory).command(command)
+                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command)
                         .env(environment);
         try {
             return TaskResultBuilder.create(context)
@@ -156,14 +156,14 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
      *
      * @return Path of recorder and dependency jar folder if extraction succeeded. Null if not
      */
-    private String extractIvyDependencies(long artifactoryServerId, File workingDirectory, IvyBuildContext context)
+    private String extractIvyDependencies(long artifactoryServerId, File rootDirectory, IvyBuildContext context)
             throws IOException {
 
         if (artifactoryServerId == -1) {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(workingDirectory, context,
+        return dependencyHelper.downloadDependenciesAndGetPath(rootDirectory, context,
                 PluginProperties.IVY_DEPENDENCY_FILENAME_KEY);
     }
 

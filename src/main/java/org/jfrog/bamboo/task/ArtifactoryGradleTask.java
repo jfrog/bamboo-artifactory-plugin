@@ -88,9 +88,9 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         }
         GradleBuildContext buildContext = new GradleBuildContext(combinedMap);
         long serverId = buildContext.getArtifactoryServerId();
-        File workingDirectory = context.getWorkingDirectory();
+        File rootDirectory = context.getRootDirectory();
         try {
-            gradleDependenciesDir = extractGradleDependencies(serverId, workingDirectory, buildContext);
+            gradleDependenciesDir = extractGradleDependencies(serverId, rootDirectory, buildContext);
         } catch (IOException e) {
             gradleDependenciesDir = null;
             logger.addBuildLogEntry(new ErrorLogEntry(
@@ -134,7 +134,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
 
         String subDirectory = buildContext.getBuildScript();
         if (StringUtils.isNotBlank(subDirectory)) {
-            workingDirectory = new File(workingDirectory, subDirectory);
+            rootDirectory = new File(rootDirectory, subDirectory);
         }
         Map<String, String> env = Maps.newHashMap();
         env.putAll(environmentVariableAccessor.getEnvironment());
@@ -143,7 +143,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                     .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
         }
         ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(workingDirectory).command(command).env(env);
+                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
         try {
             ExternalProcess process = processService.executeProcess(context, processBuilder);
             return collectTestResults(buildContext, context, process);
@@ -239,14 +239,14 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
      * @return Path of recorder and dependency jar folder if extraction succeeded. Null if not
      */
 
-    private String extractGradleDependencies(long artifactoryServerId, File workingDirectory,
+    private String extractGradleDependencies(long artifactoryServerId, File rootDirectory,
             GradleBuildContext context) throws IOException {
 
         if (artifactoryServerId == -1) {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(workingDirectory, context,
+        return dependencyHelper.downloadDependenciesAndGetPath(rootDirectory, context,
                 PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY);
     }
 

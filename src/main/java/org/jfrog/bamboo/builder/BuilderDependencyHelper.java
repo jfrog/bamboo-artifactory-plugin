@@ -46,18 +46,18 @@ public class BuilderDependencyHelper implements Serializable {
         this.builderKey = builderKey;
     }
 
-    public String downloadDependenciesAndGetPath(File buildDir, AbstractBuildContext context, String dependencyKey)
+    public String downloadDependenciesAndGetPath(File rootDir, AbstractBuildContext context, String dependencyKey)
             throws IOException {
         String pluginKey = PluginProperties.getPluginKey();
         String pluginDescriptorKey = PluginProperties.getPluginDescriptorKey();
 
-        if (buildDir == null) {
+        if (rootDir == null) {
             return null;
         }
-        File buildDirParent = buildDir.getParentFile();
+        File rootDirParent = rootDir.getParentFile();
 
         //Search for older plugin dirs and remove if any exist
-        for (File buildDirChild : buildDirParent.listFiles()) {
+        for (File buildDirChild : rootDirParent.listFiles()) {
             String buildDirChildName = buildDirChild.getName();
             if (buildDirChildName.startsWith(pluginDescriptorKey) &&
                     (!buildDirChildName.equals(pluginKey) || buildDirChildName.endsWith("-SNAPSHOT"))) {
@@ -66,7 +66,7 @@ public class BuilderDependencyHelper implements Serializable {
             }
         }
 
-        File pluginDir = new File(buildDirParent, pluginKey);
+        File pluginDir = new File(rootDirParent, pluginKey);
         File builderDependencyDir = new File(pluginDir, builderKey);
         if (builderDependencyDir.isDirectory()) {
             if (builderDependencyDir.list().length != 0) {

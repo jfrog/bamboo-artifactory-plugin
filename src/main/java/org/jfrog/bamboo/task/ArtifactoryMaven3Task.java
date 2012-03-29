@@ -80,9 +80,9 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         combinedMap.putAll(customBuildData);
         Maven3BuildContext buildContext = new Maven3BuildContext(combinedMap);
         long serverId = buildContext.getArtifactoryServerId();
-        File workingDirectory = taskContext.getWorkingDirectory();
+        File rootDirectory = taskContext.getRootDirectory();
         try {
-            mavenDependenciesDir = extractMaven3Dependencies(workingDirectory, serverId, buildContext);
+            mavenDependenciesDir = extractMaven3Dependencies(rootDirectory, serverId, buildContext);
         } catch (IOException e) {
             mavenDependenciesDir = null;
             logger.addBuildLogEntry(new ErrorLogEntry(
@@ -118,7 +118,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         appendAdditionalMavenParameters(command, buildContext);
         String subDirectory = buildContext.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(subDirectory)) {
-            workingDirectory = new File(workingDirectory, subDirectory);
+            rootDirectory = new File(rootDirectory, subDirectory);
         }
         Map<String, String> env = Maps.newHashMap();
         env.putAll(environmentVariableAccessor.getEnvironment());
@@ -127,7 +127,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
                     .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
         }
         ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(workingDirectory).command(command).env(env);
+                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
         try {
             ExternalProcess process = processService.executeProcess(taskContext, processBuilder);
             return collectTestResults(buildContext, taskContext, process);
@@ -259,14 +259,14 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      *
      * @return Path of recorder and dependency jar folder if extraction succeeded. Null if not
      */
-    private String extractMaven3Dependencies(File workingDir, long artifactoryServerId, Maven3BuildContext context)
+    private String extractMaven3Dependencies(File rootDir, long artifactoryServerId, Maven3BuildContext context)
             throws IOException {
 
         if (artifactoryServerId == -1) {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(workingDir, context,
+        return dependencyHelper.downloadDependenciesAndGetPath(rootDir, context,
                 PluginProperties.MAVEN3_DEPENDENCY_FILENAME_KEY);
     }
 
