@@ -50,7 +50,7 @@
     </scm>
 
     <properties>
-        <bamboo.version>3.4.2</bamboo.version>
+        <bamboo.version>4.0</bamboo.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
@@ -185,7 +185,7 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-bamboo-plugin</artifactId>
-                <version>3.7.2</version>
+                <version>3.9.1</version>
                 <extensions>true</extensions>
                 <configuration>
                     <productVersion>${bamboo.version}</productVersion>

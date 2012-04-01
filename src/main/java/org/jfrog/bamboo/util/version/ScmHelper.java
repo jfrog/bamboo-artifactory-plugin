@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Noam Y. Tenne
@@ -16,8 +17,10 @@ public abstract class ScmHelper {
 
     @Nullable
     public static File getCheckoutDirectory(BuildContext buildContext) {
-        for (RepositoryDefinition repoDef : buildContext.getRepositoryDefinitions()) {
-            String checkoutLocation = buildContext.getCheckoutLocation().get(repoDef.getId());
+        Iterator<Long> repoIdIterator = buildContext.getRelevantRepositoryIds().iterator();
+        if (repoIdIterator.hasNext()) {
+            long repoId = repoIdIterator.next();
+            String checkoutLocation = buildContext.getCheckoutLocation().get(repoId);
             if (StringUtils.isNotBlank(checkoutLocation)) {
                 return new File(checkoutLocation);
             }
@@ -27,8 +30,10 @@ public abstract class ScmHelper {
 
     @Nullable
     public static String getRevisionKey(BuildContext buildContext) {
-        for (RepositoryDefinition repoDef : buildContext.getRepositoryDefinitions()) {
-            String key = buildContext.getBuildChanges().getVcsRevisionKey(repoDef.getId());
+        Iterator<Long> repoIdIterator = buildContext.getRelevantRepositoryIds().iterator();
+        if (repoIdIterator.hasNext()) {
+            long repoId = repoIdIterator.next();
+            String key = buildContext.getBuildChanges().getVcsRevisionKey(repoId);
             if (StringUtils.isNotBlank(key)) {
                 return key;
             }
@@ -40,12 +45,11 @@ public abstract class ScmHelper {
     public static Repository getRepository(BuildContext buildContext) {
         Iterator<Long> repoIdIterator = buildContext.getRelevantRepositoryIds().iterator();
         if (repoIdIterator.hasNext()) {
-            long repoId = repoIdIterator.next().longValue();
-            Iterable<RepositoryDefinition> repositoryDefinitions = buildContext.getRepositoryDefinitions();
-            for (RepositoryDefinition repositoryDefinition : repositoryDefinitions) {
-                if (repositoryDefinition.getId() == repoId) {
-                    return repositoryDefinition.getRepository();
-                }
+            long repoId = repoIdIterator.next();
+            Map<Long, RepositoryDefinition> repositoryDefinitionMap = buildContext.getRepositoryDefinitionMap();
+            RepositoryDefinition repositoryDefinition = repositoryDefinitionMap.get(repoId);
+            if (repositoryDefinition != null) {
+                return repositoryDefinition.getRepository();
             }
         }
         return null;

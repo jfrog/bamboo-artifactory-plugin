@@ -44,7 +44,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         context.put("selectedServerId", -1);
         context.put("selectedResolutionRepoKey", "");
         context.put("selectedPublishingRepoKey", "");
-        Repository repository = PlanHelper.getDefaultRepository(plan).getRepository();
+        Repository repository = PlanHelper.getDefaultRepository(plan);
         if (repository != null) {
             String host = repository.getHost();
             context.put("builder.artifactoryGradleBuilder.vcsTagBase", host);

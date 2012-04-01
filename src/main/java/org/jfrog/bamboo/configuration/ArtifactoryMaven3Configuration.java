@@ -44,7 +44,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("selectedRepoKey", "");
         context.put("selectedResolutionArtifactoryServerId", -1);
         context.put("selectedResolutionRepoKey", "");
-        Repository repository = PlanHelper.getDefaultRepository(plan).getRepository();
+        Repository repository = PlanHelper.getDefaultRepository(plan);
         if (repository != null) {
             String host = repository.getHost();
             context.put("builder.artifactoryMaven3Builder.vcsTagBase", host);
