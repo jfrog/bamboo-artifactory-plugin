@@ -118,11 +118,11 @@ public class ArtifactoryGenericTask implements TaskType {
         String deployPattern = context.getDeployPattern();
         deployPattern = StringUtils.replace(deployPattern, "\r\n", "\n");
         deployPattern = StringUtils.replace(deployPattern, ",", "\n");
-        Map<String, String> pairs = PublishedItemsHelper.getPublishedItemsPatternPairs(deployPattern);
+        Multimap<String, String> pairs = PublishedItemsHelper.getPublishedItemsPatternPairs(deployPattern);
         if (pairs.isEmpty()) {
             return result;
         }
-        for (Map.Entry<String, String> entry : pairs.entrySet()) {
+        for (Map.Entry<String, String> entry : pairs.entries()) {
             File scanningDir = directory;
             File dir = new File(entry.getKey());
             if (dir.isAbsolute()) {
