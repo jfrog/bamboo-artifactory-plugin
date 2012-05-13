@@ -13,15 +13,9 @@ import com.google.common.collect.Sets;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.resources.FileResource;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.build.api.Agent;
-import org.jfrog.build.api.Artifact;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.BuildInfoFields;
-import org.jfrog.build.api.BuildType;
+import org.jfrog.build.api.*;
 import org.jfrog.build.api.builder.ArtifactBuilder;
 import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
@@ -36,12 +30,7 @@ import org.joda.time.Interval;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Tomer Cohen
@@ -117,13 +106,13 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return principal;
     }
 
-    public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, FileSet> fileSetMap,
-            File rootDir, BuildContext buildContext, GenericContext genericContext)
+    public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, File> filesMap,
+                                                                   File rootDir, BuildContext buildContext, GenericContext genericContext)
             throws IOException, NoSuchAlgorithmException {
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
 
-        for (Map.Entry<String, FileSet> entry : fileSetMap.entries()) {
+        for (Map.Entry<String, File> entry : filesMap.entries()) {
             details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), rootDir,
                     dynamicPropertyMap));
         }
@@ -143,36 +132,22 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return Maps.fromProperties(prefixLessDynamicProperties);
     }
 
-    private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, FileSet> fileSetEntry,
-            String targetRepository, File rootDir, Map<String, String> propertyMap) throws IOException,
+    private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry,
+                                                             String targetRepository, File rootDir, Map<String, String> propertyMap) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
-        String targetPath = fileSetEntry.getKey();
-        Iterator<FileResource> iterator = fileSetEntry.getValue().iterator();
-        while (iterator.hasNext()) {
-            FileResource fileResource = iterator.next();
-            File file = fileResource.getFile();
+        String targetPath = fileEntry.getKey();
+        File artifactFile = fileEntry.getValue();
 
-            String relativePath = file.getAbsolutePath();
-            if (StringUtils.startsWith(relativePath, rootDir.getAbsolutePath())) {
-                relativePath = StringUtils.removeStart(file.getAbsolutePath(), rootDir.getAbsolutePath());
-            } else {
-                File fileBaseDir = fileResource.getBaseDir();
-                if (fileBaseDir != null) {
-                    relativePath = StringUtils.removeStart(file.getAbsolutePath(), fileBaseDir.getAbsolutePath());
-                }
-            }
-            relativePath = FilenameUtils.separatorsToUnix(relativePath);
-            relativePath = StringUtils.removeStart(relativePath, "/");
-            String path = PublishedItemsHelper.calculateTargetPath(targetPath, file, relativePath);
-            path = StringUtils.replace(path, "//", "/");
-            Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(file, "SHA1", "MD5");
-            DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(file).md5(checksums.get("MD5"))
-                    .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path);
-            addCommonProperties(deployDetails);
-            deployDetails.addProperties(propertyMap);
-            result.add(deployDetails.build());
-        }
+        String path = PublishedItemsHelper.calculateTargetPath(targetPath, artifactFile, rootDir.getAbsolutePath());
+        path = StringUtils.replace(path, "//", "/");
+
+        Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(artifactFile, "SHA1", "MD5");
+        DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(artifactFile).md5(checksums.get("MD5"))
+                .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path);
+        addCommonProperties(deployDetails);
+        deployDetails.addProperties(propertyMap);
+        result.add(deployDetails.build());
         return result;
     }
 

@@ -1,26 +1,17 @@
 package org.jfrog.bamboo.task;
 
-import com.atlassian.bamboo.build.artifact.AbstractArtifactManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
-import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContext;
-import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.repository.RepositoryException;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.task.TaskType;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.tools.ant.types.FileSet;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
@@ -86,9 +77,9 @@ public class ArtifactoryGenericTask implements TaskType {
                 log.error(logger.addErrorLogEntry("No build directory found!"));
                 return TaskResultBuilder.create(taskContext).success().build();
             }
-            Multimap<String, FileSet> fileSetMap = buildTargetPathToFiles(sourceCodeDirectory, genericContext);
-            if (!fileSetMap.isEmpty()) {
-                deploy(fileSetMap, genericContext, taskContext, sourceCodeDirectory);
+            Multimap<String, File> filesMap = buildTargetPathToFiles(sourceCodeDirectory, genericContext);
+            if (!filesMap.isEmpty()) {
+                deploy(filesMap, genericContext, taskContext, sourceCodeDirectory);
             }
         } catch (Exception e) {
             String message = "Exception occurred while executing task";
@@ -112,69 +103,36 @@ public class ArtifactoryGenericTask implements TaskType {
         }
     }
 
-    private Multimap<String, FileSet> buildTargetPathToFiles(File directory, GenericContext context)
+    private Multimap<String, File> buildTargetPathToFiles(File directory, GenericContext context)
             throws IOException {
-        Multimap<String, FileSet> result = HashMultimap.create();
+        Multimap<String, File> result = HashMultimap.create();
         String deployPattern = context.getDeployPattern();
         deployPattern = StringUtils.replace(deployPattern, "\r\n", "\n");
         deployPattern = StringUtils.replace(deployPattern, ",", "\n");
+
+        // Collect all published items pair in the form of 'pattern -> targetPath'
         Multimap<String, String> pairs = PublishedItemsHelper.getPublishedItemsPatternPairs(deployPattern);
         if (pairs.isEmpty()) {
             return result;
         }
+
+        // Collect all found items and put them into the result in the form of 'targetPath -> File'
         for (Map.Entry<String, String> entry : pairs.entries()) {
-            File scanningDir = directory;
-            File dir = new File(entry.getKey());
-            if (dir.isAbsolute()) {
-                scanningDir = getRootDir(dir);
-            }
-            ArtifactDefinitionContext definitionContext =
-                    createArtifactDefinitionContext(entry.getKey(), directory.getCanonicalPath(), scanningDir);
-            FileSet fileSet = AbstractArtifactManager.createFileSet(scanningDir, definitionContext, false);
-            if (fileSet != null) {
+            Multimap<String, File> filesMap = PublishedItemsHelper.buildPublishingData(directory, entry.getKey(), entry.getValue());
+            if (filesMap != null) {
                 log.info(logger.addBuildLogEntry(
-                        "For pattern: " + entry.getKey() + " " + fileSet.size() + " artifacts were found"));
-                result.put(entry.getValue(), fileSet);
+                        "For pattern: " + entry.getKey() + " " + filesMap.size() + " artifacts were found"));
+                result.putAll(filesMap);
             } else {
                 log.warn(logger.addBuildLogEntry("For pattern: " + entry.getKey() + " no artifacts were found"));
             }
         }
+
         return result;
     }
 
-    private File getRootDir(File directory) {
-        File rootDir = directory;
-        while (directory.getParentFile() != null) {
-            rootDir = directory.getParentFile();
-            directory = rootDir;
-        }
-        return rootDir;
-    }
-
-    private ArtifactDefinitionContext createArtifactDefinitionContext(String filePattern, String rootLocation,
-            File dir) {
-        ArtifactDefinitionContext context = new ArtifactDefinitionContextImpl();
-        boolean absolute = new File(filePattern).isAbsolute();
-        if (!absolute) {
-            context.setLocation(rootLocation);
-        }
-        if (absolute) {
-            filePattern = sanitizeFilePattern(filePattern, dir);
-        }
-        context.setCopyPattern(filePattern);
-        context.setSharedArtifact(false);
-        return context;
-    }
-
-    private String sanitizeFilePattern(String filePattern, File dir) {
-        String pathToRemove = FilenameUtils.separatorsToUnix(dir.getAbsolutePath());
-        filePattern = FilenameUtils.separatorsToUnix(filePattern);
-        filePattern = StringUtils.removeStart(filePattern, pathToRemove);
-        return filePattern;
-    }
-
-    private void deploy(Multimap<String, FileSet> fileSetMap, GenericContext context, TaskContext taskContext,
-            File rootDir) throws IOException, NoSuchAlgorithmException {
+    private void deploy(Multimap<String, File> filesMap, GenericContext context, TaskContext taskContext,
+                        File rootDir) throws IOException, NoSuchAlgorithmException {
 
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(context.getSelectedServerId());
@@ -191,7 +149,7 @@ public class ArtifactoryGenericTask implements TaskType {
         try {
             BuildContext buildContext = taskContext.getBuildContext();
             Build build = buildInfoHelper.extractBuildInfo(buildContext, username);
-            Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, fileSetMap,
+            Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap,
                     rootDir, buildContext, context);
             for (DeployDetails detail : details) {
                 StringBuilder deploymentPathBuilder = new StringBuilder(serverConfig.getUrl());
