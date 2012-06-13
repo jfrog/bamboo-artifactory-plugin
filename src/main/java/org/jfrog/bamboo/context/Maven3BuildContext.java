@@ -101,7 +101,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
         env.put(PREFIX + EXCLUDE_PATTERN, "");
     }
 
-    public static Maven3BuildContext createContextFromMap(Map<String, Object> map) {
+    public static Maven3BuildContext createMavenContextFromMap(Map<String, Object> map) {
         Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
             @Override
             public String apply(Object input) {

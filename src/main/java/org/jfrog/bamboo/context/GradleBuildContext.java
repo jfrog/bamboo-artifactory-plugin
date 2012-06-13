@@ -59,7 +59,7 @@ public class GradleBuildContext extends AbstractBuildContext {
         return env.get(PREFIX + GRADLE_WRAPPER_LOCATION_PARAM);
     }
 
-    public static GradleBuildContext createContextFromMap(Map<String, Object> map) {
+    public static GradleBuildContext createGradleContextFromMap(Map<String, Object> map) {
         Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
             @Override
             public String apply(Object input) {

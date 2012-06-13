@@ -65,7 +65,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :
                 GradleBuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;
         context.put("selectedPublishingRepoKey", selectedPublishingRepoKey);
-        GradleBuildContext buildContext = GradleBuildContext.createContextFromMap(context);
+        GradleBuildContext buildContext = GradleBuildContext.createGradleContextFromMap(context);
         context.put("hasTests", buildContext.isTestChecked());
         context.put("serverConfigManager", serverConfigManager);
     }
@@ -75,7 +75,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         super.populateContextForView(context, taskDefinition);
         taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         context.put("serverConfigManager", serverConfigManager);
-        GradleBuildContext buildContext = GradleBuildContext.createContextFromMap(context);
+        GradleBuildContext buildContext = GradleBuildContext.createGradleContextFromMap(context);
         long serverId = buildContext.getArtifactoryServerId();
         context.put("selectedServerId", serverId);
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(serverId);
@@ -92,7 +92,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-            @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, FIELDS_TO_COPY);
         GradleBuildContext buildContext = new GradleBuildContext(taskConfigMap);

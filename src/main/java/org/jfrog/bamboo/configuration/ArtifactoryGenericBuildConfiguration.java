@@ -69,7 +69,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
         super.populateContextForView(context, taskDefinition);
         taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         context.put("serverConfigManager", serverConfigManager);
-        IvyBuildContext buildContext = IvyBuildContext.createContextFromMap(context);
+        IvyBuildContext buildContext = IvyBuildContext.createIvyContextFromMap(context);
         long serverId = buildContext.getArtifactoryServerId();
         context.put("selectedServerId", serverId);
     }
@@ -77,7 +77,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-            @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
         return configMap;
