@@ -113,8 +113,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
 
         for (Map.Entry<String, File> entry : filesMap.entries()) {
-            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), rootDir,
-                    dynamicPropertyMap));
+            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), dynamicPropertyMap));
         }
         List<Artifact> artifacts = convertDeployDetailsToArtifacts(details);
         ModuleBuilder moduleBuilder =
@@ -133,13 +132,13 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry,
-                                                             String targetRepository, File rootDir, Map<String, String> propertyMap) throws IOException,
+                                                             String targetRepository, Map<String, String> propertyMap) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
         String targetPath = fileEntry.getKey();
         File artifactFile = fileEntry.getValue();
 
-        String path = PublishedItemsHelper.calculateTargetPath(targetPath, artifactFile, rootDir.getAbsolutePath());
+        String path = PublishedItemsHelper.calculateTargetPath(targetPath, artifactFile);
         path = StringUtils.replace(path, "//", "/");
 
         Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(artifactFile, "SHA1", "MD5");
