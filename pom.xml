@@ -50,16 +50,16 @@
     </scm>
 
     <properties>
-        <bamboo.version>4.0</bamboo.version>
+        <bamboo.version>4.1</bamboo.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <buildinfo.version>2.0.8</buildinfo.version>
-        <gradle.version>2.0.12</gradle.version>
-        <ivy.version>2.0.3</ivy.version>
-        <maven.version>2.0.6</maven.version>
+        <buildinfo.version>2.0.x-SNAPSHOT</buildinfo.version>
+        <gradle.version>2.0.14</gradle.version>
+        <ivy.version>2.0.6</ivy.version>
+        <maven.version>2.0.8</maven.version>
     </properties>
 
     <dependencies>
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>com.atlassian.bamboo.plugins</groupId>
             <artifactId>atlassian-bamboo-plugin-git</artifactId>
-            <version>1.7</version>
+            <version>1.8.13</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -185,7 +185,7 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-bamboo-plugin</artifactId>
-                <version>3.9.1</version>
+                <version>3.9.3</version>
                 <extensions>true</extensions>
                 <configuration>
                     <productVersion>${bamboo.version}</productVersion>

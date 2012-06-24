@@ -17,6 +17,7 @@ public class GradleBuildContext extends AbstractBuildContext {
     public static final String BUILD_SCRIPT_PARAM = "buildScript";
     public static final String BUILD_FILE_PARAM = "buildFile";
     public static final String USE_GRADLE_WRAPPER_PARAM = "useGradleWrapper";
+    public static final String GRADLE_WRAPPER_LOCATION_PARAM = "gradleWrapperLocation";
 
     public GradleBuildContext(Map<String, String> env) {
         super(PREFIX, env);
@@ -54,7 +55,11 @@ public class GradleBuildContext extends AbstractBuildContext {
         return Boolean.valueOf(env.get(PREFIX + USE_GRADLE_WRAPPER_PARAM));
     }
 
-    public static GradleBuildContext createContextFromMap(Map<String, Object> map) {
+    public String getGradleWrapperLocation() {
+        return env.get(PREFIX + GRADLE_WRAPPER_LOCATION_PARAM);
+    }
+
+    public static GradleBuildContext createGradleContextFromMap(Map<String, Object> map) {
         Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
             @Override
             public String apply(Object input) {
@@ -73,8 +78,8 @@ public class GradleBuildContext extends AbstractBuildContext {
     public static Set<String> getFieldsToCopy() {
         Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SWITCHES_PARAM, PREFIX + TASKS_PARAM,
                 PREFIX + BUILD_SCRIPT_PARAM, PREFIX + BUILD_FILE_PARAM, PREFIX + USE_GRADLE_WRAPPER_PARAM,
-                PREFIX + SERVER_ID_PARAM, PREFIX + RESOLUTION_REPO_PARAM, PREFIX + PUBLISHING_REPO_PARAM,
-                PREFIX + DEPLOYER_USERNAME_PARAM, PREFIX + DEPLOYER_PASSWORD_PARAM,
+                PREFIX + GRADLE_WRAPPER_LOCATION_PARAM, PREFIX + SERVER_ID_PARAM, PREFIX + RESOLUTION_REPO_PARAM,
+                PREFIX + PUBLISHING_REPO_PARAM, PREFIX + DEPLOYER_USERNAME_PARAM, PREFIX + DEPLOYER_PASSWORD_PARAM,
                 PREFIX + USE_ARTIFACTORY_GRADLE_PLUGIN, PUBLISH_BUILD_INFO_PARAM,
                 PREFIX + INCLUDE_ENV_VARS_PARAM, RUN_LICENSE_CHECKS, PREFIX + LICENSE_VIOLATION_RECIPIENTS,
                 PREFIX + LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES, PREFIX + ENVIRONMENT_VARIABLES,

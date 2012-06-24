@@ -203,29 +203,25 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
 
     @Override
     public String getExecutable(AbstractBuildContext buildContext) throws TaskException {
-        ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
-        if (capabilitySet == null) {
-            return null;
-        }
-        Capability capability = capabilitySet.getCapability(GRADLE_KEY + buildContext.getExecutable());
-        if (capability == null) {
-            throw new TaskException(
-                    "Gradle capability: " + buildContext.getExecutable() + " is not defined, please check " +
-                            "job configuration");
-        }
-
-        String capabilityPath = capability.getValue();
-
         if ((buildContext instanceof GradleBuildContext) && ((GradleBuildContext) buildContext).isUseGradleWrapper()) {
-            return capabilityPath;
+            String gradleWrapperLocation = ((GradleBuildContext) buildContext).getGradleWrapperLocation();
+            if (StringUtils.isNotBlank(gradleWrapperLocation)) {
+                return gradleWrapperLocation;
+            }
+            return "./gradlew";
         } else {
-            String path = new StringBuilder(capabilityPath)
-                    .append(File.separator)
-                    .append("bin")
-                    .append(File.separator)
-                    .append(EXECUTABLE_NAME)
-                    .toString();
+            ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
+            if (capabilitySet == null) {
+                return null;
+            }
+            Capability capability = capabilitySet.getCapability(GRADLE_KEY + buildContext.getExecutable());
+            if (capability == null) {
+                throw new TaskException(
+                        "Gradle capability: " + buildContext.getExecutable() + " is not defined, please check " +
+                                "job configuration");
+            }
 
+            String path = capability.getValue() + File.separator + "bin" + File.separator + EXECUTABLE_NAME;
             if (!new File(path).exists()) {
                 throw new TaskException("Executable '" + EXECUTABLE_NAME + "'  does not exist at path '" + path + "'");
             }

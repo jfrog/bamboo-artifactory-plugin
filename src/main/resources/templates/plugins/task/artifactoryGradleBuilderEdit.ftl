@@ -18,9 +18,16 @@ extraUtility=addJdkLink /]
 
 [@ww.checkbox labelKey='Use Gradle Wrapper' name='builder.artifactoryGradleBuilder.useGradleWrapper' toggle='true'/]
 
-[#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='gradle'/][/#assign]
-[@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryGradleBuilder.executable'
-list=uiConfigBean.getExecutableLabels('gradle') extraUtility=addExecutableLink required='true' /]
+[@ui.bambooSection dependsOn='builder.artifactoryGradleBuilder.useGradleWrapper' showOn=true]
+    [@ww.textfield labelKey='Gradle Wrapper Location' name='builder.artifactoryGradleBuilder.gradleWrapperLocation'
+    descriptionKey='Path to the Gradle Wrapper executable. May be absolute or relative to the build directory. Defaults to ./gradlew'/]
+[/@ui.bambooSection]
+
+[@ui.bambooSection dependsOn='builder.artifactoryGradleBuilder.useGradleWrapper' showOn=false]
+    [#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='gradle'/][/#assign]
+    [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryGradleBuilder.executable'
+    list=uiConfigBean.getExecutableLabels('gradle') extraUtility=addExecutableLink/]
+[/@ui.bambooSection]
 
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryGradleBuilder.environmentVariables'
 descriptionKey='Space-separated key-value pairs of extra environment variables to pass to the build process (e.g. EXT_PATH=/var/lib/ext).' /]

@@ -1,6 +1,6 @@
 package org.jfrog.bamboo.configuration;
 
-import com.atlassian.bamboo.build.Buildable;
+import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.task.AbstractTaskConfigurator;
@@ -49,7 +49,11 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private String builderContextPrefix;
     private String capabilityPrefix;
 
-    protected AbstractArtifactoryConfiguration(String builderContextPrefix, String capabilityPrefix) {
+    protected AbstractArtifactoryConfiguration(String builderContextPrefix) {
+        this(builderContextPrefix, null);
+    }
+
+    protected AbstractArtifactoryConfiguration(String builderContextPrefix, @Nullable String capabilityPrefix) {
         this.builderContextPrefix = builderContextPrefix;
         this.capabilityPrefix = capabilityPrefix;
 
@@ -148,12 +152,14 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
 
     @NotNull
     @Override
-    public Set<Requirement> calculateRequirements(@NotNull TaskDefinition definition, @NotNull Buildable buildable) {
+    public Set<Requirement> calculateRequirements(@NotNull TaskDefinition taskDefinition, @NotNull Job job) {
         Set<Requirement> requirements = Sets.newHashSet();
-        taskConfiguratorHelper.addJdkRequirement(requirements, definition,
+        taskConfiguratorHelper.addJdkRequirement(requirements, taskDefinition,
                 builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
-        taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, definition,
-                builderContextPrefix + AbstractBuildContext.EXECUTABLE, capabilityPrefix);
+        if (StringUtils.isNotBlank(capabilityPrefix)) {
+            taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
+                    builderContextPrefix + AbstractBuildContext.EXECUTABLE, capabilityPrefix);
+        }
         return requirements;
     }
 

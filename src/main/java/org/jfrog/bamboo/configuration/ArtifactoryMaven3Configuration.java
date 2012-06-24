@@ -60,7 +60,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :
                 Maven3BuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;
         context.put("selectedRepoKey", selectedPublishingRepoKey);
-        Maven3BuildContext buildContext = Maven3BuildContext.createContextFromMap(context);
+        Maven3BuildContext buildContext = Maven3BuildContext.createMavenContextFromMap(context);
         String resolutionRepo = buildContext.getResolutionRepo();
         if (resolutionRepo == null) {
             resolutionRepo = "";
@@ -80,7 +80,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
                 Maven3BuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;
         taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         context.put("selectedRepoKey", selectedPublishingRepoKey);
-        Maven3BuildContext buildContext = Maven3BuildContext.createContextFromMap(context);
+        Maven3BuildContext buildContext = Maven3BuildContext.createMavenContextFromMap(context);
         long serverId = buildContext.getArtifactoryServerId();
         context.put("selectedServerId", serverId);
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(serverId);
@@ -94,7 +94,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-            @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, FIELDS_TO_COPY);
         Maven3BuildContext buildContext = new Maven3BuildContext(taskConfigMap);
