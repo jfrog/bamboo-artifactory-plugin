@@ -119,6 +119,12 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);
         }
 
+        String buildTimestamp = String.valueOf(buildContext.getBuildTimestamp());
+        if (StringUtils.isNotBlank(buildTimestamp)) {
+            clientConf.info.setBuildTimestamp(buildTimestamp);
+            clientConf.publisher.addMatrixParam("build.timestamp", buildTimestamp);
+        }
+
         StringBuilder summaryUrlBuilder = new StringBuilder(bambooBaseUrl);
         if (!bambooBaseUrl.endsWith("/")) {
             summaryUrlBuilder.append("/");

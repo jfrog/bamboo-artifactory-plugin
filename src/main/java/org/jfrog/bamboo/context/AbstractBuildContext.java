@@ -4,9 +4,11 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.thoughtworks.xstream.converters.extended.ISO8601DateConverter;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -51,6 +53,7 @@ public abstract class AbstractBuildContext {
     public static final String JDK = "buildJdk";
     public static final String EXECUTABLE = "executable";
     public static final String BASE_URL = "baseUrl";
+    public static final String BUILD_TIMESTAMP = "buildTimeStamp";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
 
@@ -117,6 +120,11 @@ public abstract class AbstractBuildContext {
 
     public String getBaseUrl() {
         return env.get(BASE_URL);
+    }
+
+    public long getBuildTimestamp() {
+        String isoTimeStamp = env.get(BUILD_TIMESTAMP);
+        return ((Date) (new ISO8601DateConverter().fromString(isoTimeStamp))).getTime();
     }
 
     public String getEnvironmentVariables() {
