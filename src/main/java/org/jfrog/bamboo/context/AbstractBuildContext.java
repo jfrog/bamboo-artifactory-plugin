@@ -29,6 +29,8 @@ public abstract class AbstractBuildContext {
     public static final String USE_ARTIFACTORY_GRADLE_PLUGIN = "useArtifactoryGradlePlugin";
     public static final String PUBLISH_BUILD_INFO_PARAM = "publishBuildInfo";
     public static final String INCLUDE_ENV_VARS_PARAM = "includeEnvVars";
+    public static final String ENV_VARS_INCLUDE_PATTERNS = "envVarsIncludePatterns";
+    public static final String ENV_VARS_EXCLUDE_PATTERNS = "envVarsExcludePatterns";
     public static final String RUN_LICENSE_CHECKS = "runLicenseChecks";
     public static final String LICENSE_VIOLATION_RECIPIENTS = "licenseViolationRecipients";
     public static final String LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES = "limitChecksToScopes";
@@ -172,7 +174,15 @@ public abstract class AbstractBuildContext {
     }
 
     public boolean isIncludeEnvVars() {
-        return Boolean.parseBoolean(env.get(prefix + INCLUDE_ENV_VARS_PARAM));
+        return Boolean.parseBoolean(env.get(INCLUDE_ENV_VARS_PARAM));
+    }
+
+    public String getEnvVarsIncludePatterns() {
+        return env.get(ENV_VARS_INCLUDE_PATTERNS);
+    }
+
+    public String getEnvVarsExcludePatterns() {
+        return env.get(ENV_VARS_EXCLUDE_PATTERNS);
     }
 
     public boolean isRunLicenseChecks() {
@@ -245,6 +255,7 @@ public abstract class AbstractBuildContext {
         env.put(prefix + DISABLE_AUTOMATIC_LICENSE_DISCOVERY, "false");
         env.put(PUBLISH_ARTIFACTS_PARAM, "false");
         env.put(ENABLE_RELEASE_MANAGEMENT, "false");
+        env.put(ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
     }
 
     public class ReleaseManagementContext {

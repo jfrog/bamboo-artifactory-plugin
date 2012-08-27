@@ -32,6 +32,7 @@ import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.client.ArtifactoryClientConfiguration;
+import org.jfrog.build.client.IncludeExcludePatterns;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -130,7 +131,6 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         clientConf.info.setPrincipal(principal);
         clientConf.info.setAgentName("Bamboo");
         clientConf.info.setAgentVersion(BuildUtils.getVersionAndBuild());
-        clientConf.setIncludeEnvVars(Boolean.TRUE);
         clientConf.info.licenseControl.setRunChecks(buildContext.isRunLicenseChecks());
         clientConf.info.licenseControl.setViolationRecipients(buildContext.getLicenseViolationRecipients());
         clientConf.info.licenseControl.setScopes(buildContext.getScopes());
@@ -143,8 +143,10 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         props.putAll(environment);
         props.putAll(generalEnv);
         props = TaskUtils.getEscapedEnvMap(props);
-        clientConf.info.addBuildVariables(props);
-        clientConf.fillFromProperties(props);
+        IncludeExcludePatterns patterns = new IncludeExcludePatterns(buildContext.getEnvVarsIncludePatterns(),
+                buildContext.getEnvVarsExcludePatterns());
+        clientConf.info.addBuildVariables(props, patterns);
+        clientConf.fillFromProperties(props, patterns);
     }
 
     private String getTriggeringUserNameRecursively(BuildContext context) {
@@ -216,6 +218,9 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         clientConf.publisher.setPublishArtifacts(buildContext.isPublishArtifacts());
         clientConf.publisher.setIncludePatterns(buildContext.getIncludePattern());
         clientConf.publisher.setExcludePatterns(buildContext.getExcludePattern());
-        clientConf.publisher.setPublishBuildInfo(Boolean.TRUE);
+        clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
+        clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
+        clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
+        clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
     }
 }

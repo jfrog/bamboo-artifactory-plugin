@@ -15,13 +15,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.build.api.*;
+import org.jfrog.build.api.Agent;
+import org.jfrog.build.api.Artifact;
+import org.jfrog.build.api.Build;
+import org.jfrog.build.api.BuildInfoFields;
+import org.jfrog.build.api.BuildInfoProperties;
+import org.jfrog.build.api.BuildType;
 import org.jfrog.build.api.builder.ArtifactBuilder;
 import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.api.util.FileChecksumCalculator;
 import org.jfrog.build.client.ClientProperties;
 import org.jfrog.build.client.DeployDetails;
+import org.jfrog.build.client.IncludeExcludePatterns;
+import org.jfrog.build.client.PatternMatcher;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.util.PublishedItemsHelper;
 import org.joda.time.DateTime;
@@ -30,7 +37,11 @@ import org.joda.time.Interval;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * @author Tomer Cohen
@@ -45,7 +56,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         this.vcsRevision = vcsRevision;
     }
 
-    public Build extractBuildInfo(BuildContext buildContext, String username) {
+    public Build extractBuildInfo(BuildContext buildContext, GenericContext context, String username) {
         String url = determineBambooBaseUrl();
         StringBuilder summaryUrl = new StringBuilder(url);
         if (!url.endsWith("/")) {
@@ -69,12 +80,20 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
             principal = "auto";
         }
         builder.principal(principal);
-        Map<String, String> props = filterAndGetGlobalVariables();
-        props.putAll(env);
-        props = TaskUtils.getEscapedEnvMap(props);
-        Properties properties = new Properties();
-        properties.putAll(props);
-        builder.properties(properties);
+        if (context.isIncludeEnvVars()) {
+            Map<String, String> bambooProps = filterAndGetGlobalVariables();
+            bambooProps.putAll(env);
+            bambooProps = TaskUtils.getEscapedEnvMap(bambooProps);
+            IncludeExcludePatterns patterns = new IncludeExcludePatterns(context.getEnvVarsIncludePatterns(),
+                    context.getEnvVarsExcludePatterns());
+            for (Map.Entry<String, String> prop : bambooProps.entrySet()) {
+                String varKey = prop.getKey();
+                if (PatternMatcher.pathConflicts(varKey, patterns)) {
+                    continue;
+                }
+                builder.addProperty(BuildInfoProperties.BUILD_INFO_ENVIRONMENT_PREFIX + varKey, prop.getValue());
+            }
+        }
         return builder.build();
     }
 
@@ -107,7 +126,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, File> filesMap,
-                                                                   File rootDir, BuildContext buildContext, GenericContext genericContext)
+            File rootDir, BuildContext buildContext, GenericContext genericContext)
             throws IOException, NoSuchAlgorithmException {
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
@@ -132,7 +151,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry,
-                                                             String targetRepository, Map<String, String> propertyMap) throws IOException,
+            String targetRepository, Map<String, String> propertyMap) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
         String targetPath = fileEntry.getKey();

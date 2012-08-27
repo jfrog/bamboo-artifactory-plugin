@@ -15,6 +15,10 @@ public class GenericContext {
     public static final String USERNAME = "artifactory.generic.username";
     public static final String PASSWORD = "artifactory.generic.password";
     public static final String DEPLOY_PATTERN = "artifactory.generic.deployPattern";
+    public static final String PUBLISH_BUILD_INFO = "artifactory.generic.publishBuildInfo";
+    public static final String INCLUDE_ENV_VARS = "artifactory.generic.includeEnvVars";
+    public static final String ENV_VARS_INCLUDE_PATTERNS = "artifactory.generic.envVarsIncludePatterns";
+    public static final String ENV_VARS_EXCLUDE_PATTERNS = "artifactory.generic.envVarsExcludePatterns";
 
     private final Map<String, String> env;
 
@@ -46,7 +50,24 @@ public class GenericContext {
         return env.get(DEPLOY_PATTERN);
     }
 
+    public boolean isPublishBuildInfo() {
+        return Boolean.parseBoolean(env.get(PUBLISH_BUILD_INFO));
+    }
+
+    public boolean isIncludeEnvVars() {
+        return Boolean.parseBoolean(env.get(INCLUDE_ENV_VARS));
+    }
+
+    public String getEnvVarsIncludePatterns() {
+        return env.get(ENV_VARS_INCLUDE_PATTERNS);
+    }
+
+    public String getEnvVarsExcludePatterns() {
+        return env.get(ENV_VARS_EXCLUDE_PATTERNS);
+    }
+
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(SELECTED_SERVER_ID, REPO_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN);
+        return Sets.newHashSet(SELECTED_SERVER_ID, REPO_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, PUBLISH_BUILD_INFO,
+                INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS);
     }
 }
