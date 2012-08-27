@@ -23,6 +23,8 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +36,7 @@ import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.client.ArtifactoryClientConfiguration;
+import org.jfrog.build.client.IncludeExcludePatterns;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,11 +76,13 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
                     File buildProps = File.createTempFile("buildinfo", "properties");
                     ArtifactoryClientConfiguration configuration =
                             createClientConfiguration(buildContext, serverConfig, taskEnv);
-                    if (buildContext.isIncludeEnvVars()) {
-                        configuration.info.addBuildVariables(generalEnv);
-                    } else {
-                        configuration.info.fillCommonSysProps();
-                    }
+                    // Add Bamboo build variables
+                    MapDifference<String, String> buildVarDifference = Maps.difference(generalEnv, System.getenv());
+                    Map<String, String> filteredBuildVarDifferences = buildVarDifference.entriesOnlyOnLeft();
+                    IncludeExcludePatterns patterns = new IncludeExcludePatterns(
+                            buildContext.getEnvVarsIncludePatterns(),
+                            buildContext.getEnvVarsExcludePatterns());
+                    configuration.info.addBuildVariables(filteredBuildVarDifferences, patterns);
                     configuration.setPropertiesFile(buildProps.getAbsolutePath());
                     configuration.persistToPropertiesFile();
                     File tempInitScript = File.createTempFile("artifactory.init.script", "gradle");
@@ -151,12 +156,16 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
         addClientProperties(clientConf, serverConfig, buildContext);
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
+        clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
+        clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
 
         Map<String, String> globalVars = filterAndGetGlobalVariables();
         globalVars = TaskUtils.getEscapedEnvMap(globalVars);
         globalVars.putAll(TaskUtils.getEscapedEnvMap(taskEnv));
-        clientConf.info.addBuildVariables(globalVars);
-        clientConf.fillFromProperties(globalVars);
+        IncludeExcludePatterns patterns = new IncludeExcludePatterns(buildContext.getEnvVarsIncludePatterns(),
+                buildContext.getEnvVarsExcludePatterns());
+        clientConf.info.addBuildVariables(globalVars, patterns);
+        clientConf.fillFromProperties(globalVars, patterns);
         return clientConf;
     }
 

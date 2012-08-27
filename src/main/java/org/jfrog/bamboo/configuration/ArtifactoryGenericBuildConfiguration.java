@@ -50,6 +50,8 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", -1);
         context.put("selectedRepoKey", "");
+        context.put(GenericContext.PUBLISH_BUILD_INFO, "true");
+        context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
     }
 
     @Override
@@ -77,7 +79,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-                                                     @Nullable TaskDefinition previousTaskDefinition) {
+            @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
         return configMap;

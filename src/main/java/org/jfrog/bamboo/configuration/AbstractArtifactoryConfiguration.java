@@ -167,6 +167,8 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private void populateContextForAllOperations(@NotNull Map<String, Object> context) {
         context.put("uiConfigBean", uiConfigSupport);
         context.put("testDirectoryTypes", TEST_RESULTS_FILE_PATTERN_TYPES);
+        context.put(AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM, "true");
+        context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
     }
 
 

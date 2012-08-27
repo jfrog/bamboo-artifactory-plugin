@@ -56,25 +56,49 @@ descriptionKey='Uncheck if you do not wish to deploy artifacts from the plugin.'
     [/@ui.bambooSection]
 [/@ui.bambooSection]
 
-[@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
-toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
+[@ww.checkbox labelKey='Capture and Publish Build Info' name='publishBuildInfo'
+toggle='true' descriptionKey='Check if you wish to publish build information to Artifactory.'/]
 
-[@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
-    [@ww.textfield labelKey='Send License Violation Notifications To'
-    name='builder.artifactoryIvyBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
+[@ui.bambooSection dependsOn='publishBuildInfo' showOn=true]
+    [@ww.checkbox labelKey='Include Environment Variables' name='includeEnvVars'
+    toggle='true' descriptionKey='Check if you wish to include all environment variables accessible by the builds process.'/]
 
-    [@ww.textfield labelKey='Limit Checks To The Following Scopes'
-    name='builder.artifactoryIvyBuilder.limitChecksToScopes' descriptionKey='Space-separated list of scopes.'/]
+    [@ui.bambooSection dependsOn='includeEnvVars' showOn=true]
+        [@ww.textfield labelKey='Environment Variables Include Patterns'
+        name='envVarsIncludePatterns'
+        descriptionKey='Comma or space-separated list of
+        <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
+        of environment variables that will be included in publishing. Include patterns are applied on the published build info before any
+        exclude patterns.'/]
+        [@ww.textfield labelKey='Environment Variables Exclude Patterns'
+        name='envVarsExcludePatterns'
+        descriptionKey='Comma or space-separated list of
+        <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
+        of files that will be excluded from publishing. Exclude patterns are applied on the published build info after any
+        include patterns.'/]
+    [/@ui.bambooSection]
 
-    [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryIvyBuilder.includePublishedArtifacts'
-    toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
-                as dependencies for other modules in this build."/]
+    [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
+    toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
 
-    [@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryIvyBuilder.disableAutoLicenseDiscovery'
-    toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
-                upon deployment. You can still attach license information manually by running 'Auto-Find' from the build's
-                Licenses tab in Artifactory."/]
+    [@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
+        [@ww.textfield labelKey='Send License Violation Notifications To'
+        name='builder.artifactoryIvyBuilder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
+
+        [@ww.textfield labelKey='Limit Checks To The Following Scopes'
+        name='builder.artifactoryIvyBuilder.limitChecksToScopes' descriptionKey='Space-separated list of scopes.'/]
+
+        [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryIvyBuilder.includePublishedArtifacts'
+        toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
+                    as dependencies for other modules in this build."/]
+
+        [@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryIvyBuilder.disableAutoLicenseDiscovery'
+        toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
+                    upon deployment. You can still attach license information manually by running 'Auto-Find' from the build's
+                    Licenses tab in Artifactory."/]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
+
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']
     [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
 

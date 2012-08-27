@@ -1,7 +1,7 @@
 [@ui.bambooSection titleKey='Artifactory Generic Deploy']
-[@ww.select name='artifactory.generic.artifactoryServerId' labelKey='Artifactory Server URL' list=serverConfigManager.allServerConfigs
-listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
-descriptionKey='Select an Artifactory server.'/]
+    [@ww.select name='artifactory.generic.artifactoryServerId' labelKey='Artifactory Server URL' list=serverConfigManager.allServerConfigs
+    listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
+    descriptionKey='Select an Artifactory server.'/]
 <div id="genericArtifactoryConfigDiv">
     [@ww.select name='artifactory.generic.deployableRepo' labelKey='Target Repository' list=dummyList
     listKey='repoKey' listValue='repoKey' toggle='true' descriptionKey='Select a target deployment repository.'/]
@@ -10,7 +10,7 @@ descriptionKey='Select an Artifactory server.'/]
     [@ww.password name='artifactory.generic.password' labelKey='Deployer password' descriptionKey='Password with deploy
     permissions to Artifactory' showPassword='true'/]
     [@ww.textarea name='artifactory.generic.deployPattern' label='Edit Published Artifacts' rows='10' cols='80'
-    description='New line or comma separated paths to build artifacts that will be published to Artifactory. Supports
+description='New line or comma separated paths to build artifacts that will be published to Artifactory. Supports
     Ant-style<br/>
     wildcards mapping to target directories. E.g.:<br/>
     <b>**/*.zip=>winFiles</b> - Deploys all zip files under the working directory to the winFiles directory of the
@@ -19,8 +19,31 @@ descriptionKey='Select an Artifactory server.'/]
     <b>unix/*.tgz</b> - Deploys all tgz files under the unix directory to the root directory of the target repository,
     maintaining the original relative path for each file.<br/>
     ' cssClass="long-field" /]
+
+    [@ww.checkbox labelKey='Capture and Publish Build Info' name='artifactory.generic.publishBuildInfo'
+toggle='true' descriptionKey='Check if you wish to publish build information to Artifactory.'/]
+
+    [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' showOn=true]
+    [@ww.checkbox labelKey='Include Environment Variables' name='artifactory.generic.includeEnvVars'
+    toggle='true' descriptionKey='Check if you wish to include all environment variables accessible by the builds process.'/]
+
+    [@ui.bambooSection dependsOn='artifactory.generic.includeEnvVars' showOn=true]
+        [@ww.textfield labelKey='Environment Variables Include Patterns'
+        name='artifactory.generic.envVarsIncludePatterns'
+        descriptionKey='Comma or space-separated list of
+            <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
+            of environment variables that will be included in publishing. Include patterns are applied on the published build info before any
+            exclude patterns.'/]
+        [@ww.textfield labelKey='Environment Variables Exclude Patterns'
+        name='artifactory.generic.envVarsExcludePatterns'
+        descriptionKey='Comma or space-separated list of
+            <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
+            of files that will be excluded from publishing. Exclude patterns are applied on the published build info after any
+            include patterns.'/]
+    [/@ui.bambooSection]
+[/@ui.bambooSection]
 </div>
-[/@ui.bambooSection ]
+[/@ui.bambooSection]
 
 <script>
     function displayGenericArtifactoryConfigs(serverId) {

@@ -57,8 +57,8 @@
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
         <buildinfo.version>2.0.x-SNAPSHOT</buildinfo.version>
-        <gradle.version>2.0.15</gradle.version>
-        <ivy.version>2.0.7</ivy.version>
+        <gradle.version>2.0.x-SNAPSHOT</gradle.version>
+        <ivy.version>2.0.x-SNAPSHOT</ivy.version>
         <maven.version>2.0.x-SNAPSHOT</maven.version>
     </properties>
 

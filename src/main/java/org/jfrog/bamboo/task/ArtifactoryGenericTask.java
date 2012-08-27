@@ -4,7 +4,11 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.repository.RepositoryException;
-import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskException;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.TaskType;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.google.common.collect.HashMultimap;
@@ -118,7 +122,8 @@ public class ArtifactoryGenericTask implements TaskType {
 
         // Collect all found items and put them into the result in the form of 'targetPath -> File'
         for (Map.Entry<String, String> entry : pairs.entries()) {
-            Multimap<String, File> filesMap = PublishedItemsHelper.buildPublishingData(directory, entry.getKey(), entry.getValue());
+            Multimap<String, File> filesMap = PublishedItemsHelper.buildPublishingData(directory, entry.getKey(),
+                    entry.getValue());
             if (filesMap != null) {
                 log.info(logger.addBuildLogEntry(
                         "For pattern: " + entry.getKey() + " " + filesMap.size() + " artifacts were found"));
@@ -132,7 +137,7 @@ public class ArtifactoryGenericTask implements TaskType {
     }
 
     private void deploy(Multimap<String, File> filesMap, GenericContext context, TaskContext taskContext,
-                        File rootDir) throws IOException, NoSuchAlgorithmException {
+            File rootDir) throws IOException, NoSuchAlgorithmException {
 
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(context.getSelectedServerId());
@@ -148,7 +153,7 @@ public class ArtifactoryGenericTask implements TaskType {
                 new ArtifactoryBuildInfoClient(serverConfig.getUrl(), username, password, new BambooBuildInfoLog(log));
         try {
             BuildContext buildContext = taskContext.getBuildContext();
-            Build build = buildInfoHelper.extractBuildInfo(buildContext, username);
+            Build build = buildInfoHelper.extractBuildInfo(buildContext, context, username);
             Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap,
                     rootDir, buildContext, context);
             for (DeployDetails detail : details) {
@@ -161,11 +166,13 @@ public class ArtifactoryGenericTask implements TaskType {
                 logger.addBuildLogEntry(("Deploying artifact: " + deploymentPathBuilder.toString()));
                 client.deployArtifact(detail);
             }
-            String url = serverConfig.getUrl() + "/api/build";
-            logger.addBuildLogEntry("Deploying build info to: " + url);
-            client.sendBuildInfo(build);
-            buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
-                    serverConfig.getUrl());
+            if (context.isPublishBuildInfo()) {
+                String url = serverConfig.getUrl() + "/api/build";
+                logger.addBuildLogEntry("Deploying build info to: " + url);
+                client.sendBuildInfo(build);
+                buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
+                        serverConfig.getUrl());
+            }
         } finally {
             client.shutdown();
         }

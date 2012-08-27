@@ -15,9 +15,9 @@
 
 [@ww.label labelKey='Deployer Username' name='builder.artifactoryGradleBuilder.deployerUsername' hideOnNull='true' /]
 
-[@ww.label labelKey='Capture And Publish Build Info' name='builder.artifactoryGradleBuilder.publishBuildInfo' hideOnNull='true' /]
+[@ww.label labelKey='Capture And Publish Build Info' name='publishBuildInfo' hideOnNull='true' /]
 [#if isPublishBuildInfo]
-    [@ww.label labelKey='Include All Environment Variables' name='builder.artifactoryGradleBuilder.includeEnvVars' hideOnNull='true' /]
+    [@ww.label labelKey='Include Environment Variables' name='includeEnvVars' hideOnNull='true' /]
 
     [@ww.label labelKey='Run License Checks (Requires Pro)' name='builder.artifactoryGradleBuilder.runLicenseChecks'/]
     [#if isRunLicenseChecks]

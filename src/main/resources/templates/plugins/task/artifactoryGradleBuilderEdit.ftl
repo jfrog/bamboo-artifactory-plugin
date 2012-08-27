@@ -58,8 +58,23 @@ If your project applies the Artifactory plugin using a custom init script, make 
 toggle='true' descriptionKey='Check if you wish to publish build information to Artifactory.'/]
 
 [@ui.bambooSection dependsOn='publishBuildInfo' showOn=true]
-    [@ww.checkbox labelKey='Include All Environment Variables' name='builder.artifactoryGradleBuilder.includeEnvVars'
+    [@ww.checkbox labelKey='Include Environment Variables' name='includeEnvVars'
     toggle='true' descriptionKey='Check if you wish to include all environment variables accessible by the builds process.'/]
+
+    [@ui.bambooSection dependsOn='includeEnvVars' showOn=true]
+        [@ww.textfield labelKey='Environment Variables Include Patterns'
+        name='envVarsIncludePatterns'
+        descriptionKey='Comma or space-separated list of
+        <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
+        of environment variables that will be included in publishing. Include patterns are applied on the published build info before any
+        exclude patterns.'/]
+        [@ww.textfield labelKey='Environment Variables Exclude Patterns'
+        name='envVarsExcludePatterns'
+        descriptionKey='Comma or space-separated list of
+        <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
+        of files that will be excluded from publishing. Exclude patterns are applied on the published build info after any
+        include patterns.'/]
+    [/@ui.bambooSection]
 
     [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
     toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
