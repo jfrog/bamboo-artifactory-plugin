@@ -72,7 +72,7 @@ toggle='true' descriptionKey='Check if you wish to publish build information to 
         name='envVarsExcludePatterns'
         descriptionKey='Comma or space-separated list of
         <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
-        of files that will be excluded from publishing. Exclude patterns are applied on the published build info after any
+        of environment variables that will be excluded from publishing. Exclude patterns are applied on the published build info after any
         include patterns.'/]
     [/@ui.bambooSection]
 
