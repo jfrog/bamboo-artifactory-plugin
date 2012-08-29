@@ -76,16 +76,12 @@ toggle='true' descriptionKey='Check if you wish to publish build information to 
     [@ui.bambooSection dependsOn='includeEnvVars' showOn=true]
         [@ww.textfield labelKey='Environment Variables Include Patterns'
         name='envVarsIncludePatterns'
-        descriptionKey='Comma or space-separated list of
-        <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
-        of environment variables that will be included in publishing. Include patterns are applied on the published build info before any
-        exclude patterns.'/]
+        descriptionKey='Comma or space-separated list of patterns of environment variables that will be included in publishing
+        (may contain the * and the ? wildcards). Include patterns are applied on the published build info before any exclude patterns.'/]
         [@ww.textfield labelKey='Environment Variables Exclude Patterns'
         name='envVarsExcludePatterns'
-        descriptionKey='Comma or space-separated list of
-        <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
-        of files that will be excluded from publishing. Exclude patterns are applied on the published build info after any
-        include patterns.'/]
+        descriptionKey='Comma or space-separated list of patterns of environment variables that will be included in publishing
+        (may contain the * and the ? wildcards). Exclude patterns are applied on the published build info after any include patterns.'/]
     [/@ui.bambooSection]
 
     [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
