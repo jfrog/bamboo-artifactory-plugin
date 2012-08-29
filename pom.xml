@@ -52,16 +52,16 @@
     </scm>
 
     <properties>
-        <bamboo.version>4.1</bamboo.version>
+        <bamboo.version>4.2</bamboo.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
         <buildinfo.version>2.0.x-SNAPSHOT</buildinfo.version>
-        <gradle.version>2.0.x-SNAPSHOT</gradle.version>
-        <ivy.version>2.0.x-SNAPSHOT</ivy.version>
-        <maven.version>2.0.x-SNAPSHOT</maven.version>
+        <buildinfo.gradle.version>2.0.x-SNAPSHOT</buildinfo.gradle.version>
+        <buildinfo.ivy.version>2.0.x-SNAPSHOT</buildinfo.ivy.version>
+        <buildinfo.maven.version>2.0.x-SNAPSHOT</buildinfo.maven.version>
     </properties>
 
     <dependencies>
@@ -98,7 +98,7 @@
         <dependency>
             <groupId>com.atlassian.bamboo.plugins</groupId>
             <artifactId>atlassian-bamboo-plugin-git</artifactId>
-            <version>1.8.13</version>
+            <version>1.9.6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -130,25 +130,25 @@
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-gradle</artifactId>
-            <version>${gradle.version}</version>
+            <version>${buildinfo.gradle.version}</version>
             <classifier>uber</classifier>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-ivy</artifactId>
-            <version>${ivy.version}</version>
+            <version>${buildinfo.ivy.version}</version>
             <classifier>uber</classifier>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-maven3</artifactId>
-            <version>${maven.version}</version>
+            <version>${buildinfo.maven.version}</version>
             <classifier>uber</classifier>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-maven3</artifactId>
-            <version>${maven.version}</version>
+            <version>${buildinfo.maven.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -249,32 +249,35 @@
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-maven3</artifactId>
-                                    <version>${maven.version}</version>
+                                    <version>${buildinfo.maven.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-maven3-${maven.version}-uber.jar</destFileName>
+                                    <destFileName>build-info-extractor-maven3-${buildinfo.maven.version}-uber.jar
+                                    </destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-gradle</artifactId>
-                                    <version>${gradle.version}</version>
+                                    <version>${buildinfo.gradle.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-gradle-${gradle.version}-uber.jar</destFileName>
+                                    <destFileName>build-info-extractor-gradle-${buildinfo.gradle.version}-uber.jar
+                                    </destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-ivy</artifactId>
-                                    <version>${ivy.version}</version>
+                                    <version>${buildinfo.ivy.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-ivy-${ivy.version}-uber.jar</destFileName>
+                                    <destFileName>build-info-extractor-ivy-${buildinfo.ivy.version}-uber.jar
+                                    </destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

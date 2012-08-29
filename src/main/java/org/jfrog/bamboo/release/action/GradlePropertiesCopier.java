@@ -5,12 +5,12 @@ import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.CustomBuildProcessor;
 import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +21,7 @@ import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Copy the {@code gradle.properties} file to the artifacts folder of the build, this will be later used for detecting
@@ -74,8 +75,8 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
             buildPropertiesLocation.append("gradle.properties");
             File gradleProps = new File(checkoutDir, buildPropertiesLocation.toString());
             artifact.setCopyPattern(gradleProps.getName());
-            artifact.setProducerJobKey(PlanKeys.getPlanKey(buildContext.getPlanKey()));
-            artifactManager.publish(buildLogger, planResultKey, gradleProps.getParentFile(), artifact, false, 1);
+            Map<String, String> config = Maps.newHashMap();
+            artifactManager.publish(buildLogger, planResultKey, gradleProps.getParentFile(), artifact, config, 1);
         }
         return buildContext;
     }
