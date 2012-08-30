@@ -37,6 +37,7 @@ import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.client.ArtifactoryClientConfiguration;
 import org.jfrog.build.client.IncludeExcludePatterns;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,11 +125,14 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);
         }
 
-        String buildTimestamp = String.valueOf(buildContext.getBuildTimestamp());
-        if (StringUtils.isNotBlank(buildTimestamp)) {
-            clientConf.info.setBuildTimestamp(buildTimestamp);
-            clientConf.publisher.addMatrixParam("build.timestamp", buildTimestamp);
+        String buildTimeStampVal = context.getBuildResult().getCustomBuildData().get("buildTimeStamp");
+        long buildTimeStamp = System.currentTimeMillis();
+        if (StringUtils.isNotBlank(buildTimeStampVal)) {
+            buildTimeStamp = new DateTime(buildTimeStampVal).getMillis();
         }
+        String buildTimeStampString = String.valueOf(buildTimeStamp);
+        clientConf.info.setBuildTimestamp(buildTimeStampString);
+        clientConf.publisher.addMatrixParam("build.timestamp", buildTimeStampString);
 
         StringBuilder summaryUrlBuilder = new StringBuilder(bambooBaseUrl);
         if (!bambooBaseUrl.endsWith("/")) {

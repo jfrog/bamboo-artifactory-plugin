@@ -121,10 +121,6 @@ public abstract class AbstractBuildContext {
         return env.get(BASE_URL);
     }
 
-    public long getBuildTimestamp() {
-        return System.currentTimeMillis();
-    }
-
     public String getEnvironmentVariables() {
         return env.get(prefix + ENVIRONMENT_VARIABLES);
     }
