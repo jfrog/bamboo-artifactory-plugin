@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 
 import java.util.Map;
@@ -68,6 +69,10 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         GradleBuildContext buildContext = GradleBuildContext.createGradleContextFromMap(context);
         context.put("hasTests", buildContext.isTestChecked());
         context.put("serverConfigManager", serverConfigManager);
+        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
+        if (envVarsExcludePatterns == null) {
+            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
+        }
     }
 
     @Override
@@ -92,7 +97,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-                                                     @Nullable TaskDefinition previousTaskDefinition) {
+            @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, FIELDS_TO_COPY);
         GradleBuildContext buildContext = new GradleBuildContext(taskConfigMap);

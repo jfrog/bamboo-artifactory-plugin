@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
 
 import java.util.Map;
@@ -65,6 +66,10 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         context.put("selectedRepoKey", selectedPublishingRepoKey);
         context.put("selectedServerId", context.get(IvyBuildContext.PREFIX + IvyBuildContext.SERVER_ID_PARAM));
         context.put("serverConfigManager", serverConfigManager);
+        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
+        if (envVarsExcludePatterns == null) {
+            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
+        }
     }
 
     @Override
@@ -86,7 +91,7 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-                                                     @Nullable TaskDefinition previousTaskDefinition) {
+            @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
         IvyBuildContext buildContext = new IvyBuildContext(configMap);
