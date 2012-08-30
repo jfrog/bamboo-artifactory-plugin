@@ -64,6 +64,10 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
         context.put("selectedRepoKey", selectedPublishingRepoKey);
         context.put("selectedServerId", context.get(GenericContext.SELECTED_SERVER_ID));
         context.put("serverConfigManager", serverConfigManager);
+        String envVarsExcludePatterns = (String) context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
+        if (envVarsExcludePatterns == null) {
+            context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
+        }
     }
 
     @Override
