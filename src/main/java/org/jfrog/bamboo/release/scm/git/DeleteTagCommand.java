@@ -42,20 +42,20 @@
  */
 package org.jfrog.bamboo.release.scm.git;
 
-import org.shaded.eclipse.jgit.JGitText;
-import org.shaded.eclipse.jgit.api.GitCommand;
-import org.shaded.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
-import org.shaded.eclipse.jgit.api.errors.InvalidTagNameException;
-import org.shaded.eclipse.jgit.api.errors.JGitInternalException;
-import org.shaded.eclipse.jgit.api.errors.NoHeadException;
-import org.shaded.eclipse.jgit.lib.Constants;
-import org.shaded.eclipse.jgit.lib.PersonIdent;
-import org.shaded.eclipse.jgit.lib.Ref;
-import org.shaded.eclipse.jgit.lib.RefUpdate;
-import org.shaded.eclipse.jgit.lib.Repository;
-import org.shaded.eclipse.jgit.lib.RepositoryState;
-import org.shaded.eclipse.jgit.revwalk.RevObject;
-import org.shaded.eclipse.jgit.revwalk.RevTag;
+import org.eclipse.jgit.api.GitCommand;
+import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
+import org.eclipse.jgit.api.errors.InvalidTagNameException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.internal.JGitText;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryState;
+import org.eclipse.jgit.revwalk.RevObject;
+import org.eclipse.jgit.revwalk.RevTag;
 
 import java.io.IOException;
 import java.text.MessageFormat;

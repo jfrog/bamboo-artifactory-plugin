@@ -1,20 +1,20 @@
 package org.jfrog.bamboo.release.scm.git;
 
 import com.google.common.collect.Lists;
-import org.shaded.eclipse.jgit.JGitText;
-import org.shaded.eclipse.jgit.api.PushCommand;
-import org.shaded.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.shaded.eclipse.jgit.api.errors.JGitInternalException;
-import org.shaded.eclipse.jgit.errors.NotSupportedException;
-import org.shaded.eclipse.jgit.errors.TransportException;
-import org.shaded.eclipse.jgit.lib.NullProgressMonitor;
-import org.shaded.eclipse.jgit.lib.ProgressMonitor;
-import org.shaded.eclipse.jgit.lib.Repository;
-import org.shaded.eclipse.jgit.transport.PushResult;
-import org.shaded.eclipse.jgit.transport.RefSpec;
-import org.shaded.eclipse.jgit.transport.RemoteConfig;
-import org.shaded.eclipse.jgit.transport.RemoteRefUpdate;
-import org.shaded.eclipse.jgit.transport.Transport;
+import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.NotSupportedException;
+import org.eclipse.jgit.errors.TransportException;
+import org.eclipse.jgit.internal.JGitText;
+import org.eclipse.jgit.lib.NullProgressMonitor;
+import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.RemoteConfig;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.transport.Transport;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

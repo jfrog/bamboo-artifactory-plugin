@@ -1,9 +1,6 @@
 package org.jfrog.bamboo.release.scm.git;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.plugins.git.GitAuthenticationType;
-import com.atlassian.bamboo.plugins.git.GitHubRepository;
-import com.atlassian.bamboo.plugins.git.GitRepository;
 import com.atlassian.bamboo.repository.AbstractRepository;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.security.StringEncrypter;
@@ -15,25 +12,26 @@ import com.opensymphony.xwork.TextProvider;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.storage.file.FileRepository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.Transport;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
-import org.shaded.eclipse.jgit.api.Git;
-import org.shaded.eclipse.jgit.api.PushCommand;
-import org.shaded.eclipse.jgit.lib.Constants;
-import org.shaded.eclipse.jgit.lib.ObjectId;
-import org.shaded.eclipse.jgit.lib.PersonIdent;
-import org.shaded.eclipse.jgit.lib.RefUpdate;
-import org.shaded.eclipse.jgit.storage.file.FileRepository;
-import org.shaded.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.shaded.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.shaded.eclipse.jgit.transport.OpenSshConfig;
-import org.shaded.eclipse.jgit.transport.PushResult;
-import org.shaded.eclipse.jgit.transport.RefSpec;
-import org.shaded.eclipse.jgit.transport.SshSessionFactory;
-import org.shaded.eclipse.jgit.transport.SshTransport;
-import org.shaded.eclipse.jgit.transport.Transport;
-import org.shaded.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.shaded.eclipse.jgit.util.FS;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,10 +58,10 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         this.buildLogger = buildLogger;
         HierarchicalConfiguration configuration = repository.toConfiguration();
         StringEncrypter encrypter = new StringEncrypter();
-        if (repository instanceof GitRepository) {
+        if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(repository.getClass().getName())) {
             username = configuration.getString("repository.git.username", "");
             password = encrypter.decrypt(configuration.getString("repository.git.password", ""));
-        } else if (repository instanceof GitHubRepository) {
+        } else if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(repository.getClass().getName())) {
             username = configuration.getString("repository.github.username", "");
             password = encrypter.decrypt(configuration.getString("repository.github.password", ""));
         }
@@ -99,9 +97,9 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     public String getRemoteUrl() {
         AbstractRepository scm = getBambooScm();
         HierarchicalConfiguration configuration = scm.toConfiguration();
-        if (scm instanceof GitRepository) {
+        if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(scm.getClass().getName())) {
             return configuration.getString("repository.git.repositoryUrl");
-        } else if (scm instanceof GitHubRepository) {
+        } else if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(scm.getClass().getName())) {
             String repository = configuration.getString("repository.github.repository");
             return "https://github.com/" + repository + ".git";
         } else {
@@ -258,10 +256,10 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         }
     }
 
-    public void revertWorkingCopy(String ish) throws IOException {
+    public void revertWorkingCopy(String ish) throws GitAPIException, IOException {
         Git git = createGitApi();
         log("Reverting local copy to: " + ish);
-        org.shaded.eclipse.jgit.lib.Repository repository = git.getRepository();
+        org.eclipse.jgit.lib.Repository repository = git.getRepository();
         ResetCommand resetCommand = new ResetCommand(repository);
         resetCommand.setMode(ResetCommand.ResetType.HARD).setRef(ish).call();
     }
@@ -348,7 +346,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
 
     private GitAuthenticationType getAuthType() {
         AbstractRepository scm = getBambooScm();
-        if (scm instanceof GitHubRepository) {
+        if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(scm.getClass().getName())) {
             return GitAuthenticationType.PASSWORD;
         }
         HierarchicalConfiguration configuration = scm.toConfiguration();

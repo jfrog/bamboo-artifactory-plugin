@@ -42,20 +42,21 @@
  */
 package org.jfrog.bamboo.release.scm.git;
 
-import org.shaded.eclipse.jgit.JGitText;
-import org.shaded.eclipse.jgit.api.GitCommand;
-import org.shaded.eclipse.jgit.api.errors.JGitInternalException;
-import org.shaded.eclipse.jgit.dircache.DirCache;
-import org.shaded.eclipse.jgit.dircache.DirCacheBuilder;
-import org.shaded.eclipse.jgit.dircache.DirCacheCheckout;
-import org.shaded.eclipse.jgit.lib.Constants;
-import org.shaded.eclipse.jgit.lib.ObjectId;
-import org.shaded.eclipse.jgit.lib.Ref;
-import org.shaded.eclipse.jgit.lib.RefUpdate;
-import org.shaded.eclipse.jgit.lib.Repository;
-import org.shaded.eclipse.jgit.lib.RepositoryState;
-import org.shaded.eclipse.jgit.revwalk.RevCommit;
-import org.shaded.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.api.GitCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.dircache.DirCache;
+import org.eclipse.jgit.dircache.DirCacheBuilder;
+import org.eclipse.jgit.dircache.DirCacheCheckout;
+import org.eclipse.jgit.internal.JGitText;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryState;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -111,7 +112,7 @@ public class ResetCommand extends GitCommand<Ref> {
      * @return the Ref after reset
      */
     @Override
-    public Ref call() throws IOException {
+    public Ref call() throws GitAPIException {
         checkCallable();
 
         Ref r;

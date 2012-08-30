@@ -5,8 +5,6 @@ import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
-import com.atlassian.bamboo.plugins.git.GitHubRepository;
-import com.atlassian.bamboo.plugins.git.GitRepository;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.repository.svn.SvnRepository;
@@ -187,11 +185,11 @@ public class ViewVersions extends BuildActionSupport {
         if (repository == null) {
             return false;
         }
-        if (repository instanceof GitRepository) {
+        if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(repository.getClass().getName())) {
             HierarchicalConfiguration configuration = repository.toConfiguration();
             return configuration.getBoolean("repository.git.useShallowClones", false);
         }
-        if (repository instanceof GitHubRepository) {
+        if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(repository.getClass().getName())) {
             HierarchicalConfiguration configuration = repository.toConfiguration();
             return configuration.getBoolean("repository.github.useShallowClones", false);
         }
