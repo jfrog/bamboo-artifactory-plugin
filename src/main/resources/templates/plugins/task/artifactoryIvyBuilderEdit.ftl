@@ -66,12 +66,12 @@ toggle='true' descriptionKey='Check if you wish to publish build information to 
     [@ui.bambooSection dependsOn='includeEnvVars' showOn=true]
         [@ww.textfield labelKey='Environment Variables Include Patterns'
         name='envVarsIncludePatterns'
-        descriptionKey='Comma or space-separated list of patterns of environment variables that will be included in publishing
-        (may contain the * and the ? wildcards). Include patterns are applied on the published build info before any exclude patterns.'/]
+        descriptionKey='Comma or space-separated list of environment variables that will be included as part of the published build info.
+        Environment variables may contain the * and the ? wildcards. Include patterns are applied before any exclude patterns.'/]
         [@ww.textfield labelKey='Environment Variables Exclude Patterns'
         name='envVarsExcludePatterns'
-        descriptionKey='Comma or space-separated list of patterns of environment variables that will be included in publishing
-        (may contain the * and the ? wildcards). Exclude patterns are applied on the published build info after any include patterns.'/]
+        descriptionKey='Comma or space-separated list of environment variables that will be excluded as part of the published build info.
+        Environment variables may contain the * and the ? wildcards. Exclude patterns are applied after any include patterns.'/]
     [/@ui.bambooSection]
 
     [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
