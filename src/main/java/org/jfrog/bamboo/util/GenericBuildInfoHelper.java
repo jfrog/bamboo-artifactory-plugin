@@ -175,6 +175,13 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         if (StringUtils.isNotBlank(vcsRevision)) {
             details.addProperty(BuildInfoFields.VCS_REVISION, vcsRevision);
         }
+        String buildTimeStampVal = context.getBuildResult().getCustomBuildData().get("buildTimeStamp");
+        long buildTimeStamp = System.currentTimeMillis();
+        if (StringUtils.isNotBlank(buildTimeStampVal)) {
+            buildTimeStamp = new DateTime(buildTimeStampVal).getMillis();
+        }
+        String buildTimeStampString = String.valueOf(buildTimeStamp);
+        details.addProperty(BuildInfoFields.BUILD_TIMESTAMP, buildTimeStampString);
         addBuildParentProperties(details, context.getTriggerReason());
     }
 
