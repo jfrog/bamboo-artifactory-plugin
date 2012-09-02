@@ -128,25 +128,25 @@
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-gradle</artifactId>
-            <version>${gradle.version}</version>
+            <version>${buildinfo.gradle.version}</version>
             <classifier>uber</classifier>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-ivy</artifactId>
-            <version>${ivy.version}</version>
+            <version>${buildinfo.ivy.version}</version>
             <classifier>uber</classifier>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-maven3</artifactId>
-            <version>${maven.version}</version>
+            <version>${buildinfo.maven.version}</version>
             <classifier>uber</classifier>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-maven3</artifactId>
-            <version>${maven.version}</version>
+            <version>${buildinfo.maven.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
