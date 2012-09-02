@@ -247,32 +247,35 @@
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-maven3</artifactId>
-                                    <version>${maven.version}</version>
+                                    <version>${buildinfo.maven.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-maven3-${maven.version}-uber.jar</destFileName>
+                                    <destFileName>build-info-extractor-maven3-${buildinfo.maven.version}-uber.jar
+                                    </destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-gradle</artifactId>
-                                    <version>${gradle.version}</version>
+                                    <version>${buildinfo.gradle.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-gradle-${gradle.version}-uber.jar</destFileName>
+                                    <destFileName>build-info-extractor-gradle-${buildinfo.gradle.version}-uber.jar
+                                    </destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-ivy</artifactId>
-                                    <version>${ivy.version}</version>
+                                    <version>${buildinfo.ivy.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-ivy-${ivy.version}-uber.jar</destFileName>
+                                    <destFileName>build-info-extractor-ivy-${buildinfo.ivy.version}-uber.jar
+                                    </destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
