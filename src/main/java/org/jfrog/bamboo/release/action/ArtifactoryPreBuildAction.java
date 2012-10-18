@@ -56,7 +56,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
         Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
         configuration.putAll(customBuildData);
         AbstractBuildContext config = AbstractBuildContext.createContextFromMap(configuration);
-        if ((config == null) || !config.releaseManagementContext.isActivateReleaseManagement()) {
+        if ((config == null) || !config.releaseManagementContext.isActivateReleaseManagement() || !config.releaseManagementContext.isReleaseMgmtEnabled()) {
             log.debug("[RELEASE] Release management is not active, resuming normally");
             return buildContext;
         }
