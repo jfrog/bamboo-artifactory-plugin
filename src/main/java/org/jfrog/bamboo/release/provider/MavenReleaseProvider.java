@@ -25,7 +25,7 @@ import java.util.Map;
 public class MavenReleaseProvider extends AbstractReleaseProvider {
 
     protected MavenReleaseProvider(AbstractBuildContext buildContext, BuildContext buildDefinition,
-                                   BuildLogger buildLogger) {
+            BuildLogger buildLogger) {
         super(buildContext, buildDefinition, buildLogger);
     }
 
@@ -58,14 +58,15 @@ public class MavenReleaseProvider extends AbstractReleaseProvider {
             String transformMessage = release ? "release" : "next development";
             log("Transforming: " + entry.getValue().getAbsolutePath() + " to " + transformMessage);
             coordinator.edit(entry.getValue());
-            PomTransformer transformer = new PomTransformer(entry.getKey(), buildVersionByModule, getScmUrl(release), release);
+            PomTransformer transformer = new PomTransformer(entry.getKey(), buildVersionByModule, getScmUrl(release),
+                    release);
             changed |= transformer.transform(entry.getValue());
         }
         return changed;
     }
 
     private String getScmUrl(boolean release) {
-        if (!coordinator.isGit()) {
+        if (coordinator.isSubversion()) {
             if (release) {
                 if (buildContext.releaseManagementContext.isCreateVcsTag()) {
                     return buildContext.releaseManagementContext.getTagUrl();
