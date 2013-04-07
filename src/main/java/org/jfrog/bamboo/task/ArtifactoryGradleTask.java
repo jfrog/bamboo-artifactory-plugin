@@ -34,7 +34,7 @@ import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.gradle.plugin.artifactory.extractor.BuildInfoTask;
+import org.jfrog.gradle.plugin.artifactory.task.BuildInfoBaseTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,8 +63,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
 
     public ArtifactoryGradleTask(final ProcessService processService,
-            final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
-            TestCollationService testCollationService) {
+                                 final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
+                                 TestCollationService testCollationService) {
         super(testCollationService);
         this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -129,7 +129,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                 command.add(Commandline.quoteArgument(pathHolder.getInitScriptPath()));
             }
             TaskUtils.appendBuildInfoPropertiesArgument(command, pathHolder.getClientConfPath());
-            command.add(BuildInfoTask.BUILD_INFO_TASK_NAME);
+            command.add(BuildInfoBaseTask.BUILD_INFO_TASK_NAME);
         }
 
         String subDirectory = buildContext.getBuildScript();
@@ -236,7 +236,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
      */
 
     private String extractGradleDependencies(long artifactoryServerId, File rootDirectory,
-            GradleBuildContext context) throws IOException {
+                                             GradleBuildContext context) throws IOException {
 
         if (artifactoryServerId == -1) {
             return null;
