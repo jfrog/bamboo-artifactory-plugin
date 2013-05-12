@@ -53,7 +53,7 @@
 
             function updateLog() {
                 AJS.$.ajax({
-                    url:'${req.contextPath}/getLog.action',
+                    url:'${req.contextPath}/getLog.action?buildKey=${buildKey}&buildNumber=${buildNumber}',
                     dataType:'html',
                     cache:false,
                     success:function (html) {
