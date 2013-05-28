@@ -34,9 +34,8 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
     @NotNull
     public BuildContext call() throws Exception {
         PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
-        BuildLogger logger = buildLoggerManager.getBuildLogger(planKey);
+        BuildLogger logger = buildLoggerManager.getLogger(planKey);
         setBuildLogger(logger);
-        logger.startStreamingBuildLogs(buildContext.getPlanResultKey());
         List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
         if (taskDefinitions.isEmpty()) {
             log("No task definitions found for this build");

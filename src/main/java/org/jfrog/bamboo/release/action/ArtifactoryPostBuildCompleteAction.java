@@ -36,9 +36,8 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
     @NotNull
     public BuildContext call() throws Exception {
         PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
-        BuildLogger logger = buildLoggerManager.getBuildLogger(planKey);
+        BuildLogger logger = buildLoggerManager.getLogger(planKey);
         setBuildLogger(logger);
-        logger.startStreamingBuildLogs(buildContext.getPlanResultKey());
         List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
         TaskDefinition mavenOrGradleDefinition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
         if (mavenOrGradleDefinition == null) {

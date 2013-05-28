@@ -42,8 +42,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
     @NotNull
     public BuildContext call() throws Exception {
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
-        BuildLogger buildLogger = buildLoggerManager.getBuildLogger(planResultKey);
-        buildLogger.startStreamingBuildLogs(planResultKey);
+        BuildLogger buildLogger = buildLoggerManager.getLogger(planResultKey);
         BuildDefinition definition = buildContext.getBuildDefinition();
         File checkoutDir = ScmHelper.getCheckoutDirectory(buildContext);
         if (checkoutDir == null) {

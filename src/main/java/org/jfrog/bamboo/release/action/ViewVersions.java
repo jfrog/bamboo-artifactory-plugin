@@ -2,7 +2,6 @@ package org.jfrog.bamboo.release.action;
 
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.builder.BuildState;
-import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.atlassian.bamboo.repository.Repository;
@@ -330,11 +329,6 @@ public class ViewVersions extends BuildActionSupport {
 
     public void setNextDevelopmentComment(String nextDevelopmentComment) {
         this.nextDevelopmentComment = nextDevelopmentComment;
-    }
-
-    @Override
-    public void setPlan(Plan plan) {
-        super.setPlan(plan);
     }
 
     public List<String> getPublishingRepos() {

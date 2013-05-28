@@ -45,8 +45,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
     @NotNull
     public BuildContext call() throws Exception {
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
-        BuildLogger buildLogger = buildLoggerManager.getBuildLogger(planResultKey);
-        buildLogger.startStreamingBuildLogs(planResultKey);
+        BuildLogger buildLogger = buildLoggerManager.getLogger(planResultKey);
         File checkoutDir = ScmHelper.getCheckoutDirectory(buildContext);
         if (checkoutDir == null) {
             return buildContext;

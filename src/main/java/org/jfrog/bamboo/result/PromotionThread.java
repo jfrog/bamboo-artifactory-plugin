@@ -1,8 +1,9 @@
 package org.jfrog.bamboo.result;
 
+import com.atlassian.bamboo.plan.PlanIdentifier;
+import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionContext;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Map;
 
 import static org.jfrog.bamboo.result.ViewReleaseManagementAction.*;
@@ -43,7 +45,7 @@ public class PromotionThread extends Thread {
     private String bambooUsername;
 
     public PromotionThread(ViewReleaseManagementAction action, ArtifactoryBuildInfoClient client,
-            String bambooUsername) {
+                           String bambooUsername) {
         this.action = action;
         this.client = client;
         this.bambooUsername = bambooUsername;
@@ -80,22 +82,26 @@ public class PromotionThread extends Thread {
     private boolean executePushToNexusPlugin() throws IOException {
         logMessageToUiAndLogger("Executing 'Push to Nexus' plugin ...");
         VariableDefinitionManager varDefManager = action.getVariableDefinitionManager();
-        Map<String, VariableDefinitionContext> globalVars = varDefManager
-                .getVariableDefinitionMap(action.getPlan(), Maps.<String, String>newHashMap());
+        Map<String, VariableDefinitionContext> globalVars = null;
+        PlanIdentifier planIdentifier = action.getPlanManager().getPlanIdentifierForPermissionCheckingByKey(action.getPlanKey());
+        if (planIdentifier == null) {
+            String message = "Plugin execution failed: Couldn't find nexusPush variables.<br/>";
+            logErrorToUiAndLogger(message);
+            return false;
+        }
 
         Map<String, String> executeRequestParams = Maps.newHashMap();
         executeRequestParams.put(BuildInfoFields.BUILD_NAME, action.getBuild().getName());
         executeRequestParams.put(BuildInfoFields.BUILD_NUMBER, action.getBuildNumber().toString());
-        Map<String, VariableDefinitionContext> nexusPushVars = Maps.filterKeys(globalVars, new Predicate<String>() {
-            @Override
-            public boolean apply(String input) {
-                return StringUtils.isNotBlank(input) && input.startsWith(NEXUS_PUSH_PROPERTY_PREFIX);
+        List<VariableDefinition> planVariables = varDefManager.getPlanVariables(planIdentifier);
+        for (VariableDefinition planVariable : planVariables) {
+            String key = planVariable.getKey();
+            if (StringUtils.isNotBlank(key) && key.startsWith(NEXUS_PUSH_PROPERTY_PREFIX)) {
+                executeRequestParams.put(StringUtils.removeStart(key, NEXUS_PUSH_PROPERTY_PREFIX),
+                        planVariable.getValue());
             }
-        });
-        for (Map.Entry<String, VariableDefinitionContext> nexusPushVarEntry : nexusPushVars.entrySet()) {
-            executeRequestParams.put(StringUtils.removeStart(nexusPushVarEntry.getKey(), NEXUS_PUSH_PROPERTY_PREFIX),
-                    nexusPushVarEntry.getValue().getValue());
         }
+
         HttpResponse nexusPushResponse = null;
         try {
             nexusPushResponse = client.executeUserPlugin(NEXUS_PUSH_PLUGIN_NAME, executeRequestParams);
