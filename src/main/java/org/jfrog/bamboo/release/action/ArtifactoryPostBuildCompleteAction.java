@@ -4,8 +4,6 @@ import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.CustomBuildProcessor;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
-import com.atlassian.bamboo.plan.PlanKey;
-import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
@@ -35,8 +33,7 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
     @Override
     @NotNull
     public BuildContext call() throws Exception {
-        PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
-        BuildLogger logger = buildLoggerManager.getLogger(planKey);
+        BuildLogger logger = buildLoggerManager.getLogger(buildContext.getPlanResultKey());
         setBuildLogger(logger);
         List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
         TaskDefinition mavenOrGradleDefinition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);

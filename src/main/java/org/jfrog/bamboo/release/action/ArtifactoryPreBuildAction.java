@@ -3,8 +3,6 @@ package org.jfrog.bamboo.release.action;
 import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.CustomPreBuildAction;
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.plan.PlanKey;
-import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import org.apache.log4j.Logger;
@@ -33,8 +31,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
     @Override
     @NotNull
     public BuildContext call() throws Exception {
-        PlanKey planKey = PlanKeys.getPlanKey(buildContext.getPlanKey());
-        BuildLogger logger = buildLoggerManager.getLogger(planKey);
+        BuildLogger logger = buildLoggerManager.getLogger(buildContext.getPlanResultKey());
         setBuildLogger(logger);
         List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
         if (taskDefinitions.isEmpty()) {
