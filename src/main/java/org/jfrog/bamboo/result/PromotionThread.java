@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
@@ -91,7 +92,7 @@ public class PromotionThread extends Thread {
         }
 
         Map<String, String> executeRequestParams = Maps.newHashMap();
-        executeRequestParams.put(BuildInfoFields.BUILD_NAME, action.getBuild().getName());
+        executeRequestParams.put(BuildInfoFields.BUILD_NAME, action.getImmutableBuild().getName());
         executeRequestParams.put(BuildInfoFields.BUILD_NUMBER, action.getBuildNumber().toString());
         List<VariableDefinition> planVariables = varDefManager.getPlanVariables(planIdentifier);
         for (VariableDefinition planVariable : planVariables) {
@@ -119,7 +120,7 @@ public class PromotionThread extends Thread {
             if (nexusPushResponse != null) {
                 HttpEntity entity = nexusPushResponse.getEntity();
                 if (entity != null) {
-                    entity.consumeContent();
+                    EntityUtils.consume(entity);
                 }
             }
         }
@@ -133,7 +134,7 @@ public class PromotionThread extends Thread {
                 .dependencies(action.isIncludeDependencies()).copy(action.isUseCopy())
                 .dryRun(true);
         logMessageToUiAndLogger("Performing dry run promotion (no changes are made during dry run) ...");
-        String buildName = action.getBuild().getName();
+        String buildName = action.getImmutableBuild().getName();
         String buildNumber = action.getBuildNumber().toString();
         HttpResponse dryResponse = null;
         HttpResponse wetResponse = null;
@@ -150,13 +151,13 @@ public class PromotionThread extends Thread {
             if (dryResponse != null) {
                 HttpEntity entity = dryResponse.getEntity();
                 if (entity != null) {
-                    entity.consumeContent();
+                    EntityUtils.consume(entity);
                 }
             }
             if (wetResponse != null) {
                 HttpEntity entity = wetResponse.getEntity();
                 if (entity != null) {
-                    entity.consumeContent();
+                    EntityUtils.consume(entity);
                 }
             }
         }

@@ -11,6 +11,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +76,8 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
             File gradleProps = new File(checkoutDir, buildPropertiesLocation.toString());
             artifact.setCopyPattern(gradleProps.getName());
             Map<String, String> config = Maps.newHashMap();
-            artifactManager.publish(buildLogger, planResultKey, gradleProps.getParentFile(), artifact, config, 1);
+            artifactManager.publish(buildLogger, planResultKey, gradleProps.getParentFile(), artifact, config,
+                    Sets.<String>newHashSet(), 1);
         }
         return buildContext;
     }
