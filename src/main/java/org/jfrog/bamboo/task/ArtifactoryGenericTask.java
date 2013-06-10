@@ -4,11 +4,7 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.repository.RepositoryException;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.task.TaskType;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.google.common.collect.HashMultimap;
@@ -137,7 +133,7 @@ public class ArtifactoryGenericTask implements TaskType {
     }
 
     private void deploy(Multimap<String, File> filesMap, GenericContext context, TaskContext taskContext,
-            File rootDir) throws IOException, NoSuchAlgorithmException {
+                        File rootDir) throws IOException, NoSuchAlgorithmException {
 
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(context.getSelectedServerId());
@@ -153,7 +149,7 @@ public class ArtifactoryGenericTask implements TaskType {
                 new ArtifactoryBuildInfoClient(serverConfig.getUrl(), username, password, new BambooBuildInfoLog(log));
         try {
             BuildContext buildContext = taskContext.getBuildContext();
-            Build build = buildInfoHelper.extractBuildInfo(buildContext, context, username);
+            Build build = buildInfoHelper.extractBuildInfo(buildContext, taskContext.getBuildLogger(), context, username);
             Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap,
                     rootDir, buildContext, context);
             for (DeployDetails detail : details) {
