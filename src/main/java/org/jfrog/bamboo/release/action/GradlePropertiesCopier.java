@@ -7,6 +7,7 @@ import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
+import com.atlassian.bamboo.security.SecureToken;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
@@ -58,7 +59,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
         if (checkoutDir.exists()) {
             log.info(buildLogger.addBuildLogEntry("Copying the gradle properties artifact for " +
                     "build: " + buildContext.getBuildResultKey()));
-            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl();
+            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.create());
             artifact.setName("gradle");
             artifact.setLocation("");
 
