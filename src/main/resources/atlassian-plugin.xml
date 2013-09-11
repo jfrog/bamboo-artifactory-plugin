@@ -25,7 +25,7 @@
                class="org.jfrog.bamboo.admin.ServerConfigManager"/>
 
     <xwork key="manageArtifactoryServersAdmin" name="Artifactory Plugin">
-        <package name="artifactoryServersPluginAdmin" extends="admin">
+        <package name="configureArtifactoryPlugin" extends="admin">
             <action name="manageArtifactoryServers" class="org.jfrog.bamboo.admin.ManageArtifactoryServersAction">
                 <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
                 <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
@@ -85,10 +85,9 @@
         </package>
     </xwork>
 
-    <web-item key="manageArtifactoryServersMenuItem" name="Artifactory Plugin" section="system.admin/Plugins"
-              weight="10">
+    <web-item key="configureArtifactoryPlugin" name="Artifactory Plugin" section="system.admin/Plugins">
         <label key="Artifactory Plugin"/>
-        <link linkId="manageArtifactoryServersMenuItem">/admin/manageArtifactoryServers.action</link>
+        <link linkId="configureArtifactoryPlugin">/admin/manageArtifactoryServers.action</link>
     </web-item>
 
     <web-item key="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}"

@@ -7,10 +7,12 @@ import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
+import com.atlassian.bamboo.security.SecureToken;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +44,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
     @NotNull
     public BuildContext call() throws Exception {
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
-        BuildLogger buildLogger = buildLoggerManager.getBuildLogger(planResultKey);
-        buildLogger.startStreamingBuildLogs(planResultKey);
+        BuildLogger buildLogger = buildLoggerManager.getLogger(planResultKey);
         BuildDefinition definition = buildContext.getBuildDefinition();
         File checkoutDir = ScmHelper.getCheckoutDirectory(buildContext);
         if (checkoutDir == null) {
@@ -58,7 +59,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
         if (checkoutDir.exists()) {
             log.info(buildLogger.addBuildLogEntry("Copying the gradle properties artifact for " +
                     "build: " + buildContext.getBuildResultKey()));
-            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl();
+            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.create());
             artifact.setName("gradle");
             artifact.setLocation("");
 
@@ -76,7 +77,8 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
             File gradleProps = new File(checkoutDir, buildPropertiesLocation.toString());
             artifact.setCopyPattern(gradleProps.getName());
             Map<String, String> config = Maps.newHashMap();
-            artifactManager.publish(buildLogger, planResultKey, gradleProps.getParentFile(), artifact, config, 1);
+            artifactManager.publish(buildLogger, planResultKey, gradleProps.getParentFile(), artifact, config,
+                    Sets.<String>newHashSet(), 1);
         }
         return buildContext;
     }
