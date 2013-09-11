@@ -39,7 +39,9 @@
             </action>
             <action name="createServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="create">
                 <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="success" type="redirect-action">
+                    <param name="actionName">manageArtifactoryServers</param>
+                </result>
             </action>
             <action name="editServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="edit">
                 <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
@@ -47,7 +49,9 @@
             </action>
             <action name="updateServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="update">
                 <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="success" type="redirect-action">
+                    <param name="actionName">manageArtifactoryServers</param>
+                </result>
                 <param name="mode">edit</param>
             </action>
             <action name="deleteServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="delete">

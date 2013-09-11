@@ -17,8 +17,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.opensymphony.xwork2.ActionContext;
-import com.opensymphony.xwork2.util.ValueStack;
+import com.opensymphony.xwork.ActionContext;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -102,8 +101,7 @@ public class ViewVersions extends BuildActionSupport {
                 }
             }
         }
-        ValueStack stack = ActionContext.getContext().getValueStack();
-        stack.push(versions);
+        ActionContext.getContext().getValueStack().push(versions);
         return versions;
     }
 
