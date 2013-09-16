@@ -79,8 +79,7 @@
 
             <action name="getLog" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="getLog">
                 <result name="success" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
-                <param name="buildNumber">${buildNumber}</param>
-                <param name="buildKey">${buildKey}</param>
+                <result name="input" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
             </action>
         </package>
     </xwork>

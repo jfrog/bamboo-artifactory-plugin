@@ -101,7 +101,6 @@ public class ViewVersions extends BuildActionSupport {
                 }
             }
         }
-        ActionContext.getContext().getValueStack().push(versions);
         return versions;
     }
 
