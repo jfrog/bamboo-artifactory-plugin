@@ -29,6 +29,7 @@ showActionErrors='false']
     </div>
     [/#if]
 
+[@ww.hidden name='serverId'/]
 [@ww.textfield labelKey='Artifactory Server URL' name="url" required="true"
 descriptionKey="Specify the root URL of your Artifactory installation, like http://repo.jfrog.org/artifactory"/]
 
