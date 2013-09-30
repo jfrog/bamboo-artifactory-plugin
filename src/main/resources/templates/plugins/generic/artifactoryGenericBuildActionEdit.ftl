@@ -1,41 +1,20 @@
-[@ui.bambooSection titleKey='Artifactory Generic Deploy']
-    [@ww.select name='artifactory.generic.artifactoryServerId' labelKey='Artifactory Server URL' list=serverConfigManager.allServerConfigs
-    listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
-    descriptionKey='Select an Artifactory server.'/]
+[@ui.bambooSection titleKey='artifactory.task.generic.title']
+    [@ww.select name='artifactory.generic.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
+    listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
 <div id="genericArtifactoryConfigDiv">
-    [@ww.select name='artifactory.generic.deployableRepo' labelKey='Target Repository' list=dummyList
-    listKey='repoKey' listValue='repoKey' toggle='true' descriptionKey='Select a target deployment repository.'/]
-    [@ww.textfield name='artifactory.generic.username' labelKey='Deployer username' descriptionKey='User with deploy
-    permissions to Artifactory'/]
-    [@ww.password name='artifactory.generic.password' labelKey='Deployer password' descriptionKey='Password with deploy
-    permissions to Artifactory' showPassword='true'/]
-    [@ww.textarea name='artifactory.generic.deployPattern' label='Edit Published Artifacts' rows='10' cols='80'
-description='New line or comma separated paths to build artifacts that will be published to Artifactory. Supports
-    Ant-style<br/>
-    wildcards mapping to target directories. E.g.:<br/>
-    <b>**/*.zip=>winFiles</b> - Deploys all zip files under the working directory to the winFiles directory of the
-    target
-    repository, maintaining the original relative path for each file.<br/>
-    <b>unix/*.tgz</b> - Deploys all tgz files under the unix directory to the root directory of the target repository,
-    maintaining the original relative path for each file.<br/>
-    ' cssClass="long-field" /]
+    [@ww.select name='artifactory.generic.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
+    [@ww.textfield name='artifactory.generic.username' labelKey='artifactory.task.maven.deployerUsername'/]
+    [@ww.password name='artifactory.generic.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
+    [@ww.textarea name='artifactory.generic.deployPattern' label='artifactory.task.generic.deployPattern' rows='10' cols='80' cssClass="long-field" /]
 
-    [@ww.checkbox labelKey='Capture and Publish Build Info' name='artifactory.generic.publishBuildInfo'
-toggle='true' descriptionKey='Check if you wish to publish build information to Artifactory.'/]
+    [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true' /]
 
     [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' showOn=true]
-    [@ww.checkbox labelKey='Include Environment Variables' name='artifactory.generic.includeEnvVars'
-    toggle='true' descriptionKey='Check if you wish to include all environment variables accessible by the builds process.'/]
+    [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='artifactory.generic.includeEnvVars' toggle='true'/]
 
     [@ui.bambooSection dependsOn='artifactory.generic.includeEnvVars' showOn=true]
-        [@ww.textfield labelKey='Environment Variables Include Patterns'
-        name='artifactory.generic.envVarsIncludePatterns'
-        descriptionKey='Comma or space-separated list of environment variables that will be included as part of the published build info.
-        Environment variables may contain the * and the ? wildcards. Include patterns are applied before any exclude patterns.'/]
-        [@ww.textfield labelKey='Environment Variables Exclude Patterns'
-        name='artifactory.generic.envVarsExcludePatterns'
-        descriptionKey='Comma or space-separated list of environment variables that will be excluded as part of the published build info.
-        Environment variables may contain the * and the ? wildcards. Exclude patterns are applied after any include patterns.'/]
+        [@ww.textfield labelKey='artifactory.task.envVarsIncludePatterns' name='artifactory.generic.envVarsIncludePatterns' /]
+        [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='artifactory.generic.envVarsExcludePatterns' /]
     [/@ui.bambooSection]
 [/@ui.bambooSection]
 </div>
