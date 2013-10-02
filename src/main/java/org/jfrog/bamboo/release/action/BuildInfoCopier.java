@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.release.provider.TokenDataProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
@@ -67,7 +68,8 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
         if (buildInfo.exists()) {
             log.info(buildLogger.addBuildLogEntry("Copying the buildinfo artifacts for " +
                     "build: " + buildContext.getBuildResultKey()));
-            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.create());
+            String securityToken = mavenDefinition.getConfiguration().get(TokenDataProvider.SECURITY_TOKEN);
+            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.createFromString(securityToken));
             File buildInfoZip = createBuildInfoZip(buildInfo);
             if (buildInfoZip != null) {
                 artifact.setName("buildInfo");

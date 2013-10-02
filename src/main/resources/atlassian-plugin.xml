@@ -105,6 +105,7 @@
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.GradleCapabilityHelper"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
         <executable key="gradle" pathHelpKey="builder.gradle.pathHelp"/>
         <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryGradleBuilderEdit.ftl"/>
         <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryGradleBuilderView.ftl"/>
@@ -129,6 +130,7 @@
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.Maven3CapabilityHelper"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
         <executable key="maven" pathHelpKey="builder.maven.pathHelp"/>
         <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryMaven3BuilderEdit.ftl"/>
         <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryMaven3BuilderView.ftl"/>

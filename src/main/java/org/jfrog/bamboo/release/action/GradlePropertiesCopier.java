@@ -12,12 +12,12 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
+import org.jfrog.bamboo.release.provider.TokenDataProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
@@ -57,28 +57,24 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
             return buildContext;
         }
         if (checkoutDir.exists()) {
-            log.info(buildLogger.addBuildLogEntry("Copying the gradle properties artifact for " +
-                    "build: " + buildContext.getBuildResultKey()));
-            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.create());
-            artifact.setName("gradle");
-            artifact.setLocation("");
-
-            StringBuilder buildPropertiesLocation = new StringBuilder();
-            GradleBuildContext gradleBuildContext =
-                    (GradleBuildContext) AbstractBuildContext.createContextFromMap(gradleDefinition.getConfiguration());
-            String buildScriptSubDir = gradleBuildContext.getBuildScript();
-            if (StringUtils.isNotBlank(buildScriptSubDir)) {
-                buildPropertiesLocation.append(buildScriptSubDir);
-                if (!buildScriptSubDir.endsWith(File.separator)) {
-                    buildPropertiesLocation.append(File.separator);
-                }
+            GradleBuildContext gradleBuildContext = (GradleBuildContext) AbstractBuildContext.createContextFromMap(gradleDefinition.getConfiguration());
+            String location = "";
+            String directory = gradleBuildContext.getBuildScript();
+            if (StringUtils.isNotBlank(directory)) {
+                location = directory;
             }
-            buildPropertiesLocation.append("gradle.properties");
-            File gradleProps = new File(checkoutDir, buildPropertiesLocation.toString());
-            artifact.setCopyPattern(gradleProps.getName());
-            Map<String, String> config = Maps.newHashMap();
-            artifactManager.publish(buildLogger, planResultKey, gradleProps.getParentFile(), artifact, config,
-                    Sets.<String>newHashSet(), 1);
+
+            File gradleProps = new File(new File(checkoutDir, location), "gradle.properties");
+            if (gradleProps.exists()) {
+                String securityToken = gradleDefinition.getConfiguration().get(TokenDataProvider.SECURITY_TOKEN);
+                ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.createFromString(securityToken));
+                artifact.setName("gradle");
+                artifact.setLocation(location);
+                artifact.setCopyPattern(gradleProps.getName());
+                Map<String, String> config = Maps.newHashMap();
+                artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, config, 1);
+
+            }
         }
         return buildContext;
     }
