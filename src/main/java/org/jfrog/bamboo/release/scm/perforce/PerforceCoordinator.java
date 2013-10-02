@@ -128,7 +128,7 @@ public class PerforceCoordinator extends AbstractScmCoordinator {
     }
 
     @Override
-    public boolean isGit() {
+    public boolean isSubversion() {
         return false;
     }
 

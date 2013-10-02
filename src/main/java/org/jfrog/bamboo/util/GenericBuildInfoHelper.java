@@ -1,5 +1,6 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.util.BuildUtils;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
@@ -15,12 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.build.api.Agent;
-import org.jfrog.build.api.Artifact;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.BuildInfoFields;
-import org.jfrog.build.api.BuildInfoProperties;
-import org.jfrog.build.api.BuildType;
+import org.jfrog.build.api.*;
 import org.jfrog.build.api.builder.ArtifactBuilder;
 import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
@@ -37,11 +33,7 @@ import org.joda.time.Interval;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Tomer Cohen
@@ -56,7 +48,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         this.vcsRevision = vcsRevision;
     }
 
-    public Build extractBuildInfo(BuildContext buildContext, GenericContext context, String username) {
+    public Build extractBuildInfo(BuildContext buildContext, BuildLogger buildLogger, GenericContext context, String username) {
         String url = determineBambooBaseUrl();
         StringBuilder summaryUrl = new StringBuilder(url);
         if (!url.endsWith("/")) {
@@ -64,9 +56,14 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         }
         String buildUrl = summaryUrl.append("browse/").
                 append(EscapeChars.forURL(buildContext.getBuildResultKey())).toString();
-        long duration =
-                new Interval(new DateTime(buildContext.getBuildResult().getCustomBuildData().get("buildTimeStamp")),
-                        new DateTime()).toDurationMillis();
+        DateTime start = new DateTime(buildContext.getBuildResult().getCustomBuildData().get("buildTimeStamp"));
+        DateTime end = new DateTime();
+        long duration = -1;
+        if (start.isBefore(end)) {
+            duration = new Interval(start, end).toDurationMillis();
+        } else {
+            log.warn(buildLogger.addErrorLogEntry("Agent machine time is lower than the server machine time, please synchronize them."));
+        }
 
         BuildInfoBuilder builder = new BuildInfoBuilder(buildContext.getPlanName())
                 .number(String.valueOf(buildContext.getBuildNumber())).type(BuildType.GENERIC)
@@ -126,7 +123,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, File> filesMap,
-            File rootDir, BuildContext buildContext, GenericContext genericContext)
+                                                                   File rootDir, BuildContext buildContext, GenericContext genericContext)
             throws IOException, NoSuchAlgorithmException {
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
@@ -151,7 +148,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry,
-            String targetRepository, Map<String, String> propertyMap) throws IOException,
+                                                             String targetRepository, Map<String, String> propertyMap) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
         String targetPath = fileEntry.getKey();

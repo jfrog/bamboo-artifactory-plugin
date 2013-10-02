@@ -83,8 +83,8 @@ public class SubversionCoordinator extends AbstractScmCoordinator {
     }
 
     @Override
-    public boolean isGit() {
-        return false;
+    public boolean isSubversion() {
+        return true;
     }
 
     private SVNClientManager getClientManager() {

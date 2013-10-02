@@ -9,8 +9,8 @@
 [#assign singlePlan = false]
 [#assign sort = false]
 [#assign targetAction = 'releaseBuild']
-[@ww.form action=targetAction submitLabelKey='Build and Release to Artifactory'
-titleKey='Artifactory Pro Release Staging' showActionErrors='false']
+[@ww.form action=targetAction submitLabelKey='artifactory.release.submit'
+titleKey='artifactory.release.title' showActionErrors='false']
     [@ww.hidden name='planKey' value=planKey /]
 <div class="section">
     [#if gradle]

@@ -207,8 +207,8 @@ public class GitCoordinator extends AbstractScmCoordinator {
     }
 
     @Override
-    public boolean isGit() {
-        return true;
+    public boolean isSubversion() {
+        return false;
     }
 
     @Override

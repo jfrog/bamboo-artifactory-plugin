@@ -36,7 +36,7 @@
             [@ww.hidden name='baseUrl' value=baseUrl /]
             [@ww.hidden name='artifactoryReleaseManagementUrl' value=artifactoryReleaseManagementUrl /]
             [@ww.select labelKey='Target Status' name='target' list=promotionTargets /]
-            [@ww.textfield labelKey='Comment' name = 'comment' value='${comment}'/]
+            [@ww.textfield labelKey='release.comment' name = 'comment' value='${comment}'/]
             [@ww.select name='promotionRepo' labelKey='Target promotion repository' list='promotionRepos'
             toggle='true' descriptionKey='Select a promotion repository.'/]
             [@ww.checkbox labelKey='Include dependencies' name='includeDependencies' toggle='true'/]
@@ -53,7 +53,7 @@
 
             function updateLog() {
                 AJS.$.ajax({
-                    url:'${req.contextPath}/getLog.action',
+                    url:'${req.contextPath}/getLog.action?buildKey=${buildKey}&buildNumber=${buildNumber}',
                     dataType:'html',
                     cache:false,
                     success:function (html) {

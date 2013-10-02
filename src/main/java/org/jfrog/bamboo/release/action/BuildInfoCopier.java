@@ -6,6 +6,7 @@ import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
+import com.atlassian.bamboo.security.SecureToken;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
@@ -17,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.release.provider.TokenDataProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
@@ -45,8 +47,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
     @NotNull
     public BuildContext call() throws Exception {
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
-        BuildLogger buildLogger = buildLoggerManager.getBuildLogger(planResultKey);
-        buildLogger.startStreamingBuildLogs(planResultKey);
+        BuildLogger buildLogger = buildLoggerManager.getLogger(planResultKey);
         File checkoutDir = ScmHelper.getCheckoutDirectory(buildContext);
         if (checkoutDir == null) {
             return buildContext;
@@ -67,7 +68,8 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
         if (buildInfo.exists()) {
             log.info(buildLogger.addBuildLogEntry("Copying the buildinfo artifacts for " +
                     "build: " + buildContext.getBuildResultKey()));
-            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl();
+            String securityToken = mavenDefinition.getConfiguration().get(TokenDataProvider.SECURITY_TOKEN);
+            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.createFromString(securityToken));
             File buildInfoZip = createBuildInfoZip(buildInfo);
             if (buildInfoZip != null) {
                 artifact.setName("buildInfo");

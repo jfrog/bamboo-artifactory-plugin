@@ -2,6 +2,7 @@ package org.jfrog.bamboo.result;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
 import com.atlassian.bamboo.task.TaskDefinition;
@@ -79,7 +80,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         if (!builder.toString().endsWith("/")) {
             builder.append("/");
         }
-        builder.append("webapp/builds/").append(getBuild().getName()).append("/").append(getBuildNumber());
+        builder.append("webapp/builds/").append(getImmutableBuild().getName()).append("/").append(getBuildNumber());
         artifactoryReleaseManagementUrl = builder.toString();
 
         return INPUT;
@@ -90,7 +91,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
     }
 
     public boolean isReleaseBuild() {
-        Plan plan = getPlan();
+        Plan plan = getMutablePlan();
         TaskDefinition mavenOrGradleDefinition =
                 TaskDefinitionHelper.findMavenOrGradleDefinition(plan.getBuildDefinition().getTaskDefinitions());
         if (mavenOrGradleDefinition == null) {
@@ -101,8 +102,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
     }
 
     public boolean isPermittedToPromote() {
-        return bambooPermissionManager
-                .hasPlanPermission(BambooPermission.determineNameFromPermission(BambooPermission.BUILD), getPlanKey());
+        return bambooPermissionManager.hasPlanPermission(BambooPermission.BUILD, PlanKeys.getPlanKey(getPlanKey()));
     }
 
     public String getPromotionMode() {
@@ -213,7 +213,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
     }
 
     private TaskDefinition getMavenOrGradleTaskDefinition() {
-        Plan plan = getPlan();
+        Plan plan = getMutablePlan();
         if (plan == null) {
             return null;
         }
@@ -234,7 +234,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         if (number != null && getBuildNumber() == null) {
             setBuildNumber(number);
         }
-        if (getPlan() == null) {
+        if (getMutablePlan() == null) {
             return INPUT;
         }
         if (!isPermittedToPromote()) {

@@ -1,6 +1,6 @@
-[@ww.textfield labelKey='Project File' name='builder.artifactoryMaven3Builder.projectFile' /]
-[@ww.textarea labelKey='Goals' name='builder.artifactoryMaven3Builder.goal' rows='4' required='true' /]
-[@ww.textarea labelKey='Additional Maven Parameters' name='builder.artifactoryMaven3Builder.additionalMavenParams' rows='2' required='false' /]
+[@ww.textfield labelKey='artifactory.task.maven.projectFile' name='builder.artifactoryMaven3Builder.projectFile' /]
+[@ww.textarea labelKey='artifactory.task.maven.goals' name='builder.artifactoryMaven3Builder.goal' rows='4' required='true' /]
+[@ww.textarea labelKey='artifactory.task.maven.additionalMavenParams' name='builder.artifactoryMaven3Builder.additionalMavenParams' rows='2' required='false' /]
 
 [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
 [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryMaven3Builder.buildJdk' cssClass="jdkSelectWidget"
@@ -11,110 +11,70 @@ extraUtility=addJdkLink /]
 [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryMaven3Builder.executable'
 list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink required='true' /]
 
-[@ww.textfield labelKey='builder.common.env' name='builder.artifactoryMaven3Builder.environmentVariables'
-descriptionKey='Space-separated key-value pairs of extra environment variables to pass to the build process (e.g. EXT_PATH=/var/lib/ext).'/]
-[@ww.textfield labelKey='Maven Opts' name='builder.artifactoryMaven3Builder.mavenOpts'
-descriptionKey='Space-separated parameters to pass as MAVEN_OPTS (e.g.: -Dmaven.repo.local=/mnt/work). Note: MAVEN_OPTS added as System Environment Variables will be ignored!'/]
+[@ww.textfield labelKey='builder.common.env' name='builder.artifactoryMaven3Builder.environmentVariables' /]
+[@ww.textfield labelKey='artifactory.task.maven.mavenOpts' name='builder.artifactoryMaven3Builder.mavenOpts' /]
 [@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryMaven3Builder.workingSubDirectory' helpUri='working-directory.ftl' /]
 
-[@ww.checkbox labelKey='Resolve artifacts from Artifactory' name='resolveFromArtifacts' toggle='true'
-descriptionKey="Check if you wish all dependency resolution to go through Artifactory. <br/> Notice: this will override any external repository definition in Maven settings or POM files."/]
+[@ww.checkbox labelKey='artifactory.task.maven.resolveFromArtifacts' name='resolveFromArtifacts' toggle='true' /]
 [@ui.bambooSection dependsOn='resolveFromArtifacts' showOn=true]
-    [@ww.select name='builder.artifactoryMaven3Builder.resolutionArtifactoryServerId' labelKey='Resolution Artifactory Server URL' list=serverConfigManager.allServerConfigs
-    listKey='id' listValue='url' onchange='javascript: displayResolutionMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
-    descriptionKey='Select an Artifactory server.'/]
+    [@ww.select name='builder.artifactoryMaven3Builder.resolutionArtifactoryServerId' labelKey='artifactory.task.maven.resolutionArtifactoryServerUrl' list=serverConfigManager.allServerConfigs
+    listKey='id' listValue='url' onchange='javascript: displayResolutionMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true' /]
 <div id="maven3ArtifactoryResolutionConfigDiv">
-    [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='Resolution repository' list=dummyList
-    listKey='repoKey' listValue='repoKey' toggle='true' descriptionKey=''/]
-[@ww.textfield labelKey='Resolver Username' name='builder.artifactoryMaven3Builder.resolverUsername'
-descriptionKey='Name of a user with read permissions on the target repository.'/]
-[@ww.password labelKey='Resolver Password' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true'
-descriptionKey='password of a user with read permissions on the target repository.'/]
+    [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='artifactory.task.maven.resolutionRepo' list=dummyList
+    listKey='repoKey' listValue='repoKey' toggle='true' /]
+[@ww.textfield labelKey='artifactory.task.maven.resolverUsername' name='builder.artifactoryMaven3Builder.resolverUsername' /]
+[@ww.password labelKey='artifactory.task.maven.resolverPassword' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true' /]
 </div>
 [/@ui.bambooSection]
 
 
-[@ww.select name='builder.artifactoryMaven3Builder.artifactoryServerId' labelKey='Artifactory Server URL' list=serverConfigManager.allServerConfigs
-listKey='id' listValue='url' onchange='javascript: displayMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true'
-descriptionKey='Select an Artifactory server.'/]
+[@ww.select name='builder.artifactoryMaven3Builder.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
+listKey='id' listValue='url' onchange='javascript: displayMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true' /]
 
 <div id="maven3ArtifactoryConfigDiv">
-[@ww.select name='builder.artifactoryMaven3Builder.deployableRepo' labelKey='Target Repository' list=dummyList
-listKey='repoKey' listValue='repoKey' toggle='true' descriptionKey='Select a target deployment repository.'/]
+[@ww.select name='builder.artifactoryMaven3Builder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList
+listKey='repoKey' listValue='repoKey' toggle='true' /]
 
-[@ww.textfield labelKey='Deployer Username' name='builder.artifactoryMaven3Builder.deployerUsername'
-descriptionKey='Name of a user with deployment permissions on the target repository.'/]
+[@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryMaven3Builder.deployerUsername' /]
 
-[@ww.password labelKey='Deployer Password' name='builder.artifactoryMaven3Builder.deployerPassword' showPassword='true'
-descriptionKey='The password of the user entered above.'/]
+[@ww.password labelKey='artifactory.task.maven.deployerPassword' name='builder.artifactoryMaven3Builder.deployerPassword' showPassword='true'/]
 
-[@ww.checkbox labelKey='Deploy Maven Artifacts' name='deployMavenArtifacts' toggle='true'
-descriptionKey="Uncheck if you do not wish to deploy Maven artifacts from the plugin (a more efficient alternative to Maven's own 'deploy' goal)."/]
+[@ww.checkbox labelKey='artifactory.task.maven.deployMavenArtifacts' name='deployMavenArtifacts' toggle='true' /]
 
 [@ui.bambooSection dependsOn='deployMavenArtifacts' showOn=true]
-    [@ww.textfield labelKey='Deployment Include Patterns'
-    name='builder.artifactoryMaven3Builder.deployIncludePatterns'
-    descriptionKey='Comma or space-separated list of
-    <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
-    of files that will be included in publishing. Include patterns are applied on the published file path before any
-    exclude patterns.'/]
-    [@ww.textfield labelKey='Deployment Exclude Patterns'
-    name='builder.artifactoryMaven3Builder.deployExcludePatterns'
-    descriptionKey='Comma or space-separated list of
-    <a href="http://ant.apache.org/manual/dirtasks.html#patterns" target="_blank">Ant-style patterns</a>
-    of files that will be excluded from publishing. Exclude patterns are applied on the published file path before any
-    exclude patterns.'/]
+    [@ww.textfield labelKey='artifactory.task.deployIncludePatterns' name='builder.artifactoryMaven3Builder.deployIncludePatterns' /]
+    [@ww.textfield labelKey='artifactory.task.deployExcludePatterns' name='builder.artifactoryMaven3Builder.deployExcludePatterns' /]
 [/@ui.bambooSection]
 
-[@ww.checkbox labelKey='Capture and Publish Build Info' name='publishBuildInfo'
-toggle='true' descriptionKey='Check if you wish to publish build information to Artifactory.'/]
+[@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
 
 [@ui.bambooSection dependsOn='publishBuildInfo' showOn=true]
-    [@ww.checkbox labelKey='Include Environment Variables' name='includeEnvVars'
-    toggle='true' descriptionKey='Check if you wish to include all environment variables accessible by the builds process.'/]
+    [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='includeEnvVars' toggle='true' /]
 
     [@ui.bambooSection dependsOn='includeEnvVars' showOn=true]
-        [@ww.textfield labelKey='Environment Variables Include Patterns'
-        name='envVarsIncludePatterns'
-        descriptionKey='Comma or space-separated list of environment variables that will be included as part of the published build info.
-        Environment variables may contain the * and the ? wildcards. Include patterns are applied before any exclude patterns.'/]
-        [@ww.textfield labelKey='Environment Variables Exclude Patterns'
-        name='envVarsExcludePatterns'
-        descriptionKey='Comma or space-separated list of environment variables that will be excluded as part of the published build info.
-        Environment variables may contain the * and the ? wildcards. Exclude patterns are applied after any include patterns.'/]
+        [@ww.textfield labelKey='artifactory.task.envVarsIncludePatterns' name='envVarsIncludePatterns'/]
+        [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='envVarsExcludePatterns'/]
     [/@ui.bambooSection]
 
-    [@ww.checkbox labelKey='Run License Checks (Requires Pro)' name='runLicenseChecks'
-    toggle='true' descriptionKey='Check if you wish that automatic license scanning will occur after build is complete.'/]
+    [@ww.checkbox labelKey='artifactory.task.runLicenseChecks' name='runLicenseChecks' toggle='true'/]
 
     [@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
-        [@ww.textfield labelKey='Send License Violation Notifications to'
-        name='builder.artifactoryMaven3Builder.licenseViolationRecipients' descriptionKey='Whitespace-separated list of recipient addresses.'/]
+        [@ww.textfield labelKey='artifactory.task.licenseViolationRecipients' name='builder.artifactoryMaven3Builder.licenseViolationRecipients' /]
 
-        [@ww.textfield labelKey='Limit Checks To The Following Scopes'
-        name='builder.artifactoryMaven3Builder.limitChecksToScopes' descriptionKey='Space-separated list of scopes.'/]
+        [@ww.textfield labelKey='artifactory.task.limitChecksToScopes' name='builder.artifactoryMaven3Builder.limitChecksToScopes' /]
 
-        [@ww.checkbox labelKey='Include Published Artifacts' name='builder.artifactoryMaven3Builder.includePublishedArtifacts'
-        toggle='true' descriptionKey="Include the build's published module artifacts in the license violation checks if they are also used
-                    as dependencies for other modules in this build."/]
+        [@ww.checkbox labelKey='artifactory.task.includePublishedArtifacts' name='builder.artifactoryMaven3Builder.includePublishedArtifacts' toggle='true'/]
 
-        [@ww.checkbox labelKey='Disable Automatic License Discovery' name='builder.artifactoryMaven3Builder.disableAutoLicenseDiscovery'
-        toggle='true' descriptionKey="Tells Artifactory to not try and automatically analyze and tag the build's dependencies with license information
-                    upon deployment. You can still attach license information manually by running 'Auto-Find' from the build's
-                    Licenses tab in Artifactory."/]
+        [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryMaven3Builder.disableAutoLicenseDiscovery' toggle='true'/]
     [/@ui.bambooSection]
 [/@ui.bambooSection]
 
-[@ww.checkbox labelKey='Enable Release Management' name='enableReleaseManagement' toggle='true'
-descriptionKey='Enable Release Management to Artifactory'/]
+[@ww.checkbox labelKey='artifactory.task.release.enableReleaseManagement' name='enableReleaseManagement' toggle='true'/]
 
 [@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
-    [@ww.textfield labelKey='VCS Tags Base URL/Name' name='builder.artifactoryMaven3Builder.vcsTagBase'
-    descriptionKey='For subversion this is the URL of the tags location, for Git and Perforce this is the name of the tag/label.'/]
-    [@ww.textfield labelKey='Git Release Branch Name Prefix' name='builder.artifactoryMaven3Builder.gitReleaseBranch'
-    descriptionKey='The prefix of the release branch name (applicable only to Git).'/]
-    [@ww.textfield labelKey='Alternative Maven Tasks and Options' name='builder.artifactoryMaven3Builder.alternativeTasks'
-    descriptionKey='Alternative Maven and options to execute for a Maven build running as part of the release. If left empty, the build will use original tasks and options instead of replacing them. '/]
+    [@ww.textfield labelKey='artifactory.task.release.vcsTagBase' name='builder.artifactoryMaven3Builder.vcsTagBase'/]
+    [@ww.textfield labelKey='artifactory.task.release.gitReleaseBranch' name='builder.artifactoryMaven3Builder.gitReleaseBranch'/]
+    [@ww.textfield labelKey='artifactory.task.release.alternativeTasks' name='builder.artifactoryMaven3Builder.alternativeTasks'/]
 [/@ui.bambooSection]
 
 

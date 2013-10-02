@@ -106,7 +106,7 @@ public interface ScmCoordinator {
 
     public void setReleaseBranchCreated(boolean releaseBranchCreated);
 
-    boolean isGit();
+    boolean isSubversion();
 
     /**
      * Called before a file is modified.
