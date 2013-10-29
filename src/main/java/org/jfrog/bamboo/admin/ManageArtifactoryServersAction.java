@@ -17,13 +17,14 @@
 package org.jfrog.bamboo.admin;
 
 import com.atlassian.bamboo.ww2.BambooActionSupport;
+import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
 
 /**
  * Global Artifactory server management form action
  *
  * @author Noam Y. Tenne
  */
-public class ManageArtifactoryServersAction extends BambooActionSupport {
+public class ManageArtifactoryServersAction extends BambooActionSupport implements GlobalAdminSecurityAware {
 
     public ManageArtifactoryServersAction() {
     }

@@ -34,7 +34,7 @@
                 <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
             </action>
             <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction" method="browse">
-            <result name="success" type="freemarker">existingArtifactoryServerView.ftl</result>
+                <result name="success" type="freemarker">/admin/existingArtifactoryServerView.ftl</result>
             </action>
             <action name="configureArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction">
                 <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
@@ -42,9 +42,9 @@
             </action>
             <action name="createServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="create">
                 <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="success" type="redirect-action">
-                    <param name="actionName">manageArtifactoryServers</param>
-                </result>
+                <result name="error" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
+                <param name="mode">add</param>
             </action>
             <action name="editServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="edit">
                 <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
@@ -52,9 +52,7 @@
             </action>
             <action name="updateServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="update">
                 <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-                <result name="success" type="redirect-action">
-                    <param name="actionName">manageArtifactoryServers</param>
-                </result>
+                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
                 <param name="mode">edit</param>
             </action>
             <action name="deleteServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="delete">

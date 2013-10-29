@@ -13,7 +13,7 @@
 
 <p>You can use this page to add, edit and delete Artifactory server configurations.</p>
 
-[@ww.action name="existingArtifactoryServer" namespace="/admin" executeResult="true" /]
+[@ww.action name="existingArtifactoryServer" executeResult="true" /]
 
 <br/>
 
