@@ -133,6 +133,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
                 TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS, RESOLVE_FROM_ARTIFACTORY
                 , PREFIX + RESOLUTION_SERVER_ID, PREFIX + RESOLVER_USER_NAME, PREFIX + RESOLVER_PASSWORD);
+        fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
         return fieldsToCopy;
     }

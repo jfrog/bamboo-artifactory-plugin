@@ -25,6 +25,7 @@ import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import static org.jfrog.bamboo.util.ConstantValues.*;
@@ -156,6 +158,14 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.info.licenseControl.setScopes(buildContext.getScopes());
         clientConf.info.licenseControl.setIncludePublishedArtifacts(buildContext.isIncludePublishedArtifacts());
         clientConf.info.licenseControl.setAutoDiscover(!buildContext.isDisableAutomaticLicenseDiscovery());
+
+        //blackduck integration
+        try {
+            BeanUtils.copyProperties(clientConf.info.blackDuckProperties, buildContext.blackDuckProperties);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not integrate black duck properties", e);
+        }
+
         clientConf.info.setReleaseEnabled(buildContext.releaseManagementContext.isActivateReleaseManagement());
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
         addClientProperties(clientConf, serverConfig, buildContext);

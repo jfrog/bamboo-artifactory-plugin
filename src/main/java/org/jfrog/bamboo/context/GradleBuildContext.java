@@ -92,6 +92,7 @@ public class GradleBuildContext extends AbstractBuildContext {
                 PREFIX + ARTIFACT_SPECS_PARAM, PREFIX + EXECUTABLE, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
                 TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
                 PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS);
+        fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
         return fieldsToCopy;
     }

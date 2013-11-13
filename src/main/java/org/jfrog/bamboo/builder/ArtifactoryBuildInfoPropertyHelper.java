@@ -23,6 +23,7 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -140,6 +141,15 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         clientConf.info.licenseControl.setScopes(buildContext.getScopes());
         clientConf.info.licenseControl.setIncludePublishedArtifacts(buildContext.isIncludePublishedArtifacts());
         clientConf.info.licenseControl.setAutoDiscover(!buildContext.isDisableAutomaticLicenseDiscovery());
+
+        //blackduck integration
+        try {
+            BeanUtils.copyProperties(clientConf.info.blackDuckProperties, buildContext.blackDuckProperties);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not integrate black duck properties", e);
+        }
+
+        //release management
         clientConf.info.setReleaseEnabled(buildContext.releaseManagementContext.isActivateReleaseManagement());
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
         addClientProperties(buildContext, clientConf, serverConfig);

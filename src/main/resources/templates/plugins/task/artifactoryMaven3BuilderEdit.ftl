@@ -67,6 +67,10 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 
         [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryMaven3Builder.disableAutoLicenseDiscovery' toggle='true'/]
     [/@ui.bambooSection]
+
+    [#--blackduck integration--]
+    [#include 'BlackDuckBuilderEditSnippet.ftl'/]
+
 [/@ui.bambooSection]
 
 [@ww.checkbox labelKey='artifactory.task.release.enableReleaseManagement' name='enableReleaseManagement' toggle='true'/]
