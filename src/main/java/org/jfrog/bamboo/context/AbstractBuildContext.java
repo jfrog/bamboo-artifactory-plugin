@@ -15,13 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import static org.jfrog.build.api.BlackDuckPropertiesFields.APP_NAME;
-import static org.jfrog.build.api.BlackDuckPropertiesFields.APP_VERSION;
-import static org.jfrog.build.api.BlackDuckPropertiesFields.AutoCreateMissingComponentRequests;
-import static org.jfrog.build.api.BlackDuckPropertiesFields.AutoDiscardStaleComponentRequests;
-import static org.jfrog.build.api.BlackDuckPropertiesFields.REPORT_RECIPIENTS;
-import static org.jfrog.build.api.BlackDuckPropertiesFields.RUN_CHECKS;
-import static org.jfrog.build.api.BlackDuckPropertiesFields.SCOPES;
+import static org.jfrog.build.api.BlackDuckPropertiesFields.*;
 
 /**
  * Container object for common build environment properties that is based on the configuration's namespace. Each context
@@ -75,7 +69,7 @@ public abstract class AbstractBuildContext {
     public static final String RELEASE_PROPS = "releaseProps";
     public static final String NEXT_INTEG_PROPS = "nextIntegProps";
 
-    public static final String BLACKDUCK_PREFIX = "builder.common.blackduck.";
+    public static final String BLACKDUCK_PREFIX = "artifactory.common.blackduck.";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
     public final BlackDuckProperties blackDuckProperties;
