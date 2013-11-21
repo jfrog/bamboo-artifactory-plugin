@@ -3,6 +3,7 @@ package org.jfrog.bamboo.release.scm;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.opensymphony.xwork.TextProvider;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.util.version.ScmHelper;
@@ -19,6 +20,7 @@ public abstract class AbstractScmManager<T extends Repository> implements ScmMan
     private BuildContext context;
     private final Repository repository;
     private final BuildLogger buildLogger;
+    protected TextProvider textProvider;
 
     public AbstractScmManager(BuildContext context, Repository repository, BuildLogger buildLogger) {
         this.context = context;
@@ -49,5 +51,9 @@ public abstract class AbstractScmManager<T extends Repository> implements ScmMan
 
     protected BuildContext getContext() {
         return context;
+    }
+
+    public void setTextProvider(TextProvider textProvider) {
+        this.textProvider = textProvider;
     }
 }

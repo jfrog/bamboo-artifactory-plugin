@@ -8,7 +8,6 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import com.opensymphony.xwork.TextProvider;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -42,7 +41,6 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     private static final String REFS_TAGS = "refs/tags/";
 
     private BuildLogger buildLogger;
-    private TextProvider textProvider;
     private String username = "";
     private String password = "";
 
@@ -139,10 +137,6 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
 
     public void setBuildLogger(BuildLogger buildLogger) {
         this.buildLogger = buildLogger;
-    }
-
-    public void setTextProvider(TextProvider textProvider) {
-        this.textProvider = textProvider;
     }
 
     public void checkoutBranch(final String branch, final boolean create) throws IOException {
