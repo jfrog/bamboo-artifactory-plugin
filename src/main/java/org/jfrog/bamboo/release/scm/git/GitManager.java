@@ -21,14 +21,7 @@ import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.storage.file.FileRepository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
@@ -98,9 +91,9 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         AbstractRepository scm = getBambooScm();
         HierarchicalConfiguration configuration = scm.toConfiguration();
         if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(scm.getClass().getName())) {
-            return configuration.getString("repository.git.repositoryUrl");
+            return textProvider.getText(configuration.getString("repository.git.repositoryUrl"));
         } else if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(scm.getClass().getName())) {
-            String repository = configuration.getString("repository.github.repository");
+            String repository = textProvider.getText(configuration.getString("repository.github.repository"));
             return "https://github.com/" + repository + ".git";
         } else {
             return "";
