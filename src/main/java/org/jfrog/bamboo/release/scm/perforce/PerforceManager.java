@@ -54,6 +54,7 @@ public class PerforceManager extends AbstractScmManager<PerforceRepository> {
     }
 
     public void createTag(String label, String commitMessage, String changeListId) throws IOException {
+        label = textProvider.getText(label);
         perforce.createLabel(label, commitMessage, changeListId);
     }
 
