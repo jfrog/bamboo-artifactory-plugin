@@ -5,6 +5,7 @@ import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.opensymphony.xwork.TextProvider;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
 import org.tmatesoft.svn.core.*;
@@ -21,6 +22,7 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
 
     private SVNClientManager manager;
     private final BuildLogger buildLogger;
+    private TextProvider textProvider;
 
     public SubversionManager(BuildContext context, Repository repository, SVNClientManager manager,
             BuildLogger buildLogger) {
@@ -69,6 +71,10 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
             log.error(buildLogger.addBuildLogEntry(message));
             throw new IOException("Subversion tag creation failed: " + e.getMessage());
         }
+    }
+
+    public void setTextProvider(TextProvider textProvider) {
+        this.textProvider = textProvider;
     }
 
     /**
