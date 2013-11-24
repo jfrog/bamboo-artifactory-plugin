@@ -98,6 +98,7 @@ public class IvyBuildContext extends AbstractBuildContext {
                 PREFIX + ARTIFACT_PATTERN_PARAM, PREFIX + INCLUDE_PATTERN, PREFIX + EXECUTABLE,
                 PREFIX + EXCLUDE_PATTERN, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
                 TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY);
+        fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
         return fieldsToCopy;
     }

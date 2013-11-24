@@ -6,10 +6,16 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
+import org.jfrog.bamboo.util.BeanUtilsHelper;
+import org.jfrog.build.api.BlackDuckProperties;
+import org.jfrog.build.api.BlackDuckPropertiesFields;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+
+import static org.jfrog.build.api.BlackDuckPropertiesFields.*;
 
 /**
  * Container object for common build environment properties that is based on the configuration's namespace. Each context
@@ -54,8 +60,6 @@ public abstract class AbstractBuildContext {
     public static final String EXECUTABLE = "executable";
     public static final String BASE_URL = "baseUrl";
 
-    public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
-
     // release management props.
     public static final String ENABLE_RELEASE_MANAGEMENT = "enableReleaseManagement";
     public static final String ACTIVATE_RELEASE_MANAGEMENT = "activateReleaseManagement";
@@ -64,12 +68,19 @@ public abstract class AbstractBuildContext {
     public static final String ALTERNATIVE_TASKS = "alternativeTasks";
     public static final String RELEASE_PROPS = "releaseProps";
     public static final String NEXT_INTEG_PROPS = "nextIntegProps";
+
+    public static final String BLACKDUCK_PREFIX = "artifactory.common.blackduck.";
+
+    public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
+    public final BlackDuckProperties blackDuckProperties;
     private final String prefix;
     protected final Map<String, String> env;
 
     public AbstractBuildContext(String prefix, Map<String, String> env) {
         this.prefix = prefix;
         this.env = env;
+        BeanUtilsHelper.populateWithPrefix(blackDuckProperties = new BlackDuckProperties(), env,
+                AbstractBuildContext.BLACKDUCK_PREFIX);
     }
 
     public static AbstractBuildContext createContextFromMap(Map<String, String> map) {
@@ -107,6 +118,18 @@ public abstract class AbstractBuildContext {
             }
         }
         return result;
+    }
+
+    public static List<String> getBlackDuckFieldsToCopy() {
+        return Arrays.asList(
+                BLACKDUCK_PREFIX + RUN_CHECKS,
+                BLACKDUCK_PREFIX + APP_NAME,
+                BLACKDUCK_PREFIX + APP_VERSION,
+                BLACKDUCK_PREFIX + REPORT_RECIPIENTS,
+                BLACKDUCK_PREFIX + SCOPES,
+                BLACKDUCK_PREFIX + BlackDuckPropertiesFields.INCLUDE_PUBLISHED_ARTIFACTS,
+                BLACKDUCK_PREFIX + AutoCreateMissingComponentRequests,
+                BLACKDUCK_PREFIX + AutoDiscardStaleComponentRequests);
     }
 
     public long getArtifactoryServerId() {

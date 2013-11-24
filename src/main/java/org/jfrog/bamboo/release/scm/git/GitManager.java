@@ -5,6 +5,7 @@ import com.atlassian.bamboo.repository.AbstractRepository;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.security.StringEncrypter;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -21,14 +22,7 @@ import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.storage.file.FileRepository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
@@ -50,12 +44,14 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
 
     private BuildLogger buildLogger;
     private TextProvider textProvider;
+    private CustomVariableContext customVariableContext;
     private String username = "";
     private String password = "";
 
-    public GitManager(BuildContext context, Repository repository, BuildLogger buildLogger) {
+    public GitManager(BuildContext context, Repository repository, BuildLogger buildLogger, CustomVariableContext customVariableContext) {
         super(context, repository, buildLogger);
         this.buildLogger = buildLogger;
+        this.customVariableContext = customVariableContext;
         HierarchicalConfiguration configuration = repository.toConfiguration();
         StringEncrypter encrypter = new StringEncrypter();
         if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(repository.getClass().getName())) {
@@ -98,9 +94,9 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         AbstractRepository scm = getBambooScm();
         HierarchicalConfiguration configuration = scm.toConfiguration();
         if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(scm.getClass().getName())) {
-            return configuration.getString("repository.git.repositoryUrl");
+            return customVariableContext.substituteString(configuration.getString("repository.git.repositoryUrl"));
         } else if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(scm.getClass().getName())) {
-            String repository = configuration.getString("repository.github.repository");
+            String repository = customVariableContext.substituteString(configuration.getString("repository.github.repository"));
             return "https://github.com/" + repository + ".git";
         } else {
             return "";

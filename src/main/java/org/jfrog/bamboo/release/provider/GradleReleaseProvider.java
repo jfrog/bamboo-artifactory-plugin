@@ -4,6 +4,7 @@ import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
@@ -22,8 +23,8 @@ import java.util.Map;
 public class GradleReleaseProvider extends AbstractReleaseProvider {
 
     protected GradleReleaseProvider(AbstractBuildContext internalContext, BuildContext context,
-                                    BuildLogger buildLogger) {
-        super(internalContext, context, buildLogger);
+                                    BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+        super(internalContext, context, buildLogger, customVariableContext);
     }
 
     @Override

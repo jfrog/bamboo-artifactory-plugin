@@ -16,7 +16,7 @@
 titleKey='artifactory.server.details'
 cancelUri=cancelUri
 descriptionKey='artifactory.server.description'
-showActionErrors='false']
+showActionErrors='true']
 [@ww.param name='buttons']
 [@ww.submit value="Test" name="testing" theme='simple' /]
 [/@ww.param]

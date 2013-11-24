@@ -5,21 +5,11 @@ import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
-import org.tmatesoft.svn.core.SVNCommitInfo;
-import org.tmatesoft.svn.core.SVNDepth;
-import org.tmatesoft.svn.core.SVNErrorCode;
-import org.tmatesoft.svn.core.SVNErrorMessage;
-import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.SVNProperties;
-import org.tmatesoft.svn.core.SVNURL;
-import org.tmatesoft.svn.core.wc.SVNClientManager;
-import org.tmatesoft.svn.core.wc.SVNCommitClient;
-import org.tmatesoft.svn.core.wc.SVNCopyClient;
-import org.tmatesoft.svn.core.wc.SVNCopySource;
-import org.tmatesoft.svn.core.wc.SVNRevision;
-import org.tmatesoft.svn.core.wc.SVNWCClient;
+import org.tmatesoft.svn.core.*;
+import org.tmatesoft.svn.core.wc.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,12 +22,14 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
 
     private SVNClientManager manager;
     private final BuildLogger buildLogger;
+    private CustomVariableContext customVariableContext;
 
     public SubversionManager(BuildContext context, Repository repository, SVNClientManager manager,
-            BuildLogger buildLogger) {
+                             BuildLogger buildLogger, CustomVariableContext customVariableContext) {
         super(context, repository, buildLogger);
         this.manager = manager;
         this.buildLogger = buildLogger;
+        this.customVariableContext = customVariableContext;
     }
 
     @Override
@@ -63,6 +55,7 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
     @Override
     public void createTag(String tagUrl, String commitMessage) throws IOException, InterruptedException {
         try {
+            tagUrl = customVariableContext.substituteString(tagUrl);
             SVNURL svnUrl = SVNURL.parseURIEncoded(tagUrl);
             SVNCopyClient copyClient = manager.getCopyClient();
             log("Creating subversion tag: " + tagUrl);

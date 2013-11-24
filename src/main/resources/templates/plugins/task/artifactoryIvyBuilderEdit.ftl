@@ -57,6 +57,10 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 
         [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryIvyBuilder.disableAutoLicenseDiscovery' toggle='true'/]
     [/@ui.bambooSection]
+
+    [#--blackduck integration--]
+    [#include 'BlackDuckBuilderEditSnippet.ftl'/]
+
 [/@ui.bambooSection]
 
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']

@@ -5,6 +5,7 @@ import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.perforce.PerforceRepository;
 import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.release.scm.git.GitCoordinator;
@@ -29,11 +30,13 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
     protected boolean modifiedFilesForDevVersion;
     protected boolean modifiedFilesForReleaseVersion;
     protected final BuildLogger buildLogger;
+    protected final CustomVariableContext customVariableContext;
 
-    public AbstractScmCoordinator(BuildContext context, Repository repository, BuildLogger buildLogger) {
+    public AbstractScmCoordinator(BuildContext context, Repository repository, BuildLogger buildLogger, CustomVariableContext customVariableContext) {
         this.context = context;
         this.repository = repository;
         this.buildLogger = buildLogger;
+        this.customVariableContext = customVariableContext;
     }
 
     /**
@@ -44,7 +47,7 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
      * @return SCM coordinator according to the repository type.
      */
     public static ScmCoordinator createScmCoordinator(BuildContext context,
-            Map<? extends String, ? extends String> configuration, BuildLogger buildLogger) {
+                                                      Map<? extends String, ? extends String> configuration, BuildLogger buildLogger, CustomVariableContext customVariableContext) {
 
         Repository repository = ScmHelper.getRepository(context);
         Map<String, String> combined = Maps.newHashMap();
@@ -52,14 +55,14 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
         Map<String, String> customBuildData = context.getBuildResult().getCustomBuildData();
         combined.putAll(customBuildData);
         if (repository instanceof SvnRepository) {
-            return new SubversionCoordinator(context, repository, combined, buildLogger);
+            return new SubversionCoordinator(context, repository, combined, buildLogger, customVariableContext);
         }
         // Git is optional SCM so we cannot use the class here
         if (isGitScm(repository)) {
-            return new GitCoordinator(context, repository, combined, buildLogger);
+            return new GitCoordinator(context, repository, combined, buildLogger, customVariableContext);
         }
         if (repository instanceof PerforceRepository) {
-            return new PerforceCoordinator(context, repository, combined, buildLogger);
+            return new PerforceCoordinator(context, repository, combined, buildLogger, customVariableContext);
         }
         throw new UnsupportedOperationException(
                 "Scm of type: " + repository.getClass().getName() + " is not supported");

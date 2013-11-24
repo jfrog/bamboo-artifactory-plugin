@@ -62,6 +62,10 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
         [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryGradleBuilder.disableAutoLicenseDiscovery' toggle='true'/]
     [/@ui.bambooSection]
+
+    [#--blackduck integration--]
+    [#include 'BlackDuckBuilderEditSnippet.ftl'/]
+
 [/@ui.bambooSection]
 
 [@ww.checkbox labelKey='artifactory.task.gradle.publishArtifacts' name='publishArtifacts' toggle='true'/]
