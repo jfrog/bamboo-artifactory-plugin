@@ -5,6 +5,7 @@ import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.scm.AbstractScmCoordinator;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
@@ -22,14 +23,14 @@ public class SubversionCoordinator extends AbstractScmCoordinator {
     private boolean tagCreated;
 
     public SubversionCoordinator(BuildContext context, Repository repository, Map<String, String> configuration,
-            BuildLogger buildLogger) {
-        super(context, repository, buildLogger);
+                                 BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+        super(context, repository, buildLogger, customVariableContext);
         this.configuration = configuration;
     }
 
     @Override
     public void prepare() throws IOException {
-        scmManager = new SubversionManager(context, repository, getClientManager(), buildLogger);
+        scmManager = new SubversionManager(context, repository, getClientManager(), buildLogger, customVariableContext);
     }
 
     @Override

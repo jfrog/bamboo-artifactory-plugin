@@ -4,6 +4,7 @@ import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -25,8 +26,8 @@ import java.util.Map;
 public class MavenReleaseProvider extends AbstractReleaseProvider {
 
     protected MavenReleaseProvider(AbstractBuildContext buildContext, BuildContext buildDefinition,
-            BuildLogger buildLogger) {
-        super(buildContext, buildDefinition, buildLogger);
+                                   BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+        super(buildContext, buildDefinition, buildLogger, customVariableContext);
     }
 
     @Override

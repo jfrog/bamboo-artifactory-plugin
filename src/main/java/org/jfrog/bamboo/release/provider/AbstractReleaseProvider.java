@@ -6,6 +6,7 @@ import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -36,24 +37,24 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
     protected final BuildContext context;
 
     protected AbstractReleaseProvider(AbstractBuildContext buildContext, BuildContext context,
-            BuildLogger buildLogger) {
+                                      BuildLogger buildLogger, CustomVariableContext customVariableContext) {
         this.context = context;
         this.buildContext = buildContext;
         this.buildLogger = buildLogger;
         this.isReleaseEnabled = buildContext.releaseManagementContext.isReleaseMgmtEnabled();
         this.coordinator = AbstractScmCoordinator.createScmCoordinator(context,
-                getTaskConfiguration(context.getBuildDefinition()), buildLogger);
+                getTaskConfiguration(context.getBuildDefinition()), buildLogger, customVariableContext);
     }
 
     protected abstract Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition);
 
     public static ReleaseProvider createReleaseProvider(AbstractBuildContext buildContext, BuildContext context,
-            BuildLogger buildLogger) {
+                                                        BuildLogger buildLogger, CustomVariableContext customVariableContext) {
         if (buildContext instanceof GradleBuildContext) {
-            return new GradleReleaseProvider(buildContext, context, buildLogger);
+            return new GradleReleaseProvider(buildContext, context, buildLogger, customVariableContext);
         }
         if (buildContext instanceof Maven3BuildContext) {
-            return new MavenReleaseProvider(buildContext, context, buildLogger);
+            return new MavenReleaseProvider(buildContext, context, buildLogger, customVariableContext);
         }
         return null;
     }

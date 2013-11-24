@@ -8,6 +8,7 @@ import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -29,6 +30,7 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
     private static final Logger log = Logger.getLogger(ArtifactoryPostBuildCompleteAction.class);
 
     private BuildLoggerManager buildLoggerManager;
+    private CustomVariableContext customVariableContext;
 
     @Override
     @NotNull
@@ -55,7 +57,7 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
             return buildContext;
         }
 
-        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger);
+        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger, customVariableContext);
         if (provider == null) {
             return buildContext;
         }
@@ -91,5 +93,9 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
 
     public void setBuildLoggerManager(BuildLoggerManager buildLoggerManager) {
         this.buildLoggerManager = buildLoggerManager;
+    }
+
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
     }
 }

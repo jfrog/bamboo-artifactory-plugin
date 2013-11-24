@@ -5,6 +5,7 @@ import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.scm.AbstractScmCoordinator;
 
@@ -26,8 +27,8 @@ public class PerforceCoordinator extends AbstractScmCoordinator {
     private int currentChangeListId;
 
     public PerforceCoordinator(BuildContext context, Repository repository, Map<String, String> configuration,
-            BuildLogger buildLogger) {
-        super(context, repository, buildLogger);
+                               BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+        super(context, repository, buildLogger, customVariableContext);
         this.configuration = configuration;
     }
 
