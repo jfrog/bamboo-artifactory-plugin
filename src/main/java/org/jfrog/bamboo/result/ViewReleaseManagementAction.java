@@ -38,7 +38,7 @@ import java.util.NoSuchElementException;
 public class ViewReleaseManagementAction extends ViewBuildResults {
     private static final String PROMOTION_NORMAL_MODE = "normalMode";
     static final String PROMOTION_PUSH_TO_NEXUS_MODE = "pushToNexusMode";
-    static final String NEXUS_PUSH_PLUGIN_NAME = "nexusPush";
+    static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
     static final String NEXUS_PUSH_PROPERTY_PREFIX = NEXUS_PUSH_PLUGIN_NAME + ".";
     transient Logger log = Logger.getLogger(ViewReleaseManagementAction.class);
 
@@ -117,7 +117,7 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         Map<String, String> promotionModes = Maps.newHashMap();
         promotionModes.put(PROMOTION_NORMAL_MODE, "Normal");
         if (isPushToNexusEnabled()) {
-            promotionModes.put(PROMOTION_PUSH_TO_NEXUS_MODE, "Push to Nexus");
+            promotionModes.put(PROMOTION_PUSH_TO_NEXUS_MODE, "Promote to Bintray and Central");
         }
         return promotionModes;
     }
@@ -144,11 +144,11 @@ public class ViewReleaseManagementAction extends ViewBuildResults {
         ArtifactoryBuildInfoClient client = createClient(serverConfig, context);
         try {
             Map<String, List<Map>> userPluginInfo = client.getUserPluginInfo();
-            if (!userPluginInfo.containsKey("executions")) {
+            if (!userPluginInfo.containsKey("promotions")) {
                 log.debug("No special promotion modes enabled: no 'execute' user plugins could be found.");
                 return false;
             }
-            List<Map> executionPlugins = userPluginInfo.get("executions");
+            List<Map> executionPlugins = userPluginInfo.get("promotions");
             Iterables.find(executionPlugins, new Predicate<Map>() {
                 @Override
                 public boolean apply(Map pluginInfo) {

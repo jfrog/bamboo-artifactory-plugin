@@ -81,7 +81,7 @@ public class PromotionThread extends Thread {
     }
 
     private boolean executePushToNexusPlugin() throws IOException {
-        logMessageToUiAndLogger("Executing 'Push to Nexus' plugin ...");
+        logMessageToUiAndLogger("Executing 'Promotion to Bintray and Central' plugin ...");
         VariableDefinitionManager varDefManager = action.getVariableDefinitionManager();
         Map<String, VariableDefinitionContext> globalVars = null;
         PlanIdentifier planIdentifier = action.getPlanManager().getPlanIdentifierForPermissionCheckingByKey(action.getPlanKey());
@@ -105,7 +105,9 @@ public class PromotionThread extends Thread {
 
         HttpResponse nexusPushResponse = null;
         try {
-            nexusPushResponse = client.executeUserPlugin(NEXUS_PUSH_PLUGIN_NAME, executeRequestParams);
+            nexusPushResponse = client.executePromotionUserPlugin(NEXUS_PUSH_PLUGIN_NAME, action.getImmutableBuild().getName(),
+                    action.getBuildNumber().toString(), null);
+//            nexusPushResponse = client.executeUserPlugin(NEXUS_PUSH_PLUGIN_NAME, executeRequestParams);
             StatusLine responseStatusLine = nexusPushResponse.getStatusLine();
             if (HttpStatus.SC_OK == responseStatusLine.getStatusCode()) {
                 logMessageToUiAndLogger("Plugin successfully executed!");
