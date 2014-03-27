@@ -42,6 +42,24 @@ public abstract class ScmHelper {
     }
 
     @Nullable
+    public static String getVcsUrl(BuildContext buildContext) {
+        int repoSize = buildContext.getRelevantRepositoryIds().size();
+        StringBuilder vcsUrlBuilder = new StringBuilder();
+        for (int i = 1; i <= repoSize; i++) {
+            String vcsUrl = buildContext.getCurrentResult().getCustomBuildData().get("planRepository." + i + ".repositoryUrl");
+            /*for Perforce*/
+            if (vcsUrl == null)
+                vcsUrl = buildContext.getCurrentResult().getCustomBuildData().get("custom.p4.port");
+            if (vcsUrl != null) {
+                vcsUrlBuilder.append(vcsUrl);
+                vcsUrlBuilder.append("; ");
+            }
+        }
+
+        return vcsUrlBuilder.toString();
+    }
+
+    @Nullable
     public static Repository getRepository(BuildContext buildContext) {
         Iterator<Long> repoIdIterator = buildContext.getRelevantRepositoryIds().iterator();
         if (repoIdIterator.hasNext()) {

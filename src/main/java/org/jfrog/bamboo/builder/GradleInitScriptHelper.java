@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import static org.jfrog.bamboo.util.ConstantValues.*;
@@ -125,6 +124,11 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         if (StringUtils.isNotBlank(vcsRevision)) {
             clientConf.info.setVcsRevision(vcsRevision);
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);
+        }
+
+        String vcsUrl = ScmHelper.getVcsUrl(context);
+        if (StringUtils.isNotBlank(vcsUrl)) {
+            clientConf.info.setVcsUrl(vcsUrl);
         }
 
         String buildTimeStampVal = context.getBuildResult().getCustomBuildData().get("buildTimeStamp");

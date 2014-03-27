@@ -42,10 +42,12 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     private static final Logger log = Logger.getLogger(GenericBuildInfoHelper.class);
     private final Map<String, String> env;
     private final String vcsRevision;
+    private final String vcsUrl;
 
-    public GenericBuildInfoHelper(Map<String, String> env, String vcsRevision) {
+    public GenericBuildInfoHelper(Map<String, String> env, String vcsRevision, String vcsUrl) {
         this.env = env;
         this.vcsRevision = vcsRevision;
+        this.vcsUrl = vcsUrl;
     }
 
     public Build extractBuildInfo(BuildContext buildContext, BuildLogger buildLogger, GenericContext context, String username) {
@@ -72,6 +74,11 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         if (StringUtils.isNotBlank(vcsRevision)) {
             builder.vcsRevision(vcsRevision);
         }
+
+        if (StringUtils.isNotBlank(vcsUrl)) {
+            builder.vcsUrl(vcsUrl);
+        }
+
         String principal = getTriggeringUserNameRecursively(buildContext);
         if (StringUtils.isBlank(principal)) {
             principal = "auto";
@@ -172,6 +179,10 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         if (StringUtils.isNotBlank(vcsRevision)) {
             details.addProperty(BuildInfoFields.VCS_REVISION, vcsRevision);
         }
+        if (StringUtils.isNotBlank(vcsUrl)) {
+            details.addProperty(BuildInfoFields.VCS_URL, vcsUrl);
+        }
+
         String buildTimeStampVal = context.getBuildResult().getCustomBuildData().get("buildTimeStamp");
         long buildTimeStamp = System.currentTimeMillis();
         if (StringUtils.isNotBlank(buildTimeStampVal)) {
