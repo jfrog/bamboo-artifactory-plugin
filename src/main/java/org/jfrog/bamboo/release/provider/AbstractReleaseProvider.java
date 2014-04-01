@@ -3,6 +3,7 @@ package org.jfrog.bamboo.release.provider;
 import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
+import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
@@ -37,24 +38,26 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
     protected final BuildContext context;
 
     protected AbstractReleaseProvider(AbstractBuildContext buildContext, BuildContext context,
-                                      BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+                                      BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         this.context = context;
         this.buildContext = buildContext;
         this.buildLogger = buildLogger;
         this.isReleaseEnabled = buildContext.releaseManagementContext.isReleaseMgmtEnabled();
         this.coordinator = AbstractScmCoordinator.createScmCoordinator(context,
-                getTaskConfiguration(context.getBuildDefinition()), buildLogger, customVariableContext);
+                getTaskConfiguration(context.getBuildDefinition()), buildLogger, customVariableContext, credentialsAccessor);
     }
 
     protected abstract Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition);
 
     public static ReleaseProvider createReleaseProvider(AbstractBuildContext buildContext, BuildContext context,
-                                                        BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+                                                        BuildLogger buildLogger,
+                                                        CustomVariableContext customVariableContext,
+                                                        CredentialsAccessor credentialsAccessor) {
         if (buildContext instanceof GradleBuildContext) {
-            return new GradleReleaseProvider(buildContext, context, buildLogger, customVariableContext);
+            return new GradleReleaseProvider(buildContext, context, buildLogger, customVariableContext, credentialsAccessor);
         }
         if (buildContext instanceof Maven3BuildContext) {
-            return new MavenReleaseProvider(buildContext, context, buildLogger, customVariableContext);
+            return new MavenReleaseProvider(buildContext, context, buildLogger, customVariableContext, credentialsAccessor);
         }
         return null;
     }

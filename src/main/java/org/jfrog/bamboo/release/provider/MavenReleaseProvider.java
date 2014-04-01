@@ -2,6 +2,7 @@ package org.jfrog.bamboo.release.provider;
 
 import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
@@ -26,8 +27,8 @@ import java.util.Map;
 public class MavenReleaseProvider extends AbstractReleaseProvider {
 
     protected MavenReleaseProvider(AbstractBuildContext buildContext, BuildContext buildDefinition,
-                                   BuildLogger buildLogger, CustomVariableContext customVariableContext) {
-        super(buildContext, buildDefinition, buildLogger, customVariableContext);
+                                   BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
+        super(buildContext, buildDefinition, buildLogger, customVariableContext, credentialsAccessor);
     }
 
     @Override

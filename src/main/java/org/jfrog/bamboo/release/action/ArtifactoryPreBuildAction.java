@@ -3,6 +3,7 @@ package org.jfrog.bamboo.release.action;
 import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.CustomPreBuildAction;
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
@@ -29,6 +30,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
 
     private BuildLoggerManager buildLoggerManager;
     private CustomVariableContext customVariableContext;
+    private CredentialsAccessor credentialsAccessor;
 
     @Override
     @NotNull
@@ -58,7 +60,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
             log.debug("[RELEASE] Release management is not active, resuming normally");
             return buildContext;
         }
-        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger, customVariableContext);
+        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger, customVariableContext, credentialsAccessor);
         if (provider == null) {
             String message = "Release Provider could not be built";
             log.error(logger.addBuildLogEntry(message));
@@ -84,5 +86,9 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setCredentialsAccessor(CredentialsAccessor credentialsAccessor) {
+        this.credentialsAccessor = credentialsAccessor;
     }
 }

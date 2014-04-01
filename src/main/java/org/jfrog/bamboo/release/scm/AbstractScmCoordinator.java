@@ -1,6 +1,7 @@
 package org.jfrog.bamboo.release.scm;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.perforce.PerforceRepository;
 import com.atlassian.bamboo.repository.svn.SvnRepository;
@@ -31,12 +32,15 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
     protected boolean modifiedFilesForReleaseVersion;
     protected final BuildLogger buildLogger;
     protected final CustomVariableContext customVariableContext;
+    protected final CredentialsAccessor credentialsAccessor;
 
-    public AbstractScmCoordinator(BuildContext context, Repository repository, BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+    public AbstractScmCoordinator(BuildContext context, Repository repository, BuildLogger buildLogger,
+                                  CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         this.context = context;
         this.repository = repository;
         this.buildLogger = buildLogger;
         this.customVariableContext = customVariableContext;
+        this.credentialsAccessor = credentialsAccessor;
     }
 
     /**
@@ -44,10 +48,11 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
      * com.atlassian.bamboo.plugins.git.GitRepository}
      *
      * @param configuration The build's configuration.
+     * @param credentialsAccessor
      * @return SCM coordinator according to the repository type.
      */
     public static ScmCoordinator createScmCoordinator(BuildContext context,
-                                                      Map<? extends String, ? extends String> configuration, BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+                                                      Map<? extends String, ? extends String> configuration, BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
 
         Repository repository = ScmHelper.getRepository(context);
         Map<String, String> combined = Maps.newHashMap();
@@ -55,14 +60,14 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
         Map<String, String> customBuildData = context.getBuildResult().getCustomBuildData();
         combined.putAll(customBuildData);
         if (repository instanceof SvnRepository) {
-            return new SubversionCoordinator(context, repository, combined, buildLogger, customVariableContext);
+            return new SubversionCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
         // Git is optional SCM so we cannot use the class here
         if (isGitScm(repository)) {
-            return new GitCoordinator(context, repository, combined, buildLogger, customVariableContext);
+            return new GitCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
         if (repository instanceof PerforceRepository) {
-            return new PerforceCoordinator(context, repository, combined, buildLogger, customVariableContext);
+            return new PerforceCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
         throw new UnsupportedOperationException(
                 "Scm of type: " + repository.getClass().getName() + " is not supported");

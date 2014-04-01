@@ -2,6 +2,7 @@ package org.jfrog.bamboo.release.scm.git;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
+import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
@@ -37,8 +38,8 @@ public class GitCoordinator extends AbstractScmCoordinator {
     }
 
     public GitCoordinator(BuildContext context, Repository repository, Map<String, String> configuration,
-                          BuildLogger buildLogger, CustomVariableContext customVariableContext) {
-        super(context, repository, buildLogger, customVariableContext);
+                          BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
+        super(context, repository, buildLogger, customVariableContext, credentialsAccessor);
         this.configuration = configuration;
         this.buildLogger = buildLogger;
     }
@@ -46,7 +47,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
     @Override
     public void prepare() throws IOException {
         releaseBranch = configuration.get(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH);
-        scmManager = new GitManager(context, repository, buildLogger, customVariableContext);
+        scmManager = new GitManager(context, repository, buildLogger, customVariableContext, credentialsAccessor);
         baseCommitIsh = scmManager.getCurrentCommitHash();
         checkoutBranch = scmManager.getCurrentBranch();
     }
