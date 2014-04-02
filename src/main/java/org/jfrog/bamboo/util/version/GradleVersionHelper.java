@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
-import org.jfrog.bamboo.release.action.ViewVersions;
+import org.jfrog.bamboo.release.action.ReleaseAndPromotionAction;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,42 +57,42 @@ public class GradleVersionHelper extends VersionHelper {
 
     @Override
     public void addVersionFieldsToConfiguration(Map parameters, Map<String, String> configuration,
-            String versionConfiguration, Map<String, String> taskConfiguration) {
+                                                String versionConfiguration, Map<String, String> taskConfiguration) {
         GradleBuildContext buildContext = new GradleBuildContext(taskConfiguration);
         String releaseProps = buildContext.getReleaseProps();
         String[] split = StringUtils.split(releaseProps, ", ");
         int index = 0;
-        String[] moduleKeys = (String[]) parameters.get(ViewVersions.MODULE_KEY);
+        String[] moduleKeys = (String[]) parameters.get(ReleaseAndPromotionAction.MODULE_KEY);
         if (moduleKeys != null) {
             for (String key : moduleKeys) {
-                configuration.put(ViewVersions.MODULE_KEY + "." + index, key);
-                configuration.put(ViewVersions.RELEASE_PROP_KEY + "." + index,
+                configuration.put(ReleaseAndPromotionAction.MODULE_KEY + "." + index, key);
+                configuration.put(ReleaseAndPromotionAction.RELEASE_PROP_KEY + "." + index,
                         String.valueOf(isReleaseProp(split, key)));
                 index++;
             }
         }
         index = 0;
-        String[] originalValues = (String[]) parameters.get(ViewVersions.CURRENT_VALUE_KEY);
+        String[] originalValues = (String[]) parameters.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY);
         if (originalValues != null) {
             for (String key : originalValues) {
-                configuration.put(ViewVersions.CURRENT_VALUE_KEY + "." + index, key);
+                configuration.put(ReleaseAndPromotionAction.CURRENT_VALUE_KEY + "." + index, key);
                 index++;
             }
         }
         index = 0;
-        String[] nextIntegrationKeys = (String[]) parameters.get(ViewVersions.NEXT_INTEG_KEY);
+        String[] nextIntegrationKeys = (String[]) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY);
         if (nextIntegrationKeys != null) {
             for (String key : nextIntegrationKeys) {
-                configuration.put(ViewVersions.NEXT_INTEG_KEY + "." + index, key);
-                configuration.put(ViewVersions.RELEASE_PROP_KEY + "." + index, "false");
+                configuration.put(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + index, key);
+                configuration.put(ReleaseAndPromotionAction.RELEASE_PROP_KEY + "." + index, "false");
                 index++;
             }
         }
         index = 0;
-        String[] releaseValueKeys = (String[]) parameters.get(ViewVersions.RELEASE_VALUE_KEY);
+        String[] releaseValueKeys = (String[]) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY);
         if (releaseValueKeys != null) {
             for (String key : releaseValueKeys) {
-                configuration.put(ViewVersions.RELEASE_VALUE_KEY + "." + index, key);
+                configuration.put(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + index, key);
                 index++;
             }
         }

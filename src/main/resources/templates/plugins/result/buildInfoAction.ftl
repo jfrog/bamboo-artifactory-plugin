@@ -2,11 +2,6 @@
 <head>
     <meta name="tab" content="View Artifactory Build Info Result Summary"/>
     <meta name="decorator" content="result"/>
-    <style type="text/css">
-        .log .line {
-
-        }
-    </style>
 </head>
 
 <body>

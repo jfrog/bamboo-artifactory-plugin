@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.release.action;
+package org.jfrog.bamboo.processor;
 
 import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.CustomBuildProcessor;

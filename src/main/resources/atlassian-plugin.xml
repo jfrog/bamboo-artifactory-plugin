@@ -70,22 +70,22 @@
     </web-item>
 
     <!--build info-->
-    <xwork key="viewArtifactoryReleaseManagement" name="Artifactory Release Promotion">
+    <xwork key="buildInfoAction" name="Artifactory Release Promotion">
         <package name="artifactoryReleasePlugin" extends="buildView">
-            <action name="viewArtifactoryReleaseManagement" class="org.jfrog.bamboo.result.ViewReleaseManagementAction">
+            <action name="buildInfoAction" class="org.jfrog.bamboo.buildinfo.action.BuildInfoAction">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
-                <result name="error" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
+                <result name="input" type="freemarker">/templates/plugins/result/buildInfoAction.ftl</result>
+                <result name="error" type="freemarker">/templates/plugins/result/buildInfoAction.ftl</result>
             </action>
         </package>
     </xwork>
 
-    <web-item key="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}"
+    <web-item key="buildInfoAction:${buildKey}-${buildNumber}"
               name="View Artifactory Build Info Result Summary" section="results.subMenu/results" weight="20">
         <label key="Artifactory Build Info"/>
-        <link linkId="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
-        <condition class="org.jfrog.bamboo.result.ViewArtifactoryReleaseManagementCondition"/>
+        <link linkId="buildInfoAction:${buildKey}-${buildNumber}">/build/buildInfoAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
+        <condition class="org.jfrog.bamboo.buildinfo.action.condition.BuildInfoActionCondition"/>
     </web-item>
 
     <!--release management and promote-->
@@ -95,35 +95,36 @@
 
     <web-item key="brmpTab:${buildKey}-${buildNumber}" name="Artifactory Pro Release Staging"
               section="results.subMenu/results" weight="130">
-        <label key="Artifactory Release &amp; Promote"/>
-        <link linkId="brmpViewLink:${buildKey}-${buildNumber}">/build/release/viewVersions.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
-        <condition class="org.jfrog.bamboo.release.condition.UserAllowedReleaseCondition"/>
+        <label key="Artifactory Release &amp; Promotion"/>
+        <link linkId="brmpTab:${buildKey}-${buildNumber}">/build/releaseAndPromotionAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
+        <condition class="org.jfrog.bamboo.release.action.condition.ReleaseAndPromotionActionCondition"/>
     </web-item>
 
     <xwork key="brmpAdminActions" name="Release Management Admin Actions">
 
         <package name="brmpResults" extends="buildView">
-            <action name="viewVersions" class="org.jfrog.bamboo.release.action.ViewVersions">
-                <result name="input" type="freemarker">/templates/plugins/release/viewVersions.ftl</result>
+            <action name="releaseAndPromotionAction" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction">
+                <result name="input" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
                 <result name="error" type="freemarker">/error.ftl</result>
             </action>
 
-            <action name="promote" class="org.jfrog.bamboo.release.action.ViewVersions" method="promote">
+            <action name="promote" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction" method="promote">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="success" type="freemarker">/templates/plugins/release/viewVersions.ftl</result>
-                <result name="input" type="redirect">/build/release/viewVersions.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
-                <result name="error" type="freemarker">/templates/plugins/release/viewVersions.ftl</result>
+                <result name="success" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl
+                </result>
+                <result name="input" type="redirect">/build/releaseAndPromotionAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
+                <result name="error" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
             </action>
 
-            <action name="getLog" class="org.jfrog.bamboo.release.action.ViewVersions" method="getLog">
-                <result name="success" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
-                <result name="input" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
+            <action name="getLog" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction" method="getLog">
+                <result name="success" type="freemarker">/templates/plugins/release/promotionLog.ftl</result>
+                <result name="input" type="freemarker">/templates/plugins/release/promotionLog.ftl</result>
             </action>
 
-            <action name="releaseBuild" extends="buildView" namespace="/build/release"
-                    class="org.jfrog.bamboo.release.action.ViewVersions" method="releaseBuild">
-                <result name="success" type="redirect">/browse/${buildKey}/log</result>
+            <action name="releaseBuild" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction"
+                    method="releaseBuild">
+            <result name="success" type="redirect">/browse/${buildKey}/log</result>
             </action>
         </package>
     </xwork>
@@ -191,14 +192,14 @@
     </buildProcessor>
 
     <buildProcessor key="artifactoryBuildInfoCopier" name="Artifactory Build Info Copier"
-                    class="org.jfrog.bamboo.release.action.BuildInfoCopier">
-        <skipIfFailed>true</skipIfFailed>
+                    class="org.jfrog.bamboo.processor.BuildInfoCopier">
+    <skipIfFailed>true</skipIfFailed>
         <description>Post build processor to copy build info to artifact storage.</description>
     </buildProcessor>
 
     <buildProcessor key="artifactoryGradlePropertiesCopier" name="Artifactory Gradle Properties Info Copier"
-                    class="org.jfrog.bamboo.release.action.GradlePropertiesCopier">
-        <skipIfFailed>true</skipIfFailed>
+                    class="org.jfrog.bamboo.processor.GradlePropertiesCopier">
+    <skipIfFailed>true</skipIfFailed>
         <description>Post build processor to copy gradle properties to artifact storage.</description>
     </buildProcessor>
 

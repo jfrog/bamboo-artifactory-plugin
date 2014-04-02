@@ -32,9 +32,9 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.promotion.PromotionContext;
+import org.jfrog.bamboo.promotion.PromotionThread;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
-import org.jfrog.bamboo.result.PromotionAction;
-import org.jfrog.bamboo.result.PromotionThread;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
@@ -46,14 +46,15 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * This class is responsible for displaying the versions for modules for a Maven build, or read the {@code
+ * An action to display when entering the "Artifactory Release & Promotion" tab from within a job.
+ * Will display the versions for modules of a Maven build, or read the {@code
  * gradle.properties} file of a Gradle build in accordance to the property keys that were configured in the build.
  *
  * @author Tomer Cohen
  */
 @RemoteAgentSupported
-public class ViewVersions extends ViewBuildResults {
-    private static final Logger log = Logger.getLogger(ViewVersions.class);
+public class ReleaseAndPromotionAction extends ViewBuildResults {
+    private static final Logger log = Logger.getLogger(ReleaseAndPromotionAction.class);
     private static final String PROMOTION_NORMAL_MODE = "normalMode";
     public static final String PROMOTION_PUSH_TO_NEXUS_MODE = "pushToNexusMode";
     public static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
@@ -83,14 +84,14 @@ public class ViewVersions extends ViewBuildResults {
     private CapabilityContext capabilityContext;
     private String releaseBranch;
     private List<ModuleVersionHolder> versions;
-    public static PromotionAction promotionAction = new PromotionAction();
+    public static PromotionContext promotionContext = new PromotionContext();
     public static final String NEXT_INTEG_KEY = "version.nextIntegValue";
     public static final String RELEASE_VALUE_KEY = "version.releaseValue";
     public static final String CURRENT_VALUE_KEY = "version.currentValue";
     public static final String RELEASE_PROP_KEY = "version.releaseProp";
     public static final String MODULE_KEY = "version.key";
 
-    public ViewVersions() {
+    public ReleaseAndPromotionAction() {
     }
 
     @Override
@@ -530,11 +531,11 @@ public class ViewVersions extends ViewBuildResults {
     }
 
     public String doPromote() throws IOException {
-        String key = promotionAction.getBuildKey();
+        String key = promotionContext.getBuildKey();
         if (StringUtils.isNotBlank(key) && StringUtils.isBlank(getBuildKey())) {
             setBuildKey(key);
         }
-        Integer number = promotionAction.getBuildNumber();
+        Integer number = promotionContext.getBuildNumber();
         if (number != null && getBuildNumber() == null) {
             setBuildNumber(number);
         }
@@ -578,11 +579,11 @@ public class ViewVersions extends ViewBuildResults {
     }
 
     public List<String> getResult() {
-        return promotionAction.getLog();
+        return promotionContext.getLog();
     }
 
     public boolean isDone() {
-        return promotionAction.isDone();
+        return promotionContext.isDone();
     }
 
     private TaskDefinition getMavenOrGradleTaskDefinition() {

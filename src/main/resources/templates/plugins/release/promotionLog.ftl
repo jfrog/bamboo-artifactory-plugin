@@ -12,8 +12,8 @@
     [#list result as line]
         <div class="line">${line}</div>
     [/#list]
-    [#else]
-        <div class="line">No logs found.</div>
+[#else]
+    <div class="line">No logs found.</div>
 [/#if]
 </div>
 </body>

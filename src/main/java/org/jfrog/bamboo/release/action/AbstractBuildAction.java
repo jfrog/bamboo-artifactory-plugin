@@ -5,7 +5,7 @@ import com.atlassian.bamboo.v2.build.BaseConfigurableBuildPlugin;
 import org.apache.log4j.Logger;
 
 /**
- * Abstract build action class which is has convinience methods especially for logging by adding the '[RELEASE]' prefix
+ * Abstract build action class which is has convenience methods especially for logging by adding the '[RELEASE]' prefix
  * to the logs that are printed.
  *
  * @author Tomer Cohen

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jfrog.bamboo.result;
+package org.jfrog.bamboo.buildinfo.action.condition;
 
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanKeys;
@@ -33,7 +33,7 @@ import java.util.Map;
  *
  * @author Noam Y. Tenne
  */
-public class ViewArtifactoryReleaseManagementCondition implements Condition {
+public class BuildInfoActionCondition implements Condition {
 
     private PlanManager planManager;
     private ResultsSummaryManager resultsSummaryManager;

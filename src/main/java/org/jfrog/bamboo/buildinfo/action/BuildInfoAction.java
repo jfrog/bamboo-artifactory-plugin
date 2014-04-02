@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.result;
+package org.jfrog.bamboo.buildinfo.action;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
@@ -6,12 +6,13 @@ import org.apache.log4j.Logger;
 import org.jfrog.bamboo.util.ConstantValues;
 
 /**
- * Action for release management builds, for promotion.
+ * Build info action to display on successfully completed builds that were run with the build info collection activated
+ * This is the view displayed when entering the "Artifactory Build Info" tab from within a job.
  *
  * @author Tomer Cohen
  */
-public class ViewReleaseManagementAction extends ViewBuildResults {
-    transient Logger log = Logger.getLogger(ViewReleaseManagementAction.class);
+public class BuildInfoAction extends ViewBuildResults {
+    transient Logger log = Logger.getLogger(BuildInfoAction.class);
     private String artifactoryReleaseManagementUrl = "";
 
     @Override

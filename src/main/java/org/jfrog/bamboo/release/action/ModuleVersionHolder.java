@@ -75,11 +75,11 @@ public class ModuleVersionHolder implements Serializable {
         List<ModuleVersionHolder> result = Lists.newArrayList();
         int size = getNumberOfModules(conf);
         for (int i = 0; i < size; i++) {
-            String moduleKey = conf.get(ViewVersions.MODULE_KEY + "." + i);
-            String currentValue = conf.get(ViewVersions.CURRENT_VALUE_KEY + "." + i);
-            String integValue = conf.get(ViewVersions.NEXT_INTEG_KEY + "." + i);
-            String releaseValue = conf.get(ViewVersions.RELEASE_VALUE_KEY + "." + i);
-            String releaseProp = conf.get(ViewVersions.RELEASE_PROP_KEY + "." + i);
+            String moduleKey = conf.get(ReleaseAndPromotionAction.MODULE_KEY + "." + i);
+            String currentValue = conf.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY + "." + i);
+            String integValue = conf.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + i);
+            String releaseValue = conf.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + i);
+            String releaseProp = conf.get(ReleaseAndPromotionAction.RELEASE_PROP_KEY + "." + i);
             boolean isReleaseProp = Boolean.parseBoolean(releaseProp);
             ModuleVersionHolder holder = new ModuleVersionHolder(moduleKey, currentValue, isReleaseProp);
             holder.setReleaseValue(releaseValue);
@@ -92,7 +92,7 @@ public class ModuleVersionHolder implements Serializable {
     private static int getNumberOfModules(Map<String, String> conf) {
         return Maps.filterKeys(conf, new Predicate<String>() {
             public boolean apply(String input) {
-                return StringUtils.startsWith(input, ViewVersions.MODULE_KEY);
+                return StringUtils.startsWith(input, ReleaseAndPromotionAction.MODULE_KEY);
             }
         }).size();
     }
