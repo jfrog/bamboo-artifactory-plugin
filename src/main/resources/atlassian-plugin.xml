@@ -27,6 +27,8 @@
     <component name="Artifactory Server Configuration Management Component" key="artifactoryServerConfigManager"
                class="org.jfrog.bamboo.admin.ServerConfigManager"/>
 
+
+    <!--Server admin-->
     <xwork key="manageArtifactoryServersAdmin" name="Artifactory Plugin">
         <package name="configureArtifactoryPlugin" extends="admin">
             <action name="manageArtifactoryServers" class="org.jfrog.bamboo.admin.ManageArtifactoryServersAction">
@@ -62,6 +64,12 @@
         </package>
     </xwork>
 
+    <web-item key="configureArtifactoryPlugin" name="Artifactory Plugin" section="system.admin/Plugins">
+        <label key="Artifactory Plugin"/>
+        <link linkId="configureArtifactoryPlugin">/admin/manageArtifactoryServers.action</link>
+    </web-item>
+
+    <!--build info-->
     <xwork key="viewArtifactoryReleaseManagement" name="Artifactory Release Promotion">
         <package name="artifactoryReleasePlugin" extends="buildView">
             <action name="viewArtifactoryReleaseManagement" class="org.jfrog.bamboo.result.ViewReleaseManagementAction">
@@ -70,32 +78,55 @@
                 <result name="input" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
                 <result name="error" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
             </action>
-            <action name="promote" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="promote">
-                <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
-                If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="success" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
-                <result name="input" type="redirect">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
-                <result name="error" type="freemarker">/templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>
-            </action>
-
-            <action name="getLog" class="org.jfrog.bamboo.result.ViewReleaseManagementAction" method="getLog">
-                <result name="success" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
-                <result name="input" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
-            </action>
         </package>
     </xwork>
 
-    <web-item key="configureArtifactoryPlugin" name="Artifactory Plugin" section="system.admin/Plugins">
-        <label key="Artifactory Plugin"/>
-        <link linkId="configureArtifactoryPlugin">/admin/manageArtifactoryServers.action</link>
-    </web-item>
-
     <web-item key="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}"
               name="View Artifactory Build Info Result Summary" section="results.subMenu/results" weight="20">
-        <label key="Artifactory"/>
+        <label key="Artifactory Build Info"/>
         <link linkId="viewArtifactoryReleaseManagement:${buildKey}-${buildNumber}">/build/viewArtifactoryReleaseManagement.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
         <condition class="org.jfrog.bamboo.result.ViewArtifactoryReleaseManagementCondition"/>
     </web-item>
+
+    <!--release management and promote-->
+    <web-resource key="releaseCSS" name="releaseCSS">
+        <resource type="download" name="release.css" location="release.css"/>
+    </web-resource>
+
+    <web-item key="brmpTab:${buildKey}-${buildNumber}" name="Artifactory Pro Release Staging"
+              section="results.subMenu/results" weight="130">
+        <label key="Artifactory Release &amp; Promote"/>
+        <link linkId="brmpViewLink:${buildKey}-${buildNumber}">/build/release/viewVersions.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
+        <condition class="org.jfrog.bamboo.release.condition.UserAllowedReleaseCondition"/>
+    </web-item>
+
+    <xwork key="brmpAdminActions" name="Release Management Admin Actions">
+
+        <package name="brmpResults" extends="buildView">
+            <action name="viewVersions" class="org.jfrog.bamboo.release.action.ViewVersions">
+                <result name="input" type="freemarker">/templates/plugins/release/viewVersions.ftl</result>
+                <result name="error" type="freemarker">/error.ftl</result>
+            </action>
+
+            <action name="promote" class="org.jfrog.bamboo.release.action.ViewVersions" method="promote">
+                <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
+                If changing anything here, remember to modify the PluginDescriptorValidityTest -->
+                <result name="success" type="freemarker">/templates/plugins/release/viewVersions.ftl</result>
+                <result name="input" type="redirect">/build/release/viewVersions.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
+                <result name="error" type="freemarker">/templates/plugins/release/viewVersions.ftl</result>
+            </action>
+
+            <action name="getLog" class="org.jfrog.bamboo.release.action.ViewVersions" method="getLog">
+                <result name="success" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
+                <result name="input" type="freemarker">/templates/plugins/result/releaseManagementLog.ftl</result>
+            </action>
+
+            <action name="releaseBuild" extends="buildView" namespace="/build/release"
+                    class="org.jfrog.bamboo.release.action.ViewVersions" method="releaseBuild">
+                <result name="success" type="redirect">/browse/${buildKey}/log</result>
+            </action>
+        </package>
+    </xwork>
 
     <taskType key="artifactoryGradleTask" name="Artifactory Gradle"
               class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
@@ -192,40 +223,12 @@
     <resource type="download" name="artifactory-icon.png" location="images/artifactory-icon.png"/>
     <resource type="download" name="artifactory-release.png" location="images/artifactory-release.png"/>
 
-    <!--release management-->
-
-    <web-resource key="releaseCSS" name="releaseCSS">
-        <resource type="download" name="release.css" location="release.css"/>
-    </web-resource>
-
-    <web-item key="brmpTab:${buildKey}" name="brmpTab" section="build.subMenu/build" weight="130">
-        <label key="Artifactory Release Management"/>
-        <link linkId="brmpViewLink:${buildKey}">/build/release/viewVersions.action?buildKey=${buildKey}</link>
-        <condition class="org.jfrog.bamboo.release.condition.UserAllowedReleaseCondition"/>
-    </web-item>
-
-    <xwork key="brmpAdminActions" name="Release Management Admin Actions">
-
-        <package name="brmpResults" extends="buildView" namespace="/build/release">
-            <action name="viewVersions" class="org.jfrog.bamboo.release.action.ViewVersions">
-                <result name="input" type="freemarker">/templates/plugins/release/viewVersions.ftl</result>
-                <result name="error" type="freemarker">/error.ftl</result>
-            </action>
-
-            <action name="releaseBuild" extends="buildView" namespace="/build/release"
-                    class="org.jfrog.bamboo.release.action.ViewVersions" method="releaseBuild">
-                <result name="success" type="redirect">/browse/${buildKey}/log</result>
-            </action>
-        </package>
-    </xwork>
-
     <additionalBuildConfigurationPlugin key="releasePlanConfiguration" name="Release Management Configuration"
                                         class="org.jfrog.bamboo.release.configuration.ReleaseManagementConfigurator">
         <description>Plugin to allow custom configuration of release management per plan</description>
         <resource type="freemarker" name="edit" location="templates/releaseEdit.ftl"/>
         <resource type="freemarker" name="view" location="templates/brmpView.ftl"/>
     </additionalBuildConfigurationPlugin>
-
 
     <preBuildAction key="artifactoryPreBuildAction" name="Artifactory Release Staging"
                     class="org.jfrog.bamboo.release.action.ArtifactoryPreBuildAction">

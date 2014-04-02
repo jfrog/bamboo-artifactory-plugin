@@ -19,6 +19,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
+import org.jfrog.bamboo.release.action.ViewVersions;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.builder.PromotionBuilder;
 import org.jfrog.build.client.ArtifactoryBuildInfoClient;
@@ -30,7 +31,7 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
-import static org.jfrog.bamboo.result.ViewReleaseManagementAction.*;
+import static org.jfrog.bamboo.release.action.ViewVersions.*;
 
 /**
  * Executes the promotion process
@@ -41,11 +42,11 @@ public class PromotionThread extends Thread {
 
     transient Logger log = Logger.getLogger(PromotionThread.class);
 
-    private ViewReleaseManagementAction action;
+    private ViewVersions action;
     private ArtifactoryBuildInfoClient client;
     private String bambooUsername;
 
-    public PromotionThread(ViewReleaseManagementAction action, ArtifactoryBuildInfoClient client,
+    public PromotionThread(ViewVersions action, ArtifactoryBuildInfoClient client,
                            String bambooUsername) {
         this.action = action;
         this.client = client;
