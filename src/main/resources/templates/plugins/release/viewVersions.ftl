@@ -12,10 +12,11 @@
 <div class="section">
 
     <div class="form-view">
-        <img width="48px" height="48px"
-             src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>
-
-        <h2>Artifactory Release Promotion</h2>
+        <h2>
+            <img style="margin-right: 10px; margin-bottom: 5px" width="48px" height="48px"
+                 src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>Artifactory
+            Release Promotion
+        </h2>
     </div>
 </div>
     [#if promoting]
@@ -69,10 +70,11 @@
 [/#if]
 
 <div class="form-view">
-    <img width="48px" height="48px"
-         src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>
-
-    <h2>Artifactory Pro Release Staging</h2>
+    <h2>
+        <img style="margin-right: 10px; margin-bottom: 5px" width="48px" height="48px"
+             src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>Artifactory Pro
+        Release Staging
+    </h2>
 </div>
 [#assign singlePlan = false]
 [#assign sort = false]
