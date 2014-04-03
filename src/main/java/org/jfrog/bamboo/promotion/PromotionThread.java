@@ -62,12 +62,10 @@ public class PromotionThread extends Thread {
             promotionContext.setDone(false);
             promotionContext.getLog().clear();
 
-            boolean pluginExecutedSuccessfully = !PROMOTION_PUSH_TO_NEXUS_MODE.equals(action.getPromotionMode()) ||
-                    executePushToNexusPlugin();
-
-            if (pluginExecutedSuccessfully) {
-                performPromotion();
+            if (performPromotion() && PROMOTION_PUSH_TO_NEXUS_MODE.equals(action.getPromotionMode())) {
+                executePushToNexusPlugin();
             }
+
         } catch (Exception e) {
             String message = "An error occurred: " + e.getMessage();
             logErrorToUiAndLogger(message, e);
@@ -129,7 +127,7 @@ public class PromotionThread extends Thread {
         }
     }
 
-    private void performPromotion() throws IOException {
+    private boolean performPromotion() throws IOException {
         logMessageToUiAndLogger("Promoting build ...");
         // do a dry run first
         PromotionBuilder promotionBuilder = new PromotionBuilder().status(action.getTarget())
@@ -148,8 +146,14 @@ public class PromotionThread extends Thread {
                 wetResponse = client.stageBuild(buildName, buildNumber, promotionBuilder.dryRun(false).build());
                 if (checkSuccess(wetResponse, false)) {
                     logMessageToUiAndLogger("Promotion completed successfully!");
+
+                    return true;
                 }
+
+                return false;
             }
+
+            return false;
         } finally {
             if (dryResponse != null) {
                 HttpEntity entity = dryResponse.getEntity();
