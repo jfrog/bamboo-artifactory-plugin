@@ -15,6 +15,8 @@ import java.util.Map;
  */
 public abstract class ScmHelper {
 
+    private static final String GITHUB_TYPE = "gh";
+
     @Nullable
     public static File getCheckoutDirectory(BuildContext buildContext) {
         Iterator<Long> repoIdIterator = buildContext.getRelevantRepositoryIds().iterator();
@@ -44,19 +46,31 @@ public abstract class ScmHelper {
     @Nullable
     public static String getVcsUrl(BuildContext buildContext) {
         int repoSize = buildContext.getRelevantRepositoryIds().size();
-        StringBuilder vcsUrlBuilder = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         for (int i = 1; i <= repoSize; i++) {
             String vcsUrl = buildContext.getCurrentResult().getCustomBuildData().get("planRepository." + i + ".repositoryUrl");
             /*for Perforce*/
             if (vcsUrl == null)
                 vcsUrl = buildContext.getCurrentResult().getCustomBuildData().get("custom.p4.port");
-            if (vcsUrl != null) {
-                vcsUrlBuilder.append(vcsUrl);
-                vcsUrlBuilder.append("; ");
+            if(vcsUrl == null){
+                String repositoryType = buildContext.getCurrentResult().getCustomBuildData().get("planRepository." + i + ".type");
+                if(repositoryType != null && repositoryType.equals(GITHUB_TYPE)){/*for GitHub*/
+                    Repository repository = getRepository(buildContext);
+                    Object property;
+                    if (repository != null) {
+                        property = repository.toConfiguration().getProperty("repository.github.repository");
+                        vcsUrl = "https://github.com/" + property + ".git";
+                    }
+                }
+            }
+
+            if(vcsUrl != null){
+                sb.append(vcsUrl);
+                sb.append("; ");
             }
         }
 
-        return vcsUrlBuilder.toString();
+        return sb.toString();
     }
 
     @Nullable
