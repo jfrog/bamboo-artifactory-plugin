@@ -37,7 +37,7 @@ public class PluginDescriptorValidityTest {
         InputStream pluginDescriptorStream = getClass().getResourceAsStream("atlassian-plugin.xml");
         String pluginDescriptorContent = IOUtils.toString(pluginDescriptorStream);
         Assert.assertTrue(pluginDescriptorContent.contains("<result name=\"input\" type=\"freemarker\">/" +
-                "templates/plugins/result/viewArtifactoryReleaseManagement.ftl</result>"),
+                "templates/plugins/result/buildInfoAction.ftl</result>"),
                 "Could not find expected summary template declaration. Was the line wrapped again?");
     }
 }

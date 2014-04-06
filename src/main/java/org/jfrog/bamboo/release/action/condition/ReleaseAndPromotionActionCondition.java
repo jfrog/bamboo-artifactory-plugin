@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.release.condition;
+package org.jfrog.bamboo.release.action.condition;
 
 import com.atlassian.bamboo.build.DefaultJob;
 import com.atlassian.bamboo.build.Job;
@@ -13,17 +13,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A condition that checks whether the release management tab should be displayed.
+ * A condition that checks whether the action of {@link org.jfrog.bamboo.release.action.ReleaseAndPromotionAction},
+ * which is the "Artifactory Release & Promotion" tab should be displayed.
  *
  * @author Tomer Cohen
  */
-public class UserAllowedReleaseCondition extends AbstractPlanPermissionCondition {
+public class ReleaseAndPromotionActionCondition extends AbstractPlanPermissionCondition {
 
     private PlanManager planManager;
-
-    public void setPlanManager(PlanManager planManager) {
-        this.planManager = planManager;
-    }
 
     @Override
     public boolean shouldDisplay(Map<String, Object> context) {
@@ -43,5 +40,9 @@ public class UserAllowedReleaseCondition extends AbstractPlanPermissionCondition
             }
         }
         return false;
+    }
+
+    public void setPlanManager(PlanManager planManager) {
+        this.planManager = planManager;
     }
 }

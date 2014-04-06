@@ -18,7 +18,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jfrog.bamboo</groupId>
     <artifactId>bamboo-artifactory-plugin</artifactId>
-    <version>1.6.4-SNAPSHOT</version>
+    <version>1.7.x-SNAPSHOT</version>
     <name>Bamboo Artifactory Plugin</name>
     <description>Artifactory Build Info plugin for Atlassian Bamboo.</description>
 
@@ -50,16 +50,16 @@
     </scm>
 
     <properties>
-        <bamboo.version>5.0</bamboo.version>
+        <bamboo.version>5.2</bamboo.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <buildinfo.version>2.2.2</buildinfo.version>
-        <buildinfo.gradle.version>2.2.2</buildinfo.gradle.version>
-        <buildinfo.ivy.version>2.2.2</buildinfo.ivy.version>
-        <buildinfo.maven.version>2.2.2</buildinfo.maven.version>
+        <buildinfo.version>2.2.6</buildinfo.version>
+        <buildinfo.gradle.version>2.2.4</buildinfo.gradle.version>
+        <buildinfo.ivy.version>2.2.3</buildinfo.ivy.version>
+        <buildinfo.maven.version>2.2.3</buildinfo.maven.version>
     </properties>
 
     <dependencies>

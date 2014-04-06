@@ -51,7 +51,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
     private static final Logger log = Logger.getLogger(ArtifactoryBuildInfoPropertyHelper.class);
 
     public String createFileAndGetPath(AbstractBuildContext buildContext, BuildLogger logger,
-            Map<String, String> taskEnv, Map<String, String> generalEnv) {
+                                       Map<String, String> taskEnv, Map<String, String> generalEnv) {
         long selectedServerId = buildContext.getArtifactoryServerId();
 
         if (selectedServerId != -1) {
@@ -92,8 +92,8 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
     }
 
     private void addBuilderInfoProperties(AbstractBuildContext buildContext, ServerConfig serverConfig,
-            ArtifactoryClientConfiguration clientConf, Map<String, String> environment,
-            Map<String, String> generalEnv) {
+                                          ArtifactoryClientConfiguration clientConf, Map<String, String> environment,
+                                          Map<String, String> generalEnv) {
         String buildName = context.getPlanName();
         clientConf.info.setBuildName(buildName);
         clientConf.publisher.addMatrixParam("build.name", buildName);
@@ -106,6 +106,11 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         if (StringUtils.isNotBlank(vcsRevision)) {
             clientConf.info.setVcsRevision(vcsRevision);
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);
+        }
+
+        String vcsUrl = ScmHelper.getVcsUrl(context);
+        if (StringUtils.isNotBlank(vcsUrl)) {
+            clientConf.info.setVcsUrl(vcsUrl);
         }
 
         String buildTimeStampVal = context.getBuildResult().getCustomBuildData().get("buildTimeStamp");
@@ -210,7 +215,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
     }
 
     protected void addClientProperties(AbstractBuildContext buildContext, ArtifactoryClientConfiguration clientConf,
-            ServerConfig serverConfig) {
+                                       ServerConfig serverConfig) {
         clientConf.publisher.setContextUrl(serverConfig.getUrl());
         clientConf.setTimeout(serverConfig.getTimeout());
         clientConf.publisher.setRepoKey(buildContext.getPublishingRepo());

@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.result;
+package org.jfrog.bamboo.promotion;
 
 import com.google.common.collect.Lists;
 
@@ -6,9 +6,12 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * @author Tomer Cohen
+ * A promotion context used to share data between {@link org.jfrog.bamboo.promotion.PromotionThread} which is the thread running the promotion
+ * and {@code org.jfrog.bamboo.release.action.ReleaseAndPromotionAction} which is the view displaying the promotion result.
+ *
+ * @author Lior Hasson
  */
-public class PromotionAction {
+public class PromotionContext {
     private List<String> log = Lists.newArrayList();
     private boolean done;
     private Integer buildNumber;

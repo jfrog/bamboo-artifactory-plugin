@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.result;
+package org.jfrog.bamboo.promotion;
 
 import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.variable.VariableDefinition;
@@ -19,6 +19,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
+import org.jfrog.bamboo.release.action.ReleaseAndPromotionAction;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.builder.PromotionBuilder;
 import org.jfrog.build.client.ArtifactoryBuildInfoClient;
@@ -30,7 +31,7 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
-import static org.jfrog.bamboo.result.ViewReleaseManagementAction.*;
+import static org.jfrog.bamboo.release.action.ReleaseAndPromotionAction.*;
 
 /**
  * Executes the promotion process
@@ -41,11 +42,11 @@ public class PromotionThread extends Thread {
 
     transient Logger log = Logger.getLogger(PromotionThread.class);
 
-    private ViewReleaseManagementAction action;
+    private ReleaseAndPromotionAction action;
     private ArtifactoryBuildInfoClient client;
     private String bambooUsername;
 
-    public PromotionThread(ViewReleaseManagementAction action, ArtifactoryBuildInfoClient client,
+    public PromotionThread(ReleaseAndPromotionAction action, ArtifactoryBuildInfoClient client,
                            String bambooUsername) {
         this.action = action;
         this.client = client;
@@ -55,18 +56,16 @@ public class PromotionThread extends Thread {
     @Override
     public void run() {
         try {
-            promotionAction.getLock().lock();
-            promotionAction.setBuildKey(action.getBuildKey());
-            promotionAction.setBuildNumber(action.getBuildNumber());
-            promotionAction.setDone(false);
-            promotionAction.getLog().clear();
+            promotionContext.getLock().lock();
+            promotionContext.setBuildKey(action.getBuildKey());
+            promotionContext.setBuildNumber(action.getBuildNumber());
+            promotionContext.setDone(false);
+            promotionContext.getLog().clear();
 
-            boolean pluginExecutedSuccessfully = !PROMOTION_PUSH_TO_NEXUS_MODE.equals(action.getPromotionMode()) ||
-                    executePushToNexusPlugin();
-
-            if (pluginExecutedSuccessfully) {
-                performPromotion();
+            if (performPromotion() && PROMOTION_PUSH_TO_NEXUS_MODE.equals(action.getPromotionMode())) {
+                executePushToNexusPlugin();
             }
+
         } catch (Exception e) {
             String message = "An error occurred: " + e.getMessage();
             logErrorToUiAndLogger(message, e);
@@ -74,8 +73,8 @@ public class PromotionThread extends Thread {
             try {
                 client.shutdown();
             } finally {
-                promotionAction.setDone(true);
-                promotionAction.getLock().unlock();
+                promotionContext.setDone(true);
+                promotionContext.getLock().unlock();
             }
         }
     }
@@ -128,7 +127,7 @@ public class PromotionThread extends Thread {
         }
     }
 
-    private void performPromotion() throws IOException {
+    private boolean performPromotion() throws IOException {
         logMessageToUiAndLogger("Promoting build ...");
         // do a dry run first
         PromotionBuilder promotionBuilder = new PromotionBuilder().status(action.getTarget())
@@ -147,8 +146,14 @@ public class PromotionThread extends Thread {
                 wetResponse = client.stageBuild(buildName, buildNumber, promotionBuilder.dryRun(false).build());
                 if (checkSuccess(wetResponse, false)) {
                     logMessageToUiAndLogger("Promotion completed successfully!");
+
+                    return true;
                 }
+
+                return false;
             }
+
+            return false;
         } finally {
             if (dryResponse != null) {
                 HttpEntity entity = dryResponse.getEntity();
@@ -213,16 +218,16 @@ public class PromotionThread extends Thread {
             StringWriter sTStringWriter = new StringWriter();
             PrintWriter sTPrintWriter = new PrintWriter(sTStringWriter);
             e.printStackTrace(sTPrintWriter);
-            promotionAction.getLog().add(message + "<br/>" + sTStringWriter.toString());
+            promotionContext.getLog().add(message + "<br/>" + sTStringWriter.toString());
         } else {
-            promotionAction.getLog().add(message + "<br/>");
+            promotionContext.getLog().add(message + "<br/>");
         }
         log.error(message, e);
     }
 
     private void logMessageToUiAndLogger(String message) {
         log.info(message);
-        promotionAction.getLog().add(message + "<br/>");
+        promotionContext.getLog().add(message + "<br/>");
     }
 
     private JsonFactory createJsonFactory() {

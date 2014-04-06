@@ -4,6 +4,7 @@ import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.CustomBuildProcessor;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
+import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
@@ -31,6 +32,7 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
 
     private BuildLoggerManager buildLoggerManager;
     private CustomVariableContext customVariableContext;
+    private CredentialsAccessor credentialsAccessor;
 
     @Override
     @NotNull
@@ -57,7 +59,8 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
             return buildContext;
         }
 
-        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger, customVariableContext);
+        ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger,
+                customVariableContext, credentialsAccessor);
         if (provider == null) {
             return buildContext;
         }
@@ -97,5 +100,9 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setCredentialsAccessor(CredentialsAccessor credentialsAccessor) {
+        this.credentialsAccessor = credentialsAccessor;
     }
 }

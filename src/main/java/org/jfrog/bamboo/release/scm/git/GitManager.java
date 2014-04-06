@@ -1,9 +1,15 @@
 package org.jfrog.bamboo.release.scm.git;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.credentials.CredentialsAccessor;
+import com.atlassian.bamboo.credentials.CredentialsData;
+import com.atlassian.bamboo.credentials.PrivateKeyCredentials;
+import com.atlassian.bamboo.credentials.SshCredentialsImpl;
 import com.atlassian.bamboo.repository.AbstractRepository;
 import com.atlassian.bamboo.repository.Repository;
+import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.security.StringEncrypter;
+import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.jcraft.jsch.JSch;
@@ -45,13 +51,16 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     private BuildLogger buildLogger;
     private TextProvider textProvider;
     private CustomVariableContext customVariableContext;
+    private CredentialsAccessor credentialsAccessor;
     private String username = "";
     private String password = "";
 
-    public GitManager(BuildContext context, Repository repository, BuildLogger buildLogger, CustomVariableContext customVariableContext) {
+    public GitManager(BuildContext context, Repository repository, BuildLogger buildLogger,
+                      CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         super(context, repository, buildLogger);
         this.buildLogger = buildLogger;
         this.customVariableContext = customVariableContext;
+        this.credentialsAccessor = credentialsAccessor;
         HierarchicalConfiguration configuration = repository.toConfiguration();
         StringEncrypter encrypter = new StringEncrypter();
         if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(repository.getClass().getName())) {
@@ -318,14 +327,30 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         Transport transport = null;
         try {
             GitAuthenticationType authenticationType = getAuthType();
-            if (authenticationType.equals(GitAuthenticationType.SSH_KEYPAIR)) {
+            if (authenticationType.equals(GitAuthenticationType.SSH_KEYPAIR)
+                    || authenticationType.equals(GitAuthenticationType.SHARED_CREDENTIALS)) {
                 transport = Transport.open(git.getRepository(), url);
                 if (transport instanceof SshTransport) {
                     AbstractRepository scm = getBambooScm();
                     HierarchicalConfiguration configuration = scm.toConfiguration();
-                    StringEncrypter encrypter = new StringEncrypter();
-                    String sshKey = encrypter.decrypt(configuration.getString("repository.git.ssh.key", ""));
-                    String passphrase = encrypter.decrypt(configuration.getString("repository.git.ssh.passphrase", ""));
+                    EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
+                    String sshKey = "";
+                    String passphrase = "";
+                    if (authenticationType.equals(GitAuthenticationType.SHARED_CREDENTIALS)) {
+                        Long sharedCredentialsId = configuration.getLong("repository.git.sharedCrendentials", null);
+                        final CredentialsData credentials = credentialsAccessor.getCredentials(sharedCredentialsId);
+                        if (credentials != null) {
+                            final PrivateKeyCredentials sshCredentials = new SshCredentialsImpl(credentials);
+                            sshKey = encryptionService.decrypt(sshCredentials.getKey());
+                            passphrase = encryptionService.decrypt(sshCredentials.getPassphrase());
+                        } else {
+                            sshKey = "";
+                            passphrase = "";
+                        }
+                    } else {
+                        sshKey = encryptionService.decrypt(configuration.getString("repository.git.ssh.key", ""));
+                        passphrase = encryptionService.decrypt(configuration.getString("repository.git.ssh.passphrase", ""));
+                    }
                     SshSessionFactory factory = new GitSshSessionFactory(sshKey, passphrase);
                     ((SshTransport) transport).setSshSessionFactory(factory);
                 }

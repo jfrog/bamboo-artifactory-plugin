@@ -69,7 +69,13 @@ public class ArtifactoryGenericTask implements TaskType {
         if (StringUtils.isBlank(vcsRevision)) {
             vcsRevision = "";
         }
-        buildInfoHelper = new GenericBuildInfoHelper(env, vcsRevision);
+
+        String vcsUrl = ScmHelper.getVcsUrl(context);
+        if (StringUtils.isBlank(vcsUrl)) {
+            vcsUrl = "";
+        }
+
+        buildInfoHelper = new GenericBuildInfoHelper(env, vcsRevision, vcsUrl);
         buildInfoHelper.init(context);
         try {
             File sourceCodeDirectory = getWorkingDirectory(context, taskContext);
