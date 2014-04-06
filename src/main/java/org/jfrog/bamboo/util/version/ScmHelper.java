@@ -50,11 +50,12 @@ public abstract class ScmHelper {
         for (int i = 1; i <= repoSize; i++) {
             String vcsUrl = buildContext.getCurrentResult().getCustomBuildData().get("planRepository." + i + ".repositoryUrl");
             /*for Perforce*/
-            if (vcsUrl == null)
+            if (StringUtils.isBlank(vcsUrl))
                 vcsUrl = buildContext.getCurrentResult().getCustomBuildData().get("custom.p4.port");
-            if(vcsUrl == null){
+            if (StringUtils.isBlank(vcsUrl)) {
                 String repositoryType = buildContext.getCurrentResult().getCustomBuildData().get("planRepository." + i + ".type");
-                if(repositoryType != null && repositoryType.equals(GITHUB_TYPE)){/*for GitHub*/
+                /*for GitHub*/
+                if (repositoryType != null && repositoryType.equals(GITHUB_TYPE)) {
                     Repository repository = getRepository(buildContext);
                     Object property;
                     if (repository != null) {
@@ -64,9 +65,12 @@ public abstract class ScmHelper {
                 }
             }
 
-            if(vcsUrl != null){
-                sb.append(vcsUrl);
-                sb.append("; ");
+            if (StringUtils.isNotBlank(vcsUrl)) {
+                if (i != 1) {
+                    sb.append(";" + vcsUrl);
+                } else {
+                    sb.append(vcsUrl);
+                }
             }
         }
 
