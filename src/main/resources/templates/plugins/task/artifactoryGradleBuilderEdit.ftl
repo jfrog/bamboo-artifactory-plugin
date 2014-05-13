@@ -85,6 +85,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
     [@ww.textfield labelKey='artifactory.task.gradle.publishIncludePatterns' name='builder.artifactoryGradleBuilder.publishIncludePatterns'/]
     [@ww.textfield labelKey='artifactory.task.gradle.publishExcludePatterns' name='builder.artifactoryGradleBuilder.publishExcludePatterns'/]
+    [@ww.checkbox labelKey='artifactory.task.filterExcludedArtifactsFromBuild' name='builder.artifactoryGradleBuilder.filterExcludedArtifactsFromBuild' toggle="true"/]
 
     [@ww.textarea labelKey='artifactory.task.gradle.artifactSpecs' name='builder.artifactoryGradleBuilder.artifactSpecs' rows='10' cols='200' wrap='off' cssClass="long-field"/]
 [/@ui.bambooSection]

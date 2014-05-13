@@ -17,6 +17,7 @@
 [#if isPublishArtifacts]
 [@ww.label labelKey='Deployment Include Patterns' name='builder.artifactoryMaven3Builder.deployIncludePatterns'/]
 [@ww.label labelKey='Deployment Exclude Patterns' name='builder.artifactoryMaven3Builder.deployExcludePatterns'/]
+[@ww.label labelKey='Filter excluded artifacts from build Info' name='builder.artifactoryMaven3Builder.filterExcludedArtifactsFromBuild'/]
 [/#if]
 [@ww.label labelKey='Run License Checks (Requires Pro)' name='builder.artifactoryMaven3Builder.builder.runLicenseChecks'/]
 [#if isRunLicenseChecks]

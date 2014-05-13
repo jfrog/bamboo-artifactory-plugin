@@ -16,6 +16,7 @@
 [#if isPublishArtifacts]
 [@ww.label labelKey='Deployment Include Patterns' name='builder.artifactoryIvyBuilder.deployIncludePatterns'/]
 [@ww.label labelKey='Deployment Exclude Patterns' name='builder.artifactoryIvyBuilder.deployExcludePatterns'/]
+[@ww.label labelKey='Filter excluded artifacts from build Info' name='builder.artifactoryIvyBuilder.filterExcludedArtifactsFromBuild'/]
 [/#if]
 [@ww.label labelKey='Use Maven 2 Compatible Patterns' name='builder.artifactoryIvyBuilder.useM2CompatiblePatterns'/]
 
