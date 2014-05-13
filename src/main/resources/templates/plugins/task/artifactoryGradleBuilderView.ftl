@@ -43,6 +43,7 @@
 
     [@ww.label labelKey='Publication Include Patterns' name='builder.artifactoryGradleBuilder.publishIncludePatterns'/]
     [@ww.label labelKey='Publication Exclude Patterns' name='builder.artifactoryGradleBuilder.publishExcludePatterns'/]
+    [@ww.label labelKey='Filter excluded artifacts from build Info' name='builder.artifactoryGradleBuilder.filterExcludedArtifactsFromBuild'/]
     [@ww.label labelKey='Artifact Specs' name='builder.artifactoryGradleBuilder.artifactSpecs'/]
 [/#if]
 
