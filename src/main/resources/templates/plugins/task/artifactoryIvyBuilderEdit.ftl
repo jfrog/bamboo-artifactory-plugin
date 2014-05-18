@@ -27,6 +27,7 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 [@ui.bambooSection dependsOn='deployArtifacts' showOn=true]
     [@ww.textfield labelKey='artifactory.task.deployIncludePatterns' name='builder.artifactoryIvyBuilder.deployIncludePatterns'/]
     [@ww.textfield labelKey='artifactory.task.deployExcludePatterns' name='builder.artifactoryIvyBuilder.deployExcludePatterns' /]
+    [@ww.checkbox labelKey='artifactory.task.filterExcludedArtifactsFromBuild' name='builder.artifactoryIvyBuilder.filterExcludedArtifactsFromBuild' toggle="true"/]
 
     [@ww.checkbox labelKey='artifactory.task.gradle.useM2CompatiblePatterns' name='useM2CompatiblePatterns' toggle='true'/]
 
