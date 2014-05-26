@@ -53,6 +53,7 @@ public abstract class AbstractBuildContext {
     public static final String ARTIFACT_PATTERN_PARAM = "artifactPattern";
     public static final String PUBLISH_INCLUDE_PATTERNS_PARAM = "publishIncludePatterns";
     public static final String PUBLISH_EXCLUDE_PATTERNS_PARAM = "publishExcludePatterns";
+    public static final String FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM = "filterExcludedArtifactsFromBuild";
     public static final String ARTIFACT_SPECS_PARAM = "artifactSpecs";
     public static final String NO_RESOLUTION_REPO_KEY_CONFIGURED = "noResolutionRepoKeyConfigured";
     public static final String NO_PUBLISHING_REPO_KEY_CONFIGURED = "noPublishingRepoKeyConfigured";
@@ -252,6 +253,10 @@ public abstract class AbstractBuildContext {
         return env.get(prefix + PUBLISH_EXCLUDE_PATTERNS_PARAM);
     }
 
+    public boolean isFilterExcludedArtifactsFromBuild() {
+        return  Boolean.parseBoolean(env.get(prefix + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM));
+    }
+
     public String getResolutionRepo() {
         return env.get(prefix + RESOLUTION_REPO_PARAM);
     }
@@ -268,6 +273,7 @@ public abstract class AbstractBuildContext {
         env.put(prefix + LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES, "");
         env.put(prefix + INCLUDE_PUBLISHED_ARTIFACTS, "false");
         env.put(prefix + DISABLE_AUTOMATIC_LICENSE_DISCOVERY, "false");
+        env.put(prefix + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM, "false");
         env.put(PUBLISH_ARTIFACTS_PARAM, "false");
         env.put(ENABLE_RELEASE_MANAGEMENT, "false");
         env.put(ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
@@ -393,4 +399,5 @@ public abstract class AbstractBuildContext {
 
         return tokens;
     }
+
 }

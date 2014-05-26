@@ -237,6 +237,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         clientConf.publisher.setPublishArtifacts(buildContext.isPublishArtifacts());
         clientConf.publisher.setIncludePatterns(buildContext.getIncludePattern());
         clientConf.publisher.setExcludePatterns(buildContext.getExcludePattern());
+        clientConf.publisher.setFilterExcludedArtifactsFromBuild(buildContext.isFilterExcludedArtifactsFromBuild());
         clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());

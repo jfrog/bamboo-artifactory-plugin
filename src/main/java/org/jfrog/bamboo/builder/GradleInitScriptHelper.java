@@ -262,6 +262,7 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.publisher.setPublishArtifacts(publishArtifacts);
         clientConf.publisher.setIncludePatterns(buildContext.getIncludePattern());
         clientConf.publisher.setExcludePatterns(buildContext.getExcludePattern());
+        clientConf.publisher.setFilterExcludedArtifactsFromBuild(buildContext.isFilterExcludedArtifactsFromBuild());
         if (publishArtifacts) {
             boolean m2Compatible = buildContext.isMaven2Compatible();
             clientConf.publisher.setM2Compatible(m2Compatible);
