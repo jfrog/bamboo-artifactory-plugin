@@ -88,10 +88,10 @@ public class ArtifactoryConfigServlet extends HttpServlet {
         String deployableReposValue = req.getParameter("deployableRepos");
         String resolvingReposValue = req.getParameter("resolvingRepos");
         if (StringUtils.isNotBlank(deployableReposValue) && Boolean.valueOf(deployableReposValue)) {
-            List<String> deployableRepoList = serverConfigManager.getDeployableRepos(serverId);
+            List<String> deployableRepoList = serverConfigManager.getDeployableRepos(serverId, req, resp);
             returnJsonObject(resp, deployableRepoList);
         } else if (StringUtils.isNotBlank(resolvingReposValue) && Boolean.valueOf(resolvingReposValue)) {
-            List<String> resolvingRepoList = serverConfigManager.getResolvingRepos(serverId);
+            List<String> resolvingRepoList = serverConfigManager.getResolvingRepos(serverId, req, resp);
             returnJsonObject(resp, resolvingRepoList);
         } else {
             returnJsonObject(resp, serverConfig);

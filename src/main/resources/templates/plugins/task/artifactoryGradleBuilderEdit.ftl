@@ -118,6 +118,8 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 <script>
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
+        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -131,15 +133,15 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                     break;
                 }
             }
-            loadGradleResolvingRepoKeys(serverId)
-            loadGradlePublishRepoKeys(serverId)
+            loadGradleResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword)
+            loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword)
         }
     }
 
-    function loadGradlePublishRepoKeys(serverId) {
+    function loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true',
+                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType:'json',
             cache:false,
             success:function (json) {
@@ -177,10 +179,10 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
         });
     }
 
-    function loadGradleResolvingRepoKeys(serverId) {
+    function loadGradleResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&resolvingRepos=true',
+                    '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType:'json',
             cache:false,
             success:function (json) {
@@ -190,12 +192,6 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                 if (serverId >= 0) {
 
                     var selectedRepoKey = '${selectedResolutionRepoKey}';
-
-                    var blankOption = document.createElement('option');
-                    blankOption.innerHTML =
-                            '-- To use Artifactory for resolution select a virtual repository --';
-                    blankOption.value = 'noResolutionRepoKeyConfigured';
-                    repoSelect.appendChild(blankOption);
 
                     for (var i = 0, l = json.length; i < l; i++) {
                         var deployableRepoKey = json[i];

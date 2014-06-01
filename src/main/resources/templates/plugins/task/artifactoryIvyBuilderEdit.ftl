@@ -82,6 +82,8 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 <script>
     function displayIvyArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('ivyArtifactoryConfigDiv');
+        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -96,14 +98,14 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
                 }
             }
 
-            loadIvyRepoKeys(serverId)
+            loadIvyRepoKeys(serverId, credentialsUserName, credentialsPassword)
         }
     }
 
-    function loadIvyRepoKeys(serverId) {
+    function loadIvyRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true',
+                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType:'json',
             cache:false,
             success:function (json) {
