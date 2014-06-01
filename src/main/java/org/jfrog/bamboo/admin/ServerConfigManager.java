@@ -141,6 +141,9 @@ public class ServerConfigManager implements Serializable {
         return client;
     }
 
+    public List<String> getDeployableRepos(long serverId) {
+        return getDeployableRepos(serverId, null, null);
+    }
     public List<String> getDeployableRepos(long serverId, HttpServletRequest req, HttpServletResponse resp) {
         ServerConfig serverConfig = getServerConfigById(serverId);
         if (serverConfig == null) {
@@ -153,7 +156,7 @@ public class ServerConfigManager implements Serializable {
         String serverUrl = serverConfig.getUrl();
         String username;
         String password;
-        if (StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
+        if (req != null && StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
             username = req.getParameter("user");
             password = req.getParameter("password");
         } else {
@@ -175,9 +178,9 @@ public class ServerConfigManager implements Serializable {
         } catch (IOException ioe) {
             log.error("Error while retrieving target repository list from: " + serverUrl, ioe);
             try {
-                if (ioe.getMessage().contains("401"))
+                if (resp != null && ioe.getMessage().contains("401"))
                     resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                if (ioe.getMessage().contains("404"))
+                if (resp != null && ioe.getMessage().contains("404"))
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             } catch (IOException e) {
                 log.error("Error while sending error to response", e);
