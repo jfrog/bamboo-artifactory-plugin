@@ -3,8 +3,13 @@
     listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
 <div id="genericArtifactoryConfigDiv">
     [@ww.select name='artifactory.generic.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
+
+[@ww.checkbox labelKey='artifactory.task.generic.deployerCredentials' name='deployerCredentials' toggle='true' /]
+[@ui.bambooSection dependsOn='deployerCredentials' showOn=true]
     [@ww.textfield name='artifactory.generic.username' labelKey='artifactory.task.maven.deployerUsername'/]
     [@ww.password name='artifactory.generic.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
+[/@ui.bambooSection]
+
     [@ww.textarea name='artifactory.generic.deployPattern' labelKey='artifactory.task.generic.deployPattern' rows='10' cols='80' cssClass="long-field" /]
 
     [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true' /]
@@ -23,6 +28,15 @@
 <script>
     function displayGenericArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('genericArtifactoryConfigDiv');
+        var isOverride = configDiv.getElementsByTagName('input')[1].checked;
+        var credentialsUserName = ""
+        var credentialsPassword = ""
+
+        if (isOverride) {
+            credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
+            credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
+        }
+
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -37,14 +51,14 @@
                 }
             }
 
-            loadGenericRepoKeys(serverId)
+            loadGenericRepoKeys(serverId, credentialsUserName, credentialsPassword)
         }
     }
 
-    function loadGenericRepoKeys(serverId) {
+    function loadGenericRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true',
+                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType:'json',
             cache:false,
             success:function (json) {

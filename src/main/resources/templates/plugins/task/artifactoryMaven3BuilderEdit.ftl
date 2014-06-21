@@ -22,8 +22,13 @@ list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink re
 <div id="maven3ArtifactoryResolutionConfigDiv">
     [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='artifactory.task.maven.resolutionRepo' list=dummyList
     listKey='repoKey' listValue='repoKey' toggle='true' /]
-[@ww.textfield labelKey='artifactory.task.maven.resolverUsername' name='builder.artifactoryMaven3Builder.resolverUsername'/]
-[@ww.password labelKey='artifactory.task.maven.resolverPassword' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true' /]
+
+[@ww.checkbox labelKey='artifactory.task.maven.resolveCredentials' name='resolveCredentials' toggle='true' /]
+[@ui.bambooSection dependsOn='resolveCredentials' showOn=true]
+    [@ww.textfield labelKey='artifactory.task.maven.resolverUsername' name='builder.artifactoryMaven3Builder.resolverUsername'/]
+    [@ww.password labelKey='artifactory.task.maven.resolverPassword' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true' /]
+[/@ui.bambooSection]
+
 </div>
 [/@ui.bambooSection]
 
@@ -35,9 +40,11 @@ listKey='id' listValue='url' onchange='javascript: displayMaven3ArtifactoryConfi
 [@ww.select name='builder.artifactoryMaven3Builder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList
 listKey='repoKey' listValue='repoKey' toggle='true' /]
 
-[@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryMaven3Builder.deployerUsername' /]
-
-[@ww.password labelKey='artifactory.task.maven.deployerPassword' name='builder.artifactoryMaven3Builder.deployerPassword' showPassword='true'/]
+[@ww.checkbox labelKey='artifactory.task.maven.deployCredentials' name='deployCredentials' toggle='true' /]
+[@ui.bambooSection dependsOn='deployCredentials' showOn=true]
+    [@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryMaven3Builder.deployerUsername' /]
+    [@ww.password labelKey='artifactory.task.maven.deployerPassword' name='builder.artifactoryMaven3Builder.deployerPassword' showPassword='true'/]
+[/@ui.bambooSection]
 
 [@ww.checkbox labelKey='artifactory.task.maven.deployMavenArtifacts' name='deployMavenArtifacts' toggle='true' /]
 
@@ -101,8 +108,15 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 <script>
     function displayMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
+        var isOverride = configDiv.getElementsByTagName('input')[1].checked;
+        var credentialsUserName = ""
+        var credentialsPassword = ""
+
+        if (isOverride) {
+            credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
+            credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
+        }
+
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -122,8 +136,15 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 
     function displayResolutionMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryResolutionConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
+        var isOverride = configDiv.getElementsByTagName('input')[1].checked;
+        var credentialsUserName = ""
+        var credentialsPassword = ""
+
+        if (isOverride) {
+            credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
+            credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
+        }
+
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {

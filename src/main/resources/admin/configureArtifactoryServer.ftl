@@ -33,7 +33,7 @@ showActionErrors='true']
     [@ww.hidden name='serverId'/]
     [@ww.textfield labelKey="artifactory.server.url" name="url" required="true"/]
     [@ww.textfield labelKey='artifactory.server.username' name="username"/]
-    [@ww.password labelKey='artifactory.server.password' name="password" show="true"/]
+    [@ww.password labelKey='artifactory.server.password' name="password" showPassword='true'/]
     [@ww.textfield labelKey='artifactory.server.timeout' name="timeout" required="true"/]
 
 [/@ww.form]

@@ -35,9 +35,11 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 [@ww.select name='builder.artifactoryGradleBuilder.publishingRepo' labelKey='artifactory.task.gradle.publishingRepo' list=dummyList
 listKey='repoKey' listValue='repoKey' toggle='true'/]
 
-[@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername'/]
-
-[@ww.password labelKey='artifactory.task.gradle.deployerPassword' name='builder.artifactoryGradleBuilder.deployerPassword' showPassword='true'/]
+[@ww.checkbox labelKey='artifactory.task.gradle.deployerCredentials' name='deployerCredentials' toggle='true' /]
+[@ui.bambooSection dependsOn='deployerCredentials' showOn=true]
+    [@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername'/]
+    [@ww.password labelKey='artifactory.task.gradle.deployerPassword' name='builder.artifactoryGradleBuilder.deployerPassword' showPassword='true'/]
+[/@ui.bambooSection]
 
 [@ww.checkbox labelKey='artifactory.task.gradle.useArtifactoryGradlePlugin' name='builder.artifactoryGradleBuilder.useArtifactoryGradlePlugin' toggle='true'/]
 
@@ -118,8 +120,15 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 <script>
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
+        var isOverride = configDiv.getElementsByTagName('input')[2].checked;
+        var credentialsUserName = ""
+        var credentialsPassword = ""
+
+        if (isOverride) {
+            credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
+            credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
+        }
+
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
