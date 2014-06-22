@@ -4,11 +4,12 @@
 <div id="genericArtifactoryConfigDiv">
     [@ww.select name='artifactory.generic.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
 
-[@ww.checkbox labelKey='artifactory.task.generic.deployerCredentials' name='deployerCredentials' toggle='true' /]
-[@ui.bambooSection dependsOn='deployerCredentials' showOn=true]
+    [#--The Dummy tags are workaround for the autocomplete (Chorme)--]
+    [@ww.password name='artifactory.generic.username.DUMMY' cssStyle='display: none;'/]
     [@ww.textfield name='artifactory.generic.username' labelKey='artifactory.task.maven.deployerUsername'/]
+
+    [@ww.password name='artifactory.generic.password.DUMMY' cssStyle='display: none;'/]
     [@ww.password name='artifactory.generic.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
-[/@ui.bambooSection]
 
     [@ww.textarea name='artifactory.generic.deployPattern' labelKey='artifactory.task.generic.deployPattern' rows='10' cols='80' cssClass="long-field" /]
 
@@ -28,14 +29,8 @@
 <script>
     function displayGenericArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('genericArtifactoryConfigDiv');
-        var isOverride = configDiv.getElementsByTagName('input')[1].checked;
-        var credentialsUserName = ""
-        var credentialsPassword = ""
-
-        if (isOverride) {
-            credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
-            credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
-        }
+        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';

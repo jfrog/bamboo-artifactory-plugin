@@ -19,11 +19,11 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 <div id="ivyArtifactoryConfigDiv">
 [@ww.select name='builder.artifactoryIvyBuilder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
 
-[@ww.checkbox labelKey='artifactory.task.maven.deployCredentials' name='deployerCredentials' toggle='true' /]
-[@ui.bambooSection dependsOn='deployerCredentials' showOn=true]
-    [@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryIvyBuilder.deployerUsername' /]
-    [@ww.password labelKey='artifactory.task.maven.deployerPassword' name='builder.artifactoryIvyBuilder.deployerPassword' showPassword='true'/]
-[/@ui.bambooSection]
+[@ww.password name='builder.artifactoryIvyBuilder.deployerUsername.DUMMY' cssStyle='display: none;'/]
+[@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryIvyBuilder.deployerUsername' /]
+
+[@ww.password name='builder.artifactoryIvyBuilder.deployerPassword.DUMMY' cssStyle='display: none;'/]
+[@ww.password labelKey='artifactory.task.maven.deployerPassword' name='builder.artifactoryIvyBuilder.deployerPassword' showPassword='true'/]
 
 [@ww.checkbox labelKey='artifactory.task.ivy.deployArtifacts' name='deployArtifacts' toggle='true'/]
 
@@ -85,14 +85,8 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 <script>
     function displayIvyArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('ivyArtifactoryConfigDiv');
-        var isOverride = configDiv.getElementsByTagName('input')[1].checked;
-        var credentialsUserName = ""
-        var credentialsPassword = ""
-
-        if (isOverride) {
-            credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
-            credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
-        }
+        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
