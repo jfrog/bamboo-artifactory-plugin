@@ -67,7 +67,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
         [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryGradleBuilder.disableAutoLicenseDiscovery' toggle='true'/]
     [/@ui.bambooSection]
 
-    [#--blackduck integration--]
+[#--blackduck integration--]
     [#include 'BlackDuckBuilderEditSnippet.ftl'/]
 
 [/@ui.bambooSection]
@@ -125,7 +125,6 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
         var credentialsPassword = configDiv.getElementsByTagName('input')[5].value;
-        debugger
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
@@ -147,11 +146,11 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
     function loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
-            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
                     '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
-            dataType:'json',
-            cache:false,
-            success:function (json) {
+            dataType: 'json',
+            cache: false,
+            success: function (json) {
                 var repoSelect = document
                         .getElementsByName('builder.artifactoryGradleBuilder.publishingRepo')[0];
                 repoSelect.innerHTML = '';
@@ -171,7 +170,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                     }
                 }
             },
-            error:function (XMLHttpRequest, textStatus, errorThrown) {
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the publishing repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {
@@ -188,11 +187,11 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
     function loadGradleResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
-            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
                     '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
-            dataType:'json',
-            cache:false,
-            success:function (json) {
+            dataType: 'json',
+            cache: false,
+            success: function (json) {
                 var repoSelect = document
                         .getElementsByName('builder.artifactoryGradleBuilder.resolutionRepo')[0];
                 repoSelect.innerHTML = '';
@@ -212,7 +211,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                     }
                 }
             },
-            error:function (XMLHttpRequest, textStatus, errorThrown) {
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the resolving repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {

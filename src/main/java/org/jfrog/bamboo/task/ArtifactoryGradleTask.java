@@ -148,7 +148,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
          * */
         env.put("JAVA_HOME", getJavaHome(buildContext, capabilityContext));
 
-        log.debug("Running maven command: " + command.toString());
+        log.debug("Running Gradle command: " + command.toString());
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
         try {
