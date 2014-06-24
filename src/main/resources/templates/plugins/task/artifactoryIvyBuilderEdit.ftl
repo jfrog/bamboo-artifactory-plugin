@@ -85,8 +85,8 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 <script>
     function displayIvyArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('ivyArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
+        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';

@@ -112,8 +112,8 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 <script>
     function displayMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
+        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
@@ -134,8 +134,8 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 
     function displayResolutionMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryResolutionConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
+        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';

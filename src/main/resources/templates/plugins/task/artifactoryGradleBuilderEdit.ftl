@@ -123,9 +123,9 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
-
+        var credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[5].value;
+        debugger
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
