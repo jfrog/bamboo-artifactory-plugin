@@ -216,7 +216,7 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
                         option.value = deployableRepoKey;
                         repoSelect.appendChild(option);
                         if (selectedRepoKey && (deployableRepoKey == selectedRepoKey)) {
-                            repoSelect.selectedIndex = (i + 1);
+                            repoSelect.selectedIndex = i;
                         }
                     }
                 }
