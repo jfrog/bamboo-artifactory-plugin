@@ -44,15 +44,12 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
-    private static final Logger log = Logger.getLogger(ArtifactoryMaven3Task.class);
-
-    private static final String JDK_LABEL_KEY = "system.jdk.";
-
     public static final String TASK_NAME = "maven3Task";
-    private BuilderDependencyHelper dependencyHelper;
+    private static final Logger log = Logger.getLogger(ArtifactoryMaven3Task.class);
     private final ProcessService processService;
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
+    private BuilderDependencyHelper dependencyHelper;
     private String mavenDependenciesDir;
     private String buildInfoPropertiesFile;
     private boolean activateBuildInfoRecording;
@@ -126,8 +123,11 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             env.putAll(environmentVariableAccessor
                     .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
         }
+
+        log.debug("Running maven command: " + command.toString());
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
+
         try {
             ExternalProcess process = processService.executeProcess(taskContext, processBuilder);
             return collectTestResults(buildContext, taskContext, process);
@@ -277,7 +277,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      */
     @Override
     public String getExecutable(AbstractBuildContext context) throws TaskException {
-        return getJavaHome(context, capabilityContext);
+        return getJavaExe(context, capabilityContext);
     }
 
     private void appendAdditionalMavenParameters(List<String> arguments, Maven3BuildContext context) {
@@ -300,75 +300,5 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
 
     private String getStringWithoutNewLines(String stringToModify) {
         return StringUtils.replaceChars(stringToModify, "\r\n", "  ");
-    }
-
-    /**
-     * Get the path to the Java home that was defined for the build.
-     *
-     * @param context           The build context that is defined for the current build environment.
-     * @param capabilityContext The capability context of the build.
-     * @return The path to the Java home.
-     */
-    public String getJavaHome(AbstractBuildContext context, CapabilityContext capabilityContext) {
-        String jdkHome;
-        String jdkCapabilityKey = (new StringBuilder()).append(JDK_LABEL_KEY).append(context.getJdkLabel()).toString();
-        ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
-        if (capabilitySet == null) {
-            return null;
-        }
-        Capability capability = capabilitySet.getCapability(jdkCapabilityKey);
-        if (capability != null) {
-            jdkHome = capability.getValue();
-        } else {
-            return null;
-        }
-        if (StringUtils.isBlank(jdkHome)) {
-            return null;
-        }
-        StringBuilder binPathBuilder = getPathBuilder(jdkHome);
-        if (SystemUtils.IS_OS_WINDOWS) {
-            binPathBuilder.append("bin").append(File.separator).append("java.exe");
-        } else {
-            // IBM's AIX JDK has different locations
-            String aixJdkLocation = "jre" + File.separator + "sh" + File.separator + "java";
-            File aixJdk = new File(binPathBuilder.toString() + aixJdkLocation);
-            if (aixJdk.isFile()) {
-                binPathBuilder.append(aixJdkLocation);
-            } else {
-                binPathBuilder.append("bin").append(File.separator).append("java");
-            }
-        }
-        String binPath = binPathBuilder.toString();
-        binPath = getCanonicalPath(binPath);
-        return binPath;
-    }
-
-    /**
-     * Returns a {@link StringBuilder} starting with a given base path and ending with a file-system separator
-     *
-     * @param basePath Base path
-     * @return String builder
-     */
-    public StringBuilder getPathBuilder(String basePath) {
-        StringBuilder confPathBuilder = new StringBuilder(basePath);
-        if (!basePath.endsWith(File.separator)) {
-            confPathBuilder.append(File.separator);
-        }
-        return confPathBuilder;
-    }
-
-    /**
-     * @return The canonical path for a path.
-     */
-    public String getCanonicalPath(String path) {
-        if (StringUtils.contains(path, " ")) {
-            try {
-                File f = new File(path);
-                path = f.getCanonicalPath();
-            } catch (IOException e) {
-                throw new RuntimeException("IO Exception trying to get canonical path of item: " + path, e);
-            }
-        }
-        return path;
     }
 }

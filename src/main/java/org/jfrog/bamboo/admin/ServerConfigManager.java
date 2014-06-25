@@ -26,6 +26,8 @@ import org.apache.log4j.Logger;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.build.client.ArtifactoryBuildInfoClient;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Iterator;
@@ -40,11 +42,10 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ServerConfigManager implements Serializable {
 
-    private transient Logger log = Logger.getLogger(ServerConfigManager.class);
-
-    private transient BandanaManager bandanaManager;
     private static final String CONFIG_KEY = "org.jfrog.bamboo.server.configurations";
     private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<ServerConfig>();
+    private transient Logger log = Logger.getLogger(ServerConfigManager.class);
+    private transient BandanaManager bandanaManager;
     private AtomicLong nextAvailableId = new AtomicLong(0);
 
     public static ServerConfigManager getInstance() {
@@ -141,6 +142,9 @@ public class ServerConfigManager implements Serializable {
     }
 
     public List<String> getDeployableRepos(long serverId) {
+        return getDeployableRepos(serverId, null, null);
+    }
+    public List<String> getDeployableRepos(long serverId, HttpServletRequest req, HttpServletResponse resp) {
         ServerConfig serverConfig = getServerConfigById(serverId);
         if (serverConfig == null) {
             log.error("Error while retrieving target repository list: Could not find Artifactory server " +
@@ -150,11 +154,20 @@ public class ServerConfigManager implements Serializable {
         ArtifactoryBuildInfoClient client;
 
         String serverUrl = serverConfig.getUrl();
-        String username = serverConfig.getUsername();
+        String username;
+        String password;
+        if (req != null && StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
+            username = req.getParameter("user");
+            password = req.getParameter("password");
+        } else {
+            username = serverConfig.getUsername();
+            password = serverConfig.getPassword();
+        }
+
         if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
         } else {
-            client = new ArtifactoryBuildInfoClient(serverUrl, username, serverConfig.getPassword(),
+            client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
                     new BambooBuildInfoLog(log));
         }
 
@@ -164,11 +177,20 @@ public class ServerConfigManager implements Serializable {
             return client.getLocalRepositoriesKeys();
         } catch (IOException ioe) {
             log.error("Error while retrieving target repository list from: " + serverUrl, ioe);
+            try {
+                if (resp != null && ioe.getMessage().contains("401"))
+                    resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                if (resp != null && ioe.getMessage().contains("404"))
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            } catch (IOException e) {
+                log.error("Error while sending error to response", e);
+            }
+
             return Lists.newArrayList();
         }
     }
 
-    public List<String> getResolvingRepos(long serverId) {
+    public List<String> getResolvingRepos(long serverId, HttpServletRequest req, HttpServletResponse resp) {
         ServerConfig serverConfig = getServerConfigById(serverId);
         if (serverConfig == null) {
             log.error("Error while retrieving resolving repository list: Could not find Artifactory server " +
@@ -178,11 +200,21 @@ public class ServerConfigManager implements Serializable {
         ArtifactoryBuildInfoClient client;
 
         String serverUrl = serverConfig.getUrl();
-        String username = serverConfig.getUsername();
+
+        String username;
+        String password;
+        if (StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
+            username = req.getParameter("user");
+            password = req.getParameter("password");
+        } else {
+            username = serverConfig.getUsername();
+            password = serverConfig.getPassword();
+        }
+
         if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
         } else {
-            client = new ArtifactoryBuildInfoClient(serverUrl, username, serverConfig.getPassword(),
+            client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
                     new BambooBuildInfoLog(log));
         }
 
@@ -192,6 +224,14 @@ public class ServerConfigManager implements Serializable {
             return client.getVirtualRepositoryKeys();
         } catch (IOException ioe) {
             log.error("Error while retrieving resolving repository list from: " + serverUrl, ioe);
+            try {
+                if (ioe.getMessage().contains("401"))
+                    resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                if (ioe.getMessage().contains("404"))
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            } catch (IOException e) {
+                log.error("Error while sending error to response", e);
+            }
             return Lists.newArrayList();
         }
     }

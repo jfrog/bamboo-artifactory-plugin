@@ -19,7 +19,10 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 <div id="ivyArtifactoryConfigDiv">
 [@ww.select name='builder.artifactoryIvyBuilder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
 
+[@ww.password name='builder.artifactoryIvyBuilder.deployerUsername.DUMMY' cssStyle='display: none;'/]
 [@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryIvyBuilder.deployerUsername' /]
+
+[@ww.password name='builder.artifactoryIvyBuilder.deployerPassword.DUMMY' cssStyle='display: none;'/]
 [@ww.password labelKey='artifactory.task.maven.deployerPassword' name='builder.artifactoryIvyBuilder.deployerPassword' showPassword='true'/]
 
 [@ww.checkbox labelKey='artifactory.task.ivy.deployArtifacts' name='deployArtifacts' toggle='true'/]
@@ -82,6 +85,9 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 <script>
     function displayIvyArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('ivyArtifactoryConfigDiv');
+        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
+
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -96,14 +102,14 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
                 }
             }
 
-            loadIvyRepoKeys(serverId)
+            loadIvyRepoKeys(serverId, credentialsUserName, credentialsPassword)
         }
     }
 
-    function loadIvyRepoKeys(serverId) {
+    function loadIvyRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true',
+                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType:'json',
             cache:false,
             success:function (json) {

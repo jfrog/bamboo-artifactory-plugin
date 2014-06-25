@@ -35,9 +35,13 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 [@ww.select name='builder.artifactoryGradleBuilder.publishingRepo' labelKey='artifactory.task.gradle.publishingRepo' list=dummyList
 listKey='repoKey' listValue='repoKey' toggle='true'/]
 
+
+[@ww.password name='builder.artifactoryGradleBuilder.deployerUsername.DUMMY' cssStyle='display: none;'/]
 [@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername'/]
 
+[@ww.password  name='builder.artifactoryGradleBuilder.deployerPassword.DUMMY' cssStyle='display: none;' /]
 [@ww.password labelKey='artifactory.task.gradle.deployerPassword' name='builder.artifactoryGradleBuilder.deployerPassword' showPassword='true'/]
+
 
 [@ww.checkbox labelKey='artifactory.task.gradle.useArtifactoryGradlePlugin' name='builder.artifactoryGradleBuilder.useArtifactoryGradlePlugin' toggle='true'/]
 
@@ -63,7 +67,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
         [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryGradleBuilder.disableAutoLicenseDiscovery' toggle='true'/]
     [/@ui.bambooSection]
 
-    [#--blackduck integration--]
+[#--blackduck integration--]
     [#include 'BlackDuckBuilderEditSnippet.ftl'/]
 
 [/@ui.bambooSection]
@@ -115,9 +119,13 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 [/@ui.bambooSection]
 </div>
 
-<script>
+<script type="text/javascript">
+
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
+        var credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[5].value;
+
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -131,18 +139,18 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                     break;
                 }
             }
-            loadGradleResolvingRepoKeys(serverId)
-            loadGradlePublishRepoKeys(serverId)
+            loadGradleResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword)
+            loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword)
         }
     }
 
-    function loadGradlePublishRepoKeys(serverId) {
+    function loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
-            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true',
-            dataType:'json',
-            cache:false,
-            success:function (json) {
+            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+            dataType: 'json',
+            cache: false,
+            success: function (json) {
                 var repoSelect = document
                         .getElementsByName('builder.artifactoryGradleBuilder.publishingRepo')[0];
                 repoSelect.innerHTML = '';
@@ -162,7 +170,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                     }
                 }
             },
-            error:function (XMLHttpRequest, textStatus, errorThrown) {
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the publishing repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {
@@ -177,25 +185,19 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
         });
     }
 
-    function loadGradleResolvingRepoKeys(serverId) {
+    function loadGradleResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
-            url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&resolvingRepos=true',
-            dataType:'json',
-            cache:false,
-            success:function (json) {
+            url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
+                    '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+            dataType: 'json',
+            cache: false,
+            success: function (json) {
                 var repoSelect = document
                         .getElementsByName('builder.artifactoryGradleBuilder.resolutionRepo')[0];
                 repoSelect.innerHTML = '';
                 if (serverId >= 0) {
 
                     var selectedRepoKey = '${selectedResolutionRepoKey}';
-
-                    var blankOption = document.createElement('option');
-                    blankOption.innerHTML =
-                            '-- To use Artifactory for resolution select a virtual repository --';
-                    blankOption.value = 'noResolutionRepoKeyConfigured';
-                    repoSelect.appendChild(blankOption);
 
                     for (var i = 0, l = json.length; i < l; i++) {
                         var deployableRepoKey = json[i];
@@ -204,12 +206,12 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                         option.value = deployableRepoKey;
                         repoSelect.appendChild(option);
                         if (selectedRepoKey && (deployableRepoKey == selectedRepoKey)) {
-                            repoSelect.selectedIndex = (i + 1);
+                            repoSelect.selectedIndex = i;
                         }
                     }
                 }
             },
-            error:function (XMLHttpRequest, textStatus, errorThrown) {
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the resolving repository list.\n' +
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {

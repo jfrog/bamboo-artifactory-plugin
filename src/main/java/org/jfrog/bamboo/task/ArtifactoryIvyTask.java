@@ -43,14 +43,14 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public class ArtifactoryIvyTask extends ArtifactoryTaskType {
+    public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "ant.bat" : "ant";
     private static final Logger log = Logger.getLogger(ArtifactoryIvyTask.class);
+    private static final String IVY_KEY = "system.builder.ivy.";
     private final ProcessService processService;
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
     private BuilderDependencyHelper dependencyHelper;
     private String ivyDependenciesDir = "";
-    public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "ant.bat" : "ant";
-    private static final String IVY_KEY = "system.builder.ivy.";
     private String buildInfoPropertiesFile = "";
     private boolean activateBuildInfoRecording;
 
@@ -140,6 +140,14 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         if (StringUtils.isNotBlank(subDirectory)) {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
+
+        /**
+         * Override the Java home in porpoise of running the gradle form the JDK that was defined in the job configuration.
+         * */
+        environment.put("JAVA_HOME", getJavaHome(buildContext, capabilityContext));
+
+        log.debug("Running Ant command: " + command.toString());
+
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command)
                         .env(environment);

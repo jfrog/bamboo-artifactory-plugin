@@ -51,16 +51,16 @@ import java.util.zip.ZipEntry;
  * @author Tomer Cohen
  */
 public class ArtifactoryGradleTask extends ArtifactoryTaskType {
+    public static final String TASK_NAME = "artifactoryGradleTask";
+    public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
-    public static final String TASK_NAME = "artifactoryGradleTask";
-    private BuilderDependencyHelper dependencyHelper;
-    private String gradleDependenciesDir = null;
     private final ProcessService processService;
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
+    private BuilderDependencyHelper dependencyHelper;
+    private String gradleDependenciesDir = null;
     private AdministrationConfiguration administrationConfiguration;
-    public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
 
     public ArtifactoryGradleTask(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
@@ -142,6 +142,13 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             env.putAll(environmentVariableAccessor
                     .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
         }
+
+        /**
+         * Override the Java home in porpoise of running the gradle form the JDK that was defined in the job configuration.
+         * */
+        env.put("JAVA_HOME", getJavaHome(buildContext, capabilityContext));
+
+        log.debug("Running Gradle command: " + command.toString());
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
         try {
