@@ -18,6 +18,7 @@ package org.jfrog.bamboo.admin;
 
 import com.atlassian.bamboo.bandana.PlanAwareBandanaContext;
 import com.atlassian.bamboo.security.StringEncrypter;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bandana.BandanaManager;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
@@ -47,6 +48,7 @@ public class ServerConfigManager implements Serializable {
     private transient Logger log = Logger.getLogger(ServerConfigManager.class);
     private transient BandanaManager bandanaManager;
     private AtomicLong nextAvailableId = new AtomicLong(0);
+    private CustomVariableContext customVariableContext;
 
     public static ServerConfigManager getInstance() {
         ServerConfigManager serverConfigManager = new ServerConfigManager();
@@ -157,11 +159,11 @@ public class ServerConfigManager implements Serializable {
         String username;
         String password;
         if (req != null && StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
-            username = req.getParameter("user");
-            password = req.getParameter("password");
+            username = substituteVariables(req.getParameter("user"));
+            password = substituteVariables(req.getParameter("password"));
         } else {
-            username = serverConfig.getUsername();
-            password = serverConfig.getPassword();
+            username = substituteVariables(serverConfig.getUsername());
+            password = substituteVariables(serverConfig.getPassword());
         }
 
         if (StringUtils.isBlank(username)) {
@@ -190,6 +192,13 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
+    /**
+     * Substitute (replace) Bamboo variable names with their defined values
+     */
+    private String substituteVariables(String s) {
+        return s != null ? customVariableContext.substituteString(s) : null;
+    }
+
     public List<String> getResolvingRepos(long serverId, HttpServletRequest req, HttpServletResponse resp) {
         ServerConfig serverConfig = getServerConfigById(serverId);
         if (serverConfig == null) {
@@ -199,16 +208,15 @@ public class ServerConfigManager implements Serializable {
         }
         ArtifactoryBuildInfoClient client;
 
-        String serverUrl = serverConfig.getUrl();
-
+        String serverUrl = substituteVariables(serverConfig.getUrl());
         String username;
         String password;
         if (StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
-            username = req.getParameter("user");
-            password = req.getParameter("password");
+            username = substituteVariables(req.getParameter("user"));
+            password = substituteVariables(req.getParameter("password"));
         } else {
-            username = serverConfig.getUsername();
-            password = serverConfig.getPassword();
+            username = substituteVariables(serverConfig.getUsername());
+            password = substituteVariables(serverConfig.getPassword());
         }
 
         if (StringUtils.isBlank(username)) {
@@ -246,5 +254,13 @@ public class ServerConfigManager implements Serializable {
         }
 
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, CONFIG_KEY, serverConfigs);
+    }
+
+    public CustomVariableContext getCustomVariableContext() {
+        return customVariableContext;
+    }
+
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
     }
 }
