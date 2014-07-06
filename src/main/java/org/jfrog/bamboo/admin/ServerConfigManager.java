@@ -155,7 +155,7 @@ public class ServerConfigManager implements Serializable {
         }
         ArtifactoryBuildInfoClient client;
 
-        String serverUrl = serverConfig.getUrl();
+        String serverUrl = substituteVariables(serverConfig.getUrl());
         String username;
         String password;
         if (req != null && StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
@@ -254,10 +254,6 @@ public class ServerConfigManager implements Serializable {
         }
 
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, CONFIG_KEY, serverConfigs);
-    }
-
-    public CustomVariableContext getCustomVariableContext() {
-        return customVariableContext;
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
