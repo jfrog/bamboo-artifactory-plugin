@@ -362,7 +362,14 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
 
     public String getTagComment() throws RepositoryException, IOException {
         if (tagComment == null) {
-            return "[artifactory-release] Release version " + getVersions().get(0).getReleaseValue();
+            List<ModuleVersionHolder> versions1 = getVersions();
+            String releaseValue;
+            if (!versions1.isEmpty()) {
+                releaseValue = versions1.get(0).getReleaseValue();
+            } else {
+                releaseValue = "1.0.0";
+            }
+            return "[artifactory-release] Release version " + releaseValue;
         }
         return tagComment;
     }
