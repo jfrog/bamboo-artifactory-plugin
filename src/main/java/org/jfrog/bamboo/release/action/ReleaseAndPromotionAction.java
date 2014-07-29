@@ -16,7 +16,6 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
-import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.user.User;
@@ -69,7 +68,8 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     private boolean useCopy;
     private boolean includeDependencies;
     private String artifactoryReleaseManagementUrl = "";
-    private CustomVariableContext customVariableContext;
+
+    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
 
     private static final Map<String, String> MODULE_VERSION_TYPES =
             ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",
@@ -734,7 +734,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * Substitute (replace) Bamboo variable names with their defined values
      */
     private String substituteVariables(String s) {
-        return s != null ? customVariableContext.substituteString(s) : null;
+        return s != null ? serverConfigManager.substituteVariables(s) : null;
     }
 
     public String getPromotionRepo() {
@@ -803,9 +803,5 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
 
     public String doGetLog() {
         return SUCCESS;
-    }
-
-    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
-        this.customVariableContext = customVariableContext;
     }
 }
