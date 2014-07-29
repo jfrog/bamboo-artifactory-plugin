@@ -18,6 +18,6 @@
     [#include "vcsConfiguration.ftl"/]
     [#else]
     <p class="marginned">
-        There are no Gradle versions available for ${plan.name}.
+        No version property found in gradle.properties file based on the release Property Key provided for ${plan.name}.
     </p>
 [/#if]

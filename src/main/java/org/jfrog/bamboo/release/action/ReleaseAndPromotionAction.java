@@ -69,6 +69,8 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     private boolean includeDependencies;
     private String artifactoryReleaseManagementUrl = "";
 
+    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+
     private static final Map<String, String> MODULE_VERSION_TYPES =
             ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",
                     ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
@@ -362,7 +364,14 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
 
     public String getTagComment() throws RepositoryException, IOException {
         if (tagComment == null) {
-            return "[artifactory-release] Release version " + getVersions().get(0).getReleaseValue();
+            List<ModuleVersionHolder> versions1 = getVersions();
+            String releaseValue;
+            if (!versions1.isEmpty()) {
+                releaseValue = versions1.get(0).getReleaseValue();
+            } else {
+                releaseValue = "1.0.0";
+            }
+            return "[artifactory-release] Release version " + releaseValue;
         }
         return tagComment;
     }
@@ -701,24 +710,31 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     private ArtifactoryBuildInfoClient createClient(ServerConfig serverConfig, AbstractBuildContext context) {
-        String serverUrl = serverConfig.getUrl();
-        String username = context.getDeployerUsername();
+        String serverUrl = substituteVariables(serverConfig.getUrl());
+        String username = substituteVariables(context.getDeployerUsername());
         if (StringUtils.isBlank(username)) {
-            username = serverConfig.getUsername();
+            username = substituteVariables(serverConfig.getUsername());
         }
         ArtifactoryBuildInfoClient client;
         BambooBuildInfoLog bambooLog = new BambooBuildInfoLog(log);
         if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, bambooLog);
         } else {
-            String password = context.getDeployerPassword();
+            String password = substituteVariables(context.getDeployerPassword());
             if (StringUtils.isBlank(password)) {
-                password = serverConfig.getPassword();
+                password = substituteVariables(serverConfig.getPassword());
             }
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password, bambooLog);
         }
         client.setConnectionTimeout(serverConfig.getTimeout());
         return client;
+    }
+
+    /**
+     * Substitute (replace) Bamboo variable names with their defined values
+     */
+    private String substituteVariables(String s) {
+        return s != null ? serverConfigManager.substituteVariables(s) : null;
     }
 
     public String getPromotionRepo() {
