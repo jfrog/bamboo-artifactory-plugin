@@ -195,7 +195,7 @@ public class ServerConfigManager implements Serializable {
     /**
      * Substitute (replace) Bamboo variable names with their defined values
      */
-    private String substituteVariables(String s) {
+    public String substituteVariables(String s) {
         return s != null ? customVariableContext.substituteString(s) : null;
     }
 
