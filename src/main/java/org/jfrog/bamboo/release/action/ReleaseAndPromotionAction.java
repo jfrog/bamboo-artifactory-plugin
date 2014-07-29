@@ -16,6 +16,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.user.User;
@@ -68,6 +69,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     private boolean useCopy;
     private boolean includeDependencies;
     private String artifactoryReleaseManagementUrl = "";
+    private CustomVariableContext customVariableContext;
 
     private static final Map<String, String> MODULE_VERSION_TYPES =
             ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",
@@ -708,24 +710,31 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     private ArtifactoryBuildInfoClient createClient(ServerConfig serverConfig, AbstractBuildContext context) {
-        String serverUrl = serverConfig.getUrl();
-        String username = context.getDeployerUsername();
+        String serverUrl = substituteVariables(serverConfig.getUrl());
+        String username = substituteVariables(context.getDeployerUsername());
         if (StringUtils.isBlank(username)) {
-            username = serverConfig.getUsername();
+            username = substituteVariables(serverConfig.getUsername());
         }
         ArtifactoryBuildInfoClient client;
         BambooBuildInfoLog bambooLog = new BambooBuildInfoLog(log);
         if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, bambooLog);
         } else {
-            String password = context.getDeployerPassword();
+            String password = substituteVariables(context.getDeployerPassword());
             if (StringUtils.isBlank(password)) {
-                password = serverConfig.getPassword();
+                password = substituteVariables(serverConfig.getPassword());
             }
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password, bambooLog);
         }
         client.setConnectionTimeout(serverConfig.getTimeout());
         return client;
+    }
+
+    /**
+     * Substitute (replace) Bamboo variable names with their defined values
+     */
+    private String substituteVariables(String s) {
+        return s != null ? customVariableContext.substituteString(s) : null;
     }
 
     public String getPromotionRepo() {
@@ -794,5 +803,9 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
 
     public String doGetLog() {
         return SUCCESS;
+    }
+
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
     }
 }
