@@ -143,23 +143,24 @@ public class ArtifactoryGenericTask implements TaskType {
 
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(context.getSelectedServerId());
-        String username = context.getUsername();
+        String username = serverConfigManager.substituteVariables(context.getUsername());
         if (StringUtils.isBlank(username)) {
-            username = serverConfig.getUsername();
+            username = serverConfigManager.substituteVariables(serverConfig.getUsername());
         }
-        String password = context.getPassword();
+        String password = serverConfigManager.substituteVariables(context.getPassword());
         if (StringUtils.isBlank(password)) {
-            password = serverConfig.getPassword();
+            password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
+        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         ArtifactoryBuildInfoClient client =
-                new ArtifactoryBuildInfoClient(serverConfig.getUrl(), username, password, new BambooBuildInfoLog(log));
+                new ArtifactoryBuildInfoClient(serverUrl, username, password, new BambooBuildInfoLog(log));
         try {
             BuildContext buildContext = taskContext.getBuildContext();
             Build build = buildInfoHelper.extractBuildInfo(buildContext, taskContext.getBuildLogger(), context, username);
             Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap,
                     rootDir, buildContext, context);
             for (DeployDetails detail : details) {
-                StringBuilder deploymentPathBuilder = new StringBuilder(serverConfig.getUrl());
+                StringBuilder deploymentPathBuilder = new StringBuilder(serverUrl);
                 deploymentPathBuilder.append("/").append(detail.getTargetRepository());
                 if (!detail.getArtifactPath().startsWith("/")) {
                     deploymentPathBuilder.append("/");
@@ -169,11 +170,10 @@ public class ArtifactoryGenericTask implements TaskType {
                 client.deployArtifact(detail);
             }
             if (context.isPublishBuildInfo()) {
-                String url = serverConfig.getUrl() + "/api/build";
+                String url = serverUrl + "/api/build";
                 logger.addBuildLogEntry("Deploying build info to: " + url);
                 client.sendBuildInfo(build);
-                buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
-                        serverConfig.getUrl());
+                buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
             }
         } finally {
             client.shutdown();
