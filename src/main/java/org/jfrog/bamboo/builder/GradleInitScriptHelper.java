@@ -228,8 +228,9 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
 
     private void addClientProperties(ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig,
             GradleBuildContext buildContext) {
-        clientConf.publisher.setContextUrl(serverConfig.getUrl());
-        clientConf.resolver.setContextUrl(serverConfig.getUrl());
+        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        clientConf.publisher.setContextUrl(serverUrl);
+        clientConf.resolver.setContextUrl(serverUrl);
         clientConf.setTimeout(serverConfig.getTimeout());
         clientConf.publisher.setRepoKey(buildContext.getPublishingRepo());
         if (StringUtils.isNotBlank(buildContext.releaseManagementContext.getReleaseRepoKey())) {
@@ -241,16 +242,16 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             clientConf.resolver.setRepoKey(resolutionRepo);
         }
 
-        String globalServerUsername = serverConfig.getUsername();
-        String globalServerPassword = serverConfig.getPassword();
+        String globalServerUsername = serverConfigManager.substituteVariables(serverConfig.getUsername());
+        String globalServerPassword = serverConfigManager.substituteVariables(serverConfig.getPassword());
         clientConf.resolver.setUsername(globalServerUsername);
         clientConf.resolver.setPassword(globalServerPassword);
 
-        String deployerUsername = buildContext.getDeployerUsername();
+        String deployerUsername = serverConfigManager.substituteVariables(buildContext.getDeployerUsername());
         if (StringUtils.isBlank(deployerUsername)) {
             deployerUsername = globalServerUsername;
         }
-        String deployerPassword = buildContext.getDeployerPassword();
+        String deployerPassword = serverConfigManager.substituteVariables(buildContext.getDeployerPassword());
         if (StringUtils.isBlank(deployerPassword)) {
             deployerPassword = globalServerPassword;
         }

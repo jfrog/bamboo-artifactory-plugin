@@ -72,9 +72,9 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
                     File tempPropertiesFile = File.createTempFile("buildInfo", "properties");
                     clientConf.setPropertiesFile(tempPropertiesFile.getAbsolutePath());
                     clientConf.persistToPropertiesFile();
+                    String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
                     context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
-                    context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
-                            serverConfig.getUrl());
+                    context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
                     this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
                             String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
 
@@ -214,9 +214,9 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         }
     }
 
-    protected void addClientProperties(AbstractBuildContext buildContext, ArtifactoryClientConfiguration clientConf,
-                                       ServerConfig serverConfig) {
-        clientConf.publisher.setContextUrl(serverConfig.getUrl());
+    protected void addClientProperties(AbstractBuildContext buildContext, ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig) {
+        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        clientConf.publisher.setContextUrl(serverUrl);
         clientConf.setTimeout(serverConfig.getTimeout());
         clientConf.publisher.setRepoKey(buildContext.getPublishingRepo());
         if (StringUtils.isNotBlank(buildContext.releaseManagementContext.getReleaseRepoKey())) {
