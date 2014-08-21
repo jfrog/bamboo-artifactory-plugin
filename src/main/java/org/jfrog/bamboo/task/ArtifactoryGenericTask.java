@@ -57,7 +57,7 @@ public class ArtifactoryGenericTask implements TaskType {
         BuildContext context = taskContext.getBuildContext();
         CurrentBuildResult result = context.getBuildResult();
         // if build wasn't a success don't do anything
-        if (result.getBuildState().equals(BuildState.FAILED) || !result.getBuildErrors().isEmpty()) {
+        if (result.getBuildState().equals(BuildState.FAILED)) {
             log.error(logger.addErrorLogEntry("Build failed, not deploying to Artifactory."));
             return TaskResultBuilder.create(taskContext).success().build();
         }
