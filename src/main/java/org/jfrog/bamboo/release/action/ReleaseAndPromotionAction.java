@@ -54,12 +54,23 @@ import java.util.*;
  */
 @RemoteAgentSupported
 public class ReleaseAndPromotionAction extends ViewBuildResults {
-    private static final Logger log = Logger.getLogger(ReleaseAndPromotionAction.class);
-    private static final String PROMOTION_NORMAL_MODE = "normalMode";
     public static final String PROMOTION_PUSH_TO_NEXUS_MODE = "pushToNexusMode";
     public static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
     public static final String NEXUS_PUSH_PROPERTY_PREFIX = NEXUS_PUSH_PLUGIN_NAME + ".";
+    public static final String NEXT_INTEG_KEY = "version.nextIntegValue";
+    public static final String RELEASE_VALUE_KEY = "version.releaseValue";
+    public static final String CURRENT_VALUE_KEY = "version.currentValue";
+    public static final String RELEASE_PROP_KEY = "version.releaseProp";
+    public static final String MODULE_KEY = "version.key";
+    private static final Logger log = Logger.getLogger(ReleaseAndPromotionAction.class);
+    private static final String PROMOTION_NORMAL_MODE = "normalMode";
     private String promotionMode = PROMOTION_NORMAL_MODE;
+    private static final Map<String, String> MODULE_VERSION_TYPES =
+            ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",
+                    ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
+                    ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
+    public static PromotionContext promotionContext = new PromotionContext();
+    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
     private boolean promoting = true;
     private String promotionRepo = "";
     private VariableDefinitionManager variableDefinitionManager;
@@ -68,13 +79,6 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     private boolean useCopy;
     private boolean includeDependencies;
     private String artifactoryReleaseManagementUrl = "";
-
-    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
-
-    private static final Map<String, String> MODULE_VERSION_TYPES =
-            ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",
-                    ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
-                    ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
     private String moduleVersionConfiguration = ReleaseProvider.CFG_ONE_VERSION;
     private boolean createVcsTag = true;
     private String tagUrl;
@@ -86,12 +90,6 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     private CapabilityContext capabilityContext;
     private String releaseBranch;
     private List<ModuleVersionHolder> versions;
-    public static PromotionContext promotionContext = new PromotionContext();
-    public static final String NEXT_INTEG_KEY = "version.nextIntegValue";
-    public static final String RELEASE_VALUE_KEY = "version.releaseValue";
-    public static final String CURRENT_VALUE_KEY = "version.currentValue";
-    public static final String RELEASE_PROP_KEY = "version.releaseProp";
-    public static final String MODULE_KEY = "version.key";
 
     public ReleaseAndPromotionAction() {
     }
@@ -125,7 +123,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * versions.
      *
      * @return A list of Module version holders, that hold the module name / property key, the original value that is
-     *         there right now, and the new value that it is to be replaced with.
+     * there right now, and the new value that it is to be replaced with.
      */
     public List<ModuleVersionHolder> getVersions() throws RepositoryException, IOException {
         if (versions == null) {
@@ -149,6 +147,10 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             }
         }
         return versions;
+    }
+
+    public void setVersions(List<ModuleVersionHolder> versions) {
+        this.versions = versions;
     }
 
     private int findLatestBuildNumberWithBuildInfo() {
@@ -219,7 +221,8 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
         }
         String className = repository.getClass().getName();
         return "com.atlassian.bamboo.plugins.git.GitRepository".equals(className) ||
-                "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(className);
+                "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(className) ||
+                "com.atlassian.bamboo.plugins.stash.StashRepository".equals(className);
     }
 
     private Repository getRepository() {
@@ -322,11 +325,6 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      */
     private Job getPlanJob() {
         return (Job) getPlan();
-    }
-
-
-    public void setVersions(List<ModuleVersionHolder> versions) {
-        this.versions = versions;
     }
 
     public String getModuleVersionConfiguration() {

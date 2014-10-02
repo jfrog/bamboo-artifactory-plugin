@@ -107,9 +107,12 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         } else if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(scm.getClass().getName())) {
             String repository = customVariableContext.substituteString(configuration.getString("repository.github.repository"));
             return "https://github.com/" + repository + ".git";
-        } else {
-            return "";
+            //Stash repository url
+        } else if ("com.atlassian.bamboo.plugins.stash.StashRepository".equals(scm.getClass().getName())) {
+            return configuration.getString("repository.stash.repositoryUrl");
         }
+
+        return "";
     }
 
     public String getCurrentCommitHash() throws IOException {
@@ -348,8 +351,13 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
                             passphrase = "";
                         }
                     } else {
-                        sshKey = encryptionService.decrypt(configuration.getString("repository.git.ssh.key", ""));
-                        passphrase = encryptionService.decrypt(configuration.getString("repository.git.ssh.passphrase", ""));
+                        //Stash ssh private key
+                        if ("com.atlassian.bamboo.plugins.stash.StashRepository".equals(getBambooScm().getClass().getName())) {
+                            sshKey = encryptionService.decrypt(configuration.getString("repository.stash.key.private"));
+                        } else {
+                            sshKey = encryptionService.decrypt(configuration.getString("repository.git.ssh.key", ""));
+                            passphrase = encryptionService.decrypt(configuration.getString("repository.git.ssh.passphrase", ""));
+                        }
                     }
                     SshSessionFactory factory = new GitSshSessionFactory(sshKey, passphrase);
                     ((SshTransport) transport).setSshSessionFactory(factory);
@@ -369,6 +377,10 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         AbstractRepository scm = getBambooScm();
         if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(scm.getClass().getName())) {
             return GitAuthenticationType.PASSWORD;
+        }
+        //Stash work with ssh Authentication, when using the "Application Links" concept.
+        if ("com.atlassian.bamboo.plugins.stash.StashRepository".equals(scm.getClass().getName())) {
+            return GitAuthenticationType.SSH_KEYPAIR;
         }
         HierarchicalConfiguration configuration = scm.toConfiguration();
         String authentication = configuration.getString("repository.git.authenticationType", "");
