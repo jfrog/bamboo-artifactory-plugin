@@ -11,9 +11,7 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
-import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
@@ -55,8 +53,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     private boolean activateBuildInfoRecording;
 
     public ArtifactoryMaven3Task(final ProcessService processService,
-            final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
-            TestCollationService testCollationService) {
+                                 final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
+                                 TestCollationService testCollationService) {
         super(testCollationService);
         this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;

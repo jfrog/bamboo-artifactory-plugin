@@ -1,28 +1,18 @@
-[@ui.bambooSection titleKey='artifactory.task.generic.deploy.title']
+[@ui.bambooSection titleKey='artifactory.task.generic.resolve.title']
     [@ww.select name='artifactory.generic.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
 <div id="genericArtifactoryConfigDiv">
-    [@ww.select name='artifactory.generic.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
+    [@ww.select name='artifactory.generic.resolveRepo' labelKey='artifactory.task.maven.resolutionRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
 
     [#--The Dummy tags are workaround for the autocomplete (Chorme)--]
     [@ww.password name='artifactory.generic.username.DUMMY' cssStyle='display: none;'/]
-    [@ww.textfield name='artifactory.generic.username' labelKey='artifactory.task.maven.deployerUsername'/]
+    [@ww.textfield name='artifactory.generic.username' labelKey='artifactory.task.maven.resolverUsername'/]
 
     [@ww.password name='artifactory.generic.password.DUMMY' cssStyle='display: none;'/]
-    [@ww.password name='artifactory.generic.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
+    [@ww.password name='artifactory.generic.password' labelKey='artifactory.task.maven.resolverPassword' showPassword='true'/]
 
-    [@ww.textarea name='artifactory.generic.deployPattern' labelKey='artifactory.task.generic.deployPattern' rows='10' cols='80' cssClass="long-field" /]
+    [@ww.textarea name='artifactory.generic.resolvePattern' labelKey='artifactory.task.generic.resolvePattern' rows='10' cols='80' cssClass="long-field" /]
 
-    [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true' /]
-
-    [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' showOn=true]
-    [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='artifactory.generic.includeEnvVars' toggle='true'/]
-
-    [@ui.bambooSection dependsOn='artifactory.generic.includeEnvVars' showOn=true]
-        [@ww.textfield labelKey='artifactory.task.envVarsIncludePatterns' name='artifactory.generic.envVarsIncludePatterns' /]
-        [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='artifactory.generic.envVarsExcludePatterns' /]
-    [/@ui.bambooSection]
-[/@ui.bambooSection]
 </div>
 [/@ui.bambooSection]
 
@@ -53,11 +43,11 @@
     function loadGenericRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                    '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType: 'json',
             cache: false,
             success: function (json) {
-                var repoSelect = document.getElementsByName('artifactory.generic.deployableRepo')[0];
+                var repoSelect = document.getElementsByName('artifactory.generic.resolveRepo')[0];
                 repoSelect.innerHTML = '';
                 if (serverId >= 0) {
 

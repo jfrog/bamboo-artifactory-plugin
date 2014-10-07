@@ -48,12 +48,7 @@ import org.eclipse.jgit.api.errors.InvalidTagNameException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.internal.JGitText;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.RefUpdate;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryState;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTag;
 
@@ -149,6 +144,13 @@ public class DeleteTagCommand extends GitCommand<Object> {
     }
 
     /**
+     * @return the tag name used for the <code>tag</code>
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
      * @param name the tag name used for the {@code tag}
      * @return {@code this}
      */
@@ -156,13 +158,6 @@ public class DeleteTagCommand extends GitCommand<Object> {
         checkCallable();
         this.name = name;
         return this;
-    }
-
-    /**
-     * @return the tag name used for the <code>tag</code>
-     */
-    public String getName() {
-        return name;
     }
 
     /**
@@ -202,6 +197,13 @@ public class DeleteTagCommand extends GitCommand<Object> {
     }
 
     /**
+     * @return the tagger of the tag
+     */
+    public PersonIdent getTagger() {
+        return tagger;
+    }
+
+    /**
      * Sets the tagger of the tag. If the tagger is null, a PersonIdent will be created from the info in the
      * repository.
      *
@@ -211,13 +213,6 @@ public class DeleteTagCommand extends GitCommand<Object> {
     public DeleteTagCommand setTagger(PersonIdent tagger) {
         this.tagger = tagger;
         return this;
-    }
-
-    /**
-     * @return the tagger of the tag
-     */
-    public PersonIdent getTagger() {
-        return tagger;
     }
 
     /**

@@ -3,11 +3,7 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
-import com.atlassian.bamboo.task.AbstractTaskConfigurator;
-import com.atlassian.bamboo.task.BuildTaskRequirementSupport;
-import com.atlassian.bamboo.task.TaskConfigConstants;
-import com.atlassian.bamboo.task.TaskDefinition;
-import com.atlassian.bamboo.task.TaskTestResultsSupport;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
@@ -38,14 +34,14 @@ import java.util.Set;
 public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfigurator implements
         TaskTestResultsSupport, BuildTaskRequirementSupport {
 
-    protected transient ServerConfigManager serverConfigManager;
-    protected AdministrationConfiguration administrationConfiguration;
-    protected UIConfigSupport uiConfigSupport;
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
     private static final Map TEST_RESULTS_FILE_PATTERN_TYPES = ImmutableMap
             .of(CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD, "Look in the standard test results directory.",
                     CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM, "Specify custom results directories");
+    protected transient ServerConfigManager serverConfigManager;
+    protected AdministrationConfiguration administrationConfiguration;
+    protected UIConfigSupport uiConfigSupport;
     private String builderContextPrefix;
     private String capabilityPrefix;
 

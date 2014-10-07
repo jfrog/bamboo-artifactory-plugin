@@ -18,16 +18,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Configuration for {@link org.jfrog.bamboo.task.ArtifactoryGenericDeployTask}
+ * Configuration for {@link org.jfrog.bamboo.task.ArtifactoryGenericResolveTask}
  *
- * @author Tomer Cohen
+ * @author Lior Hasson
  */
-public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurator {
+public class ArtifactoryGenericResolveConfiguration extends AbstractTaskConfigurator {
     private static final Set<String> FIELDS_TO_COPY = GenericContext.getFieldsToCopy();
     protected transient ServerConfigManager serverConfigManager;
 
-
-    protected ArtifactoryGenericBuildConfiguration() {
+    protected ArtifactoryGenericResolveConfiguration() {
         try {
             if (ContainerManager.isContainerSetup()) {
                 serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
@@ -48,8 +47,6 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", -1);
         context.put("selectedRepoKey", "");
-        context.put(GenericContext.PUBLISH_BUILD_INFO, "true");
-        context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
     }
 
     @Override
@@ -62,10 +59,6 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
         context.put("selectedRepoKey", selectedPublishingRepoKey);
         context.put("selectedServerId", context.get(GenericContext.SELECTED_SERVER_ID));
         context.put("serverConfigManager", serverConfigManager);
-        String envVarsExcludePatterns = (String) context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
-        if (envVarsExcludePatterns == null) {
-            context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
-        }
     }
 
     @Override
@@ -81,7 +74,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-            @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
         return configMap;
