@@ -95,7 +95,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
             return TaskResultBuilder.newBuilder(taskContext).failedWithError().build();
         }
         Map<String, String> customBuildData = result.getCustomBuildData();
-        if (!customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
+        if (genericContext.isPublishBuildInfo() && !customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
             customBuildData.put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
         }
         return TaskResultBuilder.newBuilder(taskContext).success().build();
