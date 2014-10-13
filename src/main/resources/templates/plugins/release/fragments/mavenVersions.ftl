@@ -26,9 +26,9 @@ listKey='key' listValue='value' toggle='true' list=moduleVersionTypes ]
         [/#list]
         [#else]
         <p class="marginned">
-            There are no Maven versions available for ${plan.name}.
+            <span style="font-weight: bold; color: red">WARNING: There are no Maven versions available for ${plan.name}
+                . </span>
         </p>
     [/#if]
 [/@ui.bambooSection]
-[#include "vcsConfiguration.ftl"/]
 
