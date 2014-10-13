@@ -127,7 +127,15 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
 
         try {
-            ExternalProcess process = processService.executeProcess(taskContext, processBuilder);
+            ExternalProcess process = processService.createExternalProcess(taskContext, processBuilder);
+            process.execute();
+
+            if (process.getHandler() != null && !process.getHandler().succeeded()) {
+                String externalProcessOutput = getErrorMessage(process);
+                logger.addBuildLogEntry(externalProcessOutput);
+                log.debug("Process command error: " + externalProcessOutput);
+            }
+
             return collectTestResults(buildContext, taskContext, process);
         } finally {
             taskContext.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());
