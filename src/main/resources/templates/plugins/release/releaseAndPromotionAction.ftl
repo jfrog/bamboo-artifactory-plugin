@@ -85,8 +85,10 @@
 
     [#if gradle]
         [#include "fragments/gradleVersions.ftl"/]
+        [#include "fragments/vcsConfiguration.ftl"/]
     [#elseif maven]
         [#include "fragments/mavenVersions.ftl"/]
+        [#include "fragments/vcsConfiguration.ftl"/]
     [#else]
         Only Gradle and Maven types are supported
     [/#if]

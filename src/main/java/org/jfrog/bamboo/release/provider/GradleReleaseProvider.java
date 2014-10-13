@@ -41,6 +41,10 @@ public class GradleReleaseProvider extends AbstractReleaseProvider {
             return false;
         }
         Map<String, String> map = buildMapAccordingToStatus(conf, release);
+        //In case that no version defined by the user
+        if (map.isEmpty())
+            return false;
+
         StringBuilder buildPropertiesLocation = new StringBuilder();
         GradleBuildContext gradleBuildContext = (GradleBuildContext) AbstractBuildContext.createContextFromMap(conf);
         String buildScriptSubDir = gradleBuildContext.getBuildScript();
