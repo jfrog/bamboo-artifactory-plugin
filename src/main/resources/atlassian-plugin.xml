@@ -112,8 +112,7 @@
             <action name="promote" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction" method="promote">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="success" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl
-                </result>
+                <result name="success" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
                 <result name="input" type="redirect">/build/releaseAndPromotionAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
                 <result name="error" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
             </action>
