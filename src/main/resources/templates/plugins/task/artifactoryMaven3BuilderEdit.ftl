@@ -68,6 +68,7 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
         [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='envVarsExcludePatterns'/]
     [/@ui.bambooSection]
 
+    [@ww.checkbox labelKey='artifactory.task.maven.recordAllDependencies' name='recordAllDependencies' toggle='true' /]
     [@ww.checkbox labelKey='artifactory.task.runLicenseChecks' name='runLicenseChecks' toggle='true'/]
 
     [@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
