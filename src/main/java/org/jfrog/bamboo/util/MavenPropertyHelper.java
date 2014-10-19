@@ -19,6 +19,9 @@ public class MavenPropertyHelper extends ArtifactoryBuildInfoPropertyHelper {
             ServerConfig serverConfig) {
         super.addClientProperties(builder, clientConf, serverConfig);
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
+
+        clientConf.publisher.setRecordAllDependencies(buildContext.isRecordAllDependencies());
+
         String resolutionRepo = buildContext.getResolutionRepo();
         if (buildContext.isResolveFromArtifactory() && StringUtils.isNotBlank(resolutionRepo) &&
                 !AbstractBuildContext.NO_RESOLUTION_REPO_KEY_CONFIGURED.equals(resolutionRepo)) {

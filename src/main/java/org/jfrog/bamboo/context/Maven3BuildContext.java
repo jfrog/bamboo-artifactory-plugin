@@ -15,6 +15,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
     public static final String PREFIX = "builder.artifactoryMaven3Builder.";
     public static final String DEPLOYABLE_REPO_KEY = "deployableRepo";
     public static final String PUBLISH_ARTIFACTS = "deployMavenArtifacts";
+    public static final String RECORD_ALL_DEPENDENCIES = "recordAllDependencies";
     public static final String INCLUDE_PATTERN = "deployIncludePatterns";
     public static final String EXCLUDE_PATTERN = "deployExcludePatterns";
     public static final String GOALS = "goal";
@@ -51,6 +52,10 @@ public class Maven3BuildContext extends AbstractBuildContext {
     @Override
     public boolean isPublishArtifacts() {
         return Boolean.parseBoolean(env.get(PUBLISH_ARTIFACTS));
+    }
+
+    public Boolean isRecordAllDependencies() {
+        return Boolean.parseBoolean(env.get(RECORD_ALL_DEPENDENCIES));
     }
 
     public boolean isResolveFromArtifactory() {
@@ -97,6 +102,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
         super.resetContextToDefault();
         env.put(PREFIX + DEPLOYABLE_REPO_KEY, "");
         env.put(PUBLISH_ARTIFACTS, "true");
+        env.put(RECORD_ALL_DEPENDENCIES, "false");
         env.put(PREFIX + INCLUDE_PATTERN, "");
         env.put(PREFIX + EXCLUDE_PATTERN, "");
     }
@@ -125,7 +131,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
                 RUN_LICENSE_CHECKS, PREFIX + LICENSE_VIOLATION_RECIPIENTS,
                 PREFIX + LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES, PREFIX + ENVIRONMENT_VARIABLES,
                 PREFIX + INCLUDE_PUBLISHED_ARTIFACTS, PREFIX + DISABLE_AUTOMATIC_LICENSE_DISCOVERY,
-                PUBLISH_ARTIFACTS, PREFIX + PUBLISH_MAVEN_DESCRIPTORS_PARAM, PREFIX + PROJECT_FILE,
+                PUBLISH_ARTIFACTS, RECORD_ALL_DEPENDENCIES, PREFIX + PUBLISH_MAVEN_DESCRIPTORS_PARAM, PREFIX + PROJECT_FILE,
                 PREFIX + PUBLISH_IVY_DESCRIPTORS_PARAM, USE_M2_COMPATIBLE_PATTERNS_PARAM,
                 PREFIX + IVY_PATTERN_PARAM, PREFIX + ARTIFACT_PATTERN_PARAM, PREFIX + INCLUDE_PATTERN,
                 PREFIX + EXCLUDE_PATTERN, PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM,

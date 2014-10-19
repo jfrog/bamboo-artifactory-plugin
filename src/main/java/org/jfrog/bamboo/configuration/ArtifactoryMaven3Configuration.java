@@ -92,6 +92,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("selectedServerUrl", serverConfig.getUrl());
         context.put("isRunLicenseChecks", buildContext.isRunLicenseChecks());
         context.put("isPublishArtifacts", buildContext.isPublishArtifacts());
+        context.put("isRecordAllDependencies", buildContext.isRecordAllDependencies());
         context.put("hasTests", buildContext.isTestChecked());
         context.put("serverConfigManager", serverConfigManager);
     }
