@@ -16,6 +16,7 @@ import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.spring.container.ContainerManager;
+import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
@@ -152,8 +153,18 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command)
                         .env(environment);
         try {
-            return TaskResultBuilder.create(context)
-                    .checkReturnCode(processService.executeProcess(context, processBuilder)).build();
+
+            ExternalProcess process = processService.createExternalProcess(context, processBuilder);
+            process.execute();
+
+            if (process.getHandler() != null && !process.getHandler().succeeded()) {
+                String externalProcessOutput = getErrorMessage(process);
+                logger.addBuildLogEntry(externalProcessOutput);
+                log.debug("Process command error: " + externalProcessOutput);
+            }
+
+            return TaskResultBuilder.newBuilder(context)
+                    .checkReturnCode(process).build();
         } finally {
             context.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());
         }
