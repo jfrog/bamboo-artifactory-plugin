@@ -53,6 +53,7 @@ import java.util.zip.ZipEntry;
 public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryGradleTask";
     public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
+    public static final String EXECUTABLE_WRAPPER_NAME = SystemUtils.IS_OS_WINDOWS ? "./gradlew.bat" : "./gradlew";
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
     private final ProcessService processService;
@@ -223,7 +224,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             if (StringUtils.isNotBlank(gradleWrapperLocation)) {
                 return gradleWrapperLocation;
             }
-            return "./gradlew";
+            return EXECUTABLE_WRAPPER_NAME;
         } else {
             ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
             if (capabilitySet == null) {
