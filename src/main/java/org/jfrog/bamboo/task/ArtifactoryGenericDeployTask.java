@@ -54,8 +54,8 @@ public class ArtifactoryGenericDeployTask implements TaskType {
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         logger = taskContext.getBuildLogger();
         if (!taskContext.isFinalising()) {
-            log.error(logger.addErrorLogEntry("Artifactory Generic Task must run as a final Task!"));
-            return TaskResultBuilder.newBuilder(taskContext).success().build();
+            log.error(logger.addErrorLogEntry("Artifactory Generic Deploy Task must run as a final Task!"));
+            return TaskResultBuilder.newBuilder(taskContext).failed().build();
         }
         BuildContext context = taskContext.getBuildContext();
         CurrentBuildResult result = context.getBuildResult();
