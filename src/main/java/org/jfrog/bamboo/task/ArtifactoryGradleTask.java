@@ -18,7 +18,7 @@ import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.spring.container.ContainerManager;
-import com.atlassian.utils.process.ExternalProcess;
+import com.atlassian.utils.process.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
@@ -53,6 +53,7 @@ import java.util.zip.ZipEntry;
 public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryGradleTask";
     public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
+    public static final String EXECUTABLE_WRAPPER_NAME = SystemUtils.IS_OS_WINDOWS ? "./gradlew.bat" : "./gradlew";
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
     private final ProcessService processService;
@@ -102,7 +103,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         String gradleCommandLine = getExecutable(buildContext);
         if (StringUtils.isBlank(gradleCommandLine)) {
             log.error(logger.addErrorLogEntry("Gradle executable is not defined!"));
-            return TaskResultBuilder.create(context).failed().build();
+            return TaskResultBuilder.newBuilder(context).failed().build();
         }
         List<String> command = Lists.newArrayList(gradleCommandLine);
         String switches = buildContext.getSwitches();
@@ -152,7 +153,15 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
         try {
-            ExternalProcess process = processService.executeProcess(context, processBuilder);
+            ExternalProcess process = processService.createExternalProcess(context, processBuilder);
+            process.execute();
+
+            if (process.getHandler() != null && !process.getHandler().succeeded()) {
+                String externalProcessOutput = getErrorMessage(process);
+                logger.addBuildLogEntry(externalProcessOutput);
+                log.debug("Process command error: " + externalProcessOutput);
+            }
+
             return collectTestResults(buildContext, context, process);
         } finally {
             context.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());
@@ -215,7 +224,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             if (StringUtils.isNotBlank(gradleWrapperLocation)) {
                 return gradleWrapperLocation;
             }
-            return "./gradlew";
+            return EXECUTABLE_WRAPPER_NAME;
         } else {
             ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
             if (capabilitySet == null) {

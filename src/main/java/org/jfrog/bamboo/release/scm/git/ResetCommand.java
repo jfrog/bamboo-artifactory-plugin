@@ -49,12 +49,7 @@ import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.dircache.DirCacheBuilder;
 import org.eclipse.jgit.dircache.DirCacheCheckout;
 import org.eclipse.jgit.internal.JGitText;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.RefUpdate;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryState;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 
@@ -67,35 +62,14 @@ import java.text.MessageFormat;
  * for one invocation of the command (means: one call to {@link #call()})
  *
  * @see <a href="http://www.kernel.org/pub/software/scm/git/docs/git-reset.html" >Git documentation about Reset</a>
- *      <p/>
- *      <p/>
- *      This class is based on {@link org.eclipse.jgit.api.ResetCommand} TODO: WHEN PLUGIN IS UPDATED REMOVE THIS
- *      CLASS.
+ * <p/>
+ * <p/>
+ * This class is based on {@link org.eclipse.jgit.api.ResetCommand} TODO: WHEN PLUGIN IS UPDATED REMOVE THIS
+ * CLASS.
  */
 public class ResetCommand extends GitCommand<Ref> {
 
-    /**
-     * Kind of reset
-     */
-    public enum ResetType {
-        /**
-         * Just change the ref, the index and workdir are not changed.
-         */
-        SOFT,
-
-        /**
-         * Change the ref and the index, the workdir is not changed.
-         */
-        MIXED,
-
-        /**
-         * Change the ref, the index and the workdir
-         */
-        HARD,
-    }
-
     private String ref;
-
     private ResetType mode;
 
     /**
@@ -235,6 +209,26 @@ public class ResetCommand extends GitCommand<Ref> {
     private void resetMerge() throws IOException {
         repo.writeMergeHeads(null);
         repo.writeMergeCommitMsg(null);
+    }
+
+    /**
+     * Kind of reset
+     */
+    public enum ResetType {
+        /**
+         * Just change the ref, the index and workdir are not changed.
+         */
+        SOFT,
+
+        /**
+         * Change the ref and the index, the workdir is not changed.
+         */
+        MIXED,
+
+        /**
+         * Change the ref, the index and the workdir
+         */
+        HARD,
     }
 
 }

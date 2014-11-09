@@ -10,11 +10,7 @@ import org.eclipse.jgit.internal.JGitText;
 import org.eclipse.jgit.lib.NullProgressMonitor;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.RemoteConfig;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.eclipse.jgit.transport.Transport;
+import org.eclipse.jgit.transport.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -31,9 +27,9 @@ import java.util.List;
  * key-pair and pass-phrase that is sent from Bamboo.
  */
 public class SshPushCommand extends PushCommand {
+    private final Transport transport;
     private List<RefSpec> refSpecs;
     private ProgressMonitor monitor = NullProgressMonitor.INSTANCE;
-    private final Transport transport;
 
     /**
      * @param repo

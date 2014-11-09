@@ -3,6 +3,7 @@ package org.jfrog.bamboo.util;
 import com.atlassian.bamboo.task.TaskDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.task.ArtifactoryGenericDeployTask;
 import org.jfrog.bamboo.task.ArtifactoryGradleTask;
 import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
 
@@ -60,6 +61,21 @@ public abstract class TaskDefinitionHelper {
         if (taskDefinitions != null) {
             for (TaskDefinition definition : taskDefinitions) {
                 if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryMaven3Task.TASK_NAME)) {
+                    return definition;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return Generic Deploy task if found, null if not.
+     */
+    @Nullable
+    public static TaskDefinition findGenericDeployDefinition(List<TaskDefinition> taskDefinitions) {
+        if (taskDefinitions != null) {
+            for (TaskDefinition definition : taskDefinitions) {
+                if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryGenericDeployTask.TASK_NAME)) {
                     return definition;
                 }
             }

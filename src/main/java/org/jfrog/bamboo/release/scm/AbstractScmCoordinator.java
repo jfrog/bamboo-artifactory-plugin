@@ -25,14 +25,13 @@ import java.util.Map;
  */
 public abstract class AbstractScmCoordinator implements ScmCoordinator {
     private static final Logger log = Logger.getLogger(AbstractScmCoordinator.class);
-
-    protected BuildContext context;
     protected final Repository repository;
-    protected boolean modifiedFilesForDevVersion;
-    protected boolean modifiedFilesForReleaseVersion;
     protected final BuildLogger buildLogger;
     protected final CustomVariableContext customVariableContext;
     protected final CredentialsAccessor credentialsAccessor;
+    protected BuildContext context;
+    protected boolean modifiedFilesForDevVersion;
+    protected boolean modifiedFilesForReleaseVersion;
 
     public AbstractScmCoordinator(BuildContext context, Repository repository, BuildLogger buildLogger,
                                   CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
@@ -47,7 +46,7 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
      * Create an SCM coordinator according to the {@link Repository} type, either {@link SvnRepository} or a {@link
      * com.atlassian.bamboo.plugins.git.GitRepository}
      *
-     * @param configuration The build's configuration.
+     * @param configuration       The build's configuration.
      * @param credentialsAccessor
      * @return SCM coordinator according to the repository type.
      */
@@ -75,10 +74,12 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
 
     /**
      * @return Whether this repository is a git repository.
+     * GitHub and Stash has the same behaviour like Git.
      */
     private static boolean isGitScm(Repository repository) {
         return "com.atlassian.bamboo.plugins.git.GitRepository".equals(repository.getClass().getName()) ||
-                "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(repository.getClass().getName());
+                "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(repository.getClass().getName()) ||
+                "com.atlassian.bamboo.plugins.stash.StashRepository".equals(repository.getClass().getName());
     }
 
     @Override
@@ -109,12 +110,12 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
     }
 
     @Override
-    public void setCommitIsh(String commitIsh) {
+    public String getCommitIsh() {
+        return "";
     }
 
     @Override
-    public String getCommitIsh() {
-        return "";
+    public void setCommitIsh(String commitIsh) {
     }
 
     @Override

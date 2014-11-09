@@ -2,15 +2,11 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.task.TaskType;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
-import com.atlassian.utils.process.ExternalProcess;
+import com.atlassian.utils.process.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -144,5 +140,40 @@ public abstract class ArtifactoryTaskType implements TaskType {
             }
         }
         return path;
+    }
+
+    /**
+     * Check if the external process got exception or some errors
+     *
+     * @param process - Bamboo external process
+     * @return full message of errors, if exists
+     */
+    public String getErrorMessage(ExternalProcess process) {
+        ProcessHandler handler = process.getHandler();
+        String commandLine = process.getCommandLine();
+        StringBuilder message = new StringBuilder();
+
+        if (handler.getException() != null) {
+            message.append("Exception executing command \"")
+                    .append(commandLine).append(" \n")
+                    .append(handler.getException().getMessage()).append("\n")
+                    .append(handler.getException()).append("\n");
+        }
+
+        String reason = null;
+        if (handler instanceof PluggableProcessHandler) {
+            OutputHandler errorHandler = ((PluggableProcessHandler) handler).getErrorHandler();
+            if (errorHandler instanceof StringOutputHandler) {
+                StringOutputHandler errorStringHandler = (StringOutputHandler) errorHandler;
+                if (errorStringHandler.getOutput() != null) {
+                    reason = errorStringHandler.getOutput();
+                }
+            }
+        }
+        if (reason != null && reason.trim().length() > 0) {
+            message.append("Error executing command \"").append(commandLine).append("\": ").append(reason);
+        }
+
+        return message.toString();
     }
 }

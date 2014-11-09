@@ -35,7 +35,8 @@
                 <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
                 <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
             </action>
-            <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction" method="browse">
+            <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction"
+                    method="browse">
                 <result name="success" type="freemarker">/admin/existingArtifactoryServerView.ftl</result>
             </action>
             <action name="configureArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction">
@@ -123,7 +124,7 @@
 
             <action name="releaseBuild" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction"
                     method="releaseBuild">
-            <result name="success" type="redirect">/browse/${buildKey}/log</result>
+                <result name="success" type="redirect">/browse/${buildKey}/log</result>
             </action>
         </package>
     </xwork>
@@ -192,13 +193,13 @@
 
     <buildProcessor key="artifactoryBuildInfoCopier" name="Artifactory Build Info Copier"
                     class="org.jfrog.bamboo.processor.BuildInfoCopier">
-    <skipIfFailed>true</skipIfFailed>
+        <skipIfFailed>true</skipIfFailed>
         <description>Post build processor to copy build info to artifact storage.</description>
     </buildProcessor>
 
     <buildProcessor key="artifactoryGradlePropertiesCopier" name="Artifactory Gradle Properties Info Copier"
                     class="org.jfrog.bamboo.processor.GradlePropertiesCopier">
-    <skipIfFailed>true</skipIfFailed>
+        <skipIfFailed>true</skipIfFailed>
         <description>Post build processor to copy gradle properties to artifact storage.</description>
     </buildProcessor>
 
@@ -240,13 +241,28 @@
     <!--Generic build action-->
 
     <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy"
-              class="org.jfrog.bamboo.task.ArtifactoryGenericTask">
+              class="org.jfrog.bamboo.task.ArtifactoryGenericDeployTask">
         <description>Artifactory Generic Deploy Task</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
         <category name="deployment"/>
         <executable key="generic"/>
-        <resource type="freemarker" name="edit" location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+    </taskType>
+
+    <taskType key="artifactoryGenericResolveTask" name="Artifactory Generic Resolve"
+              class="org.jfrog.bamboo.task.ArtifactoryGenericResolveTask">
+        <description>Artifactory Generic Deploy Task</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
+        <category name="resolve"/>
+        <executable key="generic"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/generic/artifactoryGenericResolveActionEdit.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/generic/artifactoryGenericResolveActionView.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
     </taskType>
 </atlassian-plugin>

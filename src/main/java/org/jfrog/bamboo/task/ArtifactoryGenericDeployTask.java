@@ -17,11 +17,13 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
-import org.jfrog.bamboo.util.GenericBuildInfoHelper;
+import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
+import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.client.DeployDetails;
+import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.util.PublishedItemsHelper;
 
 import java.io.File;
@@ -36,13 +38,14 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_SELECTED_SERVER_
 /**
  * @author Tomer Cohen
  */
-public class ArtifactoryGenericTask implements TaskType {
-    private static final Logger log = Logger.getLogger(ArtifactoryGenericTask.class);
+public class ArtifactoryGenericDeployTask implements TaskType {
+    public static final String TASK_NAME = "artifactoryGenericTask";
+    private static final Logger log = Logger.getLogger(ArtifactoryGenericDeployTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private BuildLogger logger;
     private GenericBuildInfoHelper buildInfoHelper;
 
-    public ArtifactoryGenericTask(EnvironmentVariableAccessor environmentVariableAccessor) {
+    public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
     }
 
@@ -51,15 +54,15 @@ public class ArtifactoryGenericTask implements TaskType {
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         logger = taskContext.getBuildLogger();
         if (!taskContext.isFinalising()) {
-            log.error(logger.addErrorLogEntry("Artifactory Generic Task must run as a final Task!"));
-            return TaskResultBuilder.create(taskContext).success().build();
+            log.error(logger.addErrorLogEntry("Artifactory Generic Deploy Task must run as a final Task!"));
+            return TaskResultBuilder.newBuilder(taskContext).failed().build();
         }
         BuildContext context = taskContext.getBuildContext();
         CurrentBuildResult result = context.getBuildResult();
         // if build wasn't a success don't do anything
-        if (result.getBuildState().equals(BuildState.FAILED) || !result.getBuildErrors().isEmpty()) {
+        if (result.getBuildState().equals(BuildState.FAILED)) {
             log.error(logger.addErrorLogEntry("Build failed, not deploying to Artifactory."));
-            return TaskResultBuilder.create(taskContext).success().build();
+            return TaskResultBuilder.newBuilder(taskContext).success().build();
         }
         GenericContext genericContext = new GenericContext(taskContext.getConfigurationMap());
         Map<String, String> env = Maps.newHashMap();
@@ -81,23 +84,21 @@ public class ArtifactoryGenericTask implements TaskType {
             File sourceCodeDirectory = getWorkingDirectory(context, taskContext);
             if (sourceCodeDirectory == null) {
                 log.error(logger.addErrorLogEntry("No build directory found!"));
-                return TaskResultBuilder.create(taskContext).success().build();
+                return TaskResultBuilder.newBuilder(taskContext).success().build();
             }
             Multimap<String, File> filesMap = buildTargetPathToFiles(sourceCodeDirectory, genericContext);
-            if (!filesMap.isEmpty()) {
-                deploy(filesMap, genericContext, taskContext, sourceCodeDirectory);
-            }
+            deploy(filesMap, genericContext, taskContext, sourceCodeDirectory);
         } catch (Exception e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);
             log.error(message, e);
-            return TaskResultBuilder.create(taskContext).failedWithError().build();
+            return TaskResultBuilder.newBuilder(taskContext).failedWithError().build();
         }
         Map<String, String> customBuildData = result.getCustomBuildData();
-        if (!customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
+        if (genericContext.isPublishBuildInfo() && !customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
             customBuildData.put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
         }
-        return TaskResultBuilder.create(taskContext).success().build();
+        return TaskResultBuilder.newBuilder(taskContext).success().build();
     }
 
     private File getWorkingDirectory(BuildContext context, TaskContext taskContext) throws RepositoryException {
@@ -159,6 +160,12 @@ public class ArtifactoryGenericTask implements TaskType {
             Build build = buildInfoHelper.extractBuildInfo(buildContext, taskContext.getBuildLogger(), context, username);
             Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap,
                     rootDir, buildContext, context);
+
+            /**
+             * Look for dependencies from the Generic resolve task, if exists!
+             * */
+            getDependenciesFromContext(taskContext, build);
+
             for (DeployDetails detail : details) {
                 StringBuilder deploymentPathBuilder = new StringBuilder(serverUrl);
                 deploymentPathBuilder.append("/").append(detail.getTargetRepository());
@@ -177,6 +184,18 @@ public class ArtifactoryGenericTask implements TaskType {
             }
         } finally {
             client.shutdown();
+        }
+    }
+
+    private void getDependenciesFromContext(TaskContext taskContext, Build build) throws IOException {
+        String genericJson = taskContext.getBuildContext().getParentBuildContext().getBuildResult().
+                getCustomBuildData().get("genericJson");
+
+        if (StringUtils.isNotBlank(genericJson)) {
+            GenericData genericData = BuildInfoExtractorUtils.jsonStringToGeneric(genericJson, GenericData.class);
+            //Assumption: There is only one module for Generic
+            build.getModules().get(0).setDependencies(genericData.getDependencies());
+            build.setBuildDependencies(genericData.getBuildDependencies());
         }
     }
 }

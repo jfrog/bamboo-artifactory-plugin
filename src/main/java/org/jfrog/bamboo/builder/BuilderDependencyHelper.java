@@ -27,11 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.PluginProperties;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * @author Noam Y. Tenne
@@ -130,7 +126,12 @@ public class BuilderDependencyHelper implements Serializable {
         FileOutputStream fileOutputStream = null;
 
         try {
-            int responseStatus = client.executeMethod(getMethod);
+            int responseStatus;
+            try {
+                responseStatus = client.executeMethod(getMethod);
+            } catch (IOException e) {
+                throw new IOException("Failed while invoking URL: " + dependencyUrl + "  " + e.getMessage());
+            }
             if (responseStatus == HttpStatus.SC_NOT_FOUND) {
                 throw new IOException("Unable to find required dependency: " + dependencyUrl);
             } else if (responseStatus != HttpStatus.SC_OK) {
