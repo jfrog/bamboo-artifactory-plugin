@@ -11,6 +11,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
@@ -28,6 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -76,7 +78,8 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
                 artifact.setLocation(location);
                 artifact.setCopyPattern(buildInfoZip.getName());
                 Map<String, String> config = Maps.newHashMap();
-                artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, config, 1);
+                Set<String> successfulPublishers = Sets.newHashSet();
+                artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, config, successfulPublishers, 1);
             }
         }
         return buildContext;
