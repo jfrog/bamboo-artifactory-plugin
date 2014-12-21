@@ -12,6 +12,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,7 @@ import org.jfrog.bamboo.util.version.ScmHelper;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Copy the {@code gradle.properties} file to the artifacts folder of the build, this will be later used for detecting
@@ -72,7 +74,8 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
                 artifact.setLocation(location);
                 artifact.setCopyPattern(gradleProps.getName());
                 Map<String, String> config = Maps.newHashMap();
-                artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, config, 1);
+                Set<String> successfulPublishers = Sets.newHashSet();
+                artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, config, successfulPublishers, 1);
 
             }
         }
