@@ -18,7 +18,7 @@ import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.spring.container.ContainerManager;
-import com.atlassian.utils.process.*;
+import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
@@ -57,7 +57,6 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
     private final ProcessService processService;
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
     private BuilderDependencyHelper dependencyHelper;
     private String gradleDependenciesDir = null;
@@ -66,12 +65,22 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     public ArtifactoryGradleTask(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
                                  TestCollationService testCollationService) {
-        super(testCollationService);
+        super(testCollationService, environmentVariableAccessor);
         this.processService = processService;
-        this.environmentVariableAccessor = environmentVariableAccessor;
         this.capabilityContext = capabilityContext;
         dependencyHelper = new BuilderDependencyHelper("artifactoryGradleBuilder");
         ContainerManager.autowireComponent(dependencyHelper);
+    }
+
+    private GradleBuildContext createBuildContext(TaskContext context) {
+        Map<String, String> combinedMap = Maps.newHashMap();
+        combinedMap.putAll(context.getConfigurationMap());
+        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
+        if (parentBuildContext != null) {
+            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
+            combinedMap.putAll(customBuildData);
+        }
+        return new GradleBuildContext(combinedMap);
     }
 
     @Override
@@ -80,14 +89,10 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         BuildLogger logger = getBuildLogger(context);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
-        Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(context.getConfigurationMap());
-        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
-        if (parentBuildContext != null) {
-            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
-            combinedMap.putAll(customBuildData);
-        }
-        GradleBuildContext buildContext = new GradleBuildContext(combinedMap);
+
+        GradleBuildContext buildContext = createBuildContext(context);
+        initEnvironmentVariables(buildContext);
+
         long serverId = buildContext.getArtifactoryServerId();
         File rootDirectory = context.getRootDirectory();
         try {
@@ -137,21 +142,13 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         if (StringUtils.isNotBlank(subDirectory)) {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
-        Map<String, String> env = Maps.newHashMap();
-        env.putAll(environmentVariableAccessor.getEnvironment());
-        if (StringUtils.isNotBlank(buildContext.getEnvironmentVariables())) {
-            env.putAll(environmentVariableAccessor
-                    .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
-        }
 
-        /**
-         * Override the Java home in porpoise of running the gradle form the JDK that was defined in the job configuration.
-         * */
-        env.put("JAVA_HOME", getJavaHome(buildContext, capabilityContext));
+        // Override the JAVA_HOME according to the build configuration:
+        environmentVariables.put("JAVA_HOME", getConfiguredJdkPath(buildContext, capabilityContext));
 
         log.debug("Running Gradle command: " + command.toString());
         ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
+                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
         try {
             ExternalProcess process = processService.createExternalProcess(context, processBuilder);
             process.execute();

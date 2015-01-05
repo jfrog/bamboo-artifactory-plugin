@@ -59,7 +59,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
     public ArtifactoryIvyTask(final ProcessService processService,
             final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
             TestCollationService testCollationService) {
-        super(testCollationService);
+        super(testCollationService, environmentVariableAccessor);
         this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;
         this.capabilityContext = capabilityContext;
@@ -142,10 +142,8 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
 
-        /**
-         * Override the Java home in porpoise of running the gradle form the JDK that was defined in the job configuration.
-         * */
-        environment.put("JAVA_HOME", getJavaHome(buildContext, capabilityContext));
+        // Override the JAVA_HOME according to the build configuration:
+        environment.put("JAVA_HOME", getConfiguredJdkPath(buildContext, capabilityContext));
 
         log.debug("Running Ant command: " + command.toString());
 

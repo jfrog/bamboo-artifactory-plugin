@@ -55,12 +55,20 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     public ArtifactoryMaven3Task(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
                                  TestCollationService testCollationService) {
-        super(testCollationService);
+        super(testCollationService, environmentVariableAccessor);
         this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;
         this.capabilityContext = capabilityContext;
         dependencyHelper = new BuilderDependencyHelper("artifactoryMaven3Builder");
         ContainerManager.autowireComponent(dependencyHelper);
+    }
+
+    private Maven3BuildContext createBuildContext(TaskContext taskContext) {
+        Map<String, String> combinedMap = Maps.newHashMap();
+        combinedMap.putAll(taskContext.getConfigurationMap());
+        Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
+        combinedMap.putAll(customBuildData);
+        return new Maven3BuildContext(combinedMap);
     }
 
     @Override
@@ -69,11 +77,10 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         BuildLogger logger = getBuildLogger(taskContext);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
-        Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(taskContext.getConfigurationMap());
-        Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
-        combinedMap.putAll(customBuildData);
-        Maven3BuildContext buildContext = new Maven3BuildContext(combinedMap);
+
+        Maven3BuildContext buildContext = createBuildContext(taskContext);
+        initEnvironmentVariables(buildContext);
+
         long serverId = buildContext.getArtifactoryServerId();
         File rootDirectory = taskContext.getRootDirectory();
         try {
@@ -115,16 +122,10 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         if (StringUtils.isNotBlank(subDirectory)) {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
-        Map<String, String> env = Maps.newHashMap();
-        env.putAll(environmentVariableAccessor.getEnvironment());
-        if (StringUtils.isNotBlank(buildContext.getEnvironmentVariables())) {
-            env.putAll(environmentVariableAccessor
-                    .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
-        }
 
         log.debug("Running maven command: " + command.toString());
         ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
+                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
 
         try {
             ExternalProcess process = processService.createExternalProcess(taskContext, processBuilder);
@@ -283,7 +284,22 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      */
     @Override
     public String getExecutable(AbstractBuildContext context) throws TaskException {
-        return getJavaExe(context, capabilityContext);
+        StringBuilder binPathBuilder = new StringBuilder(getConfiguredJdkPath(context, capabilityContext));
+        if (SystemUtils.IS_OS_WINDOWS) {
+            binPathBuilder.append("bin").append(File.separator).append("java.exe");
+        } else {
+            // IBM's AIX JDK has different locations
+            String aixJdkLocation = "jre" + File.separator + "sh" + File.separator + "java";
+            File aixJdk = new File(binPathBuilder.toString() + aixJdkLocation);
+            if (aixJdk.isFile()) {
+                binPathBuilder.append(aixJdkLocation);
+            } else {
+                binPathBuilder.append("bin").append(File.separator).append("java");
+            }
+        }
+        String binPath = binPathBuilder.toString();
+        binPath = getCanonicalPath(binPath);
+        return binPath;
     }
 
     private void appendAdditionalMavenParameters(List<String> arguments, Maven3BuildContext context) {
