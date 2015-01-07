@@ -6,10 +6,14 @@
 
 [@ww.textfield labelKey='artifactory.task.gradle.buildFile' name='builder.artifactoryGradleBuilder.buildFile'/]
 
-[#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
-[@ww.select labelKey='builder.common.jdk' name='builder.artifactoryGradleBuilder.buildJdk' cssClass="jdkSelectWidget"
-list=uiConfigBean.jdkLabels required='true'
-extraUtility=addJdkLink /]
+<div id="buildJdkSelectionDiv">
+    [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
+    [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryGradleBuilder.buildJdk' cssClass="jdkSelectWidget"
+    list=uiConfigBean.jdkLabels required='true'
+    extraUtility=addJdkLink /]
+</div>
+<div id="buildJdkOverridenDiv">
+</div>
 
 [@ww.checkbox labelKey='artifactory.task.gradle.useGradleWrapper' name='builder.artifactoryGradleBuilder.useGradleWrapper' toggle='true'/]
 
@@ -121,6 +125,16 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
 <script type="text/javascript">
 
+    function displayBuildJdkSection(buildJdkOverridenWithEnvVar, envVarName) {
+        if (buildJdkOverridenWithEnvVar == 'true') {
+            document.getElementById('buildJdkSelectionDiv').style.display = 'none';
+            document.getElementById("buildJdkOverridenDiv").innerHTML = "The value of the '" + envVarName +
+            "' environment variable is used for the build JDK."
+        } else {
+            document.getElementById("buildJdkOverridenDiv").style.display = 'none';
+        }
+    }
+
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
@@ -225,5 +239,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
             }
         });
     }
+
+    displayBuildJdkSection('${isOverrideBuildJdk}', '${overrideBuildJdkWithEnvVar}');
     displayGradleArtifactoryConfigs(${selectedServerId});
 </script>

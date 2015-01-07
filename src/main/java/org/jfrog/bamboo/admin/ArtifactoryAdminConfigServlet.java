@@ -16,17 +16,14 @@
 
 package org.jfrog.bamboo.admin;
 
-import com.atlassian.bamboo.build.DefaultJob;
-import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
-import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jfrog.bamboo.builder.BambooUtilsHelper;
 import org.jfrog.bamboo.util.ConstantValues;
 
 import javax.servlet.ServletException;
@@ -53,19 +50,8 @@ public class ArtifactoryAdminConfigServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Map<String, String> globalVariableMap = Maps.newHashMap();
         String planKey = req.getParameter(ConstantValues.PLAN_KEY_PARAM);
-        if (StringUtils.isNotBlank(planKey)) {
-            Plan plan = planManager.getPlanByKey(planKey);
-            if (plan instanceof DefaultJob) {
-                //Default jobs don't have any global vars, so fetch the actual plan itself instead
-                plan = planManager.getPlanByKey(StringUtils.removeEnd(plan.getKey(), "-" + plan.getBuildKey()));
-            }
-            appendVariableDefs(globalVariableMap, variableDefinitionManager.getPlanVariables(plan));
-            appendVariableDefs(globalVariableMap, variableDefinitionManager.getGlobalNotOverriddenVariables(plan));
-        } else {
-            appendVariableDefs(globalVariableMap, variableDefinitionManager.getGlobalVariables());
-        }
+        Map<String, String> variables = BambooUtilsHelper.getInstance().getAllVariables(planKey);
 
         JsonFactory jsonFactory = new JsonFactory();
         ObjectMapper mapper = new ObjectMapper();
@@ -75,7 +61,7 @@ public class ArtifactoryAdminConfigServlet extends HttpServlet {
         try {
             writer = resp.getWriter();
             JsonGenerator jsonGenerator = jsonFactory.createJsonGenerator(writer);
-            jsonGenerator.writeObject(globalVariableMap);
+            jsonGenerator.writeObject(variables);
             writer.flush();
         } finally {
             IOUtils.closeQuietly(writer);

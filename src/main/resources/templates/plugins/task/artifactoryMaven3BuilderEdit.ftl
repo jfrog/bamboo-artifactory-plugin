@@ -2,10 +2,14 @@
 [@ww.textarea labelKey='artifactory.task.maven.goals' name='builder.artifactoryMaven3Builder.goal' rows='4' required='true' /]
 [@ww.textarea labelKey='artifactory.task.maven.additionalMavenParams' name='builder.artifactoryMaven3Builder.additionalMavenParams' rows='2' required='false' /]
 
-[#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
-[@ww.select labelKey='builder.common.jdk' name='builder.artifactoryMaven3Builder.buildJdk' cssClass="jdkSelectWidget"
-list=uiConfigBean.jdkLabels required='true'
-extraUtility=addJdkLink /]
+<div id="buildJdkSelectionDiv">
+    [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
+    [@ww.select labelKey='artifactory.task.maven.buildJdk' name='builder.artifactoryMaven3Builder.buildJdk' cssClass="jdkSelectWidget"
+    list=uiConfigBean.jdkLabels required='true'
+    extraUtility=addJdkLink /]
+</div>
+<div id="buildJdkOverridenDiv">
+</div>
 
 [#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='maven'/][/#assign]
 [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryMaven3Builder.executable'
@@ -111,6 +115,16 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 </div>
 
 <script>
+    function displayBuildJdkSection(buildJdkOverridenWithEnvVar, envVarName) {
+        if (buildJdkOverridenWithEnvVar == 'true') {
+            document.getElementById('buildJdkSelectionDiv').style.display = 'none';
+            document.getElementById("buildJdkOverridenDiv").innerHTML = "The value of the '" + envVarName +
+                "' environment variable is used for the build JDK."
+        } else {
+            document.getElementById("buildJdkOverridenDiv").style.display = 'none';
+        }
+    }
+
     function displayMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
@@ -237,7 +251,7 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
         });
     }
 
-
+    displayBuildJdkSection('${isOverrideBuildJdk}', '${overrideBuildJdkWithEnvVar}');
     displayMaven3ArtifactoryConfigs(${selectedServerId});
     displayResolutionMaven3ArtifactoryConfigs(${selectedResolutionArtifactoryServerId});
 

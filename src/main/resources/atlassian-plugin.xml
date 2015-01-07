@@ -27,6 +27,8 @@
     <component name="Artifactory Server Configuration Management Component" key="artifactoryServerConfigManager"
                class="org.jfrog.bamboo.admin.ServerConfigManager"/>
 
+    <component name="Artifactory Bamboo Utilities Helper" key="artifactoryBambooUtilsHelper"
+               class="org.jfrog.bamboo.builder.BambooUtilsHelper"/>
 
     <!--Server admin-->
     <xwork key="manageArtifactoryServersAdmin" name="Artifactory Plugin">

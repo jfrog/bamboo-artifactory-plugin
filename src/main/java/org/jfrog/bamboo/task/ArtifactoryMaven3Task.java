@@ -11,6 +11,7 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
@@ -78,13 +79,13 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
 
-        Maven3BuildContext buildContext = createBuildContext(taskContext);
-        initEnvironmentVariables(buildContext);
+        Maven3BuildContext mavenBuildContext = createBuildContext(taskContext);
+        initEnvironmentVariables(mavenBuildContext);
 
-        long serverId = buildContext.getArtifactoryServerId();
+        long serverId = mavenBuildContext.getArtifactoryServerId();
         File rootDirectory = taskContext.getRootDirectory();
         try {
-            mavenDependenciesDir = extractMaven3Dependencies(rootDirectory, serverId, buildContext);
+            mavenDependenciesDir = extractMaven3Dependencies(rootDirectory, serverId, mavenBuildContext);
         } catch (IOException e) {
             mavenDependenciesDir = null;
             logger.addBuildLogEntry(new ErrorLogEntry(
@@ -96,15 +97,15 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
             ArtifactoryBuildInfoPropertyHelper propertyHelper = new MavenPropertyHelper();
             propertyHelper.init(taskContext.getBuildContext());
-            buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(buildContext, logger,
+            buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(mavenBuildContext, logger,
                     environmentVariableAccessor.getEnvironment(taskContext),
                     environmentVariableAccessor.getEnvironment());
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
             }
         }
-        List<String> command = getCommand(buildContext);
-        String mavenHome = getMavenHome(buildContext);
+        List<String> command = getCommand(taskContext.getBuildContext(), mavenBuildContext);
+        String mavenHome = getMavenHome(mavenBuildContext);
         if (StringUtils.isBlank(mavenHome)) {
             log.error(logger.addErrorLogEntry("Maven home is not defined!"));
             return TaskResultBuilder.create(taskContext).failed().build();
@@ -112,13 +113,13 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         appendClassPathArguments(command, mavenHome);
         appendClassWorldsConfArgument(command, mavenHome);
         appendBuildInfoPropertiesArgument(command);
-        appendMavenOpts(command, buildContext);
+        appendMavenOpts(command, mavenBuildContext);
         addMavenHome(command, mavenHome);
         command.add("org.codehaus.plexus.classworlds.launcher.Launcher");
 
-        appendGoals(command, buildContext);
-        appendAdditionalMavenParameters(command, buildContext);
-        String subDirectory = buildContext.getWorkingSubDirectory();
+        appendGoals(command, mavenBuildContext);
+        appendAdditionalMavenParameters(command, mavenBuildContext);
+        String subDirectory = mavenBuildContext.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(subDirectory)) {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
@@ -137,7 +138,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
                 log.debug("Process command error: " + externalProcessOutput);
             }
 
-            return collectTestResults(buildContext, taskContext, process);
+            return collectTestResults(mavenBuildContext, taskContext, process);
         } finally {
             taskContext.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());
         }
@@ -147,9 +148,9 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         command.add(Commandline.quoteArgument("-Dmaven.home" + "=" + mavenHome));
     }
 
-    private List<String> getCommand(Maven3BuildContext context) throws TaskException {
+    private List<String> getCommand(BuildContext buildContext, Maven3BuildContext mavenBuildContext) throws TaskException {
         List<String> command = Lists.newArrayList();
-        String executable = getExecutable(context);
+        String executable = getExecutable(buildContext, mavenBuildContext);
         if (StringUtils.isBlank(executable)) {
             log.error("No Maven executable found");
             return command;
@@ -165,8 +166,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         return command;
     }
 
-    private void appendMavenOpts(List<String> arguments, Maven3BuildContext context) {
-        String mavenOpts = context.getMavenOpts();
+    private void appendMavenOpts(List<String> arguments, Maven3BuildContext mavenBuildContext) {
+        String mavenOpts = mavenBuildContext.getMavenOpts();
         if (StringUtils.isNotBlank(mavenOpts)) {
             String[] mavenOptsToken = StringUtils.split(mavenOpts, " ");
             for (String opt : mavenOptsToken) {
@@ -266,14 +267,14 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      *
      * @return Path of recorder and dependency jar folder if extraction succeeded. Null if not
      */
-    private String extractMaven3Dependencies(File rootDir, long artifactoryServerId, Maven3BuildContext context)
+    private String extractMaven3Dependencies(File rootDir, long artifactoryServerId, Maven3BuildContext mavenBuildContext)
             throws IOException {
 
         if (artifactoryServerId == -1) {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(rootDir, context,
+        return dependencyHelper.downloadDependenciesAndGetPath(rootDir, mavenBuildContext,
                 PluginProperties.MAVEN3_DEPENDENCY_FILENAME_KEY);
     }
 
@@ -282,9 +283,9 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      *
      * @return Java bin path
      */
-    @Override
-    public String getExecutable(AbstractBuildContext context) throws TaskException {
-        StringBuilder binPathBuilder = new StringBuilder(getConfiguredJdkPath(context, capabilityContext));
+    public String getExecutable(BuildContext buildContext, AbstractBuildContext context) throws TaskException {
+        String jdkPath = getConfiguredJdkPath(buildContext, context, capabilityContext);
+        StringBuilder binPathBuilder = new StringBuilder(jdkPath);
         if (SystemUtils.IS_OS_WINDOWS) {
             binPathBuilder.append("bin").append(File.separator).append("java.exe");
         } else {

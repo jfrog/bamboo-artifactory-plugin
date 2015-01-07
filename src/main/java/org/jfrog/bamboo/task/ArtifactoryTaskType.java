@@ -3,13 +3,19 @@ package org.jfrog.bamboo.task;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.TaskType;
+import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.utils.process.*;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.jfrog.bamboo.configuration.BuildJdkOverride;
+import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 
 import java.io.File;
@@ -22,8 +28,8 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public abstract class ArtifactoryTaskType implements TaskType {
-
     protected static final String JDK_LABEL_KEY = "system.jdk.";
+
     protected Map<String, String> environmentVariables;
     protected final EnvironmentVariableAccessor environmentVariableAccessor;
     private final TestCollationService testCollationService;
@@ -56,16 +62,6 @@ public abstract class ArtifactoryTaskType implements TaskType {
         return taskContext.getBuildLogger();
     }
 
-    /**
-     * Get the executable to run for the build based upon the build's context.
-     *
-     * @param buildContext The build context.
-     * @return The path to the executable to run for the build
-     * @throws TaskException Thrown if the path to the executable defined in the build's {@link
-     *                       com.atlassian.bamboo.v2.build.agent.capability.Capability} does not exist.
-     */
-    public abstract String getExecutable(AbstractBuildContext buildContext) throws TaskException;
-
     public TaskResult collectTestResults(AbstractBuildContext buildContext, TaskContext taskContext,
             ExternalProcess process) {
         TaskResultBuilder builder = TaskResultBuilder.create(taskContext).checkReturnCode(process);
@@ -83,7 +79,19 @@ public abstract class ArtifactoryTaskType implements TaskType {
      * @param capabilityContext The capability context of the build.
      * @return                  The path to the Java home.
      */
-    protected String getConfiguredJdkPath(AbstractBuildContext context, CapabilityContext capabilityContext) {
+    protected String getConfiguredJdkPath(BuildContext buildContext, AbstractBuildContext context, CapabilityContext capabilityContext) {
+        // If the relevant Bamboo variables have beeen configured, read the build JDK from the configured
+        // environment variables, instead of using the JDK configured inside the task:
+        BuildJdkOverride buildJdkOverride = ConfigurationHelper.getBuildJdkOverride(buildContext.getPlanKey());
+        if (buildJdkOverride.isOverride()) {
+            String envVarName = buildJdkOverride.getOverrideWithEnvVarName();
+            String envVarValue = environmentVariables.get(envVarName);
+            if (envVarValue == null) {
+                throw new RuntimeException("The task is configured to use the '" + envVarName + "' environment variable for the build JDK, but this environment variable is not defined.");
+            }
+            return envVarValue;
+        }
+
         String jdkCapabilityKey = JDK_LABEL_KEY + context.getJdkLabel();
         ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
         if (capabilitySet == null) {
