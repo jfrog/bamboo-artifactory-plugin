@@ -115,15 +115,6 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 </div>
 
 <script>
-    function displayBuildJdkSection(buildJdkOverridenWithEnvVar, envVarName) {
-        if (buildJdkOverridenWithEnvVar == 'true') {
-            document.getElementById('buildJdkSelectionDiv').style.display = 'none';
-            document.getElementById("buildJdkOverridenDiv").innerHTML =
-                    "The Build JDK is extracted from the '" + envVarName + "' environment variable."
-        } else {
-            document.getElementById("buildJdkOverridenDiv").style.display = 'none';
-        }
-    }
 
     function displayMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryConfigDiv');
@@ -251,7 +242,6 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
         });
     }
 
-    displayBuildJdkSection('${isOverrideBuildJdk}', '${overrideBuildJdkWithEnvVar}');
     displayMaven3ArtifactoryConfigs(${selectedServerId});
     displayResolutionMaven3ArtifactoryConfigs(${selectedResolutionArtifactoryServerId});
 

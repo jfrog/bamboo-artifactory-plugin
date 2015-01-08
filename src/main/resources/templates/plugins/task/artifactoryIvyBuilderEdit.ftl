@@ -88,16 +88,6 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 
 <script>
 
-    function displayBuildJdkSection(buildJdkOverridenWithEnvVar, envVarName) {
-        if (buildJdkOverridenWithEnvVar == 'true') {
-            document.getElementById('buildJdkSelectionDiv').style.display = 'none';
-            document.getElementById("buildJdkOverridenDiv").innerHTML =
-                    "The Build JDK is extracted from the '" + envVarName + "' environment variable."
-        } else {
-            document.getElementById("buildJdkOverridenDiv").style.display = 'none';
-        }
-    }
-
     function displayIvyArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('ivyArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
@@ -161,6 +151,5 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
         });
     }
 
-    displayBuildJdkSection('${isOverrideBuildJdk}', '${overrideBuildJdkWithEnvVar}');
     displayIvyArtifactoryConfigs(${selectedServerId});
 </script>

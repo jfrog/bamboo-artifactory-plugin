@@ -61,7 +61,7 @@
         <buildinfo.version>2.3.1</buildinfo.version>
         <buildinfo.gradle.version>3.0.1</buildinfo.gradle.version>
         <buildinfo.ivy.version>2.3.0</buildinfo.ivy.version>
-        <buildinfo.maven.version>2.4.x-SNAPSHOT</buildinfo.maven.version>
+        <buildinfo.maven.version>2.4.1</buildinfo.maven.version>
     </properties>
 
     <dependencies>

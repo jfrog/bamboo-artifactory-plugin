@@ -124,17 +124,6 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 </div>
 
 <script type="text/javascript">
-
-    function displayBuildJdkSection(buildJdkOverridenWithEnvVar, envVarName) {
-        if (buildJdkOverridenWithEnvVar == 'true') {
-            document.getElementById('buildJdkSelectionDiv').style.display = 'none';
-            document.getElementById("buildJdkOverridenDiv").innerHTML =
-                "The Build JDK is extracted from the '" + envVarName + "' environment variable."
-        } else {
-            document.getElementById("buildJdkOverridenDiv").style.display = 'none';
-        }
-    }
-
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
@@ -240,6 +229,5 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
         });
     }
 
-    displayBuildJdkSection('${isOverrideBuildJdk}', '${overrideBuildJdkWithEnvVar}');
     displayGradleArtifactoryConfigs(${selectedServerId});
 </script>

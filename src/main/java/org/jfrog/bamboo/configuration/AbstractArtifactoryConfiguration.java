@@ -3,7 +3,6 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
-import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
@@ -166,14 +165,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         context.put("testDirectoryTypes", TEST_RESULTS_FILE_PATTERN_TYPES);
         context.put(AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM, "true");
         context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
-
-        // If the relevant Bamboo variables have been configured to override the build JDK, we need
-        // to make sure that the task configuration UI reflects that, so we add this information to the
-        // UI context:
-        Plan plan = (Plan)context.get("plan");
-        BuildJdkOverride jdkOverride = ConfigurationHelper.getBuildJdkOverride(plan.getPlanKey().getKey());
-        context.put("isOverrideBuildJdk", Boolean.toString(jdkOverride.isOverride()));
-        context.put("overrideBuildJdkWithEnvVar", jdkOverride.getOverrideWithEnvVarName());
     }
 
     /**
