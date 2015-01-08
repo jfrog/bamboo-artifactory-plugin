@@ -19,12 +19,12 @@ package org.jfrog.bamboo.admin;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
-import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jfrog.bamboo.builder.BambooUtilsHelper;
+import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.util.ConstantValues;
 
 import javax.servlet.ServletException;
@@ -52,8 +52,7 @@ public class ArtifactoryAdminConfigServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String planKey = req.getParameter(ConstantValues.PLAN_KEY_PARAM);
-        BambooUtilsHelper helper = (BambooUtilsHelper) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_BAMBOO_UTILS_HELPER_KEY);
+        BambooUtilsHelper helper = ConfigurationHelper.getBambooUtilsHelper();
         Map<String, String> variables = helper.getAllVariables(planKey);
 
         JsonFactory jsonFactory = new JsonFactory();

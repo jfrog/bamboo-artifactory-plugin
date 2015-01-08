@@ -77,6 +77,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         combinedMap.putAll(context.getConfigurationMap());
         combinedMap.putAll(context.getBuildContext().getBuildDefinition().getCustomConfiguration());
         IvyBuildContext ivyBuildContext = new IvyBuildContext(combinedMap);
+        initEnvironmentVariables(ivyBuildContext);
         File rootDirectory = context.getRootDirectory();
         long serverId = ivyBuildContext.getArtifactoryServerId();
         try {
