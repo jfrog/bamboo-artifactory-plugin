@@ -1,6 +1,8 @@
 package org.jfrog.bamboo.configuration;
 
+import com.atlassian.spring.container.ContainerManager;
 import org.jfrog.bamboo.builder.BambooUtilsHelper;
+import org.jfrog.bamboo.util.ConstantValues;
 
 import java.util.Map;
 
@@ -9,7 +11,9 @@ import java.util.Map;
  */
 public class ConfigurationHelper {
     public static BuildJdkOverride getBuildJdkOverride(String planKey) {
-        Map<String, String> variables = BambooUtilsHelper.getInstance().getAllVariables(planKey);
+        BambooUtilsHelper helper = (BambooUtilsHelper) ContainerManager.getComponent(
+                ConstantValues.ARTIFACTORY_BAMBOO_UTILS_HELPER_KEY);
+        Map<String, String> variables = helper.getAllVariables(planKey);
 
         BuildJdkOverride override = new BuildJdkOverride();
         override.setOverride(Boolean.valueOf(variables.get(BuildJdkOverride.SHOULD_OVERRIDE_JDK_KEY)));

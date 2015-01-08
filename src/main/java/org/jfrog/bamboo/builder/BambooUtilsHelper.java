@@ -5,7 +5,6 @@ import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
-import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 
@@ -16,21 +15,8 @@ import java.util.Map;
  * This class contains utilities and APIs.
  */
 public class BambooUtilsHelper {
-    private static BambooUtilsHelper instance = null;
-    private static Object lock = new Object();
     private PlanManager planManager;
     private VariableDefinitionManager variableDefinitionManager;
-
-    public static BambooUtilsHelper getInstance() {
-        if (instance == null) {
-            synchronized (lock) {
-                if (instance == null) {
-                    instance = (BambooUtilsHelper)ContainerManager.getComponent("artifactoryBambooUtilsHelper");
-                }
-            }
-        }
-        return instance;
-    }
 
     /**
      * Gets all of Bamboo's global variables.
