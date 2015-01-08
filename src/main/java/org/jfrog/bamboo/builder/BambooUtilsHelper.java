@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by user on 06/01/2015.
+ * This class contains utilities and APIs.
  */
 public class BambooUtilsHelper {
     private PlanManager planManager;
@@ -23,10 +23,19 @@ public class BambooUtilsHelper {
         return (BambooUtilsHelper)ContainerManager.getComponent("artifactoryBambooUtilsHelper");
     }
 
+    /**
+     * Gets all of Bamboo's global variables.
+     * @return  Map containing all of Bamboo's global variables.
+     */
     public Map<String, String> getGlobalVariables() {
         return getAllVariables(null);
     }
 
+    /**
+     * Gets all of Bamboo's variables. Plan variables override the global variables.
+     * @param planKey   The key of the relevant plan, so that this plan's variables are returned.
+     * @return          Map containing all variables.
+     */
     public Map<String, String> getAllVariables(String planKey) {
         Map<String, String> variableMap = Maps.newHashMap();
         if (StringUtils.isNotBlank(planKey)) {

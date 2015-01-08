@@ -279,7 +279,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     }
 
     /**
-     * Returns the path of the java executable binary of the select JDK
+     * Returns the path of the java executable of the select JDK
      *
      * @return Java bin path
      */

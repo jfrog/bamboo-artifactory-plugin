@@ -5,7 +5,7 @@ import org.jfrog.bamboo.builder.BambooUtilsHelper;
 import java.util.Map;
 
 /**
- * Created by user on 07/01/2015.
+ * A helper class to be used for the Artifactory tasks configuration.
  */
 public class ConfigurationHelper {
     public static BuildJdkOverride getBuildJdkOverride(String planKey) {

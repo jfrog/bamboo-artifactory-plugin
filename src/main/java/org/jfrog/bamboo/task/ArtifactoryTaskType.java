@@ -80,8 +80,8 @@ public abstract class ArtifactoryTaskType implements TaskType {
      * @return                  The path to the Java home.
      */
     protected String getConfiguredJdkPath(BuildContext buildContext, AbstractBuildContext context, CapabilityContext capabilityContext) {
-        // If the relevant Bamboo variables have beeen configured, read the build JDK from the configured
-        // environment variables, instead of using the JDK configured inside the task:
+        // If the relevant Bamboo variables have been configured, read the build JDK from the configured
+        // environment variable, instead of using the JDK configured inside the task:
         BuildJdkOverride buildJdkOverride = ConfigurationHelper.getBuildJdkOverride(buildContext.getPlanKey());
         if (buildJdkOverride.isOverride()) {
             String envVarName = buildJdkOverride.getOverrideWithEnvVarName();
