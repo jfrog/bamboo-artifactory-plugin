@@ -91,8 +91,8 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
     function displayBuildJdkSection(buildJdkOverridenWithEnvVar, envVarName) {
         if (buildJdkOverridenWithEnvVar == 'true') {
             document.getElementById('buildJdkSelectionDiv').style.display = 'none';
-            document.getElementById("buildJdkOverridenDiv").innerHTML = "The value of the '" + envVarName +
-            "' environment variable is used for the build JDK."
+            document.getElementById("buildJdkOverridenDiv").innerHTML =
+                    "The Build JDK is extracted from the '" + envVarName + "' environment variable."
         } else {
             document.getElementById("buildJdkOverridenDiv").style.display = 'none';
         }
