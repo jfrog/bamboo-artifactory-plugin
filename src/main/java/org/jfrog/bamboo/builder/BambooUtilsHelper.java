@@ -16,11 +16,20 @@ import java.util.Map;
  * This class contains utilities and APIs.
  */
 public class BambooUtilsHelper {
+    private static BambooUtilsHelper instance = null;
+    private static Object lock = new Object();
     private PlanManager planManager;
     private VariableDefinitionManager variableDefinitionManager;
 
-    public static synchronized BambooUtilsHelper getInstance() {
-        return (BambooUtilsHelper)ContainerManager.getComponent("artifactoryBambooUtilsHelper");
+    public static BambooUtilsHelper getInstance() {
+        if (instance == null) {
+            synchronized (lock) {
+                if (instance == null) {
+                    instance = (BambooUtilsHelper)ContainerManager.getComponent("artifactoryBambooUtilsHelper");
+                }
+            }
+        }
+        return instance;
     }
 
     /**
