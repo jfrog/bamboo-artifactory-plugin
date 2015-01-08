@@ -16,13 +16,11 @@ import java.util.Map;
  * This class contains utilities and APIs.
  */
 public class BambooUtilsHelper {
-    private static BambooUtilsHelper instance =
-        (BambooUtilsHelper)ContainerManager.getComponent("artifactoryBambooUtilsHelper");
     private PlanManager planManager;
     private VariableDefinitionManager variableDefinitionManager;
 
-    public static BambooUtilsHelper getInstance() {
-        return instance;
+    public static synchronized BambooUtilsHelper getInstance() {
+        return (BambooUtilsHelper)ContainerManager.getComponent("artifactoryBambooUtilsHelper");
     }
 
     /**
