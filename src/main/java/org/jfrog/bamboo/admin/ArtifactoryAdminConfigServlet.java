@@ -16,15 +16,17 @@
 
 package org.jfrog.bamboo.admin;
 
+import com.atlassian.bamboo.build.DefaultJob;
+import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
+import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jfrog.bamboo.builder.BambooUtilsHelper;
-import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.util.ConstantValues;
 
 import javax.servlet.ServletException;
@@ -52,8 +54,7 @@ public class ArtifactoryAdminConfigServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String planKey = req.getParameter(ConstantValues.PLAN_KEY_PARAM);
-        BambooUtilsHelper helper = ConfigurationHelper.getBambooUtilsHelper();
-        Map<String, String> variables = helper.getAllVariables(planKey);
+        Map<String, String> variables = getAllVariables(planKey);
 
         JsonFactory jsonFactory = new JsonFactory();
         ObjectMapper mapper = new ObjectMapper();
@@ -68,6 +69,28 @@ public class ArtifactoryAdminConfigServlet extends HttpServlet {
         } finally {
             IOUtils.closeQuietly(writer);
         }
+    }
+
+    /**
+     * Gets all of Bamboo's variables. Plan variables override the global variables.
+     * @param planKey   The key of the relevant plan, so that this plan's variables are returned.
+     * @return          Map containing all variables.
+     */
+    private Map<String, String> getAllVariables(String planKey) {
+        Map<String, String> variableMap = Maps.newHashMap();
+        if (StringUtils.isNotBlank(planKey)) {
+            Plan plan = planManager.getPlanByKey(planKey);
+            if (plan instanceof DefaultJob) {
+                // Default jobs don't have any global vars, so fetch the actual plan itself instead
+                plan = planManager.getPlanByKey(StringUtils.removeEnd(plan.getKey(), "-" + plan.getBuildKey()));
+            }
+            appendVariableDefs(variableMap, variableDefinitionManager.getPlanVariables(plan));
+            appendVariableDefs(variableMap, variableDefinitionManager.getGlobalNotOverriddenVariables(plan));
+        } else {
+            appendVariableDefs(variableMap, variableDefinitionManager.getGlobalVariables());
+        }
+
+        return variableMap;
     }
 
     private void appendVariableDefs(Map<String, String> globalVariableMap, List<VariableDefinition> globalVariables) {
