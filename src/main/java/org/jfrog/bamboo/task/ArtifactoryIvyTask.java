@@ -59,7 +59,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
     public ArtifactoryIvyTask(final ProcessService processService,
             final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
             TestCollationService testCollationService) {
-        super(testCollationService);
+        super(testCollationService, environmentVariableAccessor);
         this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;
         this.capabilityContext = capabilityContext;
@@ -76,11 +76,12 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         Map<String, String> combinedMap = Maps.newHashMap();
         combinedMap.putAll(context.getConfigurationMap());
         combinedMap.putAll(context.getBuildContext().getBuildDefinition().getCustomConfiguration());
-        IvyBuildContext buildContext = new IvyBuildContext(combinedMap);
+        IvyBuildContext ivyBuildContext = new IvyBuildContext(combinedMap);
+        initEnvironmentVariables(ivyBuildContext);
         File rootDirectory = context.getRootDirectory();
-        long serverId = buildContext.getArtifactoryServerId();
+        long serverId = ivyBuildContext.getArtifactoryServerId();
         try {
-            ivyDependenciesDir = extractIvyDependencies(serverId, rootDirectory, buildContext);
+            ivyDependenciesDir = extractIvyDependencies(serverId, rootDirectory, ivyBuildContext);
             log.info(logger.addBuildLogEntry("Ivy dependency directory found at: " + ivyDependenciesDir));
         } catch (IOException ioe) {
             ivyDependenciesDir = null;
@@ -95,7 +96,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             logger.addErrorLogEntry(message);
             log.error(message);
         }
-        String executable = getExecutable(buildContext);
+        String executable = getExecutable(ivyBuildContext);
         if (StringUtils.isBlank(executable)) {
             log.error(logger.addErrorLogEntry("Cannot find ivy executable"));
             return TaskResultBuilder.create(context).failed().build();
@@ -105,7 +106,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         if (StringUtils.isNotBlank(ivyDependenciesDir)) {
             ArtifactoryBuildInfoPropertyHelper propertyHelper = new IvyPropertyHelper();
             propertyHelper.init(context.getBuildContext());
-            buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(buildContext, context.getBuildLogger(),
+            buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(ivyBuildContext, context.getBuildLogger(),
                     environmentVariableAccessor.getEnvironment(context), globalEnv);
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
@@ -119,33 +120,32 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             command.add("-listener");
             command.add(Commandline.quoteArgument("org.jfrog.build.extractor.listener.ArtifactoryBuildListener"));
         }
-        String buildFile = buildContext.getBuildFile();
+        String buildFile = ivyBuildContext.getBuildFile();
         if (StringUtils.isNotBlank(buildFile)) {
             command.addAll(Arrays.asList("-f", buildFile));
         }
-        String targets = buildContext.getTargets();
+        String targets = ivyBuildContext.getTargets();
         if (StringUtils.isNotBlank(targets)) {
             String[] targetTokens = StringUtils.split(targets, ' ');
             command.addAll(Arrays.asList(targetTokens));
         }
 
-        String antOpts = buildContext.getAntOpts();
+        String antOpts = ivyBuildContext.getAntOpts();
         if (StringUtils.isNotBlank(antOpts)) {
             environment.put("ANT_OPTS", antOpts);
         }
-        if (StringUtils.isNotBlank(buildContext.getEnvironmentVariables())) {
+        if (StringUtils.isNotBlank(ivyBuildContext.getEnvironmentVariables())) {
             environment.putAll(environmentVariableAccessor
-                    .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
+                    .splitEnvironmentAssignments(ivyBuildContext.getEnvironmentVariables(), false));
         }
-        String subDirectory = buildContext.getWorkingSubDirectory();
+        String subDirectory = ivyBuildContext.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(subDirectory)) {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
 
-        /**
-         * Override the Java home in porpoise of running the gradle form the JDK that was defined in the job configuration.
-         * */
-        environment.put("JAVA_HOME", getJavaHome(buildContext, capabilityContext));
+        // Override the JAVA_HOME according to the build configuration:
+        String jdkPath = getConfiguredJdkPath(context.getBuildContext(), ivyBuildContext, capabilityContext);
+        environment.put("JAVA_HOME", jdkPath);
 
         log.debug("Running Ant command: " + command.toString());
 
@@ -186,7 +186,6 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
                 PluginProperties.IVY_DEPENDENCY_FILENAME_KEY);
     }
 
-    @Override
     public String getExecutable(AbstractBuildContext buildContext) throws TaskException {
         ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
         if (capabilitySet == null) {

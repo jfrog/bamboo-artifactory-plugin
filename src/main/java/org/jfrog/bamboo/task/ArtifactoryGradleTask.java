@@ -18,7 +18,7 @@ import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.spring.container.ContainerManager;
-import com.atlassian.utils.process.*;
+import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
@@ -57,7 +57,6 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
     private final ProcessService processService;
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
     private BuilderDependencyHelper dependencyHelper;
     private String gradleDependenciesDir = null;
@@ -66,12 +65,22 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     public ArtifactoryGradleTask(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
                                  TestCollationService testCollationService) {
-        super(testCollationService);
+        super(testCollationService, environmentVariableAccessor);
         this.processService = processService;
-        this.environmentVariableAccessor = environmentVariableAccessor;
         this.capabilityContext = capabilityContext;
         dependencyHelper = new BuilderDependencyHelper("artifactoryGradleBuilder");
         ContainerManager.autowireComponent(dependencyHelper);
+    }
+
+    private GradleBuildContext createBuildContext(TaskContext context) {
+        Map<String, String> combinedMap = Maps.newHashMap();
+        combinedMap.putAll(context.getConfigurationMap());
+        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
+        if (parentBuildContext != null) {
+            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
+            combinedMap.putAll(customBuildData);
+        }
+        return new GradleBuildContext(combinedMap);
     }
 
     @Override
@@ -80,18 +89,14 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         BuildLogger logger = getBuildLogger(context);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
-        Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(context.getConfigurationMap());
-        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
-        if (parentBuildContext != null) {
-            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
-            combinedMap.putAll(customBuildData);
-        }
-        GradleBuildContext buildContext = new GradleBuildContext(combinedMap);
-        long serverId = buildContext.getArtifactoryServerId();
+
+        GradleBuildContext gradleBuildContext = createBuildContext(context);
+        initEnvironmentVariables(gradleBuildContext);
+
+        long serverId = gradleBuildContext.getArtifactoryServerId();
         File rootDirectory = context.getRootDirectory();
         try {
-            gradleDependenciesDir = extractGradleDependencies(serverId, rootDirectory, buildContext);
+            gradleDependenciesDir = extractGradleDependencies(serverId, rootDirectory, gradleBuildContext);
         } catch (IOException e) {
             gradleDependenciesDir = null;
             logger.addBuildLogEntry(new ErrorLogEntry(
@@ -100,20 +105,20 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             log.error("Error occurred while preparing Artifactory Gradle Runner dependencies. " +
                     "Build Info support is disabled.", e);
         }
-        String gradleCommandLine = getExecutable(buildContext);
+        String gradleCommandLine = getExecutable(gradleBuildContext);
         if (StringUtils.isBlank(gradleCommandLine)) {
             log.error(logger.addErrorLogEntry("Gradle executable is not defined!"));
             return TaskResultBuilder.newBuilder(context).failed().build();
         }
         List<String> command = Lists.newArrayList(gradleCommandLine);
-        String switches = buildContext.getSwitches();
+        String switches = gradleBuildContext.getSwitches();
         if (StringUtils.isNotBlank(switches)) {
             String[] switchTokens = StringUtils.split(switches, ' ');
             command.addAll(Arrays.asList(switchTokens));
         }
-        String tasks = buildContext.getTasks();
-        if (buildContext.releaseManagementContext.isActivateReleaseManagement()) {
-            String altTasks = buildContext.releaseManagementContext.getAlternativeTasks();
+        String tasks = gradleBuildContext.getTasks();
+        if (gradleBuildContext.releaseManagementContext.isActivateReleaseManagement()) {
+            String altTasks = gradleBuildContext.releaseManagementContext.getAlternativeTasks();
             if (StringUtils.isNotBlank(altTasks)) {
                 tasks = altTasks;
             }
@@ -123,9 +128,9 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             command.addAll(Arrays.asList(taskTokens));
         }
 
-        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(context, buildContext);
+        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(context, gradleBuildContext);
         if (pathHolder != null) {
-            if (!buildContext.useArtifactoryGradlePlugin()) {
+            if (!gradleBuildContext.useArtifactoryGradlePlugin()) {
                 command.add("-I");
                 command.add(Commandline.quoteArgument(pathHolder.getInitScriptPath()));
             }
@@ -133,25 +138,18 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             command.add(BuildInfoBaseTask.BUILD_INFO_TASK_NAME);
         }
 
-        String subDirectory = buildContext.getBuildScript();
+        String subDirectory = gradleBuildContext.getBuildScript();
         if (StringUtils.isNotBlank(subDirectory)) {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
-        Map<String, String> env = Maps.newHashMap();
-        env.putAll(environmentVariableAccessor.getEnvironment());
-        if (StringUtils.isNotBlank(buildContext.getEnvironmentVariables())) {
-            env.putAll(environmentVariableAccessor
-                    .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
-        }
 
-        /**
-         * Override the Java home in porpoise of running the gradle form the JDK that was defined in the job configuration.
-         * */
-        env.put("JAVA_HOME", getJavaHome(buildContext, capabilityContext));
+        // Override the JAVA_HOME according to the build configuration:
+        String jdkPath = getConfiguredJdkPath(context.getBuildContext(), gradleBuildContext, capabilityContext);
+        environmentVariables.put("JAVA_HOME", jdkPath);
 
         log.debug("Running Gradle command: " + command.toString());
         ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(env);
+                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
         try {
             ExternalProcess process = processService.createExternalProcess(context, processBuilder);
             process.execute();
@@ -162,7 +160,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                 log.debug("Process command error: " + externalProcessOutput);
             }
 
-            return collectTestResults(buildContext, context, process);
+            return collectTestResults(gradleBuildContext, context, process);
         } finally {
             context.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());
         }
@@ -217,7 +215,6 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         }
     }
 
-    @Override
     public String getExecutable(AbstractBuildContext buildContext) throws TaskException {
         if ((buildContext instanceof GradleBuildContext) && ((GradleBuildContext) buildContext).isUseGradleWrapper()) {
             String gradleWrapperLocation = ((GradleBuildContext) buildContext).getGradleWrapperLocation();

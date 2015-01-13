@@ -24,6 +24,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.PluginProperties;
 
@@ -160,5 +161,6 @@ public class BuilderDependencyHelper implements Serializable {
     public void setAdministrationConfigurationManager(
             AdministrationConfigurationManager administrationConfigurationManager) {
         this.administrationConfigurationManager = administrationConfigurationManager;
+        ConfigurationHelper.getInstance().setAdministrationConfigurationManager(administrationConfigurationManager);
     }
 }

@@ -6,10 +6,14 @@
 
 [@ww.textfield labelKey='artifactory.task.gradle.buildFile' name='builder.artifactoryGradleBuilder.buildFile'/]
 
-[#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
-[@ww.select labelKey='builder.common.jdk' name='builder.artifactoryGradleBuilder.buildJdk' cssClass="jdkSelectWidget"
-list=uiConfigBean.jdkLabels required='true'
-extraUtility=addJdkLink /]
+<div id="buildJdkSelectionDiv">
+    [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
+    [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryGradleBuilder.buildJdk' cssClass="jdkSelectWidget"
+    list=uiConfigBean.jdkLabels required='true'
+    extraUtility=addJdkLink /]
+</div>
+<div id="buildJdkOverridenDiv">
+</div>
 
 [@ww.checkbox labelKey='artifactory.task.gradle.useGradleWrapper' name='builder.artifactoryGradleBuilder.useGradleWrapper' toggle='true'/]
 
@@ -120,7 +124,6 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 </div>
 
 <script type="text/javascript">
-
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
@@ -225,5 +228,6 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
             }
         });
     }
+
     displayGradleArtifactoryConfigs(${selectedServerId});
 </script>

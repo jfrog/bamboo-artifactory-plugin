@@ -167,7 +167,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
     }
 
-
     /**
      * Sets the UI config bean from bamboo. NOTE: This method is called from Bamboo upon instantiation of this class by
      * reflection.

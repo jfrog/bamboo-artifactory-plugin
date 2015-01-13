@@ -1,10 +1,14 @@
 [@ww.textfield labelKey='artifactory.task.ivy.buildFile' name='builder.artifactoryIvyBuilder.buildFile' required='true' /]
 [@ww.textfield labelKey='artifactory.task.ivy.targets' name='builder.artifactoryIvyBuilder.target' required='true'/]
 
-[#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
-[@ww.select labelKey='builder.common.jdk' name='builder.artifactoryIvyBuilder.buildJdk' cssClass="jdkSelectWidget"
-list=uiConfigBean.jdkLabels required='true'
-extraUtility=addJdkLink /]
+<div id="buildJdkSelectionDiv">
+    [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
+    [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryIvyBuilder.buildJdk' cssClass="jdkSelectWidget"
+    list=uiConfigBean.jdkLabels required='true'
+    extraUtility=addJdkLink /]
+</div>
+<div id="buildJdkOverridenDiv">
+</div>
 
 [#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='ivy'/][/#assign]
 [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryIvyBuilder.executable'
@@ -83,6 +87,7 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 </div>
 
 <script>
+
     function displayIvyArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('ivyArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
@@ -145,5 +150,6 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
             }
         });
     }
+
     displayIvyArtifactoryConfigs(${selectedServerId});
 </script>
