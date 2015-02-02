@@ -16,7 +16,7 @@ import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
-import org.jfrog.build.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 
 import java.io.IOException;

@@ -32,8 +32,8 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.util.NullLog;
-import org.jfrog.build.client.ArtifactoryClientConfiguration;
-import org.jfrog.build.client.IncludeExcludePatterns;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
+import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
 import org.joda.time.DateTime;
 
 import java.io.File;

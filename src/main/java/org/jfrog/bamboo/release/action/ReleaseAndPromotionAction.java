@@ -40,7 +40,7 @@ import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VersionHelper;
 import org.jfrog.build.api.release.Promotion;
-import org.jfrog.build.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
 import java.util.*;
@@ -64,13 +64,13 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     public static final String MODULE_KEY = "version.key";
     private static final Logger log = Logger.getLogger(ReleaseAndPromotionAction.class);
     private static final String PROMOTION_NORMAL_MODE = "normalMode";
-    private String promotionMode = PROMOTION_NORMAL_MODE;
     private static final Map<String, String> MODULE_VERSION_TYPES =
             ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",
                     ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
                     ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
     public static PromotionContext promotionContext = new PromotionContext();
     ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+    private String promotionMode = PROMOTION_NORMAL_MODE;
     private boolean promoting = true;
     private String promotionRepo = "";
     private VariableDefinitionManager variableDefinitionManager;
