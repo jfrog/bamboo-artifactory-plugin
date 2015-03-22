@@ -17,7 +17,8 @@
 package org.jfrog.bamboo.admin;
 
 import com.atlassian.bamboo.bandana.PlanAwareBandanaContext;
-import com.atlassian.bamboo.security.StringEncrypter;
+import com.atlassian.bamboo.security.EncryptionService;
+import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bandana.BandanaManager;
 import com.atlassian.spring.container.ContainerManager;
@@ -43,6 +44,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ServerConfigManager implements Serializable {
 
+    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
     private static final String CONFIG_KEY = "org.jfrog.bamboo.server.configurations";
     private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<ServerConfig>();
     private transient Logger log = Logger.getLogger(ServerConfigManager.class);
@@ -106,8 +108,6 @@ public class ServerConfigManager implements Serializable {
 
         Object existingConfigs = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, CONFIG_KEY);
         if (existingConfigs != null) {
-
-            StringEncrypter stringEncrypter = new StringEncrypter();
             List<ServerConfig> serverConfigList = (List<ServerConfig>) existingConfigs;
 
             for (ServerConfig serverConfig : serverConfigList) {
@@ -116,7 +116,7 @@ public class ServerConfigManager implements Serializable {
                 }
 
                 configuredServers.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(),
-                        serverConfig.getUsername(), stringEncrypter.decrypt(serverConfig.getPassword()),
+                        serverConfig.getUsername(), encryptionService.decrypt(serverConfig.getPassword()),
                         serverConfig.getTimeout()));
             }
         }
@@ -245,12 +245,11 @@ public class ServerConfigManager implements Serializable {
     }
 
     private synchronized void persist() {
-        StringEncrypter stringEncrypter = new StringEncrypter();
         List<ServerConfig> serverConfigs = Lists.newArrayList();
 
         for (ServerConfig serverConfig : configuredServers) {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
-                    stringEncrypter.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
+                    encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
         }
 
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, CONFIG_KEY, serverConfigs);

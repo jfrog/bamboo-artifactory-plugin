@@ -8,7 +8,6 @@ import com.atlassian.bamboo.credentials.SshCredentialsImpl;
 import com.atlassian.bamboo.repository.AbstractRepository;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.security.EncryptionService;
-import com.atlassian.bamboo.security.StringEncrypter;
 import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
@@ -39,7 +38,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 
 /**
- * Manager that manages the {@link GitRepository}
+ * Manager that manages the Git repository.
  *
  * @author Tomer Cohen
  */
@@ -48,6 +47,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     private static final String REF_PREFIX = "refs/heads/";
     private static final String REFS_TAGS = "refs/tags/";
 
+    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
     private BuildLogger buildLogger;
     private TextProvider textProvider;
     private CustomVariableContext customVariableContext;
@@ -62,13 +62,12 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
         this.customVariableContext = customVariableContext;
         this.credentialsAccessor = credentialsAccessor;
         HierarchicalConfiguration configuration = repository.toConfiguration();
-        StringEncrypter encrypter = new StringEncrypter();
         if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(repository.getClass().getName())) {
             username = configuration.getString("repository.git.username", "");
-            password = encrypter.decrypt(configuration.getString("repository.git.password", ""));
+            password = encryptionService.decrypt(configuration.getString("repository.git.password", ""));
         } else if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(repository.getClass().getName())) {
             username = configuration.getString("repository.github.username", "");
-            password = encrypter.decrypt(configuration.getString("repository.github.password", ""));
+            password = encryptionService.decrypt(configuration.getString("repository.github.password", ""));
         }
     }
 
@@ -336,7 +335,6 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
                 if (transport instanceof SshTransport) {
                     AbstractRepository scm = getBambooScm();
                     HierarchicalConfiguration configuration = scm.toConfiguration();
-                    EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
                     String sshKey = "";
                     String passphrase = "";
                     if (authenticationType.equals(GitAuthenticationType.SHARED_CREDENTIALS)) {
