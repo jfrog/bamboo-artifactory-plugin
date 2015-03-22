@@ -50,7 +50,7 @@
     </scm>
 
     <properties>
-        <bamboo.version>5.6.0</bamboo.version>
+        <bamboo.version>5.8.1</bamboo.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
