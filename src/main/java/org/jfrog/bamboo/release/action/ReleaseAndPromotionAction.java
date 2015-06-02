@@ -80,6 +80,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     private boolean includeDependencies;
     private String artifactoryReleaseManagementUrl = "";
     private String moduleVersionConfiguration = ReleaseProvider.CFG_ONE_VERSION;
+    private String gradleUseCurrentVersion = "false";
     private boolean createVcsTag = true;
     private String tagUrl;
     private String tagComment;
@@ -147,6 +148,14 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             }
         }
         return versions;
+    }
+
+    public String getGradleUseCurrentVersion() {
+        return gradleUseCurrentVersion;
+    }
+
+    public void setGradleUseCurrentVersion(String gradleUseCurrentVersion) {
+        this.gradleUseCurrentVersion = gradleUseCurrentVersion;
     }
 
     public void setVersions(List<ModuleVersionHolder> versions) {
@@ -287,6 +296,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
         String createVcsTag = createVcsTagParam != null ? createVcsTagParam[0] : "false";
         configuration.put(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG, createVcsTag);
         configuration.put(ReleaseProvider.MODULE_VERSION_CONFIGURATION, getModuleVersionConfiguration());
+        configuration.put(ReleaseProvider.CFG_GRADLE_USE_CURRENT_VERSION, getGradleUseCurrentVersion());
         TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
         if (definition == null) {
             log.error("No Maven or Gradle task found in job");
@@ -294,9 +304,10 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
         }
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
         VersionHelper helper = VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
+
         helper.addVersionFieldsToConfiguration(parameters, configuration, getModuleVersionConfiguration(),
                 definition.getConfiguration());
-        planExecutionManager
+            planExecutionManager
                 .startManualExecution(getPlanJob().getParent(), user, configuration, Maps.<String, String>newHashMap());
         return SUCCESS;
     }

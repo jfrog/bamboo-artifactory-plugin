@@ -14,13 +14,14 @@ import java.util.Map;
  */
 public interface ReleaseProvider {
 
-    String MODIFIED_FILES_FOR_RELEASE = "modifiedFilesForReleaseVersion";
     String CURRENT_CHECKOUT_BRANCH = "currentCheckoutBranch";
     String CURRENT_WORKING_BRANCH = "currentWorkingBranch";
     String BASE_COMMIT_ISH = "baseCommitIsh";
     String RELEASE_BRANCH_CREATED = "releaseBranchCreated";
     String MODULE_VERSION_CONFIGURATION = "moduleVersionConfiguration";
     String CFG_USE_EXISTING_VERSION = "useExistingVersion";
+    String CFG_GRADLE_USE_CURRENT_VERSION = "gradleUseCurrentVersion";
+    String MODIFIED_FILES_FOR_RELEASE = "modifiedFilesForReleaseVersion";
     String CFG_VERSION_PER_MODULE = "versionPerModule";
     String CFG_ONE_VERSION = "oneVersionAllModules";
     String CURRENT_CHANGE_LIST_ID = "currentChangeListId";

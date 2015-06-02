@@ -72,6 +72,9 @@ public class ModuleVersionHolder implements Serializable {
     }
 
     public static List<ModuleVersionHolder> buildFromConf(Map<String, String> conf) {
+
+
+
         List<ModuleVersionHolder> result = Lists.newArrayList();
         int size = getNumberOfModules(conf);
         for (int i = 0; i < size; i++) {
