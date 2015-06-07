@@ -3,6 +3,7 @@ package org.jfrog.bamboo.release.provider;
 import com.atlassian.bamboo.security.SecureTokenService;
 import com.atlassian.bamboo.task.RuntimeTaskDataProvider;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.atlassian.bamboo.v2.build.CommonContext;
 import com.atlassian.bamboo.v2.build.agent.messages.AuthenticableMessage;
 import com.google.common.collect.Maps;
@@ -40,7 +41,13 @@ public class TokenDataProvider implements RuntimeTaskDataProvider {
     }
 
     @Override
+    @Deprecated
     public void processRuntimeTaskData(@NotNull TaskDefinition taskDefinition, @NotNull CommonContext commonContext) {
+        secureTokenService.invalidate(commonContext.getResultKey());
+    }
+
+    @Override
+    public void processRuntimeTaskData(@NotNull RuntimeTaskDefinition runtimeTaskDefinition, @NotNull CommonContext commonContext) {
         secureTokenService.invalidate(commonContext.getResultKey());
     }
 

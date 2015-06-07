@@ -34,7 +34,7 @@ public class GradleVersionHelper extends VersionHelper {
     public List<ModuleVersionHolder> filterPropertiesForRelease(Plan plan, int latestBuildNumberWithBi)
             throws RepositoryException, IOException {
         List<ModuleVersionHolder> result = Lists.newArrayList();
-        File directory = SystemDirectory.getArtifactDirectory(plan, latestBuildNumberWithBi);
+        File directory = SystemDirectory.getArtifactStorage().getArtifactDirectory(plan.getPlanKey());
         File gradlePropertiesFile = new File(directory, "gradle/gradle.properties");
         if (gradlePropertiesFile.exists()) {
             Properties props = new Properties();

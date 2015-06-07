@@ -42,7 +42,7 @@ public class MavenVersionHelper extends VersionHelper {
     public List<ModuleVersionHolder> filterPropertiesForRelease(Plan plan, int latestBuildNumberWithBi)
             throws RepositoryException, IOException {
         List<ModuleVersionHolder> result = Lists.newArrayList();
-        File directory = SystemDirectory.getArtifactDirectory(plan, latestBuildNumberWithBi);
+        File directory = SystemDirectory.getArtifactStorage().getArtifactDirectory(plan.getPlanKey());
         File buildInfoFile = new File(directory, "buildInfo/build-info.json.zip");
         if (buildInfoFile.exists()) {
             InputStreamReader reader = null;
