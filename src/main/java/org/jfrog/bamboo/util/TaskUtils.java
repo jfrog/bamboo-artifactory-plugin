@@ -1,5 +1,6 @@
 package org.jfrog.bamboo.util;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.types.Commandline;
@@ -14,6 +15,9 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public abstract class TaskUtils {
+
+    private static final char PROPERTIES_DELIMITER = ';';
+    private static final char KEY_VALUE_SEPARATOR = '=';
 
     private TaskUtils() {
         throw new IllegalAccessError();
@@ -48,5 +52,26 @@ public abstract class TaskUtils {
             arguments.add(Commandline.quoteArgument("-D" + BuildInfoConfigProperties.PROP_PROPS_FILE + "=" +
                     buildInfoPropertiesFile));
         }
+    }
+
+    /**
+     * Create Multimap that represent build/deployment matrix param to attach uploaded artifacts
+     *
+     * @param propertiesInput String that separated by semicolon to parse into map
+     * @return Multimap that represents the deployment properties, empty map if no properties attaches
+     */
+    public static ArrayListMultimap<String, String> extractMatrixParamFromString(String propertiesInput) {
+        ArrayListMultimap<String, String> matrixParams = ArrayListMultimap.create();
+        String[] matrixParamString = StringUtils.split(propertiesInput, PROPERTIES_DELIMITER);
+        for (String s : matrixParamString) {
+            String[] keyValueArr = StringUtils.split(s, KEY_VALUE_SEPARATOR);
+            boolean validProperty = keyValueArr.length == 2;
+            if (validProperty) {
+                // No whitespace allowed in key
+                String formatKey = keyValueArr[0].replace(" ", StringUtils.EMPTY);
+                matrixParams.put(formatKey, keyValueArr[1].trim());
+            }
+        }
+        return matrixParams;
     }
 }

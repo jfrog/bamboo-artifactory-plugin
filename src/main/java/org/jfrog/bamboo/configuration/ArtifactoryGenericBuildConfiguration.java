@@ -62,6 +62,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
         context.put("selectedRepoKey", selectedPublishingRepoKey);
         context.put("selectedServerId", context.get(GenericContext.SELECTED_SERVER_ID));
         context.put("serverConfigManager", serverConfigManager);
+        context.put("artifactory.generic.properties", taskDefinition.getConfiguration().get("matrixParam"));
         String envVarsExcludePatterns = (String) context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
         if (envVarsExcludePatterns == null) {
             context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
@@ -81,9 +82,10 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-            @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
+        configMap.put("matrixParam", params.getString("artifactory.generic.properties"));
         return configMap;
     }
 }

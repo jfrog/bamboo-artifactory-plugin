@@ -16,6 +16,9 @@
     [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true' /]
 
     [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' showOn=true]
+
+    [@ww.textarea labelKey = 'artifactory.task.properties' name='artifactory.generic.properties' rows ='10' cols='80' required = 'false' cssClass="long-field"/]
+
     [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='artifactory.generic.includeEnvVars' toggle='true'/]
 
     [@ui.bambooSection dependsOn='artifactory.generic.includeEnvVars' showOn=true]
@@ -53,7 +56,7 @@
     function loadGenericRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+            '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType: 'json',
             cache: false,
             success: function (json) {

@@ -7,10 +7,7 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -22,11 +19,11 @@ import org.jfrog.build.api.builder.ArtifactBuilder;
 import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.api.util.FileChecksumCalculator;
-import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 import org.jfrog.build.client.DeployDetails;
+import org.jfrog.build.extractor.BuildInfoExtractorUtils;
+import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
 import org.jfrog.build.extractor.clientConfiguration.PatternMatcher;
-import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.util.PublishedItemsHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -131,13 +128,14 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, File> filesMap,
-                                                                   File rootDir, BuildContext buildContext, GenericContext genericContext)
+                                                                   File rootDir, BuildContext buildContext, GenericContext genericContext, String matrixParam)
             throws IOException, NoSuchAlgorithmException {
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
 
+        ArrayListMultimap<String, String> matrixParamMap = TaskUtils.extractMatrixParamFromString(matrixParam);
         for (Map.Entry<String, File> entry : filesMap.entries()) {
-            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), dynamicPropertyMap));
+            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), dynamicPropertyMap, matrixParamMap));
         }
         List<Artifact> artifacts = convertDeployDetailsToArtifacts(details);
         ModuleBuilder moduleBuilder =
@@ -155,19 +153,18 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return Maps.fromProperties(prefixLessDynamicProperties);
     }
 
-    private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry,
-                                                             String targetRepository, Map<String, String> propertyMap) throws IOException,
+    private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry, String targetRepository,
+                                                             Map<String, String> propertyMap, ArrayListMultimap<String, String> matrixParam) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
         String targetPath = fileEntry.getKey();
         File artifactFile = fileEntry.getValue();
-
         String path = PublishedItemsHelper.calculateTargetPath(targetPath, artifactFile);
         path = StringUtils.replace(path, "//", "/");
 
         Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(artifactFile, "SHA1", "MD5");
         DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(artifactFile).md5(checksums.get("MD5"))
-                .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path);
+                .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path).addProperties(matrixParam);
         addCommonProperties(deployDetails);
         deployDetails.addProperties(propertyMap);
         result.add(deployDetails.build());

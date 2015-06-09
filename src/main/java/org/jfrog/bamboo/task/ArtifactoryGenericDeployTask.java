@@ -21,9 +21,9 @@ import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.Build;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.client.DeployDetails;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.extractor.clientConfiguration.util.PublishedItemsHelper;
 
 import java.io.File;
@@ -156,10 +156,11 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         ArtifactoryBuildInfoClient client =
                 new ArtifactoryBuildInfoClient(serverUrl, username, password, new BambooBuildInfoLog(log));
         try {
+            String matrixParamStr = taskContext.getConfigurationMap().get("matrixParam");
             BuildContext buildContext = taskContext.getBuildContext();
             Build build = buildInfoHelper.extractBuildInfo(buildContext, taskContext.getBuildLogger(), context, username);
             Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap,
-                    rootDir, buildContext, context);
+                    rootDir, buildContext, context, matrixParamStr);
 
             /**
              * Look for dependencies from the Generic resolve task, if exists!
