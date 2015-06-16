@@ -237,6 +237,19 @@
         </description>
     </preBuildAction>
 
+    <taskType key="artifactoryDeploymentTask" name="Artifactory Deployment"
+              class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentTask">
+        <description>Artifactory Deployment Task</description>
+        <configuration class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentConfiguration"/>
+        <category name="deployment"/>
+        <executable key="deployment"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/deployment/artifactoryDeploymentActionEdit.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/deployment/artifactoryDeploymentActionView.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-release.png"/>
+    </taskType>
+
     <!--Generic build action-->
 
     <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy"
