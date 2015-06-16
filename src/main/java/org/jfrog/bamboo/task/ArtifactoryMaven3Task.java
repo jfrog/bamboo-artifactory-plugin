@@ -64,14 +64,6 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         ContainerManager.autowireComponent(dependencyHelper);
     }
 
-    private Maven3BuildContext createBuildContext(TaskContext taskContext) {
-        Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(taskContext.getConfigurationMap());
-        Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
-        combinedMap.putAll(customBuildData);
-        return new Maven3BuildContext(combinedMap);
-    }
-
     @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
@@ -104,6 +96,11 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
                 activateBuildInfoRecording = true;
             }
         }
+        String subDirectory = mavenBuildContext.getWorkingSubDirectory();
+        if (StringUtils.isNotBlank(subDirectory)) {
+            rootDirectory = new File(rootDirectory, subDirectory);
+        }
+
         List<String> command = getCommand(taskContext.getBuildContext(), mavenBuildContext);
         String mavenHome = getMavenHome(mavenBuildContext);
         if (StringUtils.isBlank(mavenHome)) {
@@ -115,14 +112,11 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         appendBuildInfoPropertiesArgument(command);
         appendMavenOpts(command, mavenBuildContext);
         addMavenHome(command, mavenHome);
+        addMavenMultiModuleProjectPath(command, rootDirectory);
         command.add("org.codehaus.plexus.classworlds.launcher.Launcher");
 
         appendGoals(command, mavenBuildContext);
         appendAdditionalMavenParameters(command, mavenBuildContext);
-        String subDirectory = mavenBuildContext.getWorkingSubDirectory();
-        if (StringUtils.isNotBlank(subDirectory)) {
-            rootDirectory = new File(rootDirectory, subDirectory);
-        }
 
         log.debug("Running maven command: " + command.toString());
         ExternalProcessBuilder processBuilder =
@@ -144,8 +138,46 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         }
     }
 
+    /**
+     * Returns the path of the java executable of the select JDK
+     *
+     * @return Java bin path
+     */
+    public String getExecutable(BuildContext buildContext, AbstractBuildContext context) throws TaskException {
+        String jdkPath = getConfiguredJdkPath(buildContext, context, capabilityContext);
+        StringBuilder binPathBuilder = new StringBuilder(jdkPath);
+        if (SystemUtils.IS_OS_WINDOWS) {
+            binPathBuilder.append("bin").append(File.separator).append("java.exe");
+        } else {
+            // IBM's AIX JDK has different locations
+            String aixJdkLocation = "jre" + File.separator + "sh" + File.separator + "java";
+            File aixJdk = new File(binPathBuilder.toString() + aixJdkLocation);
+            if (aixJdk.isFile()) {
+                binPathBuilder.append(aixJdkLocation);
+            } else {
+                binPathBuilder.append("bin").append(File.separator).append("java");
+            }
+        }
+        String binPath = binPathBuilder.toString();
+        binPath = getCanonicalPath(binPath);
+        return binPath;
+    }
+
+    private Maven3BuildContext createBuildContext(TaskContext taskContext) {
+        Map<String, String> combinedMap = Maps.newHashMap();
+        combinedMap.putAll(taskContext.getConfigurationMap());
+        Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
+        combinedMap.putAll(customBuildData);
+        return new Maven3BuildContext(combinedMap);
+    }
+
     private void addMavenHome(List<String> command, String mavenHome) {
         command.add(Commandline.quoteArgument("-Dmaven.home" + "=" + mavenHome));
+    }
+
+    //Starting from Maven 3.3.3
+    private void addMavenMultiModuleProjectPath(List<String> command, File rootDirectory) {
+        command.add(Commandline.quoteArgument("-Dmaven.multiModuleProjectDirectory" + "=" + rootDirectory.getPath()));
     }
 
     private List<String> getCommand(BuildContext buildContext, Maven3BuildContext mavenBuildContext) throws TaskException {
@@ -276,31 +308,6 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
 
         return dependencyHelper.downloadDependenciesAndGetPath(rootDir, mavenBuildContext,
                 PluginProperties.MAVEN3_DEPENDENCY_FILENAME_KEY);
-    }
-
-    /**
-     * Returns the path of the java executable of the select JDK
-     *
-     * @return Java bin path
-     */
-    public String getExecutable(BuildContext buildContext, AbstractBuildContext context) throws TaskException {
-        String jdkPath = getConfiguredJdkPath(buildContext, context, capabilityContext);
-        StringBuilder binPathBuilder = new StringBuilder(jdkPath);
-        if (SystemUtils.IS_OS_WINDOWS) {
-            binPathBuilder.append("bin").append(File.separator).append("java.exe");
-        } else {
-            // IBM's AIX JDK has different locations
-            String aixJdkLocation = "jre" + File.separator + "sh" + File.separator + "java";
-            File aixJdk = new File(binPathBuilder.toString() + aixJdkLocation);
-            if (aixJdk.isFile()) {
-                binPathBuilder.append(aixJdkLocation);
-            } else {
-                binPathBuilder.append("bin").append(File.separator).append("java");
-            }
-        }
-        String binPath = binPathBuilder.toString();
-        binPath = getCanonicalPath(binPath);
-        return binPath;
     }
 
     private void appendAdditionalMavenParameters(List<String> arguments, Maven3BuildContext context) {
