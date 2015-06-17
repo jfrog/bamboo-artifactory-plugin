@@ -2,6 +2,7 @@ package org.jfrog.bamboo.util;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jfrog.build.api.BuildInfoConfigProperties;
@@ -60,8 +61,8 @@ public abstract class TaskUtils {
      * @param propertiesInput String that separated by semicolon to parse into map
      * @return Multimap that represents the deployment properties, empty map if no properties attaches
      */
-    public static ArrayListMultimap<String, String> extractMatrixParamFromString(String propertiesInput) {
-        ArrayListMultimap<String, String> matrixParams = ArrayListMultimap.create();
+    public static Multimap<String, String> extractMatrixParamFromString(String propertiesInput) {
+        Multimap<String, String> matrixParams = ArrayListMultimap.create();
         String[] matrixParamString = StringUtils.split(propertiesInput, PROPERTIES_DELIMITER);
         for (String s : matrixParamString) {
             String[] keyValueArr = StringUtils.split(s, KEY_VALUE_SEPARATOR);

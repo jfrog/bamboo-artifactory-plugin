@@ -17,7 +17,7 @@
 
     [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' showOn=true]
 
-    [@ww.textarea labelKey = 'artifactory.task.properties' name='artifactory.generic.properties' rows ='10' cols='80' required = 'false' cssClass="long-field"/]
+    [@ww.textarea labelKey = 'artifactory.task.properties' name='artifactory.generic.artifactSpecs' rows ='10' cols='80' required = 'false' cssClass="long-field"/]
 
     [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='artifactory.generic.includeEnvVars' toggle='true'/]
 

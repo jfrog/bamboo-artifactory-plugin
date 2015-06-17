@@ -37,8 +37,8 @@ public class GradleReleaseProvider extends AbstractReleaseProvider {
     public boolean transformDescriptor(Map<String, String> conf, boolean release)
             throws RepositoryException, IOException, InterruptedException {
 
-        String moduleVersionConf = conf.get(CFG_GRADLE_USE_CURRENT_VERSION);
-        if (StringUtils.equals("true", moduleVersionConf)){
+        String userCurrentVersion = conf.get(MODULE_VERSION_CONFIGURATION);
+        if (Boolean.valueOf(userCurrentVersion)) {
             return false;
         }
 

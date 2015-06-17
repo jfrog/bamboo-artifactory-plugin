@@ -128,14 +128,14 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, File> filesMap,
-                                                                   File rootDir, BuildContext buildContext, GenericContext genericContext, String matrixParam)
+                                                                   File rootDir, BuildContext buildContext, GenericContext genericContext)
             throws IOException, NoSuchAlgorithmException {
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
 
-        ArrayListMultimap<String, String> matrixParamMap = TaskUtils.extractMatrixParamFromString(matrixParam);
+        Multimap<String, String> artifactSpecs = TaskUtils.extractMatrixParamFromString(genericContext.getArtifactSpecs());
         for (Map.Entry<String, File> entry : filesMap.entries()) {
-            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), dynamicPropertyMap, matrixParamMap));
+            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), dynamicPropertyMap, artifactSpecs));
         }
         List<Artifact> artifacts = convertDeployDetailsToArtifacts(details);
         ModuleBuilder moduleBuilder =
@@ -154,7 +154,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry, String targetRepository,
-                                                             Map<String, String> propertyMap, ArrayListMultimap<String, String> matrixParam) throws IOException,
+                                                             Map<String, String> propertyMap, Multimap<String, String> matrixParam) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
         String targetPath = fileEntry.getKey();
@@ -164,7 +164,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
 
         Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(artifactFile, "SHA1", "MD5");
         DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(artifactFile).md5(checksums.get("MD5"))
-                .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path).addProperties(matrixParam);
+                .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path).addProperties((ArrayListMultimap<String, String>) matrixParam);
         addCommonProperties(deployDetails);
         deployDetails.addProperties(propertyMap);
         result.add(deployDetails.build());

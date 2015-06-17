@@ -1,8 +1,10 @@
 [#assign versionsList= versions/]
 
-[@ww.checkbox labelKey = "Use existing version." value=false name="gradleUseCurrentVersion" toggle='true'/]
+[#--CHECK TODAY--]
+
+[@ww.checkbox labelKey = "Use existing version." value=false name="moduleVersionConfiguration" toggle='true'/]
 <br/>
-[@ui.bambooSection dependsOn = "gradleUseCurrentVersion" showOn = false]
+[@ui.bambooSection dependsOn = "moduleVersionConfiguration" showOn = false]
 
     [#if versionsList?size gt 0]
         [#assign showStatusIcon=true /]
@@ -33,6 +35,6 @@
 [/@ui.bambooSection]
 <script>
     var script = document.createElement('script');
-    script.innerHTML = "document.querySelector('.dependsOngradleUseCurrentVersion').style.display=''";
+    script.innerHTML = "document.querySelector('.dependsOnmoduleVersionConfiguration').style.display=''";
     document.body.lastChild.appendChild(script);
 </script>

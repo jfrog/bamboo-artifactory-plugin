@@ -19,6 +19,7 @@ public class GenericContext {
     public static final String RESOLVE_PATTERN = "artifactory.generic.resolvePattern";
     public static final String PUBLISH_BUILD_INFO = "artifactory.generic.publishBuildInfo";
     public static final String INCLUDE_ENV_VARS = "artifactory.generic.includeEnvVars";
+    public static final String ARTIFACT_SPECS = "artifactory.generic.artifactSpecs";
     public static final String ENV_VARS_INCLUDE_PATTERNS = "artifactory.generic.envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "artifactory.generic.envVarsExcludePatterns";
 
@@ -29,7 +30,7 @@ public class GenericContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(SELECTED_SERVER_ID, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN,
+        return Sets.newHashSet(SELECTED_SERVER_ID, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, ARTIFACT_SPECS,
                 RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS);
     }
 
@@ -75,5 +76,9 @@ public class GenericContext {
 
     public String getEnvVarsExcludePatterns() {
         return env.get(ENV_VARS_EXCLUDE_PATTERNS);
+    }
+
+    public String getArtifactSpecs() {
+        return env.get(ARTIFACT_SPECS);
     }
 }

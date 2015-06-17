@@ -156,11 +156,10 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         ArtifactoryBuildInfoClient client =
                 new ArtifactoryBuildInfoClient(serverUrl, username, password, new BambooBuildInfoLog(log));
         try {
-            String matrixParamStr = taskContext.getConfigurationMap().get("matrixParam");
             BuildContext buildContext = taskContext.getBuildContext();
             Build build = buildInfoHelper.extractBuildInfo(buildContext, taskContext.getBuildLogger(), context, username);
             Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap,
-                    rootDir, buildContext, context, matrixParamStr);
+                    rootDir, buildContext, context);
 
             /**
              * Look for dependencies from the Generic resolve task, if exists!
