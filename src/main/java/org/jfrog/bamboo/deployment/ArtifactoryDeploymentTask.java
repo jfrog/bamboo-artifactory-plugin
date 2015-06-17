@@ -9,6 +9,7 @@ import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -149,7 +150,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
 
         String artifactsRootPath = artifactsRootDirectory.getPath();
         Set<DeployDetails> deployDetailsSet = Sets.newHashSet();
-        ArrayListMultimap<String, String> matrixParam = TaskUtils.extractMatrixParamFromString(matrixParamStr);
+        Multimap<String, String> matrixParam = TaskUtils.extractMatrixParamFromString(matrixParamStr);
 
         // Scan recursively the root directory and collect all artifacts as they are described in the associated build plan
         Iterator<File> fileIterator = FileUtils.iterateFiles(artifactsRootDirectory, null, true);
@@ -173,7 +174,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    private DeployDetails createDeployDetailsForOneArtifact(String repositoryKey, String artifactsRootPath, ArrayListMultimap<String, String> matrixParam,
+    private DeployDetails createDeployDetailsForOneArtifact(String repositoryKey, String artifactsRootPath, Multimap<String, String> matrixParam,
                                                             File artifact) throws NoSuchAlgorithmException, IOException {
         DeployDetails.Builder deployDetailsBuilder = new DeployDetails.Builder();
         Map<String, String> checksum = FileChecksumCalculator.calculateChecksums(artifact, "SHA1", "MD5");
@@ -183,7 +184,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
                 .targetRepository(repositoryKey)
                 .sha1(checksum.get("SHA1"))
                 .md5(checksum.get("MD5"))
-                .addProperties(matrixParam);
+                .addProperties((ArrayListMultimap<String, String>) matrixParam);
         return deployDetailsBuilder.build();
     }
 
