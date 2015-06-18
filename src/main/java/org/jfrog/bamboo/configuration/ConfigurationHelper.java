@@ -70,8 +70,9 @@ public class ConfigurationHelper implements Serializable {
 
             JsonParser parser = jsonFactory.createJsonParser(responseStream);
             return parser.readValueAs(Map.class);
-        } catch (IOException ioe) {
-            return Maps.newHashMap();
+        } catch (IOException e) {
+            String message = "Failed while invoking URL " + requestUrl + " to get Bamboo variables. " + e.getMessage();
+            throw new RuntimeException(message, e);
         } finally {
             getMethod.releaseConnection();
             IOUtils.closeQuietly(responseStream);
