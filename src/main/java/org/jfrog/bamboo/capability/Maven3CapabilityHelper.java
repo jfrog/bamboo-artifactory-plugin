@@ -28,7 +28,7 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     private static final Pattern MAVEN_VERSION_3 = Pattern.compile("3\\.\\d+\\.\\d+");
     private static final String M2_EXECUTABLE_NAME = "mvn";
     private static final long GET_VERSION_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
-    private static final Pattern VERSION_PATTERN = Pattern.compile("Apache Maven (\\S+) .*");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("Apache Maven (\\S+).*");
 
 
     @NotNull
