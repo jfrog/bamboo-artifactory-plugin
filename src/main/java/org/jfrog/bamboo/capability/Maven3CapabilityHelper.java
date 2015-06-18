@@ -69,13 +69,16 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
 
         @Override
         public boolean apply(@Nullable final File input) {
-            return input != null && pattern.matcher(getMavenVersion(input)).matches();
+            if (input == null) {
+                return false;
+            }
+            String mavenVersion = getMavenVersion(input);
+            return mavenVersion != null && pattern.matcher(mavenVersion).matches();
         }
 
         /**
          * Parse output of "mvn --version". This method works only with Maven 2 and Maven 3
          *
-         * @param homePath maven home directory
          * @return text representation of Maven version number or null if not possible to obtain version number
          */
         @Nullable
