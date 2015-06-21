@@ -1,7 +1,5 @@
 [#assign versionsList= versions/]
 
-[#--CHECK TODAY--]
-
 [@ww.checkbox labelKey = "Use existing version." value=false name="moduleVersionConfiguration" toggle='true'/]
 <br/>
 [@ui.bambooSection dependsOn = "moduleVersionConfiguration" showOn = false]
