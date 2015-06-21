@@ -1,10 +1,13 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.types.Commandline;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 
 import java.util.List;
@@ -19,6 +22,8 @@ public abstract class TaskUtils {
 
     private static final char PROPERTIES_DELIMITER = ';';
     private static final char KEY_VALUE_SEPARATOR = '=';
+    /* This is the name of the "Download Artifacts" task in bamboo , we are looking it up as downloading artifacts is a pre condition to our task */
+    private static final String DOWNLOAD_ARTIFACTS_TASK_KEY = "com.atlassian.bamboo.plugins.bamboo-artifact-downloader-plugin:artifactdownloadertask";
 
     private TaskUtils() {
         throw new IllegalAccessError();
@@ -74,5 +79,21 @@ public abstract class TaskUtils {
             }
         }
         return matrixParams;
+    }
+
+    /**
+     * Searching for the "Artifacts Download" task in a list of tasks
+     *
+     * @param runtimeTaskDefinitionList all the job tasks
+     * @return Artifacts Download task, null if no such task exists
+     */
+    @Nullable
+    public static RuntimeTaskDefinition findDownloadArtifactsTask(@NotNull List<RuntimeTaskDefinition> runtimeTaskDefinitionList) {
+        for (RuntimeTaskDefinition rtd : runtimeTaskDefinitionList) {
+            if (rtd.getPluginKey().equals(DOWNLOAD_ARTIFACTS_TASK_KEY)) {
+                return rtd;
+            }
+        }
+        return null;
     }
 }
