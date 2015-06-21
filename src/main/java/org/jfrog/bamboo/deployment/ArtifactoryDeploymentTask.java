@@ -65,7 +65,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
 
         TaskResult result;
 
-        ArtifactoryBuildInfoClient client = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
+        client = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
                 serverConfig.getUsername(), serverConfig.getPassword(), new BambooBuildInfoLog(log));
 
         try {
