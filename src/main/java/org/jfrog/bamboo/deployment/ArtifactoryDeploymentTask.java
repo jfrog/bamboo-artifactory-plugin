@@ -59,16 +59,15 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
         String matrixParamStr = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.MATRIX_PARAM);
         repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_REPOSITORY);
         artifactSpecs = TaskUtils.extractMatrixParamFromString(matrixParamStr);
-        RuntimeTaskDefinition artifactDownloadTask = TaskUtils.findDownloadArtifactsTask(deploymentTaskContext.getCommonContext().getRuntimeTaskDefinitions());
         artifactsRootDirectory = deploymentTaskContext.getRootDirectory().getAbsolutePath();
-        FilesCollector filesCollector = new FilesCollector(artifactsRootDirectory, artifactDownloadTask);
 
         TaskResult result;
-
         client = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
                 serverConfig.getUsername(), serverConfig.getPassword(), new BambooBuildInfoLog(log));
 
         try {
+            RuntimeTaskDefinition artifactDownloadTask = TaskUtils.findDownloadArtifactsTask(deploymentTaskContext.getCommonContext().getRuntimeTaskDefinitions());
+            FilesCollector filesCollector = new FilesCollector(artifactsRootDirectory, artifactDownloadTask);
             Map<String, Set<File>> artifacts = filesCollector.getCollectedFiles();
             Set<DeployDetails> deployDetailsSet = createDeploymentDetailsForArtifacts(artifacts);
             deploy(deployDetailsSet);

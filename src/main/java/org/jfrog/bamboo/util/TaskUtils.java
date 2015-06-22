@@ -9,7 +9,6 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 
@@ -25,7 +24,7 @@ public abstract class TaskUtils {
 
     private static final char PROPERTIES_DELIMITER = ';';
     private static final char KEY_VALUE_SEPARATOR = '=';
-    /* This is the name of the "Download Artifacts" task in bamboo , we are looking it up as downloading artifacts is a pre condition to our task */
+    /* This is the name of the "Download Artifacts" task in bamboo, we are looking it up as downloading artifacts is a pre condition to our task */
     private static final String DOWNLOAD_ARTIFACTS_TASK_KEY = "com.atlassian.bamboo.plugins.bamboo-artifact-downloader-plugin:artifactdownloadertask";
 
     private TaskUtils() {
@@ -108,13 +107,12 @@ public abstract class TaskUtils {
      * @param runtimeTaskDefinitionList all the job tasks
      * @return Artifacts Download task, null if no such task exists
      */
-    @Nullable
     public static RuntimeTaskDefinition findDownloadArtifactsTask(@NotNull List<RuntimeTaskDefinition> runtimeTaskDefinitionList) {
         for (RuntimeTaskDefinition rtd : runtimeTaskDefinitionList) {
             if (rtd.getPluginKey().equals(DOWNLOAD_ARTIFACTS_TASK_KEY)) {
                 return rtd;
             }
         }
-        return null;
+        throw new IllegalStateException("\"Artifacts Download\" task must run before the \"Artifactory Deployment\" task.");
     }
 }

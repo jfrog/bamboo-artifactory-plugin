@@ -246,6 +246,7 @@
 
     <resource type="download" name="artifactory-icon.png" location="images/artifactory-icon.png"/>
     <resource type="download" name="artifactory-release.png" location="images/artifactory-release.png"/>
+    <resource type="download" name="bintray.png" location="images/bintray.png"/>
 
     <additionalBuildConfigurationPlugin key="releasePlanConfiguration" name="Release Management Configuration"
                                         class="org.jfrog.bamboo.release.configuration.ReleaseManagementConfigurator">

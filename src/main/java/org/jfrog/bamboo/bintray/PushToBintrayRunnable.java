@@ -42,7 +42,8 @@ public class PushToBintrayRunnable implements Runnable {
             logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
             return;
         }
-        PushToBintrayAction.context.setDone(performPushToBintray());
+        performPushToBintray();
+        PushToBintrayAction.context.setDone(true);
         PushToBintrayAction.context.getLock().unlock();
         client.shutdown();
     }
@@ -51,7 +52,7 @@ public class PushToBintrayRunnable implements Runnable {
      * Create the relevant objects from input and send it to build info client that will preform the actual push
      * Set the result of the action to true if successful to use in the action view.
      */
-    public boolean performPushToBintray() {
+    public void performPushToBintray() {
 
         String buildName = PushToBintrayAction.context.getBuildKey();
         String buildNumber = Integer.toString(PushToBintrayAction.context.getBuildNumber());
@@ -72,9 +73,7 @@ public class PushToBintrayRunnable implements Runnable {
             logMessage(response.toString());
         } catch (Exception e) {
             logError("Push to Bintray Failed with Exception: ", e);
-            return false;
         }
-        return true;
     }
 
     private boolean isValidArtifactoryVersion(ArtifactoryBuildInfoClient client) {
