@@ -129,7 +129,7 @@
 
             <action name="push" class="org.jfrog.bamboo.bintray.PushToBintrayAction" method="push">
                 <result name="success" type="freemarker">/templates/plugins/bintray/pushToBintrayAction.ftl</result>
-                <result name="error" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
+                <result name="error" type="freemarker">/templates/plugins/bintray/pushToBintrayAction.ftl</result>
             </action>
 
             <action name="promote" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction" method="promote">

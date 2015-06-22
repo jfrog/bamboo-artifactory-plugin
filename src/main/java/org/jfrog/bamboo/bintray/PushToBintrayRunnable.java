@@ -40,6 +40,7 @@ public class PushToBintrayRunnable implements Runnable {
         PushToBintrayAction.context.setDone(false);
         if (!isValidArtifactoryVersion(client)) {
             logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
+            PushToBintrayAction.context.setDone(true);
             return;
         }
         performPushToBintray();

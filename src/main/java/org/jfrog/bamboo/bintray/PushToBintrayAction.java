@@ -27,7 +27,7 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     public static PromotionContext context = new PromotionContext();
     private static Map<String, String> signMethodList = ImmutableMap.of(
-            "noSign", "Don't Sign", "passphraseSign", "Passphrase", "descriptorSign", "According to descriptor file");
+            "false", "Don't Sign", "true", "Sign", "", "According to descriptor file");
 
     private boolean pushing = true;
     private boolean overrideDescriptorFile;

@@ -47,8 +47,6 @@
 <script type="text/javascript">
     (function () {
 
-        var logInterval;
-
         function updateLog() {
             AJS.$.ajax({
                 url: '${req.contextPath}/getPushToBintrayLog.action?buildKey=${buildKey}&buildNumber=${buildNumber}',
@@ -56,17 +54,16 @@
                 cache: false,
                 success: function (html) {
                     var result = AJS.$(html);
-                    if (result.filter('#pushDone').length) {
-                        clearInterval(logInterval);
-                    }
-
                     AJS.$('#pushToBintrayLog').html(result.filter('#pushLog').html());
+                    if (result.filter('#pushDone').length) {
+                        return;
+                    }
+                    setTimeout(updateLog, 1000);
                 }
             });
         }
 
-        updateLog();
-        logInterval = setInterval(updateLog, 1000);
+        setTimeout(updateLog, 1000);
     })();
 </script>
 [/#if]
