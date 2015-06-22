@@ -5,6 +5,7 @@ import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanHelper;
+import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.atlassian.bamboo.repository.Repository;
@@ -140,7 +141,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
                             VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
                     if (versionHelper != null) {
                         int latestBuildNumberWithBuildInfo = findLatestBuildNumberWithBuildInfo();
-                        setVersions(versionHelper.filterPropertiesForRelease(getPlan(), latestBuildNumberWithBuildInfo));
+                        setVersions(versionHelper.filterPropertiesForRelease(getMutablePlan(), latestBuildNumberWithBuildInfo));
                     }
                 }
             }
@@ -153,7 +154,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     private int findLatestBuildNumberWithBuildInfo() {
-        List<ResultsSummary> summaries = resultsSummaryManager.getResultSummariesForPlan(getPlan(), 0, 100);
+        List<ResultsSummary> summaries = resultsSummaryManager.getResultSummariesForPlan(getMutablePlan(), 0, 100);
         Collections.sort(summaries, new Comparator<ResultsSummary>() {
             @Override
             public int compare(ResultsSummary o1, ResultsSummary o2) {
@@ -225,7 +226,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     private Repository getRepository() {
-        return PlanHelper.getDefaultRepository(getPlan());
+        return PlanHelper.getDefaultRepository(getMutablePlan());
     }
 
     public boolean isUseShallowClone() {
@@ -258,16 +259,17 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * @return {@code success} if the manual execution finished successfully.
      */
     public String doReleaseBuild() throws RepositoryException, IOException {
-        List<TaskDefinition> taskDefinitions = getPlan().getBuildDefinition().getTaskDefinitions();
+        List<TaskDefinition> taskDefinitions = getMutablePlan().getBuildDefinition().getTaskDefinitions();
         if (taskDefinitions.isEmpty()) {
             log.warn("No task definitions defined, cannot execute release build");
             return ERROR;
         }
         User user = getUser();
-        if (user == null) {
+        PlanKey planKey = getMutablePlan().getPlanKey();
+        if (user == null || planKey == null) {
             return ERROR;
         }
-        setBuildKey(getPlan().getPlanKey().getKey());
+        setBuildKey(planKey.getKey());
         Map<String, String> configuration = Maps.newHashMap();
         Map parameters = ActionContext.getContext().getParameters();
         configuration.put(AbstractBuildContext.ACTIVATE_RELEASE_MANAGEMENT, String.valueOf(true));
@@ -324,7 +326,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * @return Gets the current job.
      */
     private Job getPlanJob() {
-        return (Job) getPlan();
+        return (Job) getMutablePlan();
     }
 
     public String getModuleVersionConfiguration() {

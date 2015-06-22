@@ -1,6 +1,6 @@
 package org.jfrog.bamboo.configuration;
 
-import com.atlassian.bamboo.configuration.AdministrationConfigurationManager;
+import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.google.common.collect.Maps;
 import org.apache.commons.httpclient.HttpClient;
@@ -25,7 +25,7 @@ import static org.jfrog.bamboo.util.ConstantValues.ADMIN_CONFIG_SERVLET_CONTEXT_
  */
 public class ConfigurationHelper implements Serializable {
     private static ConfigurationHelper instance = new ConfigurationHelper();
-    private AdministrationConfigurationManager administrationConfigurationManager;
+    private AdministrationConfigurationAccessor administrationConfigurationAccessor;
     private HttpClient httpClient = new HttpClient();
 
     private ConfigurationHelper() {
@@ -35,8 +35,8 @@ public class ConfigurationHelper implements Serializable {
         return instance;
     }
 
-    public void setAdministrationConfigurationManager(AdministrationConfigurationManager administrationConfigurationManager) {
-        this.administrationConfigurationManager = administrationConfigurationManager;
+    public void setAdministrationConfigurationAccessor(AdministrationConfigurationAccessor administrationConfigurationAccessor) {
+        this.administrationConfigurationAccessor = administrationConfigurationAccessor;
     }
 
     public BuildJdkOverride getBuildJdkOverride(String planKey) {
@@ -80,7 +80,7 @@ public class ConfigurationHelper implements Serializable {
     }
 
     private String prepareRequestUrl(String servletName, Map<String, String> params) {
-        String bambooBaseUrl = administrationConfigurationManager.getAdministrationConfiguration().getBaseUrl();
+        String bambooBaseUrl = administrationConfigurationAccessor.getAdministrationConfiguration().getBaseUrl();
         StringBuilder builder = new StringBuilder(bambooBaseUrl);
         if (!bambooBaseUrl.endsWith("/")) {
             builder.append("/");

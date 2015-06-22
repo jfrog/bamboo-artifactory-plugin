@@ -17,7 +17,7 @@
 package org.jfrog.bamboo.builder;
 
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
-import com.atlassian.bamboo.configuration.AdministrationConfigurationManager;
+import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.spring.container.ContainerManager;
@@ -53,7 +53,7 @@ public abstract class BaseBuildInfoHelper {
     protected BuildContext context;
     protected ServerConfigManager serverConfigManager;
     protected AdministrationConfiguration administrationConfiguration;
-    protected AdministrationConfigurationManager administrationConfigurationManager;
+    protected AdministrationConfigurationAccessor administrationConfigurationAccessor;
     private HttpClient httpClient;
     protected String bambooBaseUrl;
 
@@ -69,9 +69,9 @@ public abstract class BaseBuildInfoHelper {
         this.administrationConfiguration = administrationConfiguration;
     }
 
-    public void setAdministrationConfigurationManager(
-            AdministrationConfigurationManager administrationConfigurationManager) {
-        this.administrationConfigurationManager = administrationConfigurationManager;
+    public void setAdministrationConfigurationAccessor(
+            AdministrationConfigurationAccessor administrationConfigurationAccessor) {
+        this.administrationConfigurationAccessor = administrationConfigurationAccessor;
     }
 
     /**
@@ -219,8 +219,8 @@ public abstract class BaseBuildInfoHelper {
     protected String determineBambooBaseUrl() {
         if (administrationConfiguration != null) {
             return administrationConfiguration.getBaseUrl();
-        } else if (administrationConfigurationManager != null) {
-            return administrationConfigurationManager.getAdministrationConfiguration().getBaseUrl();
+        } else if (administrationConfigurationAccessor != null) {
+            return administrationConfigurationAccessor.getAdministrationConfiguration().getBaseUrl();
         }
         return null;
     }
