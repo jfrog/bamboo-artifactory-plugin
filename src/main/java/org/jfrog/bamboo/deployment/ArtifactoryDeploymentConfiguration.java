@@ -23,7 +23,6 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
     public static final String USERNAME = "username";
     public static final String SELECTED_REPO_KEY = "selectedRepoKey";
     public static final String ARTIFACTORY_SERVER_ID = "artifactoryServerId";
-    public static final String MATRIX_PARAM = "matrixParam";
 
     public ArtifactoryDeploymentConfiguration() {
         super(DEPLOYMENT_PREFIX);
@@ -39,7 +38,6 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
         taskConfigMap.put(USERNAME, params.getString(DEPLOYMENT_PREFIX + USERNAME));
         taskConfigMap.put(PASSWORD, params.getString(DEPLOYMENT_PREFIX + PASSWORD));
         taskConfigMap.put(DEPLOYMENT_REPOSITORY, params.getString(DEPLOYMENT_PREFIX + DEPLOYMENT_REPOSITORY));
-        taskConfigMap.put(MATRIX_PARAM, params.getString(DEPLOYMENT_PREFIX + MATRIX_PARAM));
         return taskConfigMap;
     }
 
@@ -54,7 +52,6 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
         contextPutEmpty(context, PASSWORD);
         contextPutEmpty(context, DEPLOYMENT_REPOSITORY);
         contextPutEmpty(context, ARTIFACTORY_SERVER_ID);
-        contextPutEmpty(context, MATRIX_PARAM);
         context.put("selectedRepoKey", StringUtils.EMPTY);
     }
 
@@ -69,7 +66,6 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
         contextPut(context, taskDefinition, USERNAME);
         contextPut(context, taskDefinition, PASSWORD);
         contextPut(context, taskDefinition, DEPLOYMENT_REPOSITORY);
-        contextPut(context, taskDefinition, MATRIX_PARAM);
         contextPut(context, taskDefinition, AbstractBuildContext.SERVER_ID_PARAM);
     }
 

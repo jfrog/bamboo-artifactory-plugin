@@ -7,7 +7,10 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -133,9 +136,8 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
 
-        Multimap<String, String> artifactSpecs = TaskUtils.extractMatrixParamFromString(genericContext.getArtifactSpecs());
         for (Map.Entry<String, File> entry : filesMap.entries()) {
-            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), dynamicPropertyMap, artifactSpecs));
+            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), dynamicPropertyMap));
         }
         List<Artifact> artifacts = convertDeployDetailsToArtifacts(details);
         ModuleBuilder moduleBuilder =
@@ -154,7 +156,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry, String targetRepository,
-                                                             Map<String, String> propertyMap, Multimap<String, String> matrixParam) throws IOException,
+                                                             Map<String, String> propertyMap) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
         String targetPath = fileEntry.getKey();
@@ -164,7 +166,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
 
         Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(artifactFile, "SHA1", "MD5");
         DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(artifactFile).md5(checksums.get("MD5"))
-                .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path).addProperties((ArrayListMultimap<String, String>) matrixParam);
+                .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path);
         addCommonProperties(deployDetails);
         deployDetails.addProperties(propertyMap);
         result.add(deployDetails.build());

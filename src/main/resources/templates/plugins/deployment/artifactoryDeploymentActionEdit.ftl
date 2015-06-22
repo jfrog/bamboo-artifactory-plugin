@@ -3,7 +3,6 @@
     listKey='id' listValue='url' onchange='javascript: displayDeployArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
 <div id="deployArtifactoryConfiguration">
     [@ww.select name='artifactory.deployment.deploymentRepository' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
-    [@ww.textarea name='artifactory.deployment.matrixParam' labelKey='artifactory.task.properties' row='8'  required = 'false'/]
 [#--The Dummy tags are workaround for the autocomplete (Chrome)--]
     [@ww.password name='artifactory.deployment.username.DUMMY' cssStyle='display: none;'/]
     [@ww.textfield name='artifactory.deployment.username' labelKey='artifactory.task.maven.deployerUsername'/]

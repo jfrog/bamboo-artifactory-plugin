@@ -85,7 +85,6 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
                                                      @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
-        configMap.put("matrixParam", params.getString("artifactory.generic.properties"));
         return configMap;
     }
 }

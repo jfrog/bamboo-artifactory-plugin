@@ -7,8 +7,6 @@ import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -38,7 +36,6 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
 
     private ServerConfig serverConfig;
     private String repositoryKey;
-    private Multimap<String, String> artifactSpecs;
     private String artifactsRootDirectory;
     private BuildLogger buildLogger;
     private ArtifactoryBuildInfoClient client;
@@ -56,9 +53,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
         }
 
-        String matrixParamStr = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.MATRIX_PARAM);
         repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_REPOSITORY);
-        artifactSpecs = TaskUtils.extractMatrixParamFromString(matrixParamStr);
         artifactsRootDirectory = deploymentTaskContext.getRootDirectory().getAbsolutePath();
 
         TaskResult result;
@@ -126,8 +121,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
                     .file(artifact)
                     .targetRepository(repositoryKey)
                     .sha1(checksum.get("SHA1"))
-                    .md5(checksum.get("MD5"))
-                    .addProperties((ArrayListMultimap<String, String>) artifactSpecs);
+                    .md5(checksum.get("MD5"));
             return deployDetailsBuilder.build();
         } catch (Exception e) {
             throw new RuntimeException("Error while creating Artifact details", e);
