@@ -1,6 +1,8 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -8,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 
 import java.util.List;
@@ -79,6 +82,24 @@ public abstract class TaskUtils {
             }
         }
         return matrixParams;
+    }
+
+    /**
+     * Get the Id of selected Artifactory
+     * @param definition task that uses Artifactory
+     * @return artifactory id
+     */
+    public static String getSelectedServerId(TaskDefinition definition) {
+        if (definition == null) {
+            return "";
+        }
+        Map<String, String> configuration = definition.getConfiguration();
+        Map<String, String> filtered = Maps.filterKeys(configuration, new Predicate<String>() {
+            public boolean apply(String input) {
+                return StringUtils.endsWith(input, AbstractBuildContext.SERVER_ID_PARAM);
+            }
+        });
+        return filtered.values().iterator().next();
     }
 
     /**

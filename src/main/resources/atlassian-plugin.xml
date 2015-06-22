@@ -100,12 +100,36 @@
         <condition class="org.jfrog.bamboo.release.action.condition.ReleaseAndPromotionActionCondition"/>
     </web-item>
 
+    <web-item key="brmpTab:pushToBintray-${buildKey}-${buildNumber}" name="Push to Bintray"
+              section="results.subMenu/results" weight="140">
+        <description key="Push To Bintray">Push to Bintray</description>
+        <label key="Push to Bintray"/>
+        <link linkId="pushToBintray">/build/pushToBintray.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}
+        </link>
+    </web-item>
+
     <xwork key="brmpAdminActions" name="Release Management Admin Actions">
 
         <package name="brmpResults" extends="buildView">
             <action name="releaseAndPromotionAction" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction">
                 <result name="input" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
                 <result name="error" type="freemarker">/error.ftl</result>
+            </action>
+
+            <action name="pushToBintray" class="org.jfrog.bamboo.bintray.PushToBintrayAction">
+                <result name="input" type="freemarker">/templates/plugins/bintray/pushToBintrayAction.ftl</result>
+                <result name="error" type="freemarker">/error.ftl</result>
+            </action>
+
+            <action name="getPushToBintrayLog" class="org.jfrog.bamboo.bintray.PushToBintrayAction"
+                    method="getPushToBintrayLog">
+                <result name="success" type="freemarker">/templates/plugins/bintray/pushToBintrayLog.ftl</result>
+                <result name="input" type="freemarker">/templates/plugins/bintray/pushToBintrayLog.ftl</result>
+            </action>
+
+            <action name="push" class="org.jfrog.bamboo.bintray.PushToBintrayAction" method="push">
+                <result name="success" type="freemarker">/templates/plugins/bintray/pushToBintrayAction.ftl</result>
+                <result name="error" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
             </action>
 
             <action name="promote" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction" method="promote">
@@ -247,7 +271,7 @@
                   location="templates/plugins/deployment/artifactoryDeploymentActionEdit.ftl"/>
         <resource type="freemarker" name="view"
                   location="templates/plugins/deployment/artifactoryDeploymentActionView.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-release.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
     </taskType>
 
     <!--Generic build action-->
