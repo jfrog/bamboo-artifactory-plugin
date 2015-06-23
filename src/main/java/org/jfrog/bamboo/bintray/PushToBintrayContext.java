@@ -16,18 +16,20 @@ public class PushToBintrayContext {
     public static final String PACKAGE_NAME = "bintray.packageName";
     public static final String VERSION = "bintray.version";
     public static final String SIGN = "bintray.signMethod";
-    public static final String PASSPHRASE = "bintray.passphrase";
+    public static final String PASSPHRASE = "bintray.gpgPassphrase";
     public static final String LICENSES = "bintray.licenses";
     public static final String VCS_URL = "bintray.vcsUrl";
 
     public static final Set<String> bintrayFields = ImmutableSet.of(SUBJECT, REPO_NAME, PACKAGE_NAME, VERSION, SIGN, PASSPHRASE, LICENSES, VCS_URL);
+
+    private boolean bintrayConfiguration;
 
     private String subject;
     private String repoName;
     private String packageName;
     private String signMethod;
     private String licenses;
-    private String passphrase;
+    private String gpgPassphrase;
     private String vcsUrl;
 
     public PushToBintrayContext() {
@@ -77,12 +79,12 @@ public class PushToBintrayContext {
         this.licenses = licenses;
     }
 
-    public String getPassphrase() {
-        return passphrase;
+    public String getGpgPassphrase() {
+        return gpgPassphrase;
     }
 
-    public void setPassphrase(String passphrase) {
-        this.passphrase = passphrase;
+    public void setGpgPassphrase(String gpgPassphrase) {
+        this.gpgPassphrase = gpgPassphrase;
     }
 
     public String getVcsUrl() {
@@ -93,4 +95,11 @@ public class PushToBintrayContext {
         this.vcsUrl = vcsUrl;
     }
 
+    public boolean isBintrayConfiguration() {
+        return bintrayConfiguration;
+    }
+
+    public void setBintrayConfiguration(boolean bintrayConfiguration) {
+        this.bintrayConfiguration = bintrayConfiguration;
+    }
 }

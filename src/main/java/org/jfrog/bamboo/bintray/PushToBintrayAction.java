@@ -203,16 +203,14 @@ public class PushToBintrayAction extends ViewBuildResults {
      * @param buildTaskConfiguration Artifactory build task configuration
      */
     private void addDefaultValuesForInput(Map<String, String> buildTaskConfiguration) throws IllegalAccessException, NoSuchFieldException {
-        boolean shouldOverrideDescriptor = false;
         for (String bintrayFieldKey : buildTaskConfiguration.keySet()) {
             String bintrayValue = buildTaskConfiguration.get(bintrayFieldKey);
             if (StringUtils.startsWith(bintrayFieldKey, BINTRAY_CONFIG_PREFIX) && StringUtils.isNotBlank(bintrayValue)) {
                 String valueKey = bintrayFieldKey.split("\\.")[1];
                 Field field = this.getClass().getDeclaredField(valueKey);
                 field.set(this, buildTaskConfiguration.get(bintrayFieldKey));
-                shouldOverrideDescriptor = true;
             }
         }
-        setOverrideDescriptorFile(shouldOverrideDescriptor);
+        setOverrideDescriptorFile(Boolean.valueOf(buildTaskConfiguration.get("bintrayConfiguration")));
     }
 }

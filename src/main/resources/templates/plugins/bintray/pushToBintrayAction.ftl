@@ -44,6 +44,7 @@
 <div id="pushToBintrayLog" class="log"></div>
 
 <script type="text/javascript">
+
     (function () {
 
         function updateLog() {
@@ -61,7 +62,6 @@
                 }
             });
         }
-
         setTimeout(updateLog, 1000);
     })();
 </script>

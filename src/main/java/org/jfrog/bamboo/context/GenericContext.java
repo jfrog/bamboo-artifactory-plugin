@@ -1,5 +1,6 @@
 package org.jfrog.bamboo.context;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.bintray.PushToBintrayContext;
@@ -24,6 +25,10 @@ public class GenericContext {
     public static final String ENV_VARS_INCLUDE_PATTERNS = "artifactory.generic.envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "artifactory.generic.envVarsExcludePatterns";
     public static final String ENABLE_BINTRAY_CONFIGURATION = "bintrayConfiguration";
+    public static final String SIGN_METHOD_MAP_KEY = "signMethods";
+
+    public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of(
+            "false", "Don't Sign", "true", "Sign");
 
     private final Map<String, String> env;
 

@@ -3,6 +3,7 @@ package org.jfrog.bamboo.context;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.jfrog.bamboo.bintray.PushToBintrayContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -100,6 +101,7 @@ public class IvyBuildContext extends AbstractBuildContext {
                 TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY);
         fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
+        fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
         return fieldsToCopy;
     }
 
