@@ -98,7 +98,7 @@ public class IvyBuildContext extends AbstractBuildContext {
                 PREFIX + IVY_PATTERN_PARAM, PREFIX + TARGET_OPTS_PARAM, PREFIX + JDK,
                 PREFIX + ARTIFACT_PATTERN_PARAM, PREFIX + INCLUDE_PATTERN, PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM,
                 PREFIX + EXECUTABLE, PREFIX + EXCLUDE_PATTERN, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
-                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY);
+                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_BINTRAY_CONFIGURATION);
         fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
         fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
