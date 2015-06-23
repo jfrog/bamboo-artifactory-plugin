@@ -83,8 +83,8 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
      */
     private void deploy(Set<DeployDetails> deployDetailsSet) throws IOException {
         for (DeployDetails deployDetails : deployDetailsSet) {
+            buildLogger.addBuildLogEntry("Deploying: " + deployDetails.getArtifactPath() + " to: " + deployDetails.getTargetRepository());
             client.deployArtifact(deployDetails);
-            buildLogger.addBuildLogEntry("Deployed: " + deployDetails.getArtifactPath() + " to: " + deployDetails.getTargetRepository());
         }
     }
 

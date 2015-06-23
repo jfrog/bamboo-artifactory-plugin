@@ -172,8 +172,8 @@ public class PushToBintrayAction extends ViewBuildResults {
         this.signMethod = signMethod;
     }
 
-    public boolean isOverrideDescriptorFile() {
-        return overrideDescriptorFile;
+    public String isOverrideDescriptorFile() {
+        return String.valueOf(overrideDescriptorFile);
     }
 
     public void setOverrideDescriptorFile(boolean overrideDescriptorFile) {

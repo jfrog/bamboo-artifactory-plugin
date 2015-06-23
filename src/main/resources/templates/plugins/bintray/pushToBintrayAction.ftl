@@ -34,10 +34,13 @@
             [@ww.textfield name="licenses" labelKey="artifactory.task.pushToBintray.licenses"/]
             [@ww.textfield name="vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
         [/@ui.bambooSection]
-        [@ww.select name="signMethod" label="Sign method" list=signMethodList listKey='key' listValue='value'/]
+        [@ww.select name="signMethod" label="artifactory.task.pushToBintray.vcsUrl.signMethod" list=signMethodList listKey='key' listValue='value'/]
         [@ww.textfield name="gpgPassphrase" labelKey= "GPG Passphrase"/]
     [/@ww.form]
 </div>
+<script>
+    document.getElementsByName('overrideDescriptorFile')[0].checked = ('${overrideDescriptorFile}' === "true")
+</script>
 [#else]
     [@ui.header pageKey='Push to Bintray Log' /]
 
