@@ -14,6 +14,7 @@ import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +26,7 @@ import java.util.Map;
 @RemoteAgentSupported
 public class PushToBintrayAction extends ViewBuildResults {
 
+    public static final String BINTRAY_CONFIG_PREFIX = "bintray.";
     public static PromotionContext context = new PromotionContext();
     private static Map<String, String> signMethodList = ImmutableMap.of(
             "false", "Don't Sign", "true", "Sign", "", "According to descriptor file");
@@ -47,11 +49,15 @@ public class PushToBintrayAction extends ViewBuildResults {
         if (ERROR.equals(result)) {
             return ERROR;
         }
+
+        Map<String, String> buildTaskConfiguration = TaskUtils.findConfigurationForBuildTask(this);
+        addDefaultValuesForInput(buildTaskConfiguration);
         context.setBuildNumber(this.getBuildNumber());
         context.setBuildKey(this.getImmutableBuild().getName());
         context.getLog().clear();
         return INPUT;
     }
+
 
     public String doPush() {
         String result;
@@ -188,5 +194,25 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     public boolean isDone() {
         return context.isDone();
+    }
+
+
+    /**
+     * Populate the Bintray configuration from the build task configuration to the "Push to Bintray" task
+     *
+     * @param buildTaskConfiguration Artifactory build task configuration
+     */
+    private void addDefaultValuesForInput(Map<String, String> buildTaskConfiguration) throws IllegalAccessException, NoSuchFieldException {
+        boolean shouldOverrideDescriptor = false;
+        for (String bintrayFieldKey : buildTaskConfiguration.keySet()) {
+            String bintrayValue = buildTaskConfiguration.get(bintrayFieldKey);
+            if (StringUtils.startsWith(bintrayFieldKey, BINTRAY_CONFIG_PREFIX) && StringUtils.isNotBlank(bintrayValue)) {
+                String valueKey = bintrayFieldKey.split("\\.")[1];
+                Field field = this.getClass().getDeclaredField(valueKey);
+                field.set(this, buildTaskConfiguration.get(bintrayFieldKey));
+                shouldOverrideDescriptor = true;
+            }
+        }
+        setOverrideDescriptorFile(shouldOverrideDescriptor);
     }
 }

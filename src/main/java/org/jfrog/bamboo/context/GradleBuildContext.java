@@ -3,6 +3,7 @@ package org.jfrog.bamboo.context;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.jfrog.bamboo.bintray.PushToBintrayContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -91,10 +92,11 @@ public class GradleBuildContext extends AbstractBuildContext {
                 PREFIX + PUBLISH_INCLUDE_PATTERNS_PARAM, PREFIX + PUBLISH_EXCLUDE_PATTERNS_PARAM,
                 PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM,
                 PREFIX + ARTIFACT_SPECS_PARAM, PREFIX + EXECUTABLE, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
-                TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
+                TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, ENABLE_BINTRAY_CONFIGURATION, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
                 PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS);
         fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
+        fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
         return fieldsToCopy;
     }
 

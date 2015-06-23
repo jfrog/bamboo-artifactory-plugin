@@ -2,6 +2,7 @@ package org.jfrog.bamboo.context;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
+import org.jfrog.bamboo.bintray.PushToBintrayContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,7 @@ public class GenericContext {
     public static final String ARTIFACT_SPECS = "artifactory.generic.artifactSpecs";
     public static final String ENV_VARS_INCLUDE_PATTERNS = "artifactory.generic.envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "artifactory.generic.envVarsExcludePatterns";
+    public static final String ENABLE_BINTRAY_CONFIGURATION = "bintrayConfiguration";
 
     private final Map<String, String> env;
 
@@ -30,8 +32,10 @@ public class GenericContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(SELECTED_SERVER_ID, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, ARTIFACT_SPECS,
-                RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS);
+        Set<String> fieldsToCopy = Sets.newHashSet(SELECTED_SERVER_ID, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, ARTIFACT_SPECS,
+                RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS, ENABLE_BINTRAY_CONFIGURATION);
+        fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
+        return fieldsToCopy;
     }
 
     public long getSelectedServerId() {

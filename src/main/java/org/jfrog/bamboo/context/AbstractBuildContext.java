@@ -5,6 +5,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.jfrog.bamboo.bintray.PushToBintrayContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.util.BeanUtilsHelper;
 import org.jfrog.build.api.BlackDuckProperties;
@@ -60,6 +61,7 @@ public abstract class AbstractBuildContext {
     public static final String JDK = "buildJdk";
     public static final String EXECUTABLE = "executable";
     public static final String BASE_URL = "baseUrl";
+    public static final String ENABLE_BINTRAY_CONFIGURATION = "bintrayConfiguration";
 
     // release management props.
     public static final String ENABLE_RELEASE_MANAGEMENT = "enableReleaseManagement";
@@ -73,6 +75,7 @@ public abstract class AbstractBuildContext {
     public static final String BLACKDUCK_PREFIX = "artifactory.common.blackduck.";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
+    public final PushToBintrayContext pushToBintrayContext = new PushToBintrayContext();
     public final BlackDuckProperties blackDuckProperties;
     private final String prefix;
     protected final Map<String, String> env;
@@ -260,6 +263,11 @@ public abstract class AbstractBuildContext {
     public String getResolutionRepo() {
         return env.get(prefix + RESOLUTION_REPO_PARAM);
     }
+
+    public String getArtifactSpecs() {
+        return env.get(prefix + ARTIFACT_SPECS_PARAM);
+    }
+
 
     public void resetContextToDefault() {
         env.put(prefix + SERVER_ID_PARAM, "-1");

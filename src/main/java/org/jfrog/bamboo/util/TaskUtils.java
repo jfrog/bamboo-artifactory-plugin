@@ -1,5 +1,6 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.google.common.base.Predicate;
@@ -114,5 +115,21 @@ public abstract class TaskUtils {
             }
         }
         throw new IllegalStateException("\"Artifacts Download\" task must run before the \"Artifactory Deployment\" task.");
+    }
+
+
+    /**
+     * Search for any Artifactory build task (Maven, Gradle, Ivy, Generic)
+     *
+     * @return configuration map for this task
+     */
+    public static Map<String, String> findConfigurationForBuildTask(ViewBuildResults viewBuildResults) {
+        List<TaskDefinition> taskDefinitions = viewBuildResults.getImmutableBuild().getBuildDefinition().getTaskDefinitions();
+        for (TaskDefinition taskDefinition : taskDefinitions) {
+            if (StringUtils.startsWith(taskDefinition.getPluginKey(), ConstantValues.ARTIFACTORY_PLUGIN_KEY)) {
+                return taskDefinition.getConfiguration();
+            }
+        }
+        throw new IllegalStateException("This job has no Artifactory task.");
     }
 }

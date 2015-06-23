@@ -33,7 +33,6 @@
             [@ww.textfield name="version" labelKey="artifactory.task.pushToBintray.version"/]
             [@ww.textfield name="licenses" labelKey="artifactory.task.pushToBintray.licenses"/]
             [@ww.textfield name="vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
-
         [/@ui.bambooSection]
         [@ww.select name="signMethod" label="Sign method" list=signMethodList listKey='key' listValue='value'/]
         [@ww.textfield name="gpgPassphrase" labelKey= "GPG Passphrase"/]

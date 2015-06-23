@@ -54,7 +54,7 @@ import java.util.*;
  * @author Tomer Cohen
  */
 @RemoteAgentSupported
-public class ReleaseAndPromotionAction extends ViewBuildResults {
+    public class ReleaseAndPromotionAction extends ViewBuildResults {
     public static final String PROMOTION_PUSH_TO_NEXUS_MODE = "pushToNexusMode";
     public static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
     public static final String NEXUS_PUSH_PROPERTY_PREFIX = NEXUS_PUSH_PLUGIN_NAME + ".";
