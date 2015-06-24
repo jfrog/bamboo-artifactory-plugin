@@ -18,6 +18,8 @@ package org.jfrog.bamboo.admin;
 
 import com.atlassian.bamboo.build.DefaultJob;
 import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.PlanKey;
+import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
@@ -79,10 +81,11 @@ public class ArtifactoryAdminConfigServlet extends HttpServlet {
     private Map<String, String> getAllVariables(String planKey) {
         Map<String, String> variableMap = Maps.newHashMap();
         if (StringUtils.isNotBlank(planKey)) {
-            Plan plan = planManager.getPlanByKey(planKey);
+            PlanKey planKeyObj = PlanKeys.getPlanKey(planKey);
+            Plan plan = planManager.getPlanByKey(planKeyObj);
             if (plan instanceof DefaultJob) {
                 // Default jobs don't have any global vars, so fetch the actual plan itself instead
-                plan = planManager.getPlanByKey(StringUtils.removeEnd(plan.getKey(), "-" + plan.getBuildKey()));
+                plan = planManager.getPlanByKey(PlanKeys.getPlanKey(StringUtils.removeEnd(plan.getKey(), "-" + plan.getBuildKey())));
             }
             appendVariableDefs(variableMap, variableDefinitionManager.getPlanVariables(plan));
             appendVariableDefs(variableMap, variableDefinitionManager.getGlobalNotOverriddenVariables(plan));

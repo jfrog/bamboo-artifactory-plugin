@@ -17,7 +17,7 @@
 package org.jfrog.bamboo.builder;
 
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
-import com.atlassian.bamboo.configuration.AdministrationConfigurationManager;
+import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.spring.container.ContainerManager;
@@ -27,11 +27,8 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jfrog.bamboo.admin.ServerConfigManager;
-import org.jfrog.bamboo.util.ConstantValues;
+import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.slf4j.Logger;
@@ -40,12 +37,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.jfrog.bamboo.util.ConstantValues.*;
+import static org.jfrog.bamboo.util.ConstantValues.BUILD_SERVLET_CONTEXT_NAME;
+import static org.jfrog.bamboo.util.ConstantValues.BUILD_SERVLET_KEY_PARAM;
 
 /**
  * @author Noam Y. Tenne
@@ -57,7 +53,7 @@ public abstract class BaseBuildInfoHelper {
     protected BuildContext context;
     protected ServerConfigManager serverConfigManager;
     protected AdministrationConfiguration administrationConfiguration;
-    protected AdministrationConfigurationManager administrationConfigurationManager;
+    protected AdministrationConfigurationAccessor administrationConfigurationAccessor;
     private HttpClient httpClient;
     protected String bambooBaseUrl;
 
@@ -73,9 +69,9 @@ public abstract class BaseBuildInfoHelper {
         this.administrationConfiguration = administrationConfiguration;
     }
 
-    public void setAdministrationConfigurationManager(
-            AdministrationConfigurationManager administrationConfigurationManager) {
-        this.administrationConfigurationManager = administrationConfigurationManager;
+    public void setAdministrationConfigurationAccessor(
+            AdministrationConfigurationAccessor administrationConfigurationAccessor) {
+        this.administrationConfigurationAccessor = administrationConfigurationAccessor;
     }
 
     /**
@@ -120,7 +116,7 @@ public abstract class BaseBuildInfoHelper {
     protected Map<String, String> filterAndGetGlobalVariables() {
         Map<String, String> variablesToReturn = Maps.newHashMap();
 
-        Map<String, String> globalVariables = getGlobalVariables();
+        Map<String, String> globalVariables = ConfigurationHelper.getInstance().getAllVariables(context.getPlanKey());
 
         String propFilePath = globalVariables.get(BuildInfoConfigProperties.PROP_PROPS_FILE);
         if (StringUtils.isNotBlank(propFilePath)) {
@@ -159,41 +155,6 @@ public abstract class BaseBuildInfoHelper {
                 Maps.filterKeys(globalVariables, BuildInfoExtractorUtils.BUILD_INFO_PROP_PREDICATE));
 
         return variablesToReturn;
-    }
-
-    /**
-     * Returns Bamboo's global variable map
-     *
-     * @return Global variable map. Empty if remote resource was not found
-     */
-    private Map<String, String> getGlobalVariables() {
-        HashMap<String, String> params = Maps.newHashMap();
-        params.put(ConstantValues.PLAN_KEY_PARAM, context.getPlanKey());
-        String requestUrl = prepareRequestUrl(ADMIN_CONFIG_SERVLET_CONTEXT_NAME, params);
-        GetMethod getMethod = new GetMethod(requestUrl);
-        InputStream responseStream = null;
-        try {
-            executeMethod(requestUrl, getMethod);
-
-            JsonFactory jsonFactory = new JsonFactory();
-            ObjectMapper mapper = new ObjectMapper();
-            jsonFactory.setCodec(mapper);
-
-            responseStream = getMethod.getResponseBodyAsStream();
-            if (responseStream == null) {
-                log.error("Received null global variable map.");
-                return Maps.newHashMap();
-            }
-
-            JsonParser parser = jsonFactory.createJsonParser(responseStream);
-            return parser.readValueAs(Map.class);
-        } catch (IOException ioe) {
-            log.error("Unable to determine global variables.", ioe);
-            return Maps.newHashMap();
-        } finally {
-            getMethod.releaseConnection();
-            IOUtils.closeQuietly(responseStream);
-        }
     }
 
     /**
@@ -258,8 +219,8 @@ public abstract class BaseBuildInfoHelper {
     protected String determineBambooBaseUrl() {
         if (administrationConfiguration != null) {
             return administrationConfiguration.getBaseUrl();
-        } else if (administrationConfigurationManager != null) {
-            return administrationConfigurationManager.getAdministrationConfiguration().getBaseUrl();
+        } else if (administrationConfigurationAccessor != null) {
+            return administrationConfigurationAccessor.getAdministrationConfiguration().getBaseUrl();
         }
         return null;
     }

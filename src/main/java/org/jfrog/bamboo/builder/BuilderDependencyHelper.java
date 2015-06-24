@@ -17,7 +17,7 @@
 package org.jfrog.bamboo.builder;
 
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
-import com.atlassian.bamboo.configuration.AdministrationConfigurationManager;
+import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -36,7 +36,7 @@ import java.io.*;
 public class BuilderDependencyHelper implements Serializable {
 
     private AdministrationConfiguration administrationConfiguration;
-    private AdministrationConfigurationManager administrationConfigurationManager;
+    private AdministrationConfigurationAccessor administrationConfigurationAccessor;
     private String builderKey;
 
     public BuilderDependencyHelper(String builderKey) {
@@ -108,8 +108,8 @@ public class BuilderDependencyHelper implements Serializable {
     private String getBambooBaseUrl(AbstractBuildContext context) {
         if (administrationConfiguration != null) {
             return administrationConfiguration.getBaseUrl();
-        } else if (administrationConfigurationManager != null) {
-            return administrationConfigurationManager.getAdministrationConfiguration().getBaseUrl();
+        } else if (administrationConfigurationAccessor != null) {
+            return administrationConfigurationAccessor.getAdministrationConfiguration().getBaseUrl();
         } else if (StringUtils.isNotBlank(context.getBaseUrl())) {
             return context.getBaseUrl();
         }
@@ -158,9 +158,9 @@ public class BuilderDependencyHelper implements Serializable {
         }
     }
 
-    public void setAdministrationConfigurationManager(
-            AdministrationConfigurationManager administrationConfigurationManager) {
-        this.administrationConfigurationManager = administrationConfigurationManager;
-        ConfigurationHelper.getInstance().setAdministrationConfigurationManager(administrationConfigurationManager);
+    public void setAdministrationConfigurationAccessor(
+            AdministrationConfigurationAccessor administrationConfigurationAccessor) {
+        this.administrationConfigurationAccessor = administrationConfigurationAccessor;
+        ConfigurationHelper.getInstance().setAdministrationConfigurationAccessor(administrationConfigurationAccessor);
     }
 }

@@ -16,12 +16,26 @@
     [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true' /]
 
     [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' showOn=true]
+
     [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='artifactory.generic.includeEnvVars' toggle='true'/]
 
     [@ui.bambooSection dependsOn='artifactory.generic.includeEnvVars' showOn=true]
         [@ww.textfield labelKey='artifactory.task.envVarsIncludePatterns' name='artifactory.generic.envVarsIncludePatterns' /]
         [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='artifactory.generic.envVarsExcludePatterns' /]
     [/@ui.bambooSection]
+
+    [@ww.checkbox labelKey="Bintray configuration" name="bintrayConfiguration" toggle='true'/]
+    [@ui.bambooSection dependsOn="bintrayConfiguration"  showOn=true]
+        [@ww.textfield name="bintray.subject" labelKey="artifactory.task.pushToBintray.subject"/]
+        [@ww.textfield name="bintray.repository" labelKey="artifactory.task.pushToBintray.repository"/]
+        [@ww.textfield name="bintray.packageName" labelKey="artifactory.task.pushToBintray.packageName"/]
+        [@ww.textfield name="bintray.version" labelKey="artifactory.task.pushToBintray.version"/]
+        [@ww.textfield name="bintray.licenses" labelKey="artifactory.task.pushToBintray.licenses"/]
+        [@ww.textfield name="bintray.vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
+        [@ww.select name="bintray.signMethod" label="Sign method" list=signMethods listKey='key' listValue='value'/]
+        [@ww.textfield name="bintray.gpgPassphrase" labelKey= "GPG Passphrase"/]
+    [/@ui.bambooSection]
+
 [/@ui.bambooSection]
 </div>
 [/@ui.bambooSection]
@@ -53,7 +67,7 @@
     function loadGenericRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+            '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType: 'json',
             cache: false,
             success: function (json) {

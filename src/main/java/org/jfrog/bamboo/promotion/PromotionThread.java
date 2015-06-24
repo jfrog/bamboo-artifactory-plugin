@@ -22,7 +22,7 @@ import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.jfrog.bamboo.release.action.ReleaseAndPromotionAction;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.builder.PromotionBuilder;
-import org.jfrog.build.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
 import java.io.InputStream;

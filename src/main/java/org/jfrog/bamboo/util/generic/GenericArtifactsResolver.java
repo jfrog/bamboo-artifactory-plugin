@@ -5,10 +5,10 @@ import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
 import org.jfrog.build.api.util.Log;
-import org.jfrog.build.client.ArtifactoryDependenciesClient;
-import org.jfrog.build.util.BuildDependenciesHelper;
-import org.jfrog.build.util.DependenciesDownloader;
-import org.jfrog.build.util.DependenciesHelper;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.clientConfiguration.util.BuildDependenciesHelper;
+import org.jfrog.build.extractor.clientConfiguration.util.DependenciesDownloader;
+import org.jfrog.build.extractor.clientConfiguration.util.DependenciesHelper;
 
 import java.io.IOException;
 import java.util.List;

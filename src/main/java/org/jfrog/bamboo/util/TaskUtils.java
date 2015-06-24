@@ -1,8 +1,16 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.build.ViewBuildResults;
+import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.types.Commandline;
+import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 
 import java.util.List;
@@ -14,6 +22,11 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public abstract class TaskUtils {
+
+    private static final char PROPERTIES_DELIMITER = ';';
+    private static final char KEY_VALUE_SEPARATOR = '=';
+    /* This is the name of the "Download Artifacts" task in bamboo, we are looking it up as downloading artifacts is a pre condition to our task */
+    private static final String DOWNLOAD_ARTIFACTS_TASK_KEY = "com.atlassian.bamboo.plugins.bamboo-artifact-downloader-plugin:artifactdownloadertask";
 
     private TaskUtils() {
         throw new IllegalAccessError();
@@ -48,5 +61,75 @@ public abstract class TaskUtils {
             arguments.add(Commandline.quoteArgument("-D" + BuildInfoConfigProperties.PROP_PROPS_FILE + "=" +
                     buildInfoPropertiesFile));
         }
+    }
+
+    /**
+     * Create Multimap that represent build/deployment matrix param to attach uploaded artifacts
+     *
+     * @param propertiesInput String that separated by semicolon to parse into map
+     * @return Multimap that represents the deployment properties, empty map if no properties attaches
+     */
+    public static Multimap<String, String> extractMatrixParamFromString(String propertiesInput) {
+        Multimap<String, String> matrixParams = ArrayListMultimap.create();
+        String[] matrixParamString = StringUtils.split(propertiesInput, PROPERTIES_DELIMITER);
+        for (String s : matrixParamString) {
+            String[] keyValueArr = StringUtils.split(s, KEY_VALUE_SEPARATOR);
+            boolean validProperty = keyValueArr.length == 2;
+            if (validProperty) {
+                // No whitespace allowed in key
+                String formatKey = keyValueArr[0].replace(" ", StringUtils.EMPTY);
+                matrixParams.put(formatKey, keyValueArr[1].trim());
+            }
+        }
+        return matrixParams;
+    }
+
+    /**
+     * Get the Id of selected Artifactory
+     * @param definition task that uses Artifactory
+     * @return artifactory id
+     */
+    public static String getSelectedServerId(TaskDefinition definition) {
+        if (definition == null) {
+            return "";
+        }
+        Map<String, String> configuration = definition.getConfiguration();
+        Map<String, String> filtered = Maps.filterKeys(configuration, new Predicate<String>() {
+            public boolean apply(String input) {
+                return StringUtils.endsWith(input, AbstractBuildContext.SERVER_ID_PARAM);
+            }
+        });
+        return filtered.values().iterator().next();
+    }
+
+    /**
+     * Searching for the "Artifacts Download" task in a list of tasks
+     *
+     * @param runtimeTaskDefinitionList all the job tasks
+     * @return Artifacts Download task, null if no such task exists
+     */
+    public static RuntimeTaskDefinition findDownloadArtifactsTask(@NotNull List<RuntimeTaskDefinition> runtimeTaskDefinitionList) {
+        for (RuntimeTaskDefinition rtd : runtimeTaskDefinitionList) {
+            if (rtd.getPluginKey().equals(DOWNLOAD_ARTIFACTS_TASK_KEY)) {
+                return rtd;
+            }
+        }
+        throw new IllegalStateException("\"Artifacts Download\" task must run before the \"Artifactory Deployment\" task.");
+    }
+
+
+    /**
+     * Search for any Artifactory build task (Maven, Gradle, Ivy, Generic)
+     *
+     * @return configuration map for this task
+     */
+    public static Map<String, String> findConfigurationForBuildTask(ViewBuildResults viewBuildResults) {
+        List<TaskDefinition> taskDefinitions = viewBuildResults.getImmutableBuild().getBuildDefinition().getTaskDefinitions();
+        for (TaskDefinition taskDefinition : taskDefinitions) {
+            if (StringUtils.startsWith(taskDefinition.getPluginKey(), ConstantValues.ARTIFACTORY_PLUGIN_KEY)) {
+                return taskDefinition.getConfiguration();
+            }
+        }
+        throw new IllegalStateException("This job has no Artifactory task.");
     }
 }

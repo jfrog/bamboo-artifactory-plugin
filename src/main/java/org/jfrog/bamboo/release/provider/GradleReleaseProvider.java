@@ -36,6 +36,12 @@ public class GradleReleaseProvider extends AbstractReleaseProvider {
     @Override
     public boolean transformDescriptor(Map<String, String> conf, boolean release)
             throws RepositoryException, IOException, InterruptedException {
+
+        String userCurrentVersion = conf.get(MODULE_VERSION_CONFIGURATION);
+        if (Boolean.valueOf(userCurrentVersion)) {
+            return false;
+        }
+
         File rootDir = getSourceDir();
         if (rootDir == null) {
             return false;

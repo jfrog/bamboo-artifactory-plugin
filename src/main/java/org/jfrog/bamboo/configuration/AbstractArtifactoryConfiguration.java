@@ -39,6 +39,9 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private static final Map TEST_RESULTS_FILE_PATTERN_TYPES = ImmutableMap
             .of(CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD, "Look in the standard test results directory.",
                     CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM, "Specify custom results directories");
+    public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of(
+            "false", "Don't Sign", "true", "Sign");
+    public static final String SIGN_METHOD_MAP_KEY = "signMethods";
     protected transient ServerConfigManager serverConfigManager;
     protected AdministrationConfiguration administrationConfiguration;
     protected UIConfigSupport uiConfigSupport;
@@ -165,6 +168,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         context.put("testDirectoryTypes", TEST_RESULTS_FILE_PATTERN_TYPES);
         context.put(AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM, "true");
         context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
+        context.put(SIGN_METHOD_MAP_KEY, SIGN_METHOD_MAP);
     }
 
     /**

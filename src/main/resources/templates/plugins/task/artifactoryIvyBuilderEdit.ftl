@@ -68,8 +68,21 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 
     [#--blackduck integration--]
     [#include 'BlackDuckBuilderEditSnippet.ftl'/]
-
 [/@ui.bambooSection]
+
+[@ww.checkbox labelKey="Bintray configuration" name="bintrayConfiguration" toggle='true'/]
+
+[@ui.bambooSection dependsOn="bintrayConfiguration"  showOn=true]
+    [@ww.textfield name="bintray.subject" labelKey="artifactory.task.pushToBintray.subject"/]
+    [@ww.textfield name="bintray.repository" labelKey="artifactory.task.pushToBintray.repository"/]
+    [@ww.textfield name="bintray.packageName" labelKey="artifactory.task.pushToBintray.packageName"/]
+    [@ww.textfield name="bintray.version" labelKey="artifactory.task.pushToBintray.version"/]
+    [@ww.textfield name="bintray.licenses" labelKey="artifactory.task.pushToBintray.licenses"/]
+    [@ww.textfield name="bintray.vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
+    [@ww.select name="bintray.signMethod" label="Sign method" list=signMethods listKey='key' listValue='value'/]
+    [@ww.textfield name="bintray.gpgPassphrase" labelKey= "GPG Passphrase"/]
+[/@ui.bambooSection]
+
 
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']
     [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]

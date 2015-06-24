@@ -5,6 +5,7 @@ import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanHelper;
+import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.atlassian.bamboo.repository.Repository;
@@ -40,7 +41,7 @@ import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VersionHelper;
 import org.jfrog.build.api.release.Promotion;
-import org.jfrog.build.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
 import java.util.*;
@@ -53,7 +54,7 @@ import java.util.*;
  * @author Tomer Cohen
  */
 @RemoteAgentSupported
-public class ReleaseAndPromotionAction extends ViewBuildResults {
+    public class ReleaseAndPromotionAction extends ViewBuildResults {
     public static final String PROMOTION_PUSH_TO_NEXUS_MODE = "pushToNexusMode";
     public static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
     public static final String NEXUS_PUSH_PROPERTY_PREFIX = NEXUS_PUSH_PLUGIN_NAME + ".";
@@ -64,13 +65,13 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     public static final String MODULE_KEY = "version.key";
     private static final Logger log = Logger.getLogger(ReleaseAndPromotionAction.class);
     private static final String PROMOTION_NORMAL_MODE = "normalMode";
-    private String promotionMode = PROMOTION_NORMAL_MODE;
     private static final Map<String, String> MODULE_VERSION_TYPES =
             ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",
                     ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
                     ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
     public static PromotionContext promotionContext = new PromotionContext();
     ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+    private String promotionMode = PROMOTION_NORMAL_MODE;
     private boolean promoting = true;
     private String promotionRepo = "";
     private VariableDefinitionManager variableDefinitionManager;
@@ -140,8 +141,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
                             VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
                     if (versionHelper != null) {
                         int latestBuildNumberWithBuildInfo = findLatestBuildNumberWithBuildInfo();
-                        setVersions(
-                                versionHelper.filterPropertiesForRelease(getPlan(), latestBuildNumberWithBuildInfo));
+                        setVersions(versionHelper.filterPropertiesForRelease(getMutablePlan(), latestBuildNumberWithBuildInfo));
                     }
                 }
             }
@@ -154,7 +154,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     private int findLatestBuildNumberWithBuildInfo() {
-        List<ResultsSummary> summaries = resultsSummaryManager.getResultSummariesForPlan(getPlan(), 0, 100);
+        List<ResultsSummary> summaries = resultsSummaryManager.getResultSummariesForPlan(getMutablePlan(), 0, 100);
         Collections.sort(summaries, new Comparator<ResultsSummary>() {
             @Override
             public int compare(ResultsSummary o1, ResultsSummary o2) {
@@ -226,7 +226,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     private Repository getRepository() {
-        return PlanHelper.getDefaultRepository(getPlan());
+        return PlanHelper.getDefaultRepository(getMutablePlan());
     }
 
     public boolean isUseShallowClone() {
@@ -259,16 +259,17 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * @return {@code success} if the manual execution finished successfully.
      */
     public String doReleaseBuild() throws RepositoryException, IOException {
-        List<TaskDefinition> taskDefinitions = getPlan().getBuildDefinition().getTaskDefinitions();
+        List<TaskDefinition> taskDefinitions = getMutablePlan().getBuildDefinition().getTaskDefinitions();
         if (taskDefinitions.isEmpty()) {
             log.warn("No task definitions defined, cannot execute release build");
             return ERROR;
         }
         User user = getUser();
-        if (user == null) {
+        PlanKey planKey = getMutablePlan().getPlanKey();
+        if (user == null || planKey == null) {
             return ERROR;
         }
-        setBuildKey(getPlan().getPlanKey().getKey());
+        setBuildKey(planKey.getKey());
         Map<String, String> configuration = Maps.newHashMap();
         Map parameters = ActionContext.getContext().getParameters();
         configuration.put(AbstractBuildContext.ACTIVATE_RELEASE_MANAGEMENT, String.valueOf(true));
@@ -294,9 +295,10 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
         }
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
         VersionHelper helper = VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
+
         helper.addVersionFieldsToConfiguration(parameters, configuration, getModuleVersionConfiguration(),
                 definition.getConfiguration());
-        planExecutionManager
+            planExecutionManager
                 .startManualExecution(getPlanJob().getParent(), user, configuration, Maps.<String, String>newHashMap());
         return SUCCESS;
     }
@@ -324,7 +326,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * @return Gets the current job.
      */
     private Job getPlanJob() {
-        return (Job) getPlan();
+        return (Job) getMutablePlan();
     }
 
     public String getModuleVersionConfiguration() {

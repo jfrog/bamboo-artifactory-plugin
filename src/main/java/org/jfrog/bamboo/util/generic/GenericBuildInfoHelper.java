@@ -22,12 +22,12 @@ import org.jfrog.build.api.builder.ArtifactBuilder;
 import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.api.util.FileChecksumCalculator;
-import org.jfrog.build.client.ClientProperties;
 import org.jfrog.build.client.DeployDetails;
-import org.jfrog.build.client.IncludeExcludePatterns;
-import org.jfrog.build.client.PatternMatcher;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
-import org.jfrog.build.util.PublishedItemsHelper;
+import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
+import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
+import org.jfrog.build.extractor.clientConfiguration.PatternMatcher;
+import org.jfrog.build.extractor.clientConfiguration.util.PublishedItemsHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -155,13 +155,12 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return Maps.fromProperties(prefixLessDynamicProperties);
     }
 
-    private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry,
-                                                             String targetRepository, Map<String, String> propertyMap) throws IOException,
+    private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry, String targetRepository,
+                                                             Map<String, String> propertyMap) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
         String targetPath = fileEntry.getKey();
         File artifactFile = fileEntry.getValue();
-
         String path = PublishedItemsHelper.calculateTargetPath(targetPath, artifactFile);
         path = StringUtils.replace(path, "//", "/");
 

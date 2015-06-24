@@ -3,7 +3,7 @@ package org.jfrog.bamboo.util;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.ArtifactoryBuildInfoPropertyHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.build.client.ArtifactoryClientConfiguration;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
 /**
  * @author Tomer Cohen

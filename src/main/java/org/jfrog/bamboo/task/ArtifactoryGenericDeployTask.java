@@ -21,10 +21,10 @@ import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.Build;
-import org.jfrog.build.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.client.DeployDetails;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
-import org.jfrog.build.util.PublishedItemsHelper;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.clientConfiguration.util.PublishedItemsHelper;
 
 import java.io.File;
 import java.io.IOException;

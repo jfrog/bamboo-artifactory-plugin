@@ -5,7 +5,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.ArtifactoryBuildInfoPropertyHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.build.client.ArtifactoryClientConfiguration;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
 /**
  * Helper to populate Maven specific properties to the client configuration

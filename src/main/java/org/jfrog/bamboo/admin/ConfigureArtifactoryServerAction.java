@@ -23,8 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
-import org.jfrog.build.client.ArtifactoryBuildInfoClient;
-import org.jfrog.build.client.VersionException;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.util.VersionException;
 
 import java.net.MalformedURLException;
 import java.net.URL;

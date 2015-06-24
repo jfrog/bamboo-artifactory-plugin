@@ -81,7 +81,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
                     configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT));
             state.tagCreated = true;
         }
-        if (modifiedFilesForReleaseVersion) {
+        if (state.releaseBranchCreated) {
             // push the current branch
             scmManager.push(scmManager.getRemoteUrl(), state.currentWorkingBranch);
             state.releaseBranchPushed = true;
