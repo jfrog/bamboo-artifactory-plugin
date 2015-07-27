@@ -56,7 +56,13 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+
+        // Encrypt the password fields, so that they do not appear as free-text on the task configuration UI.
+        encryptFields(taskDefinition.getConfiguration());
         taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+        // Decrypt back the password fields.
+        decryptFields(taskDefinition.getConfiguration());
+
         String publishingKey = Maven3BuildContext.PREFIX + Maven3BuildContext.DEPLOYABLE_REPO_KEY;
         String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :
                 Maven3BuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;

@@ -3,6 +3,8 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
+import com.atlassian.bamboo.security.EncryptionService;
+import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
@@ -19,6 +21,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.ConstantValues;
+import org.jfrog.bamboo.util.TaskUtils;
 
 import java.util.Date;
 import java.util.Map;
@@ -33,6 +36,8 @@ import java.util.Set;
  */
 public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfigurator implements
         TaskTestResultsSupport, BuildTaskRequirementSupport {
+
+    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
 
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
@@ -102,6 +107,11 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
             @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfigMap.put("baseUrl", administrationConfiguration.getBaseUrl());
+
+        // Before persisting the task config fields, decrypt back the password fields,
+        // since they may have been encrypted, so that they do not appear as free-text in the task configuration UI.
+        decryptFields(taskConfigMap);
+
         return taskConfigMap;
     }
 
@@ -183,6 +193,44 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
         this.administrationConfiguration = administrationConfiguration;
+    }
+
+    /**
+     * This method is used by the encryptFields and decryptFields methods.
+     * It encrypts or descrypts the task config fields, if their key ends with 'password'.
+     * While encrypting / decrypting, if the keys are already encrypted / decrypted,
+     * the keys values will not change.
+     * @param taskConfigMap The task config fields map.
+     * @param enc   If true - encrypt, else - decrypt.
+     */
+    private void encOrDecFields(Map<String, String> taskConfigMap, boolean enc) {
+        for (Map.Entry<String, String> entry : taskConfigMap.entrySet()) {
+            if (entry.getKey().toLowerCase().endsWith("password")) {
+                String value = TaskUtils.decryptIfNeeded(entry.getValue());
+                if (enc) {
+                    value = encryptionService.encrypt(value);
+                }
+                entry.setValue(value);
+            }
+        }
+    }
+
+    /**
+     * Encrypt the task config fields, if their key ends with 'password'.
+     * If the keys are already encrypted, their value will not change.
+     * @param taskConfigMap The task config fields map.
+     */
+    protected void encryptFields(Map<String, String> taskConfigMap) {
+        encOrDecFields(taskConfigMap, true);
+    }
+
+    /**
+     * Decrypt the task config fields, if their key ends with 'password'.
+     * If the keys are already decrypted, their value will not change.
+     * @param taskConfigMap The task config fields map.
+     */
+    protected void decryptFields(Map<String, String> taskConfigMap) {
+        encOrDecFields(taskConfigMap, false);
     }
 
     /**
