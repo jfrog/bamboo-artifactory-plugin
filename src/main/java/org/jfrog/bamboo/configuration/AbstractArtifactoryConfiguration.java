@@ -53,6 +53,10 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private String builderContextPrefix;
     private String capabilityPrefix;
 
+    protected AbstractArtifactoryConfiguration() {
+        this(null, null);
+    }
+
     protected AbstractArtifactoryConfiguration(String builderContextPrefix) {
         this(builderContextPrefix, null);
     }
@@ -135,9 +139,11 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
             errorCollection.addError(serverKey,
                     "Could not find Artifactory server configuration by the ID " + configuredServerId);
         }
-        String deployerRepoKey = "builder." + getKey() + "." + getDeployableRepoKey();
-        if (StringUtils.isBlank(params.getString(deployerRepoKey))) {
-            errorCollection.addError(deployerRepoKey, "Please choose a repository to deploy to.");
+        if (StringUtils.isNotBlank(getDeployableRepoKey())) {
+            String deployerRepoKey = "builder." + getKey() + "." + getDeployableRepoKey();
+            if (StringUtils.isBlank(params.getString(deployerRepoKey))) {
+                errorCollection.addError(deployerRepoKey, "Please choose a repository to deploy to.");
+            }
         }
         String runLicensesKey = "builder." + getKey() + "." + AbstractBuildContext.RUN_LICENSE_CHECKS;
         String runLicenseChecksValue = params.getString(runLicensesKey);
@@ -163,13 +169,25 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     @Override
     public Set<Requirement> calculateRequirements(@NotNull TaskDefinition taskDefinition, @NotNull Job job) {
         Set<Requirement> requirements = Sets.newHashSet();
-        taskConfiguratorHelper.addJdkRequirement(requirements, taskDefinition,
-                builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
-        if (StringUtils.isNotBlank(capabilityPrefix)) {
-            taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
-                    builderContextPrefix + AbstractBuildContext.EXECUTABLE, capabilityPrefix);
+        if (StringUtils.isNotBlank(builderContextPrefix)) {
+            taskConfiguratorHelper.addJdkRequirement(requirements, taskDefinition,
+                    builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
+            if (StringUtils.isNotBlank(capabilityPrefix)) {
+                taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
+                        builderContextPrefix + AbstractBuildContext.EXECUTABLE, capabilityPrefix);
+            }
         }
         return requirements;
+    }
+
+    protected void populateContextWithConfiguration(@NotNull Map<String, Object> context,
+        @NotNull TaskDefinition taskDefinition, Set<String> fieldsToCopy) {
+
+        // Encrypt the password fields, so that they do not appear as free-text on the task configuration UI.
+        encryptFields(taskDefinition.getConfiguration());
+        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, fieldsToCopy);
+        // Decrypt back the password fields.
+        decryptFields(taskDefinition.getConfiguration());
     }
 
     // populate common objects into context
@@ -220,7 +238,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      * If the keys are already encrypted, their value will not change.
      * @param taskConfigMap The task config fields map.
      */
-    protected void encryptFields(Map<String, String> taskConfigMap) {
+    private void encryptFields(Map<String, String> taskConfigMap) {
         encOrDecFields(taskConfigMap, true);
     }
 
@@ -229,7 +247,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      * If the keys are already decrypted, their value will not change.
      * @param taskConfigMap The task config fields map.
      */
-    protected void decryptFields(Map<String, String> taskConfigMap) {
+    private void decryptFields(Map<String, String> taskConfigMap) {
         encOrDecFields(taskConfigMap, false);
     }
 
@@ -255,5 +273,23 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      */
     protected abstract String getDeployableRepoKey();
 
-    protected abstract String getDefaultTestDirectory();
+    protected String getDefaultTestDirectory() {
+        throw new UnsupportedOperationException("This method is not implemented for class " + this.getClass());
+    }
+
+    /**
+     * In version 1.8.1 the key containing the Artifactory Server ID was changed
+     * in the Generic Resolve and Deploy configurations.
+     * This method migrates to the new name.
+     */
+    protected void migrateServerKeyIfNeeded(Map<String, String> configuration) {
+        String oldServerId = configuration.get("artifactory.generic.artifactoryServerId");
+        String newServerId = configuration.get("builder.artifactoryGenericBuilder.artifactoryServerId");
+        if (StringUtils.isNotBlank(oldServerId)) {
+            configuration.put("builder.artifactoryGenericBuilder.artifactoryServerId", oldServerId);
+        }
+        if (StringUtils.isNotBlank(newServerId)) {
+            configuration.put("artifactory.generic.artifactoryServerId", newServerId);
+        }
+    }
 }

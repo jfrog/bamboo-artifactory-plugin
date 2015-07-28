@@ -1,20 +1,14 @@
 package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
-import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
-import com.atlassian.spring.container.ComponentNotFoundException;
-import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
-import org.jfrog.bamboo.util.ConstantValues;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,22 +17,8 @@ import java.util.Set;
  *
  * @author Tomer Cohen
  */
-public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurator {
+public class ArtifactoryGenericBuildConfiguration extends AbstractArtifactoryConfiguration {
     private static final Set<String> FIELDS_TO_COPY = GenericContext.getFieldsToCopy();
-    protected transient ServerConfigManager serverConfigManager;
-
-    protected ArtifactoryGenericBuildConfiguration() {
-        try {
-            if (ContainerManager.isContainerSetup()) {
-                serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                        ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
-            }
-        } catch (ComponentNotFoundException cnfe) {
-            System.out.println(ArtifactoryGenericBuildConfiguration.class.getName() + " - " + new Date() +
-                    " - Warning: could not find component 'Artifactory Server Configuration Manager' (Can be ignored " +
-                    "when running on a remote agent).");
-        }
-    }
 
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
@@ -56,12 +36,14 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+        migrateServerKeyIfNeeded(taskDefinition.getConfiguration());
+        populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+
         String publishingKey = GenericContext.REPO_KEY;
         String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :
                 IvyBuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;
         context.put("selectedRepoKey", selectedPublishingRepoKey);
-        context.put("selectedServerId", context.get(GenericContext.SELECTED_SERVER_ID));
+        context.put("selectedServerId", context.get(GenericContext.PREFIX + GenericContext.SERVER_ID_PARAM));
         context.put(GenericContext.SIGN_METHOD_MAP_KEY, GenericContext.SIGN_METHOD_MAP);
         context.put("serverConfigManager", serverConfigManager);
         String envVarsExcludePatterns = (String) context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
@@ -78,6 +60,21 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractTaskConfigurat
         IvyBuildContext buildContext = IvyBuildContext.createIvyContextFromMap(context);
         long serverId = buildContext.getArtifactoryServerId();
         context.put("selectedServerId", serverId);
+    }
+
+    @Override
+    protected String getKey() {
+        return "artifactoryGenericBuilder";
+    }
+
+    @Override
+    protected String getDeployableRepoKey() {
+        return "deployableRepo";
+    }
+
+    @Override
+    public boolean taskProducesTestResults(@NotNull TaskDefinition definition) {
+        return false;
     }
 
     @NotNull

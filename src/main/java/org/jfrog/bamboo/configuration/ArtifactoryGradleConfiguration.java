@@ -55,12 +55,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
-
-        // Encrypt the password fields, so that they do not appear as free-text on the task configuration UI.
-        encryptFields(taskDefinition.getConfiguration());
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
-        // Decrypt back the password fields.
-        decryptFields(taskDefinition.getConfiguration());
+        populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
 
         context.put("selectedServerId", context.get(GradleBuildContext.PREFIX + GradleBuildContext.SERVER_ID_PARAM));
         String resolutionRepoKey = GradleBuildContext.PREFIX + GradleBuildContext.RESOLUTION_REPO_PARAM;

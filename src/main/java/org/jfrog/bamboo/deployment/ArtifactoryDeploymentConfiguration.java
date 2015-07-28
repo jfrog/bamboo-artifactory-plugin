@@ -24,10 +24,6 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
     public static final String SELECTED_REPO_KEY = "selectedRepoKey";
     public static final String ARTIFACTORY_SERVER_ID = "artifactoryServerId";
 
-    public ArtifactoryDeploymentConfiguration() {
-        super(DEPLOYMENT_PREFIX);
-    }
-
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params, @Nullable TaskDefinition previousTaskDefinition) {
@@ -86,11 +82,6 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
     @Override
     protected String getDeployableRepoKey() {
         return DEPLOYMENT_REPOSITORY;
-    }
-
-    @Override
-    protected String getDefaultTestDirectory() {
-        return StringUtils.EMPTY;
     }
 
     @Override
