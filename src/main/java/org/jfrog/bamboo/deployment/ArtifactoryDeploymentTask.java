@@ -59,15 +59,24 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
         }
 
         repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentConfiguration.DEPLOYMENT_REPOSITORY);
-        if (StringUtils.isBlank(serverId)) {
+        if (StringUtils.isBlank(repositoryKey)) {
             // Compatibility with version 1.8.0
             repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_REPOSITORY);
         }
         artifactsRootDirectory = deploymentTaskContext.getRootDirectory().getAbsolutePath();
 
+        // Get the deployer credentials configured in the task configuration
+        String username = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentConfiguration.USERNAME);
+        String password = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentConfiguration.PASSWORD);
+        // If deployer credentials were not configured in the task configuration, use the credentials configured
+        // globaly
+        if (StringUtils.isBlank(username) && StringUtils.isBlank(password)) {
+            username = serverConfig.getUsername();
+            password = serverConfig.getPassword();
+        }
         TaskResult result;
         client = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
-                serverConfig.getUsername(), serverConfig.getPassword(), new BambooBuildInfoLog(log));
+                username, password, new BambooBuildInfoLog(log));
 
         try {
             RuntimeTaskDefinition artifactDownloadTask = TaskUtils.findDownloadArtifactsTask(deploymentTaskContext.getCommonContext().getRuntimeTaskDefinitions());
@@ -79,8 +88,9 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
         } catch (Exception e) {
             buildLogger.addErrorLogEntry("Error while deploying artifacts to Artifactory: " + e.getMessage());
             result = TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
+        } finally {
+            client.shutdown();
         }
-        client.shutdown();
         return result;
     }
 
@@ -96,7 +106,6 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
             client.deployArtifact(deployDetails);
         }
     }
-
 
     /**
      * Create DeployDetails for all the collected artifacts
