@@ -105,6 +105,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         resetConfigIfNeeded(buildContext);
         taskConfigMap.put(GradleBuildContext.PREFIX + GradleBuildContext.TEST_RESULT_DIRECTORY,
                 getTestDirectory(buildContext));
+
+        decryptFields(taskConfigMap);
         return taskConfigMap;
     }
 

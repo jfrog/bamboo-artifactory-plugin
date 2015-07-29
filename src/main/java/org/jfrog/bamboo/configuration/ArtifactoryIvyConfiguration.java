@@ -98,6 +98,8 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         IvyBuildContext buildContext = new IvyBuildContext(configMap);
         resetConfigIfNeeded(buildContext);
         configMap.put(IvyBuildContext.PREFIX + IvyBuildContext.TEST_RESULT_DIRECTORY, getTestDirectory(buildContext));
+
+        decryptFields(configMap);
         return configMap;
     }
 

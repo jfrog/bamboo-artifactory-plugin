@@ -74,6 +74,7 @@ public class ArtifactoryGenericResolveConfiguration extends AbstractArtifactoryC
                                                      @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
+        decryptFields(configMap);
         return configMap;
     }
 }

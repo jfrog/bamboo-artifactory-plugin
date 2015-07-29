@@ -108,6 +108,8 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         resetConfigIfNeeded(buildContext);
         taskConfigMap.put(Maven3BuildContext.PREFIX + Maven3BuildContext.TEST_RESULT_DIRECTORY,
                 getTestDirectory(buildContext));
+
+        decryptFields(taskConfigMap);
         return taskConfigMap;
     }
 

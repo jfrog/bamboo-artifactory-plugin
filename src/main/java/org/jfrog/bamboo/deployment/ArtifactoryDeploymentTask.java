@@ -8,11 +8,12 @@ import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.deployment.FilesCollector;
@@ -46,14 +47,22 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
 
         buildLogger = deploymentTaskContext.getBuildLogger();
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
-        final String serverId = deploymentTaskContext.getConfigurationMap().get("artifactoryServerId");
+        String serverId = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM);
+        if (StringUtils.isBlank(serverId)) {
+            // Compatibility with version 1.8.0
+            serverId = deploymentTaskContext.getConfigurationMap().get("artifactoryServerId");
+        }
         serverConfig = serverConfigManager.getServerConfigById(Long.parseLong(serverId));
         if (serverConfig == null) {
             buildLogger.addErrorLogEntry("Please check Artifactory server configuration in the job configuration.");
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
         }
 
-        repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_REPOSITORY);
+        repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentConfiguration.DEPLOYMENT_REPOSITORY);
+        if (StringUtils.isBlank(serverId)) {
+            // Compatibility with version 1.8.0
+            repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_REPOSITORY);
+        }
         artifactsRootDirectory = deploymentTaskContext.getRootDirectory().getAbsolutePath();
 
         TaskResult result;
@@ -124,7 +133,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
                     .md5(checksum.get("MD5"));
             return deployDetailsBuilder.build();
         } catch (Exception e) {
-            throw new RuntimeException("Error while creating Artifact details", e);
+            throw new RuntimeException("Error while creating Artifact details. " + e.getMessage(), e);
         }
     }
 

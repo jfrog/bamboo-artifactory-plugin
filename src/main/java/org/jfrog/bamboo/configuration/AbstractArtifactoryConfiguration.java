@@ -37,7 +37,7 @@ import java.util.Set;
 public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfigurator implements
         TaskTestResultsSupport, BuildTaskRequirementSupport {
 
-    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
+    protected EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
 
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
@@ -111,10 +111,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
             @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfigMap.put("baseUrl", administrationConfiguration.getBaseUrl());
-
-        // Before persisting the task config fields, decrypt back the password fields,
-        // since they may have been encrypted, so that they do not appear as free-text in the task configuration UI.
-        decryptFields(taskConfigMap);
 
         return taskConfigMap;
     }
@@ -223,7 +219,8 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      */
     private void encOrDecFields(Map<String, String> taskConfigMap, boolean enc) {
         for (Map.Entry<String, String> entry : taskConfigMap.entrySet()) {
-            if (entry.getKey().toLowerCase().endsWith("password")) {
+            String key = entry.getKey().toLowerCase();
+            if (key.endsWith("password") && key.contains("artifactory")) {
                 String value = TaskUtils.decryptIfNeeded(entry.getValue());
                 if (enc) {
                     value = encryptionService.encrypt(value);
@@ -247,7 +244,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      * If the keys are already decrypted, their value will not change.
      * @param taskConfigMap The task config fields map.
      */
-    private void decryptFields(Map<String, String> taskConfigMap) {
+    protected void decryptFields(Map<String, String> taskConfigMap) {
         encOrDecFields(taskConfigMap, false);
     }
 
