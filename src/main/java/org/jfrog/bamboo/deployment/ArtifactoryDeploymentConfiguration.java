@@ -50,10 +50,31 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
         populateContextWithConfiguration(context, taskDefinition, getFieldsToCopy());
-
+        String selectedServerId = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM);
+        String selectedRepoKey = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + DEPLOYMENT_REPOSITORY);
+        String username = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + USERNAME);
+        String password = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + PASSWORD);
+        if (StringUtils.isBlank(selectedServerId)) {
+            // Compatibility with 1.8.0
+            selectedServerId = taskDefinition.getConfiguration().get("artifactoryServerId");
+        }
+        if (StringUtils.isBlank(selectedRepoKey)) {
+            // Compatibility with 1.8.0
+            selectedRepoKey = taskDefinition.getConfiguration().get("deploymentRepository");
+        }
+        if (StringUtils.isBlank(username)) {
+            // Compatibility with 1.8.0
+            username = taskDefinition.getConfiguration().get("username");
+            context.put(DEPLOYMENT_PREFIX + USERNAME, username);
+        }
+        if (StringUtils.isBlank(password)) {
+            // Compatibility with 1.8.0
+            password = taskDefinition.getConfiguration().get("password");
+            context.put(DEPLOYMENT_PREFIX + PASSWORD, password);
+        }
         context.put("serverConfigManager", serverConfigManager);
-        context.put("selectedServerId", taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM));
-        context.put("selectedRepoKey", taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + DEPLOYMENT_REPOSITORY));
+        context.put("selectedServerId", selectedServerId);
+        context.put("selectedRepoKey", selectedRepoKey);
     }
 
     @Override

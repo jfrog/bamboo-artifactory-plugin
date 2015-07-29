@@ -39,14 +39,16 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractArtifactoryCon
         migrateServerKeyIfNeeded(taskDefinition.getConfiguration());
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
 
-        String publishingKey = GenericContext.REPO_KEY;
-        String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :
-                IvyBuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;
+        String selectedPublishingRepoKey = context.get(GenericContext.REPO_KEY) != null ? context.get(GenericContext.REPO_KEY).toString() : null;
+        if (StringUtils.isBlank(selectedPublishingRepoKey)) {
+            // Compatibility with 1.8.0
+            selectedPublishingRepoKey = taskDefinition.getConfiguration().get("artifactory.generic.deployableRepo");
+        }
         context.put("selectedRepoKey", selectedPublishingRepoKey);
         context.put("selectedServerId", context.get(GenericContext.PREFIX + GenericContext.SERVER_ID_PARAM));
         context.put(GenericContext.SIGN_METHOD_MAP_KEY, GenericContext.SIGN_METHOD_MAP);
         context.put("serverConfigManager", serverConfigManager);
-        String envVarsExcludePatterns = (String) context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
+        String envVarsExcludePatterns = (String)context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
         if (envVarsExcludePatterns == null) {
             context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
         }
