@@ -59,7 +59,12 @@ public class GenericContext {
     }
 
     public String getRepoKey() {
-        return env.get(REPO_KEY);
+        String key = env.get(REPO_KEY);
+        if (StringUtils.isBlank(key)) {
+            // Compatibility with 1.8.0
+            return env.get("artifactory.generic.deployableRepo");
+        }
+        return key;
     }
 
     public String getUsername() {
