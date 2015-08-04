@@ -55,7 +55,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+        populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+
         context.put("selectedServerId", context.get(GradleBuildContext.PREFIX + GradleBuildContext.SERVER_ID_PARAM));
         String resolutionRepoKey = GradleBuildContext.PREFIX + GradleBuildContext.RESOLUTION_REPO_PARAM;
         String selectedResolutionRepoKey =
@@ -104,6 +105,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         resetConfigIfNeeded(buildContext);
         taskConfigMap.put(GradleBuildContext.PREFIX + GradleBuildContext.TEST_RESULT_DIRECTORY,
                 getTestDirectory(buildContext));
+
+        decryptFields(taskConfigMap);
         return taskConfigMap;
     }
 

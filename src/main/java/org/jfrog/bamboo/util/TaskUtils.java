@@ -1,6 +1,9 @@
 package org.jfrog.bamboo.util;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
+import com.atlassian.bamboo.security.EncryptionException;
+import com.atlassian.bamboo.security.EncryptionService;
+import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.google.common.base.Predicate;
@@ -21,15 +24,15 @@ import java.util.Map;
  *
  * @author Tomer Cohen
  */
-public abstract class TaskUtils {
-
+public class TaskUtils {
+    private static EncryptionService encryptionService = null;
     private static final char PROPERTIES_DELIMITER = ';';
     private static final char KEY_VALUE_SEPARATOR = '=';
     /* This is the name of the "Download Artifacts" task in bamboo, we are looking it up as downloading artifacts is a pre condition to our task */
     private static final String DOWNLOAD_ARTIFACTS_TASK_KEY = "com.atlassian.bamboo.plugins.bamboo-artifact-downloader-plugin:artifactdownloadertask";
 
-    private TaskUtils() {
-        throw new IllegalAccessError();
+    private static void initEncryptionService() {
+        encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
     }
 
     /**
@@ -117,7 +120,6 @@ public abstract class TaskUtils {
         throw new IllegalStateException("\"Artifacts Download\" task must run before the \"Artifactory Deployment\" task.");
     }
 
-
     /**
      * Search for any Artifactory build task (Maven, Gradle, Ivy, Generic)
      *
@@ -131,5 +133,15 @@ public abstract class TaskUtils {
             }
         }
         throw new IllegalStateException("This job has no Artifactory task.");
+    }
+
+    public static String decryptIfNeeded(String s) {
+        if (encryptionService == null) {
+            initEncryptionService();
+        }
+        try {
+            s = encryptionService.decrypt(s);
+        } catch (EncryptionException e) { /* Ignore. The field may not be encrypted. */ }
+        return s;
     }
 }

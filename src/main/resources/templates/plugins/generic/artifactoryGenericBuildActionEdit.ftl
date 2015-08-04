@@ -1,8 +1,8 @@
 [@ui.bambooSection titleKey='artifactory.task.generic.deploy.title']
-    [@ww.select name='artifactory.generic.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
+    [@ww.select name='builder.artifactoryGenericBuilder.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
 <div id="genericArtifactoryConfigDiv">
-    [@ww.select name='artifactory.generic.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
+    [@ww.select name='builder.artifactoryGenericBuilder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
 
     [#--The Dummy tags are workaround for the autocomplete (Chorme)--]
     [@ww.password name='artifactory.generic.username.DUMMY' cssStyle='display: none;'/]
@@ -50,7 +50,7 @@
             configDiv.style.display = 'none';
         } else {
             configDiv.style.display = 'block';
-            var urlSelect = document.getElementsByName('artifactory.generic.artifactoryServerId')[0];
+            var urlSelect = document.getElementsByName('builder.artifactoryGenericBuilder.artifactoryServerId')[0];
             var urlOptions = urlSelect.options;
             for (var i = 0; i < urlOptions.length; i++) {
                 var option = urlOptions[i];
@@ -71,7 +71,7 @@
             dataType: 'json',
             cache: false,
             success: function (json) {
-                var repoSelect = document.getElementsByName('artifactory.generic.deployableRepo')[0];
+                var repoSelect = document.getElementsByName('builder.artifactoryGenericBuilder.deployableRepo')[0];
                 repoSelect.innerHTML = '';
                 if (serverId >= 0) {
 

@@ -12,8 +12,9 @@ import java.util.Set;
  * @author Tomer Cohen
  */
 public class GenericContext {
-    public static final String SELECTED_SERVER_ID = "artifactory.generic.artifactoryServerId";
-    public static final String REPO_KEY = "artifactory.generic.deployableRepo";
+    public static final String PREFIX = "builder.artifactoryGenericBuilder.";
+    public static final String SERVER_ID_PARAM = AbstractBuildContext.SERVER_ID_PARAM;
+    public static final String REPO_KEY = "builder.artifactoryGenericBuilder.deployableRepo";
     public static final String REPO_RESOLVE_KEY = "artifactory.generic.resolveRepo";
     public static final String USERNAME = "artifactory.generic.username";
     public static final String PASSWORD = "artifactory.generic.password";
@@ -37,14 +38,20 @@ public class GenericContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        Set<String> fieldsToCopy = Sets.newHashSet(SELECTED_SERVER_ID, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, ARTIFACT_SPECS,
+        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, ARTIFACT_SPECS,
                 RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS, ENABLE_BINTRAY_CONFIGURATION);
         fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
         return fieldsToCopy;
     }
 
     public long getSelectedServerId() {
-        String serverId = env.get(SELECTED_SERVER_ID);
+        String serverId = env.get(PREFIX + SERVER_ID_PARAM);
+        if (StringUtils.isBlank(serverId)) {
+            // In version 1.8.1 the key containing the Artifactory Server ID was changed
+            // in the Generic Resolve and Deploy configurations.
+            // The following line tries to get the server using the old key.
+            serverId = env.get("artifactory.generic.artifactoryServerId");
+        }
         if (StringUtils.isBlank(serverId)) {
             return -1;
         }
@@ -52,7 +59,12 @@ public class GenericContext {
     }
 
     public String getRepoKey() {
-        return env.get(REPO_KEY);
+        String key = env.get(REPO_KEY);
+        if (StringUtils.isBlank(key)) {
+            // Compatibility with 1.8.0
+            return env.get("artifactory.generic.deployableRepo");
+        }
+        return key;
     }
 
     public String getUsername() {

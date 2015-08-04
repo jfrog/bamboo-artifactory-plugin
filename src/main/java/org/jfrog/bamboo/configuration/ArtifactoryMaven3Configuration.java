@@ -56,7 +56,8 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+        populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+
         String publishingKey = Maven3BuildContext.PREFIX + Maven3BuildContext.DEPLOYABLE_REPO_KEY;
         String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :
                 Maven3BuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;
@@ -107,6 +108,8 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         resetConfigIfNeeded(buildContext);
         taskConfigMap.put(Maven3BuildContext.PREFIX + Maven3BuildContext.TEST_RESULT_DIRECTORY,
                 getTestDirectory(buildContext));
+
+        decryptFields(taskConfigMap);
         return taskConfigMap;
     }
 

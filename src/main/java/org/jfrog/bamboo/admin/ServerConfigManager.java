@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import javax.servlet.http.HttpServletRequest;
@@ -156,17 +157,22 @@ public class ServerConfigManager implements Serializable {
         ArtifactoryBuildInfoClient client;
 
         String serverUrl = substituteVariables(serverConfig.getUrl());
-        String username;
-        String password;
-        if (req != null && StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
-            username = substituteVariables(req.getParameter("user"));
-            password = substituteVariables(req.getParameter("password"));
-        } else {
-            username = substituteVariables(serverConfig.getUsername());
-            password = substituteVariables(serverConfig.getPassword());
+        String username = null;
+        String password = null;
+        if (req != null) {
+            username = req.getParameter("user");
+            password = req.getParameter("password");
         }
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+            password = TaskUtils.decryptIfNeeded(password);
+        } else {
+            username = serverConfig.getUsername();
+            password = serverConfig.getPassword();
+        }
+        username = substituteVariables(username);
+        password = substituteVariables(password);
 
-        if (StringUtils.isBlank(username)) {
+        if (StringUtils.isBlank(username))  {
             client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
         } else {
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
@@ -213,7 +219,7 @@ public class ServerConfigManager implements Serializable {
         String password;
         if (StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
             username = substituteVariables(req.getParameter("user"));
-            password = substituteVariables(req.getParameter("password"));
+            password = substituteVariables(TaskUtils.decryptIfNeeded(req.getParameter("password")));
         } else {
             username = substituteVariables(serverConfig.getUsername());
             password = substituteVariables(serverConfig.getPassword());

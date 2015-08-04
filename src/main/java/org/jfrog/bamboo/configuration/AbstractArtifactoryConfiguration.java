@@ -3,6 +3,8 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
+import com.atlassian.bamboo.security.EncryptionService;
+import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
@@ -19,6 +21,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.ConstantValues;
+import org.jfrog.bamboo.util.TaskUtils;
 
 import java.util.Date;
 import java.util.Map;
@@ -34,6 +37,8 @@ import java.util.Set;
 public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfigurator implements
         TaskTestResultsSupport, BuildTaskRequirementSupport {
 
+    protected EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
+
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
     private static final Map TEST_RESULTS_FILE_PATTERN_TYPES = ImmutableMap
@@ -47,6 +52,10 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     protected UIConfigSupport uiConfigSupport;
     private String builderContextPrefix;
     private String capabilityPrefix;
+
+    protected AbstractArtifactoryConfiguration() {
+        this(null, null);
+    }
 
     protected AbstractArtifactoryConfiguration(String builderContextPrefix) {
         this(builderContextPrefix, null);
@@ -102,6 +111,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
             @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfigMap.put("baseUrl", administrationConfiguration.getBaseUrl());
+
         return taskConfigMap;
     }
 
@@ -125,9 +135,11 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
             errorCollection.addError(serverKey,
                     "Could not find Artifactory server configuration by the ID " + configuredServerId);
         }
-        String deployerRepoKey = "builder." + getKey() + "." + getDeployableRepoKey();
-        if (StringUtils.isBlank(params.getString(deployerRepoKey))) {
-            errorCollection.addError(deployerRepoKey, "Please choose a repository to deploy to.");
+        if (StringUtils.isNotBlank(getDeployableRepoKey())) {
+            String deployerRepoKey = "builder." + getKey() + "." + getDeployableRepoKey();
+            if (StringUtils.isBlank(params.getString(deployerRepoKey))) {
+                errorCollection.addError(deployerRepoKey, "Please choose a repository to deploy to.");
+            }
         }
         String runLicensesKey = "builder." + getKey() + "." + AbstractBuildContext.RUN_LICENSE_CHECKS;
         String runLicenseChecksValue = params.getString(runLicensesKey);
@@ -153,13 +165,25 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     @Override
     public Set<Requirement> calculateRequirements(@NotNull TaskDefinition taskDefinition, @NotNull Job job) {
         Set<Requirement> requirements = Sets.newHashSet();
-        taskConfiguratorHelper.addJdkRequirement(requirements, taskDefinition,
-                builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
-        if (StringUtils.isNotBlank(capabilityPrefix)) {
-            taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
-                    builderContextPrefix + AbstractBuildContext.EXECUTABLE, capabilityPrefix);
+        if (StringUtils.isNotBlank(builderContextPrefix)) {
+            taskConfiguratorHelper.addJdkRequirement(requirements, taskDefinition,
+                    builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
+            if (StringUtils.isNotBlank(capabilityPrefix)) {
+                taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
+                        builderContextPrefix + AbstractBuildContext.EXECUTABLE, capabilityPrefix);
+            }
         }
         return requirements;
+    }
+
+    protected void populateContextWithConfiguration(@NotNull Map<String, Object> context,
+        @NotNull TaskDefinition taskDefinition, Set<String> fieldsToCopy) {
+
+        // Encrypt the password fields, so that they do not appear as free-text on the task configuration UI.
+        encryptFields(taskDefinition.getConfiguration());
+        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, fieldsToCopy);
+        // Decrypt back the password fields.
+        decryptFields(taskDefinition.getConfiguration());
     }
 
     // populate common objects into context
@@ -186,6 +210,45 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     /**
+     * This method is used by the encryptFields and decryptFields methods.
+     * It encrypts or descrypts the task config fields, if their key ends with 'password'.
+     * While encrypting / decrypting, if the keys are already encrypted / decrypted,
+     * the keys values will not change.
+     * @param taskConfigMap The task config fields map.
+     * @param enc   If true - encrypt, else - decrypt.
+     */
+    private void encOrDecFields(Map<String, String> taskConfigMap, boolean enc) {
+        for (Map.Entry<String, String> entry : taskConfigMap.entrySet()) {
+            String key = entry.getKey().toLowerCase();
+            if (key.endsWith("password") && key.contains("artifactory")) {
+                String value = TaskUtils.decryptIfNeeded(entry.getValue());
+                if (enc) {
+                    value = encryptionService.encrypt(value);
+                }
+                entry.setValue(value);
+            }
+        }
+    }
+
+    /**
+     * Encrypt the task config fields, if their key ends with 'password'.
+     * If the keys are already encrypted, their value will not change.
+     * @param taskConfigMap The task config fields map.
+     */
+    private void encryptFields(Map<String, String> taskConfigMap) {
+        encOrDecFields(taskConfigMap, true);
+    }
+
+    /**
+     * Decrypt the task config fields, if their key ends with 'password'.
+     * If the keys are already decrypted, their value will not change.
+     * @param taskConfigMap The task config fields map.
+     */
+    protected void decryptFields(Map<String, String> taskConfigMap) {
+        encOrDecFields(taskConfigMap, false);
+    }
+
+    /**
      * Reset the build context configuration back to the default values if no server id was selected
      *
      * @param buildContext The build context which holds the environment for the configuration.
@@ -207,5 +270,23 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      */
     protected abstract String getDeployableRepoKey();
 
-    protected abstract String getDefaultTestDirectory();
+    protected String getDefaultTestDirectory() {
+        throw new UnsupportedOperationException("This method is not implemented for class " + this.getClass());
+    }
+
+    /**
+     * In version 1.8.1 the key containing the Artifactory Server ID was changed
+     * in the Generic Resolve and Deploy configurations.
+     * This method migrates to the new name.
+     */
+    protected void migrateServerKeyIfNeeded(Map<String, String> configuration) {
+        String oldServerId = configuration.get("artifactory.generic.artifactoryServerId");
+        String newServerId = configuration.get("builder.artifactoryGenericBuilder.artifactoryServerId");
+        if (StringUtils.isNotBlank(oldServerId)) {
+            configuration.put("builder.artifactoryGenericBuilder.artifactoryServerId", oldServerId);
+        }
+        if (StringUtils.isNotBlank(newServerId)) {
+            configuration.put("artifactory.generic.artifactoryServerId", newServerId);
+        }
+    }
 }

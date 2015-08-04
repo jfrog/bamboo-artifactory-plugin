@@ -59,7 +59,8 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+        populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
+
         String publishingKey = IvyBuildContext.PREFIX + IvyBuildContext.DEPLOYABLE_REPO_KEY;
         String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :
                 IvyBuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;
@@ -97,6 +98,8 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         IvyBuildContext buildContext = new IvyBuildContext(configMap);
         resetConfigIfNeeded(buildContext);
         configMap.put(IvyBuildContext.PREFIX + IvyBuildContext.TEST_RESULT_DIRECTORY, getTestDirectory(buildContext));
+
+        decryptFields(configMap);
         return configMap;
     }
 
