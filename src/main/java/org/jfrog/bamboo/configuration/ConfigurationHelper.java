@@ -2,6 +2,7 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import com.atlassian.bamboo.utils.EscapeChars;
+import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Maps;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -29,6 +30,7 @@ public class ConfigurationHelper implements Serializable {
     private HttpClient httpClient = new HttpClient();
 
     private ConfigurationHelper() {
+        ContainerManager.autowireComponent(this);
     }
 
     public static ConfigurationHelper getInstance() {
