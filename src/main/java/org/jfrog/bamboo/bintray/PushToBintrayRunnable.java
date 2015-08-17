@@ -1,11 +1,16 @@
 package org.jfrog.bamboo.bintray;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.velocity.util.StringUtils;
+import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.bintray.client.JfClient;
+import org.jfrog.bamboo.bintray.client.MavenCentralSyncModel;
+import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.build.api.release.BintrayUploadInfoOverride;
 import org.jfrog.build.client.ArtifactoryVersion;
 import org.jfrog.build.client.bintrayResponse.BintrayResponse;
+import org.jfrog.build.client.bintrayResponse.BintraySuccess;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.util.List;
@@ -18,15 +23,17 @@ import java.util.List;
  */
 public class PushToBintrayRunnable implements Runnable {
 
-    public static final String MINIMAL_SUPPORTED_VERSION = "3.6";
-
+    private static final String MINIMAL_SUPPORTED_VERSION = "3.6";
     private Logger log = Logger.getLogger(PushToBintrayRunnable.class);
-    private PushToBintrayAction action;
-    private ArtifactoryBuildInfoClient client;
 
-    public PushToBintrayRunnable(PushToBintrayAction pushToBintrayAction, ArtifactoryBuildInfoClient client) {
+    private JfClient jfClient;
+    private PushToBintrayAction action;
+    private ServerConfig serverConfig;
+
+    public PushToBintrayRunnable(PushToBintrayAction pushToBintrayAction, ServerConfig serverConfig, JfClient jfClient) {
         this.action = pushToBintrayAction;
-        this.client = client;
+        this.jfClient = jfClient;
+        this.serverConfig = serverConfig;
     }
 
     /**
@@ -35,45 +42,76 @@ public class PushToBintrayRunnable implements Runnable {
      */
     @Override
     public void run() {
-        logMessage("Starting Push to Bintray action.");
-        PushToBintrayAction.context.getLock().lock();
-        PushToBintrayAction.context.setDone(false);
-        if (!isValidArtifactoryVersion(client)) {
-            logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
+        ArtifactoryBuildInfoClient artifactoryClient = null;
+        try {
+            logMessage("Starting Push to Bintray action.");
+            PushToBintrayAction.context.getLock().lock();
+            PushToBintrayAction.context.setDone(false);
+            artifactoryClient = getArtifactoryBuildInfoClient(serverConfig);
+            if (!isValidArtifactoryVersion(artifactoryClient)) {
+                logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
+                PushToBintrayAction.context.setDone(true);
+                return;
+            }
+            boolean successfulPush = performPushToBintray(artifactoryClient);
+            if (successfulPush && action.isMavenSync()) {
+                mavenCentralSync();
+            }
+        } catch (Exception e) {
+            log.error("Error while trying to Push build to Bintray: " + e.getMessage());
+        } finally {
+            if (artifactoryClient != null) {
+                artifactoryClient.shutdown();
+            }
             PushToBintrayAction.context.setDone(true);
-            return;
+            PushToBintrayAction.context.getLock().unlock();
         }
-        performPushToBintray();
-        PushToBintrayAction.context.setDone(true);
-        PushToBintrayAction.context.getLock().unlock();
-        client.shutdown();
     }
 
     /**
-     * Create the relevant objects from input and send it to build info client that will preform the actual push
+     * Create the relevant objects from input and send it to build info artifactoryClient that will preform the actual push
      * Set the result of the action to true if successful to use in the action view.
      */
-    public void performPushToBintray() {
+    private boolean performPushToBintray(ArtifactoryBuildInfoClient artifactoryClient) {
 
         String buildName = PushToBintrayAction.context.getBuildKey();
         String buildNumber = Integer.toString(PushToBintrayAction.context.getBuildNumber());
 
-        String signMethod = action.getSignMethod();
-        String passphrase = action.getGpgPassphrase();
+        String subject = action.getSubject(),
+                repoName = action.getRepository(),
+                packageName = action.getPackageName(),
+                versionName = action.getVersion(),
+                vcsUrl = action.getVcsUrl(),
+                signMethod = action.getSignMethod(),
+                passphrase = action.getGpgPassphrase();
 
-        String subject = action.getSubject(), repoName = action.getRepository(), packageName = action.getPackageName(),
-                versionName = action.getVersion(), vcsUrl = action.getVcsUrl();
         List<String> licenses = createLicensesListFromString(action.getLicenses());
 
-        BintrayUploadInfoOverride uploadInfoOverride = new BintrayUploadInfoOverride(
-                subject, repoName, packageName, versionName, licenses, vcsUrl
-        );
+        BintrayUploadInfoOverride uploadInfoOverride = new BintrayUploadInfoOverride(subject, repoName, packageName,
+                versionName, licenses, vcsUrl);
+
         try {
             BintrayResponse response =
-                    client.pushToBintray(buildName, buildNumber, signMethod, passphrase, uploadInfoOverride);
+                    artifactoryClient.pushToBintray(buildName, buildNumber, signMethod, passphrase, uploadInfoOverride);
             logMessage(response.toString());
+            return response instanceof BintraySuccess; // todo: fix this
         } catch (Exception e) {
             logError("Push to Bintray Failed with Exception: ", e);
+        }
+        return false;
+    }
+
+    /**
+     * Trigger's Bintray MavenCentralSync API
+     */
+    private void mavenCentralSync() {
+        try {
+            logMessage("Syncing build with Nexus.");
+            String response = jfClient.mavenCentralSync(new MavenCentralSyncModel(serverConfig.getNexusUsername(), serverConfig.getNexusPassword(), "1"),
+                    action.getSubject(), action.getRepository(), action.getPackageName(), action.getVersion());
+            logMessage(response);
+        } catch (Exception e) {
+            logError("Error while trying to sync with Maven Central", e);
         }
     }
 
@@ -86,6 +124,13 @@ public class PushToBintrayRunnable implements Runnable {
             logError("Error while checking Artifactory version", e);
         }
         return validVersion;
+    }
+
+    private ArtifactoryBuildInfoClient getArtifactoryBuildInfoClient(ServerConfig serverConfig) {
+        String username = serverConfig.getUsername();
+        String password = serverConfig.getPassword();
+        String artifactoryUrl = serverConfig.getUrl();
+        return new ArtifactoryBuildInfoClient(artifactoryUrl, username, password, new BambooBuildInfoLog(log));
     }
 
     private List<String> createLicensesListFromString(String licenses) {

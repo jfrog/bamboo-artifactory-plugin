@@ -30,6 +30,10 @@ public class ServerConfig implements Serializable {
     private String username;
     private String password;
     private int timeout = 300;
+    private String bintrayUsername;
+    private String bintrayApiKey;
+    private String nexusUsername;
+    private String nexusPassword;
 
     public ServerConfig() {
     }
@@ -48,6 +52,15 @@ public class ServerConfig implements Serializable {
         this.username = serverConfig.username;
         this.password = serverConfig.password;
         this.timeout = serverConfig.timeout;
+    }
+
+    public ServerConfig(long id, String url, String username, String password, int timeout, String bintrayUsername,
+                        String bintrayApiKey, String nexusUsername, String nexusPassword) {
+        this(id, url, username, password, timeout);
+        this.bintrayUsername = bintrayUsername;
+        this.bintrayApiKey = bintrayApiKey;
+        this.nexusUsername = nexusUsername;
+        this.nexusPassword = nexusPassword;
     }
 
     public long getId() {
@@ -88,5 +101,37 @@ public class ServerConfig implements Serializable {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    public String getBintrayUsername() {
+        return bintrayUsername;
+    }
+
+    public void setBintrayUsername(String bintrayUsername) {
+        this.bintrayUsername = bintrayUsername;
+    }
+
+    public String getBintrayApiKey() {
+        return bintrayApiKey;
+    }
+
+    public void setBintrayApiKey(String bintrayApiKey) {
+        this.bintrayApiKey = bintrayApiKey;
+    }
+
+    public String getNexusUsername() {
+        return nexusUsername;
+    }
+
+    public void setNexusUsername(String nexusUsername) {
+        this.nexusUsername = nexusUsername;
+    }
+
+    public String getNexusPassword() {
+        return nexusPassword;
+    }
+
+    public void setNexusPassword(String nexusPassword) {
+        this.nexusPassword = nexusPassword;
     }
 }

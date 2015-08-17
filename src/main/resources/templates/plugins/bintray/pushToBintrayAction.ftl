@@ -33,9 +33,12 @@
             [@ww.textfield name="version" labelKey="artifactory.task.pushToBintray.version"/]
             [@ww.textfield name="licenses" labelKey="artifactory.task.pushToBintray.licenses"/]
             [@ww.textfield name="vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
+
         [/@ui.bambooSection]
         [@ww.select name="signMethod" labelKey="artifactory.task.pushToBintray.signMethod" list=signMethodList listKey='key' listValue='value'/]
         [@ww.textfield name="gpgPassphrase" labelKey= "GPG Passphrase"/]
+
+        [@ww.checkbox name="mavenSync" labelKey="Maven Sync" /]
     [/@ww.form]
 </div>
 <script>
@@ -65,6 +68,7 @@
                 }
             });
         }
+
         setTimeout(updateLog, 1000);
     })();
 </script>

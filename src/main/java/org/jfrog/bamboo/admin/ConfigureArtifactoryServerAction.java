@@ -21,6 +21,7 @@ import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -45,6 +46,10 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     private String username;
     private String password;
     private int timeout;
+    private String bintrayUsername;
+    private String bintrayApiKey;
+    private String nexusUsername;
+    private String nexusPassword;
     private transient ServerConfigManager serverConfigManager;
 
     public ConfigureArtifactoryServerAction() {
@@ -83,7 +88,8 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         }
 
         serverConfigManager.addServerConfiguration(
-                new ServerConfig(-1, getUrl(), getUsername(), getPassword(), getTimeout()));
+                new ServerConfig(-1, getUrl(), getUsername(), getPassword(), getTimeout(), bintrayUsername, bintrayApiKey,
+                        nexusUsername, nexusPassword));
         return "success";
     }
 
@@ -92,22 +98,17 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         if (serverConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server configuration by the ID " + serverId);
         }
-        setUrl(serverConfig.getUrl());
-        setUsername(serverConfig.getUsername());
-        setPassword(serverConfig.getPassword());
-        setTimeout(serverConfig.getTimeout());
-
+        updateFieldsFromServerConfig(serverConfig);
         return "input";
     }
+
 
     public String doUpdate() throws Exception {
         if (isTesting()) {
             testConnection();
             return "input";
         }
-
-        serverConfigManager.updateServerConfiguration(
-                new ServerConfig(getServerId(), getUrl(), getUsername(), getPassword(), getTimeout()));
+        serverConfigManager.updateServerConfiguration(createServerConfig());
         return "success";
     }
 
@@ -177,6 +178,38 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         this.timeout = timeout;
     }
 
+    public String getBintrayUsername() {
+        return bintrayUsername;
+    }
+
+    public void setBintrayUsername(String bintrayUsername) {
+        this.bintrayUsername = bintrayUsername;
+    }
+
+    public String getBintrayApiKey() {
+        return bintrayApiKey;
+    }
+
+    public void setBintrayApiKey(String bintrayApiKey) {
+        this.bintrayApiKey = bintrayApiKey;
+    }
+
+    public String getNexusUsername() {
+        return nexusUsername;
+    }
+
+    public void setNexusUsername(String nexusUsername) {
+        this.nexusUsername = nexusUsername;
+    }
+
+    public String getNexusPassword() {
+        return nexusPassword;
+    }
+
+    public void setNexusPassword(String nexusPassword) {
+        this.nexusPassword = nexusPassword;
+    }
+
     private void testConnection() {
         ArtifactoryBuildInfoClient testClient;
         if (StringUtils.isNotBlank(username)) {
@@ -205,5 +238,22 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         }
         addActionError("Connection failed " + errorMessage);
         log.error("Error while testing the connection to Artifactory server " + url, e);
+    }
+
+    private void updateFieldsFromServerConfig(ServerConfig serverConfig) {
+        setUrl(serverConfig.getUrl());
+        setUsername(serverConfig.getUsername());
+        setPassword(serverConfig.getPassword());
+        setTimeout(serverConfig.getTimeout());
+        setBintrayUsername(serverConfig.getBintrayUsername());
+        setBintrayApiKey(serverConfig.getBintrayApiKey());
+        setNexusUsername(serverConfig.getNexusUsername());
+        setNexusPassword(serverConfig.getNexusPassword());
+    }
+
+    @NotNull
+    private ServerConfig createServerConfig() {
+        return new ServerConfig(serverId, url, username, password, timeout, bintrayUsername,
+                bintrayApiKey, nexusUsername, nexusPassword);
     }
 }

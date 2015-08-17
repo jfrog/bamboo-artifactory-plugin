@@ -98,6 +98,10 @@ public class ServerConfigManager implements Serializable {
                 configuredServer.setUsername(updated.getUsername());
                 configuredServer.setPassword(updated.getPassword());
                 configuredServer.setTimeout(updated.getTimeout());
+                configuredServer.setBintrayUsername(updated.getBintrayUsername());
+                configuredServer.setBintrayApiKey(updated.getBintrayApiKey());
+                configuredServer.setNexusPassword(updated.getNexusPassword());
+                configuredServer.setNexusUsername(updated.getNexusUsername());
                 persist();
                 break;
             }
@@ -118,7 +122,9 @@ public class ServerConfigManager implements Serializable {
 
                 configuredServers.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(),
                         serverConfig.getUsername(), encryptionService.decrypt(serverConfig.getPassword()),
-                        serverConfig.getTimeout()));
+                        serverConfig.getTimeout(), serverConfig.getBintrayUsername(),
+                        encryptionService.decrypt(serverConfig.getBintrayApiKey()),
+                        serverConfig.getNexusUsername(), encryptionService.decrypt(serverConfig.getNexusPassword())));
             }
         }
     }
@@ -147,6 +153,7 @@ public class ServerConfigManager implements Serializable {
     public List<String> getDeployableRepos(long serverId) {
         return getDeployableRepos(serverId, null, null);
     }
+
     public List<String> getDeployableRepos(long serverId, HttpServletRequest req, HttpServletResponse resp) {
         ServerConfig serverConfig = getServerConfigById(serverId);
         if (serverConfig == null) {
@@ -172,7 +179,7 @@ public class ServerConfigManager implements Serializable {
         username = substituteVariables(username);
         password = substituteVariables(password);
 
-        if (StringUtils.isBlank(username))  {
+        if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
         } else {
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
@@ -255,7 +262,9 @@ public class ServerConfigManager implements Serializable {
 
         for (ServerConfig serverConfig : configuredServers) {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
-                    encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
+                    encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout(),
+                    serverConfig.getBintrayUsername(), encryptionService.encrypt(serverConfig.getBintrayApiKey()),
+                    serverConfig.getNexusUsername(), encryptionService.encrypt(serverConfig.getNexusPassword())));
         }
 
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, CONFIG_KEY, serverConfigs);

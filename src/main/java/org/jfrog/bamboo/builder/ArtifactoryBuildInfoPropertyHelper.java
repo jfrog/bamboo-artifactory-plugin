@@ -17,12 +17,14 @@
 package org.jfrog.bamboo.builder;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.plugin.BambooPluginManager;
 import com.atlassian.bamboo.util.BuildUtils;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
+import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -49,6 +51,16 @@ import static org.jfrog.bamboo.util.ConstantValues.*;
 public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
 
     private static final Logger log = Logger.getLogger(ArtifactoryBuildInfoPropertyHelper.class);
+
+    public ArtifactoryBuildInfoPropertyHelper() {
+        ContainerManager.autowireComponent(this);
+    }
+
+    private BambooPluginManager bambooPluginManager;
+
+    public void setBambooPluginManager(BambooPluginManager bambooPluginManager) {
+        this.bambooPluginManager = bambooPluginManager;
+    }
 
     public String createFileAndGetPath(AbstractBuildContext buildContext, BuildLogger logger,
                                        Map<String, String> taskEnv, Map<String, String> generalEnv) {

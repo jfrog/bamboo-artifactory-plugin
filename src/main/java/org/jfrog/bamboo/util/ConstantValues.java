@@ -23,17 +23,17 @@ import java.io.Serializable;
  */
 public interface ConstantValues extends Serializable {
 
-   String ARTIFACTORY_PLUGIN_KEY = "org.jfrog.bamboo.bamboo-artifactory-plugin";
-   String BUILD_RESULT_COLLECTION_ACTIVATED_PARAM = "org.jfrog.bamboo.buildInfo.activated";
-   String BUILD_RESULT_RELEASE_ACTIVATED_PARAM = "org.jfrog.bamboo.release.activated";
-   String BUILD_RESULT_SELECTED_SERVER_PARAM = "org.jfrog.bamboo.buildInfo.serverUrl";
+    String ARTIFACTORY_PLUGIN_KEY = "org.jfrog.bamboo.bamboo-artifactory-plugin";
+    String BUILD_RESULT_COLLECTION_ACTIVATED_PARAM = "org.jfrog.bamboo.buildInfo.activated";
+    String BUILD_RESULT_RELEASE_ACTIVATED_PARAM = "org.jfrog.bamboo.release.activated";
+    String BUILD_RESULT_SELECTED_SERVER_PARAM = "org.jfrog.bamboo.buildInfo.serverUrl";
 
-   String BUILD_SERVLET_CONTEXT_NAME = "artifactoryBuildServlet";
-   String BUILD_SERVLET_KEY_PARAM = "buildKey";
+    String BUILD_SERVLET_CONTEXT_NAME = "artifactoryBuildServlet";
+    String BUILD_SERVLET_KEY_PARAM = "buildKey";
 
-   String ADMIN_CONFIG_SERVLET_CONTEXT_NAME = "artifactoryAdminConfigServlet";
-   String ARTIFACTORY_SERVER_CONFIG_MODULE_KEY = "artifactoryServerConfigManager";
-   String ARTIFACTORY_BAMBOO_UTILS_HELPER_KEY = "artifactoryBambooUtilsHelper";
-
-   String PLAN_KEY_PARAM = "planKey";
+    String ADMIN_CONFIG_SERVLET_CONTEXT_NAME = "artifactoryAdminConfigServlet";
+    String ARTIFACTORY_SERVER_CONFIG_MODULE_KEY = "artifactoryServerConfigManager";
+    String ARTIFACTORY_BAMBOO_UTILS_HELPER_KEY = "artifactoryBambooUtilsHelper";
+    String MAVEN_SYNC_URL = "https://api.bintray.com/maven_central_sync/%s/%s/%s/versions/%s";
+    String PLAN_KEY_PARAM = "planKey";
 }

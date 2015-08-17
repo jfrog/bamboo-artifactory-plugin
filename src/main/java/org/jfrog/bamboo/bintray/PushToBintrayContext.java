@@ -14,13 +14,12 @@ public class PushToBintrayContext {
     public static final String SUBJECT = "bintray.subject";
     public static final String REPO_NAME = "bintray.repository";
     public static final String PACKAGE_NAME = "bintray.packageName";
-    public static final String VERSION = "bintray.version";
     public static final String SIGN = "bintray.signMethod";
     public static final String PASSPHRASE = "bintray.gpgPassphrase";
     public static final String LICENSES = "bintray.licenses";
     public static final String VCS_URL = "bintray.vcsUrl";
 
-    public static final Set<String> bintrayFields = ImmutableSet.of(SUBJECT, REPO_NAME, PACKAGE_NAME, VERSION, SIGN, PASSPHRASE, LICENSES, VCS_URL);
+    public static final Set<String> bintrayFields = ImmutableSet.of(SUBJECT, REPO_NAME, PACKAGE_NAME, SIGN, PASSPHRASE, LICENSES, VCS_URL);
 
     private boolean bintrayConfiguration;
 

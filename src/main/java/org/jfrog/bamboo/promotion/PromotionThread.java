@@ -40,6 +40,7 @@ import static org.jfrog.bamboo.release.action.ReleaseAndPromotionAction.*;
  */
 public class PromotionThread extends Thread {
 
+    public static final String NEXUS_PUSH_PROPERTY_PREFIX = "bintrayOsoPush."; // todo: change this
     transient Logger log = Logger.getLogger(PromotionThread.class);
 
     private ReleaseAndPromotionAction action;

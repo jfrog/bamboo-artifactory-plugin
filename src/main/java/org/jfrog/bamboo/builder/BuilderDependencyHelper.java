@@ -97,6 +97,11 @@ public class BuilderDependencyHelper implements Serializable {
         this.administrationConfiguration = administrationConfiguration;
     }
 
+    public void setAdministrationConfigurationAccessor(
+            AdministrationConfigurationAccessor administrationConfigurationAccessor) {
+        this.administrationConfigurationAccessor = administrationConfigurationAccessor;
+    }
+
     /**
      * Returns the base URL of this Bamboo instance.<br> This method is needed since we must download dependencies from
      * the Bamboo server.<br> The URL can generally be found in {@link com.atlassian.bamboo.configuration.AdministrationConfiguration},
@@ -155,10 +160,5 @@ public class BuilderDependencyHelper implements Serializable {
             IOUtils.closeQuietly(responseBodyAsStream);
             IOUtils.closeQuietly(fileOutputStream);
         }
-    }
-
-    public void setAdministrationConfigurationAccessor(
-            AdministrationConfigurationAccessor administrationConfigurationAccessor) {
-        this.administrationConfigurationAccessor = administrationConfigurationAccessor;
     }
 }

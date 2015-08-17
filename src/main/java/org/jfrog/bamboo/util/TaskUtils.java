@@ -1,11 +1,14 @@
 package org.jfrog.bamboo.util;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
+import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.cache.ImmutableBuildable;
 import com.atlassian.bamboo.security.EncryptionException;
 import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
+import com.atlassian.spring.container.ContainerManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
@@ -13,6 +16,8 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 
@@ -89,12 +94,13 @@ public class TaskUtils {
 
     /**
      * Get the Id of selected Artifactory
+     *
      * @param definition task that uses Artifactory
      * @return artifactory id
      */
     public static String getSelectedServerId(TaskDefinition definition) {
         if (definition == null) {
-            return "";
+            return StringUtils.EMPTY;
         }
         Map<String, String> configuration = definition.getConfiguration();
         Map<String, String> filtered = Maps.filterKeys(configuration, new Predicate<String>() {
@@ -133,6 +139,41 @@ public class TaskUtils {
             }
         }
         throw new IllegalStateException("This job has no Artifactory task.");
+    }
+
+    /**
+     * Find maven or gradle task for a specific plan
+     *
+     * @param plan - plan configuration in which we are trying to find the maven/gradle task
+     * @return appropriate task definition or null in case no such task exist
+     */
+    public static TaskDefinition getMavenOrGradleTaskDefinition(Plan plan) {
+        if (plan == null) {
+            return null;
+        }
+        List<TaskDefinition> definitions = plan.getBuildDefinition().getTaskDefinitions();
+        if (definitions.isEmpty()) {
+            return null;
+        }
+        return TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
+    }
+
+    /**
+     * Get Server config object for speicifc build
+     *
+     * @param build server config for this build
+     * @return ServerConfig object with Artifactory details
+     */
+    public static ServerConfig getServerConfig(ImmutableBuildable build) {
+        List<TaskDefinition> taskDefinitionList = build.getBuildDefinition().getTaskDefinitions();
+        TaskDefinition relevantTaskDef = taskDefinitionList.get(taskDefinitionList.size() - 1);
+        String serverIdStr = TaskUtils.getSelectedServerId(relevantTaskDef);
+        if (StringUtils.isNotEmpty(serverIdStr)) {
+            long serverId = Long.parseLong(serverIdStr);
+            return ((ServerConfigManager) ContainerManager.getComponent(
+                    ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY)).getServerConfigById(serverId);
+        }
+        throw new IllegalStateException("Error while trying to create ArtifactoryBuildInfoClient");
     }
 
     public static String decryptIfNeeded(String s) {
