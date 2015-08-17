@@ -11,12 +11,16 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
+import com.atlassian.plugin.Plugin;
+import com.atlassian.plugin.PluginAccessor;
+import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.*;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.configuration.BuildJdkOverride;
 import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.ConstantValues;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,15 +35,21 @@ public abstract class ArtifactoryTaskType implements TaskType {
     protected static final String JDK_LABEL_KEY = "system.jdk.";
 
     protected Map<String, String> environmentVariables;
+    protected PluginAccessor pluginAccessor;
     protected final EnvironmentVariableAccessor environmentVariableAccessor;
     private final TestCollationService testCollationService;
 
     protected ArtifactoryTaskType(TestCollationService testCollationService,
         EnvironmentVariableAccessor environmentVariableAccessor) {
-
+        ContainerManager.autowireComponent(this);
         this.testCollationService = testCollationService;
         this.environmentVariableAccessor = environmentVariableAccessor;
     }
+
+    @SuppressWarnings("unused")
+    public void setPluginAccessor(PluginAccessor pluginAccessor){
+        this.pluginAccessor = pluginAccessor;
+}
 
     protected void initEnvironmentVariables(AbstractBuildContext buildContext) {
         Map<String, String> env = Maps.newHashMap();
@@ -173,5 +183,13 @@ public abstract class ArtifactoryTaskType implements TaskType {
         }
 
         return message.toString();
+    }
+
+    public String getArtifactoryVersion(){
+        Plugin plugin = pluginAccessor.getPlugin(ConstantValues.ARTIFACTORY_PLUGIN_KEY);
+        if (plugin != null) {
+            return plugin.getPluginInformation().getVersion();
+        }
+        return StringUtils.EMPTY;
     }
 }

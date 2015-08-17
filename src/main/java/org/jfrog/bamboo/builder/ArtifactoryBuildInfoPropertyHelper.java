@@ -51,7 +51,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
     private static final Logger log = Logger.getLogger(ArtifactoryBuildInfoPropertyHelper.class);
 
     public String createFileAndGetPath(AbstractBuildContext buildContext, BuildLogger logger,
-                                       Map<String, String> taskEnv, Map<String, String> generalEnv) {
+                                       Map<String, String> taskEnv, Map<String, String> generalEnv, String artifactoryPluginVersion) {
         long selectedServerId = buildContext.getArtifactoryServerId();
 
         if (selectedServerId != -1) {
@@ -66,7 +66,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
                 log.warn(warningMessage);
             } else {
                 ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(new NullLog());
-                addBuilderInfoProperties(buildContext, serverConfig, clientConf, taskEnv, generalEnv);
+                addBuilderInfoProperties(buildContext, serverConfig, clientConf, taskEnv, generalEnv, artifactoryPluginVersion);
                 FileOutputStream propertiesFileStream = null;
                 try {
                     File tempPropertiesFile = File.createTempFile("buildInfo", "properties");
@@ -93,8 +93,9 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
 
     private void addBuilderInfoProperties(AbstractBuildContext buildContext, ServerConfig serverConfig,
                                           ArtifactoryClientConfiguration clientConf, Map<String, String> environment,
-                                          Map<String, String> generalEnv) {
+                                          Map<String, String> generalEnv, String pluginVersion) {
         String buildName = context.getPlanName();
+        clientConf.info.setArtifactoryPluginVersion(pluginVersion);
         clientConf.info.setBuildName(buildName);
         clientConf.publisher.addMatrixParam("build.name", buildName);
 

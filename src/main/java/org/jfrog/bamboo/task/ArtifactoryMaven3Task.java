@@ -68,6 +68,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         BuildLogger logger = getBuildLogger(taskContext);
+        String artifactoryPluginVersion = getArtifactoryVersion();
+        logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
 
@@ -91,7 +93,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             propertyHelper.init(taskContext.getBuildContext());
             buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(mavenBuildContext, logger,
                     environmentVariableAccessor.getEnvironment(taskContext),
-                    environmentVariableAccessor.getEnvironment());
+                    environmentVariableAccessor.getEnvironment(), artifactoryPluginVersion);
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
             }

@@ -71,6 +71,8 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
     @NotNull
     public TaskResult execute(@NotNull TaskContext context) throws TaskException {
         BuildLogger logger = getBuildLogger(context);
+        String artifactoryPluginVersion = getArtifactoryVersion();
+        logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
         Map<String, String> combinedMap = Maps.newHashMap();
@@ -107,7 +109,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             ArtifactoryBuildInfoPropertyHelper propertyHelper = new IvyPropertyHelper();
             propertyHelper.init(context.getBuildContext());
             buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(ivyBuildContext, context.getBuildLogger(),
-                    environmentVariableAccessor.getEnvironment(context), globalEnv);
+                    environmentVariableAccessor.getEnvironment(context), globalEnv, artifactoryPluginVersion);
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
                 environment.put(BuildInfoConfigProperties.PROP_PROPS_FILE, buildInfoPropertiesFile);

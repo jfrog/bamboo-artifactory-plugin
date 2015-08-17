@@ -7,6 +7,8 @@ import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
+import com.atlassian.plugin.Plugin;
+import com.atlassian.plugin.PluginAccessor;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -17,6 +19,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.ScmHelper;
@@ -42,6 +45,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
     public static final String TASK_NAME = "artifactoryGenericTask";
     private static final Logger log = Logger.getLogger(ArtifactoryGenericDeployTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
+    private PluginAccessor pluginAccessor;
     private BuildLogger logger;
     private GenericBuildInfoHelper buildInfoHelper;
 
@@ -49,10 +53,16 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         this.environmentVariableAccessor = environmentVariableAccessor;
     }
 
+    @SuppressWarnings("unused")
+    public void setPluginAccessor(PluginAccessor pluginAccessor) {
+        this.pluginAccessor = pluginAccessor;
+    }
+
     @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         logger = taskContext.getBuildLogger();
+        logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + getArtifactoryVersion());
         if (!taskContext.isFinalising()) {
             log.error(logger.addErrorLogEntry("Artifactory Generic Deploy Task must run as a final Task!"));
             return TaskResultBuilder.newBuilder(taskContext).failed().build();
@@ -197,5 +207,13 @@ public class ArtifactoryGenericDeployTask implements TaskType {
             build.getModules().get(0).setDependencies(genericData.getDependencies());
             build.setBuildDependencies(genericData.getBuildDependencies());
         }
+    }
+
+    public String getArtifactoryVersion() {
+        Plugin plugin = pluginAccessor.getPlugin(ConstantValues.ARTIFACTORY_PLUGIN_KEY);
+        if (plugin != null) {
+            return plugin.getPluginInformation().getVersion();
+        }
+        return StringUtils.EMPTY;
     }
 }

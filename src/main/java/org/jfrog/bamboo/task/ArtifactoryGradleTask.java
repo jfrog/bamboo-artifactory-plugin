@@ -87,6 +87,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     @NotNull
     public TaskResult execute(@NotNull TaskContext context) throws TaskException {
         BuildLogger logger = getBuildLogger(context);
+        String artifactoryPluginVersion = getArtifactoryVersion();
+        logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
 
@@ -128,7 +130,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             command.addAll(Arrays.asList(taskTokens));
         }
 
-        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(context, gradleBuildContext);
+        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(context, gradleBuildContext, artifactoryPluginVersion);
         if (pathHolder != null) {
             if (!gradleBuildContext.useArtifactoryGradlePlugin()) {
                 command.add("-I");
@@ -166,7 +168,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         }
     }
 
-    private ConfigurationPathHolder getGradleInitScriptFile(TaskContext taskContext, GradleBuildContext buildContext) {
+    private ConfigurationPathHolder getGradleInitScriptFile(TaskContext taskContext, GradleBuildContext buildContext,
+                                                            String artifactoryPluginVersion) {
         File gradleJarFile = new File(gradleDependenciesDir, PluginProperties
                 .getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
         if (!gradleJarFile.exists()) {
@@ -198,7 +201,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             return initScriptHelper
                     .createAndGetGradleInitScriptPath(gradleDependenciesDir, buildContext, taskContext.getBuildLogger(),
                             scriptTemplate, environmentVariableAccessor.getEnvironment(taskContext),
-                            environmentVariableAccessor.getEnvironment());
+                            environmentVariableAccessor.getEnvironment(), artifactoryPluginVersion);
         } catch (IOException e) {
             log.warn("Unable to read from the Gradle extractor jar. Build-info task will not be added: " +
                     e.getMessage());
