@@ -23,6 +23,9 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -209,6 +212,11 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         this.administrationConfiguration = administrationConfiguration;
     }
 
+    private boolean isEncrypted(String value) {
+        String decryptedValue = TaskUtils.decryptIfNeeded(value);
+        return !decryptedValue.equals(value);
+    }
+
     /**
      * This method is used by the encryptFields and decryptFields methods.
      * It encrypts or descrypts the task config fields, if their key ends with 'password'.
@@ -221,9 +229,22 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         for (Map.Entry<String, String> entry : taskConfigMap.entrySet()) {
             String key = entry.getKey().toLowerCase();
             if (key.endsWith("password") && key.contains("artifactory")) {
-                String value = TaskUtils.decryptIfNeeded(entry.getValue());
+                String value = entry.getValue();
+                if (isEncrypted(value)) {
+                    try {
+                        value = URLDecoder.decode(value, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+                    value = TaskUtils.decryptIfNeeded(value);
+                }
                 if (enc) {
                     value = encryptionService.encrypt(value);
+                    try {
+                        value = URLEncoder.encode(value, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 entry.setValue(value);
             }
