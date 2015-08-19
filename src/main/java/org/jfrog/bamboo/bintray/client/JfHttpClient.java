@@ -17,6 +17,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
+import org.jfrog.bamboo.admin.BintrayConfig;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.build.api.Build;
 
@@ -35,34 +37,31 @@ import java.util.Map;
 public class JfHttpClient implements JfClient {
 
     private static final Logger log = Logger.getLogger(JfHttpClient.class);
+
     private static final String REPO_PROPERTIES_QUERY = "properties.find({ \"item.repo\": { \"$eq\": \"%s\"} })";
     private static final String AQL_SEARCH_API = "/api/search/aql";
+    public static final String GROUP_PARAM_KEY = "g";
+    public static final String ARTIFACT_PARAM_KEY = "a";
 
     private HttpClient client = new DefaultHttpClient();
     private Gson gson = new Gson();
 
-    private String artifactoryUrl;
-    private String artifactoryUsername;
-    private String artifactoryPassword;
-    private String bintrayUsername;
-    private String bintrayApiKey;
+    private ServerConfig artifactoryServerConfig;
+    private BintrayConfig bintrayConfig;
 
-    public JfHttpClient(String artifactoryUrl, String artifactoryUsername,
-                        String artifactoryPassword, String bintrayUsername, String bintrayApiKey) {
-        this.artifactoryUrl = artifactoryUrl;
-        this.artifactoryUsername = artifactoryUsername;
-        this.artifactoryPassword = artifactoryPassword;
-        this.bintrayUsername = bintrayUsername;
-        this.bintrayApiKey = bintrayApiKey;
+    public JfHttpClient(ServerConfig artifactoryServerConfig, BintrayConfig bintrayConfig) {
+        this.artifactoryServerConfig = artifactoryServerConfig;
+        this.bintrayConfig = bintrayConfig;
     }
 
     @Override
     public Build getBuildInfo(String buildName, String buildNumber) {
         try {
-            String apiUri = this.artifactoryUrl + "/api/build/" + encodePath(buildName) + "/" + encodePath(buildNumber);
+            String apiUri = artifactoryServerConfig.getUrl() + "/api/build/" + encodePath(buildName) + "/" + encodePath(buildNumber);
             HttpGet getBuildInfoRequest = new HttpGet(apiUri);
             getBuildInfoRequest.setHeader("Content-Type", "application/json");
-            getBuildInfoRequest.setHeader(createAuthorizationHeader(artifactoryUsername, artifactoryPassword));
+            getBuildInfoRequest.setHeader(createAuthorizationHeader(artifactoryServerConfig.getUsername(),
+                    artifactoryServerConfig.getPassword()));
             HttpResponse response = this.client.execute(getBuildInfoRequest);
             return handleResponse(response, BuildInfo.class).getBuildInfo();
         } catch (Exception e) {
@@ -72,12 +71,13 @@ public class JfHttpClient implements JfClient {
     }
 
     @Override
-    public String mavenCentralSync(MavenCentralSyncModel model, String subject, String repo, String packageName, String version) {
+    public String mavenCentralSync(String subject, String repo, String packageName, String version) {
         try {
             String apiUri = String.format(ConstantValues.MAVEN_SYNC_URL, encodePath(subject), encodePath(repo),
                     encodePath(packageName), encodePath(version));
+            MavenCentralSyncModel model = new MavenCentralSyncModel(bintrayConfig.getSonatypeOssUsername(), bintrayConfig.getSonatypeOssPassword(), "1");
             HttpPost mavenSyncRequest = new HttpPost(apiUri);
-            mavenSyncRequest.setHeader(createAuthorizationHeader(bintrayUsername, bintrayApiKey));
+            mavenSyncRequest.setHeader(createAuthorizationHeader(bintrayConfig.getBintrayUsername(), bintrayConfig.getBintrayApiKey()));
             String jsonString = jsonStringToObject(model);
             mavenSyncRequest.setEntity(new StringEntity(jsonString));
             HttpResponse response = this.client.execute(mavenSyncRequest);
@@ -92,9 +92,10 @@ public class JfHttpClient implements JfClient {
     @SuppressWarnings("unchecked")
     public Map<String, List<Map>> getUserPluginInfo() {
         try {
-            String apiUri = artifactoryUrl + "/api/plugins";
+            String apiUri = artifactoryServerConfig.getUrl() + "/api/plugins";
             HttpGet getPlugins = new HttpGet(apiUri);
-            getPlugins.setHeader(createAuthorizationHeader(artifactoryUsername, artifactoryPassword));
+            getPlugins.setHeader(createAuthorizationHeader(artifactoryServerConfig.getUsername(),
+                    artifactoryServerConfig.getPassword()));
             HttpResponse getResponse = client.execute(getPlugins);
             return handleResponse(getResponse, Map.class);
         } catch (Exception e) {
@@ -104,16 +105,27 @@ public class JfHttpClient implements JfClient {
     }
 
     @Override
-    public ArtifactorySearchResults getPropertiesForRepository(String repoKey) {
+    public BintrayConfig getBintrayConfig() {
+        return bintrayConfig;
+    }
+
+    @Override
+    public ServerConfig getArtifactoryServerConfig() {
+        return artifactoryServerConfig;
+    }
+
+    @Override
+    public AQLSearchResults getPropertiesForRepository(String repoKey) {
         try {
-            String uri = artifactoryUrl + AQL_SEARCH_API;
+            String uri = artifactoryServerConfig.getUrl() + AQL_SEARCH_API;
             HttpPost getProperties = new HttpPost(uri);
-            getProperties.setHeader(createAuthorizationHeader(artifactoryUsername, artifactoryPassword));
+            getProperties.setHeader(createAuthorizationHeader(artifactoryServerConfig.getUsername(),
+                    artifactoryServerConfig.getPassword()));
             getProperties.setHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
             StringEntity query = new StringEntity(String.format(REPO_PROPERTIES_QUERY, repoKey));
             getProperties.setEntity(query);
             HttpResponse propertiesResponse = client.execute(getProperties);
-            return handleResponse(propertiesResponse, ArtifactorySearchResults.class);
+            return handleResponse(propertiesResponse, AQLSearchResults.class);
         } catch (Exception e) {
             log.error("Failed to get properties for repository " + repoKey);
             throw new RuntimeException("Failed to obtain user plugin information", e);
@@ -123,10 +135,10 @@ public class JfHttpClient implements JfClient {
     @Override
     public GavcSearchResults gavcSearch(String group, String artifact) {
         try {
-            URIBuilder uriBuilder = new URIBuilder(artifactoryUrl + "/api/search/gavc");
-            uriBuilder.addParameter("g", group);
+            URIBuilder uriBuilder = new URIBuilder(artifactoryServerConfig.getUrl() + "/api/search/gavc");
+            uriBuilder.addParameter(GROUP_PARAM_KEY, group);
             if (StringUtils.isNotBlank(artifact)) {
-                uriBuilder.setParameter("a", artifact);
+                uriBuilder.setParameter(ARTIFACT_PARAM_KEY, artifact);
             }
             HttpGet gavcSearch = new HttpGet(uriBuilder.build());
             HttpResponse searchResult = client.execute(gavcSearch);

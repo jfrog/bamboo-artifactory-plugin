@@ -14,12 +14,15 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.util.List;
 import java.util.Map;
@@ -164,16 +167,45 @@ public class TaskUtils {
      * @param build server config for this build
      * @return ServerConfig object with Artifactory details
      */
-    public static ServerConfig getServerConfig(ImmutableBuildable build) {
+    public static ServerConfig getArtifactoryServerConfig(ImmutableBuildable build) {
         List<TaskDefinition> taskDefinitionList = build.getBuildDefinition().getTaskDefinitions();
         TaskDefinition relevantTaskDef = taskDefinitionList.get(taskDefinitionList.size() - 1);
         String serverIdStr = TaskUtils.getSelectedServerId(relevantTaskDef);
         if (StringUtils.isNotEmpty(serverIdStr)) {
             long serverId = Long.parseLong(serverIdStr);
             return ((ServerConfigManager) ContainerManager.getComponent(
-                    ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY)).getServerConfigById(serverId);
+                    ConstantValues.PLUGIN_CONFIG_MANAGER_KEY)).getServerConfigById(serverId);
         }
         throw new IllegalStateException("Error while trying to create ArtifactoryBuildInfoClient");
+    }
+
+    public static ArtifactoryBuildInfoClient createClient(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
+                                                          AbstractBuildContext context, Logger log) {
+        String serverUrl = substituteVariables(serverConfigManager, serverConfig.getUrl());
+        String username = substituteVariables(serverConfigManager, context.getDeployerUsername());
+        if (StringUtils.isBlank(username)) {
+            username = substituteVariables(serverConfigManager, serverConfig.getUsername());
+        }
+        ArtifactoryBuildInfoClient client;
+        BambooBuildInfoLog bambooLog = new BambooBuildInfoLog(log);
+        if (StringUtils.isBlank(username)) {
+            client = new ArtifactoryBuildInfoClient(serverUrl, bambooLog);
+        } else {
+            String password = substituteVariables(serverConfigManager, context.getDeployerPassword());
+            if (StringUtils.isBlank(password)) {
+                password = substituteVariables(serverConfigManager, serverConfig.getPassword());
+            }
+            client = new ArtifactoryBuildInfoClient(serverUrl, username, password, bambooLog);
+        }
+        client.setConnectionTimeout(serverConfig.getTimeout());
+        return client;
+    }
+
+    /**
+     * Substitute (replace) Bamboo variable names with their defined values
+     */
+    private static String substituteVariables(ServerConfigManager serverConfigManager, String s) {
+        return s != null ? serverConfigManager.substituteVariables(s) : null;
     }
 
     public static String decryptIfNeeded(String s) {
@@ -184,5 +216,11 @@ public class TaskUtils {
             s = encryptionService.decrypt(s);
         } catch (EncryptionException e) { /* Ignore. The field may not be encrypted. */ }
         return s;
+    }
+
+    public static BintrayConfig getBintrayConfig() {
+        ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+        return serverConfigManager.getBintrayConfig();
     }
 }

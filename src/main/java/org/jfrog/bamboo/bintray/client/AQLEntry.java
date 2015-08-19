@@ -3,9 +3,11 @@ package org.jfrog.bamboo.bintray.client;
 import java.util.Map;
 
 /**
+ * AQL result entry that will return in list of such entries when using Artifactory Query Language API
+ *
  * @author Aviad Shikloshi
  */
-public class ArtifactoryResponseEntry implements Map.Entry<String, String> {
+public class AQLEntry implements Map.Entry<String, String> {
 
     private String key;
     private String value;

@@ -71,7 +71,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
                     ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
                     ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
     public static PromotionContext promotionContext = new PromotionContext();
-    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
     private String promotionMode = PROMOTION_NORMAL_MODE;
     private boolean promoting = true;
     private String promotionRepo = "";
@@ -395,7 +395,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             return Lists.newArrayList();
         }
         ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
         return component.getDeployableRepos(Long.parseLong(serverId));
     }
 
@@ -557,7 +557,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             return ERROR;
         }
         ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
         TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getMutablePlan());
         if (definition == null) {
             return ERROR;
@@ -576,7 +576,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
 
         Map<String, String> taskConfiguration = definition.getConfiguration();
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(taskConfiguration);
-        ArtifactoryBuildInfoClient client = MavenSyncUtils.createClient(serverConfigManager, serverConfig, context);
+        ArtifactoryBuildInfoClient client = TaskUtils.createClient(serverConfigManager, serverConfig, context, log);
         ResultsSummary summary = getResultsSummary();
         TriggerReason reason = summary.getTriggerReason();
         String username = "";
@@ -629,7 +629,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             return Lists.newArrayList();
         }
         ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
         return component.getDeployableRepos(Long.parseLong(selectedServerId));
     }
 

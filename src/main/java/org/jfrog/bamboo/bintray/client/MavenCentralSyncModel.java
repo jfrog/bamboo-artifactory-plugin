@@ -3,6 +3,9 @@ package org.jfrog.bamboo.bintray.client;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Mapping of Bintray REST call to MavenSync Java Bean
+ * Should be sent as payload when making a MavenSyunc call
+ *
  * @author Aviad Shikloshi
  */
 public class MavenCentralSyncModel {

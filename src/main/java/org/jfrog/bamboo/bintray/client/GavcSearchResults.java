@@ -3,6 +3,8 @@ package org.jfrog.bamboo.bintray.client;
 import java.util.List;
 
 /**
+ * List for all result entries returned from Artifactory by applying GAVC Search API
+ *
  * @author Aviad Shikloshi
  */
 public class GavcSearchResults {

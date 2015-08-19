@@ -71,7 +71,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         try {
             if (ContainerManager.isContainerSetup()) {
                 serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                        ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                        ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
             }
         } catch (ComponentNotFoundException cnfe) {
             System.out.println(ArtifactoryGradleConfiguration.class.getName() + " - " + new Date() +

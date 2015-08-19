@@ -9,8 +9,8 @@ import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class MavenSyncUtils {
     public static boolean isPushToNexusEnabled(ServerConfigManager serverConfigManager, TaskDefinition definition,
                                                String serverId) {
         ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
         if (definition == null) {
             return false;
         }
@@ -44,7 +44,7 @@ public class MavenSyncUtils {
             return false;
         }
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
-        ArtifactoryBuildInfoClient client = createClient(serverConfigManager, serverConfig, context);
+        ArtifactoryBuildInfoClient client = TaskUtils.createClient(serverConfigManager, serverConfig, context, log);
         try {
             Map<String, List<Map>> userPluginInfo = client.getUserPluginInfo();
             if (!userPluginInfo.containsKey("promotions")) {
@@ -74,35 +74,6 @@ public class MavenSyncUtils {
             log.debug("No special promotion modes enabled: no relevant execute user plugins could be found.");
         }
         return false;
-    }
-
-    public static ArtifactoryBuildInfoClient createClient(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
-                                                          AbstractBuildContext context) {
-        String serverUrl = substituteVariables(serverConfigManager, serverConfig.getUrl());
-        String username = substituteVariables(serverConfigManager, context.getDeployerUsername());
-        if (StringUtils.isBlank(username)) {
-            username = substituteVariables(serverConfigManager, serverConfig.getUsername());
-        }
-        ArtifactoryBuildInfoClient client;
-        BambooBuildInfoLog bambooLog = new BambooBuildInfoLog(log);
-        if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, bambooLog);
-        } else {
-            String password = substituteVariables(serverConfigManager, context.getDeployerPassword());
-            if (StringUtils.isBlank(password)) {
-                password = substituteVariables(serverConfigManager, serverConfig.getPassword());
-            }
-            client = new ArtifactoryBuildInfoClient(serverUrl, username, password, bambooLog);
-        }
-        client.setConnectionTimeout(serverConfig.getTimeout());
-        return client;
-    }
-
-    /**
-     * Substitute (replace) Bamboo variable names with their defined values
-     */
-    private static String substituteVariables(ServerConfigManager serverConfigManager, String s) {
-        return s != null ? serverConfigManager.substituteVariables(s) : null;
     }
 
 }

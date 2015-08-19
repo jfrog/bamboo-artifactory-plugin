@@ -5,6 +5,7 @@ import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.bintray.client.JfClient;
 import org.jfrog.bamboo.bintray.client.JfHttpClient;
@@ -52,11 +53,12 @@ public class PushToBintrayAction extends ViewBuildResults {
         try {
             context.setBuildNumber(this.getBuildNumber());
             context.setBuildKey(this.getImmutableBuild().getName());
-            ServerConfig serverConfig = TaskUtils.getServerConfig(getImmutableBuild());
-            jfClient = initJfClient(serverConfig);
+            ServerConfig serverConfig = TaskUtils.getArtifactoryServerConfig(getImmutableBuild());
+            BintrayConfig bintrayConfig = TaskUtils.getBintrayConfig();
+            jfClient = initJfClient(serverConfig, bintrayConfig);
             Map<String, String> buildTaskConfiguration = TaskUtils.findConfigurationForBuildTask(this);
             addDefaultValuesForInput(buildTaskConfiguration);
-            if (shouldCollectBintrayFields()) {
+            if (shouldCollectBintrayProperties()) {
                 log.debug("Collecting Push to Bintray values.");
                 BintrayOsoUtils.collectPushToBintrayProperties(this, buildTaskConfiguration);
             }
@@ -72,8 +74,7 @@ public class PushToBintrayAction extends ViewBuildResults {
     public String doPush() {
         String result;
         try {
-            ServerConfig serverConfig = TaskUtils.getServerConfig(getImmutableBuild());
-            new Thread(new PushToBintrayRunnable(this, serverConfig, jfClient)).start();
+            new Thread(new PushToBintrayRunnable(this, jfClient)).start();
             pushing = false;
             result = SUCCESS;
         } catch (Exception e) {
@@ -86,8 +87,8 @@ public class PushToBintrayAction extends ViewBuildResults {
         return SUCCESS;
     }
 
-    private boolean shouldCollectBintrayFields() {
-        return !validPushToBintrayFields() && BintrayOsoUtils.shouldUseOsoUserPlugin(jfClient);
+    private boolean shouldCollectBintrayProperties() {
+        return !validPushToBintrayFields() && BintrayOsoUtils.isOsoPushPluginDeployed(jfClient);
     }
 
     // If package name already in the Bintray configuration page we shouldn't generate it again
@@ -95,10 +96,9 @@ public class PushToBintrayAction extends ViewBuildResults {
         return StringUtils.isNotBlank(this.packageName);
     }
 
-    private JfClient initJfClient(ServerConfig serverConfig) {
+    private JfClient initJfClient(ServerConfig serverConfig, BintrayConfig bintrayConfig) {
         if (serverConfig != null) {
-            return new JfHttpClient(serverConfig.getUrl(), serverConfig.getUsername(), serverConfig.getPassword(),
-                    serverConfig.getBintrayUsername(), serverConfig.getBintrayApiKey());
+            return new JfHttpClient(serverConfig, bintrayConfig);
         }
         throw new IllegalStateException("No server configured.");
     }

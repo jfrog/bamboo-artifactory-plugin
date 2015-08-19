@@ -35,7 +35,7 @@ public class ExistingArtifactoryServerAction extends AbstractEntityPagerSupport 
 
     public ExistingArtifactoryServerAction() {
         serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
     }
 
     public String doBrowse() throws Exception {

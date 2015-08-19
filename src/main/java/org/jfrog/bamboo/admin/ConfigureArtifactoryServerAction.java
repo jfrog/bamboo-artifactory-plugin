@@ -46,15 +46,17 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     private String username;
     private String password;
     private int timeout;
+
     private String bintrayUsername;
     private String bintrayApiKey;
-    private String nexusUsername;
-    private String nexusPassword;
+    private String sonatypeOssUsername;
+    private String sonatypeOssPassword;
+
     private transient ServerConfigManager serverConfigManager;
 
     public ConfigureArtifactoryServerAction() {
         serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
         mode = "add";
         timeout = 300;
     }
@@ -78,44 +80,54 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     }
 
     public String doAdd() throws Exception {
-        return "input";
+        return INPUT;
     }
 
     public String doCreate() throws Exception {
         if (isTesting()) {
             testConnection();
-            return "input";
+            return INPUT;
         }
 
         serverConfigManager.addServerConfiguration(
-                new ServerConfig(-1, getUrl(), getUsername(), getPassword(), getTimeout(), bintrayUsername, bintrayApiKey,
-                        nexusUsername, nexusPassword));
-        return "success";
+                new ServerConfig(-1, getUrl(), getUsername(), getPassword(), getTimeout()));
+        serverConfigManager.setBintrayConfig(
+                new BintrayConfig(bintrayUsername, bintrayApiKey, sonatypeOssUsername, sonatypeOssPassword));
+        return SUCCESS;
     }
 
     public String doEdit() throws Exception {
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(serverId);
+        BintrayConfig bintrayConfig = serverConfigManager.getBintrayConfig();
         if (serverConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server configuration by the ID " + serverId);
         }
-        updateFieldsFromServerConfig(serverConfig);
-        return "input";
+        updateFieldsFromServerConfig(serverConfig, bintrayConfig);
+        return INPUT;
     }
 
 
     public String doUpdate() throws Exception {
         if (isTesting()) {
             testConnection();
-            return "input";
+            return INPUT;
         }
-        serverConfigManager.updateServerConfiguration(createServerConfig());
-        return "success";
+        serverConfigManager.updateServerConfiguration(createServerConfig(), createBintrayConfiguration());
+        return SUCCESS;
+    }
+
+    private BintrayConfig createBintrayConfiguration() {
+        return new BintrayConfig(bintrayUsername, bintrayApiKey, sonatypeOssUsername, sonatypeOssPassword);
     }
 
     public String doDelete() throws Exception {
         serverConfigManager.deleteServerConfiguration(getServerId());
 
-        return "success";
+        return SUCCESS;
+    }
+
+    public String doCreateBintray() {
+        return SUCCESS;
     }
 
     public String getMode() {
@@ -194,20 +206,20 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         this.bintrayApiKey = bintrayApiKey;
     }
 
-    public String getNexusUsername() {
-        return nexusUsername;
+    public String getSonatypeOssUsername() {
+        return sonatypeOssUsername;
     }
 
-    public void setNexusUsername(String nexusUsername) {
-        this.nexusUsername = nexusUsername;
+    public void setSonatypeOssUsername(String sonatypeOssUsername) {
+        this.sonatypeOssUsername = sonatypeOssUsername;
     }
 
-    public String getNexusPassword() {
-        return nexusPassword;
+    public String getSonatypeOssPassword() {
+        return sonatypeOssPassword;
     }
 
-    public void setNexusPassword(String nexusPassword) {
-        this.nexusPassword = nexusPassword;
+    public void setSonatypeOssPassword(String sonatypeOssPassword) {
+        this.sonatypeOssPassword = sonatypeOssPassword;
     }
 
     private void testConnection() {
@@ -240,20 +252,21 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         log.error("Error while testing the connection to Artifactory server " + url, e);
     }
 
-    private void updateFieldsFromServerConfig(ServerConfig serverConfig) {
+    private void updateFieldsFromServerConfig(ServerConfig serverConfig, BintrayConfig bintrayConfig) {
         setUrl(serverConfig.getUrl());
         setUsername(serverConfig.getUsername());
         setPassword(serverConfig.getPassword());
         setTimeout(serverConfig.getTimeout());
-        setBintrayUsername(serverConfig.getBintrayUsername());
-        setBintrayApiKey(serverConfig.getBintrayApiKey());
-        setNexusUsername(serverConfig.getNexusUsername());
-        setNexusPassword(serverConfig.getNexusPassword());
+        if (bintrayConfig != null) {
+            bintrayUsername = bintrayConfig.getBintrayUsername();
+            bintrayApiKey = bintrayConfig.getBintrayApiKey();
+            sonatypeOssUsername = bintrayConfig.getSonatypeOssUsername();
+            sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
+        }
     }
 
     @NotNull
     private ServerConfig createServerConfig() {
-        return new ServerConfig(serverId, url, username, password, timeout, bintrayUsername,
-                bintrayApiKey, nexusUsername, nexusPassword);
+        return new ServerConfig(serverId, url, username, password, timeout);
     }
 }

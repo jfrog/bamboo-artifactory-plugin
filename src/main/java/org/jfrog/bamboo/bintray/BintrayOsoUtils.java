@@ -2,7 +2,8 @@ package org.jfrog.bamboo.bintray;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import org.jfrog.bamboo.bintray.client.ArtifactoryResponseEntry;
+import org.apache.log4j.Logger;
+import org.jfrog.bamboo.bintray.client.AQLEntry;
 import org.jfrog.bamboo.bintray.client.JfClient;
 import org.jfrog.build.api.Build;
 
@@ -12,21 +13,22 @@ import java.util.Map;
 /**
  * Helper class to handle special promote to Bintray and MavenCentral
  *
+ * Spring migration class
  * @author Aviad Shikloshi
  */
 public class BintrayOsoUtils {
 
+    private static final Logger log = Logger.getLogger(BintrayOsoUtils.class);
     private static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
 
     /**
      * Check if PushToBintray should use pre generated fields by checking if
      * bintrayOsoPush user plugin is present in Artifactory
      */
-    public static boolean shouldUseOsoUserPlugin(JfClient jfClient) {
+    public static boolean isOsoPushPluginDeployed(JfClient jfClient) {
         try {
             Map<String, List<Map>> userPluginInfo = jfClient.getUserPluginInfo();
             if (!userPluginInfo.containsKey("promotions")) {
-                PushToBintrayAction.log.error("No special promotion modes enabled: no selected Artifactory server Id");
                 return false;
             }
             List<Map> executionPlugins = userPluginInfo.get("promotions");
@@ -42,7 +44,6 @@ public class BintrayOsoUtils {
             });
             return promotePlugin != null;
         } catch (Exception e) {
-            PushToBintrayAction.log.error("Could not retrieve bintrayOsoPush plugin information.");
             return false;
         }
     }
@@ -58,7 +59,7 @@ public class BintrayOsoUtils {
 
             BintrayPropertiesCollector bintrayPropsCollector = new BintrayPropertiesCollector(currentBuildInfo);
             String repoKey = bintrayPropsCollector.getRepoKeyByArtifactorySearch(jfClient);
-            List<ArtifactoryResponseEntry> props = jfClient.getPropertiesForRepository(repoKey).getResults();
+            List<AQLEntry> props = jfClient.getPropertiesForRepository(repoKey).getResults();
             ptbAction.setPackageName(bintrayPropsCollector.getPackageNameFromProperties(props));
             ptbAction.setSubject(bintrayPropsCollector.getFromSystem("subject"));
             ptbAction.setRepository(bintrayPropsCollector.getFromSystem("repository"));
@@ -72,7 +73,7 @@ public class BintrayOsoUtils {
             populateDefaultValuesFromActionValues(ptbAction, buildConfigMap);
 
         } catch (Exception e) {
-            PushToBintrayAction.log.error("Error while collecting Push to Bintray values.", e);
+            log.error("Error while collecting Push to Bintray values.", e);
         }
     }
 

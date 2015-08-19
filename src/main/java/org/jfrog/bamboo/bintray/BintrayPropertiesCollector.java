@@ -3,29 +3,32 @@ package org.jfrog.bamboo.bintray;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.bintray.client.ArtifactoryResponseEntry;
+import org.apache.log4j.Logger;
+import org.jfrog.bamboo.bintray.client.AQLEntry;
 import org.jfrog.bamboo.bintray.client.GavcSearchEntry;
 import org.jfrog.bamboo.bintray.client.JfClient;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Module;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Fills in Push to Bintray configuration values when using bintrayOsoPush plugin
+ * <p>
+ * Spring migration class
  *
  * @author Aviad Shikloshi
  */
 public class BintrayPropertiesCollector {
 
+    private static Logger log = Logger.getLogger(BintrayPropertiesCollector.class);
+
     private static final String GAV_REGEXP = "(.*):(.*)(?=:)";
     private static final String GROUP_PATTERN = "(.*:.*)(?=:)";
+
     public static final int GROUP = 0;
     public static final int ARTIFACT = 1;
     public static final int REPO_KEY = 4;
@@ -47,15 +50,19 @@ public class BintrayPropertiesCollector {
      * @param properties repository properties list
      * @return package name as it was extracted from the properties
      */
-    public String getPackageNameFromProperties(List<ArtifactoryResponseEntry> properties) {
+    public String getPackageNameFromProperties(List<AQLEntry> properties) {
         // system ID is the key that its value is the Bintray repository  we are going to publish into
         String systemId = generateSystemId();
-        for (ArtifactoryResponseEntry artifactoryProp : properties) {
+        log.info("SystemId was generated: " + systemId);
+        for (AQLEntry artifactoryProp : properties) {
             String currentKey = artifactoryProp.getKey();
             if (currentKey.contains(systemId)) {
-                return artifactoryProp.getValue();
+                String packageName = artifactoryProp.getValue();
+                log.info("PackageName for Bintray is " + packageName);
+                return packageName;
             }
         }
+        log.error("Could not get Bintray package name from properties.");
         return StringUtils.EMPTY;
     }
 
@@ -99,10 +106,16 @@ public class BintrayPropertiesCollector {
                 String uriFullPath = fileURI.getPath();
                 String[] pathComponents = uriFullPath.split("/");
                 if (pathComponents.length > 6) {
-                    return pathComponents[REPO_KEY];
+                    String artifactoryKey = pathComponents[REPO_KEY];
+                    log.info("Found repository key related to current build: " + artifactoryKey);
+                    return artifactoryKey;
                 }
+                log.error("Could not parse path: " + uriFullPath);
+            } else {
+                log.error("GAVC search returned empty list for: " + Arrays.deepToString(gavc));
             }
         }
+        log.error("Could not find repository key for this build.");
         return StringUtils.EMPTY;
     }
 
@@ -137,8 +150,11 @@ public class BintrayPropertiesCollector {
         if (StringUtils.isBlank(value)) {
             value = System.getProperty("bintray." + key.toLowerCase());
         }
+        if (StringUtils.isBlank(value)) {
+            log.error("No value found for: " + key);
+        } else {
+            log.info("Retrieved " + key + " value from system: " + value);
+        }
         return value;
     }
-
-
 }
