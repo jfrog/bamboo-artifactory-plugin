@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * List for all result entries returned from Artifactory by applying GAVC Search API
  *
+ * Spring migration class
  * @author Aviad Shikloshi
  */
 public class GavcSearchResults {

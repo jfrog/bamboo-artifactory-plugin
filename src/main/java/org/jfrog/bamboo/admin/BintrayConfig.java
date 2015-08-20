@@ -46,4 +46,13 @@ public class BintrayConfig implements Serializable {
     public void setSonatypeOssPassword(String sonatypeOssPassword) {
         this.sonatypeOssPassword = sonatypeOssPassword;
     }
+
+    public void setBintrayUsername(String bintrayUsername) {
+
+        this.bintrayUsername = bintrayUsername;
+    }
+
+    public void setSonatypeOssUsername(String sonatypeOssUsername) {
+        this.sonatypeOssUsername = sonatypeOssUsername;
+    }
 }

@@ -40,8 +40,8 @@ public class JfHttpClient implements JfClient {
 
     private static final String REPO_PROPERTIES_QUERY = "properties.find({ \"item.repo\": { \"$eq\": \"%s\"} })";
     private static final String AQL_SEARCH_API = "/api/search/aql";
-    public static final String GROUP_PARAM_KEY = "g";
-    public static final String ARTIFACT_PARAM_KEY = "a";
+    private static final String GROUP_PARAM_KEY = "g";
+    private static final String ARTIFACT_PARAM_KEY = "a";
 
     private HttpClient client = new DefaultHttpClient();
     private Gson gson = new Gson();
@@ -65,13 +65,12 @@ public class JfHttpClient implements JfClient {
             HttpResponse response = this.client.execute(getBuildInfoRequest);
             return handleResponse(response, BuildInfo.class).getBuildInfo();
         } catch (Exception e) {
-            log.error("Error while requesting Build info for build name: " + buildName);
             throw new RuntimeException("Error while requesting Build info for build.", e);
         }
     }
 
     @Override
-    public String mavenCentralSync(String subject, String repo, String packageName, String version) {
+    public List<String> mavenCentralSync(String subject, String repo, String packageName, String version) {
         try {
             String apiUri = String.format(ConstantValues.MAVEN_SYNC_URL, encodePath(subject), encodePath(repo),
                     encodePath(packageName), encodePath(version));
@@ -81,9 +80,8 @@ public class JfHttpClient implements JfClient {
             String jsonString = jsonStringToObject(model);
             mavenSyncRequest.setEntity(new StringEntity(jsonString));
             HttpResponse response = this.client.execute(mavenSyncRequest);
-            return IOUtils.toString(response.getEntity().getContent());
+            return handleMavenSyncResponse(response);
         } catch (Exception e) {
-            log.error("Error while requesting repository properties.");
             throw new RuntimeException("Error while requesting repository properties.", e);
         }
     }
@@ -99,14 +97,8 @@ public class JfHttpClient implements JfClient {
             HttpResponse getResponse = client.execute(getPlugins);
             return handleResponse(getResponse, Map.class);
         } catch (Exception e) {
-            log.error("Failed to obtain user plugin information.");
             throw new RuntimeException("Failed to obtain user plugin information", e);
         }
-    }
-
-    @Override
-    public BintrayConfig getBintrayConfig() {
-        return bintrayConfig;
     }
 
     @Override
@@ -127,7 +119,6 @@ public class JfHttpClient implements JfClient {
             HttpResponse propertiesResponse = client.execute(getProperties);
             return handleResponse(propertiesResponse, AQLSearchResults.class);
         } catch (Exception e) {
-            log.error("Failed to get properties for repository " + repoKey);
             throw new RuntimeException("Failed to obtain user plugin information", e);
         }
     }
@@ -144,7 +135,6 @@ public class JfHttpClient implements JfClient {
             HttpResponse searchResult = client.execute(gavcSearch);
             return handleResponse(searchResult, GavcSearchResults.class);
         } catch (Exception e) {
-            log.error("Failed to retrieve searches for group: " + group + " and artifact: " + artifact);
             throw new RuntimeException("Failed to obtain user plugin information", e);
         }
     }
@@ -170,6 +160,16 @@ public class JfHttpClient implements JfClient {
             return objectFromJsonString(jsonString, toClass);
         }
         throw new RuntimeException("Request to Artifactory failed.");
+    }
+
+    private List<String> handleMavenSyncResponse(HttpResponse response) {
+        try {
+            String jsonString = IOUtils.toString(response.getEntity().getContent());
+            Map<String, List<String>> responseList = objectFromJsonString(jsonString, Map.class);
+            return responseList.get("messages");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse MavenSync response.", e);
+        }
     }
 
     /**

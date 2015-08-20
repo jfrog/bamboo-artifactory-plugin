@@ -5,6 +5,7 @@ import java.util.Map;
 /**
  * AQL result entry that will return in list of such entries when using Artifactory Query Language API
  *
+ * Spring migration class
  * @author Aviad Shikloshi
  */
 public class AQLEntry implements Map.Entry<String, String> {

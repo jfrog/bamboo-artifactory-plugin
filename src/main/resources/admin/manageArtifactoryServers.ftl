@@ -3,7 +3,7 @@
 
 <html>
 <head>
-    <title>Manage Artifactory Servers</title>
+    <title>Manage Artifactory Plugin Configuration</title>
     <meta name="decorator" content="adminpage">
 </head>
 
@@ -11,7 +11,7 @@
 
 <h1>Manage Artifactory Servers</h1>
 
-<p>You can use this page to add, edit and delete Artifactory server configurations.</p>
+<p>You can use this page to add, edit and delete Artifactory and Bintray configurations.</p>
 
 [@ww.action name="existingArtifactoryServer" executeResult="true" /]
 

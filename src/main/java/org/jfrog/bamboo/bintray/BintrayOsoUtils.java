@@ -5,6 +5,7 @@ import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.bintray.client.AQLEntry;
 import org.jfrog.bamboo.bintray.client.JfClient;
+import org.jfrog.bamboo.util.ActionLog;
 import org.jfrog.build.api.Build;
 
 import java.util.List;
@@ -52,12 +53,12 @@ public class BintrayOsoUtils {
      * Generate fields for Push to Bintray
      */
     public static void collectPushToBintrayProperties(PushToBintrayAction ptbAction,
-                                                      Map<String, String> buildConfigMap) {
+                                                      Map<String, String> buildConfigMap, ActionLog bintrayLog) {
         try {
             JfClient jfClient = ptbAction.getJfClient();
             Build currentBuildInfo = getBuildInfo(jfClient);
 
-            BintrayPropertiesCollector bintrayPropsCollector = new BintrayPropertiesCollector(currentBuildInfo);
+            BintrayPropertiesCollector bintrayPropsCollector = new BintrayPropertiesCollector(currentBuildInfo, bintrayLog);
             String repoKey = bintrayPropsCollector.getRepoKeyByArtifactorySearch(jfClient);
             List<AQLEntry> props = jfClient.getPropertiesForRepository(repoKey).getResults();
             ptbAction.setPackageName(bintrayPropsCollector.getPackageNameFromProperties(props));
@@ -73,7 +74,7 @@ public class BintrayOsoUtils {
             populateDefaultValuesFromActionValues(ptbAction, buildConfigMap);
 
         } catch (Exception e) {
-            log.error("Error while collecting Push to Bintray values.", e);
+            bintrayLog.logError("Error while collecting Push to Bintray values.", e);
         }
     }
 

@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.bintray.client.JfClient;
+import org.jfrog.bamboo.util.ActionLog;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.build.api.release.BintrayUploadInfoOverride;
 import org.jfrog.build.client.ArtifactoryVersion;
@@ -26,10 +27,12 @@ public class PushToBintrayRunnable implements Runnable {
 
     private JfClient jfClient;
     private PushToBintrayAction action;
+    private ActionLog bintrayLog;
 
     public PushToBintrayRunnable(PushToBintrayAction pushToBintrayAction, JfClient jfClient) {
         this.action = pushToBintrayAction;
         this.jfClient = jfClient;
+        this.bintrayLog = PushToBintrayAction.context.getActionLog();
     }
 
     /**
@@ -40,22 +43,22 @@ public class PushToBintrayRunnable implements Runnable {
     public void run() {
         ArtifactoryBuildInfoClient artifactoryClient = null;
         try {
-            logMessage("Starting Push to Bintray action.");
+            bintrayLog.logMessage("Starting Push to Bintray action.");
             PushToBintrayAction.context.getLock().lock();
             PushToBintrayAction.context.setDone(false);
             artifactoryClient = getArtifactoryBuildInfoClient(jfClient.getArtifactoryServerConfig());
             if (!isValidArtifactoryVersion(artifactoryClient)) {
-                logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
+                bintrayLog.logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
                 PushToBintrayAction.context.setDone(true);
                 return;
             }
             boolean successfulPush = performPushToBintray(artifactoryClient);
             if (successfulPush && action.isMavenSync()) {
-                log.info("Starting MavenSync.");
+                bintrayLog.logMessage("Starting MavenSync.");
                 mavenCentralSync();
             }
         } catch (Exception e) {
-            log.error("Error while trying to Push build to Bintray: " + e.getMessage());
+            bintrayLog.logError("Error while trying to Push build to Bintray.", e);
         } finally {
             if (artifactoryClient != null) {
                 artifactoryClient.shutdown();
@@ -90,11 +93,11 @@ public class PushToBintrayRunnable implements Runnable {
         try {
             BintrayResponse response =
                     artifactoryClient.pushToBintray(buildName, buildNumber, signMethod, passphrase, uploadInfoOverride);
-            logMessage(response.toString());
+            bintrayLog.logMessage(response.toString());
             log.info("Push to Bintray finished: " + response.toString());
             return response.isSuccessful();
         } catch (Exception e) {
-            logError("Push to Bintray Failed with Exception: ", e);
+            bintrayLog.logError("Push to Bintray Failed with Exception.", e);
         }
         return false;
     }
@@ -104,13 +107,12 @@ public class PushToBintrayRunnable implements Runnable {
      */
     private void mavenCentralSync() {
         try {
-            logMessage("Syncing build with Sonatype OSS.");
-            String response = jfClient.mavenCentralSync(action.getSubject(), action.getRepository(),
+            bintrayLog.logMessage("Syncing build with Sonatype OSS.");
+            List<String> responseMessages = jfClient.mavenCentralSync(action.getSubject(), action.getRepository(),
                     action.getPackageName(), action.getVersion());
-            logMessage(response);
+            bintrayLog.logListOfMessages(responseMessages, true);
         } catch (Exception e) {
-            log.error("Could not finish MavenSync", e);
-            logError("Error while trying to sync with Maven Central", e);
+            bintrayLog.logError("Error while trying to sync with Maven Central", e);
         }
     }
 
@@ -120,7 +122,7 @@ public class PushToBintrayRunnable implements Runnable {
             ArtifactoryVersion version = client.verifyCompatibleArtifactoryVersion();
             validVersion = version.isAtLeast(new ArtifactoryVersion(MINIMAL_SUPPORTED_VERSION));
         } catch (Exception e) {
-            logError("Error while checking Artifactory version", e);
+            bintrayLog.logError("Error while checking Artifactory version", e);
         }
         return validVersion;
     }
@@ -140,21 +142,5 @@ public class PushToBintrayRunnable implements Runnable {
         return Lists.newArrayList(licensesArray);
     }
 
-    private void logError(String message, Exception e) {
-        if (e != null) {
-            message += " " + e.getMessage() + " <br>";
-        }
-        logError(message);
-    }
-
-    private void logError(String message) {
-        log.error(message);
-        PushToBintrayAction.context.getLog().add(message);
-    }
-
-    private void logMessage(String message) {
-        log.info(message);
-        PushToBintrayAction.context.getLog().add(message);
-    }
 
 }

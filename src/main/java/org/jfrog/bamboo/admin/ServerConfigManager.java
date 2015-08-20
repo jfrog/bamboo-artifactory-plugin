@@ -108,7 +108,7 @@ public class ServerConfigManager implements Serializable {
     }
 
     public void setBandanaManager(BandanaManager bandanaManager) {
-        this.bandanaManager = bandanaManager;
+         this.bandanaManager = bandanaManager;
 
         Object existingArtifactoryConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY);
         if (existingArtifactoryConfig != null) {
@@ -265,18 +265,21 @@ public class ServerConfigManager implements Serializable {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
                     encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
         }
-        encryptBintrayConfig(bintrayConfig);
-        bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY, bintrayConfig);
+        if (bintrayConfig != null) {
+            bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY, createEncryptedBintrayConfig(bintrayConfig));
+        }
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigs);
     }
 
-    private void encryptBintrayConfig(BintrayConfig bintrayConfig) {
-        if (bintrayConfig != null) {
-            String apiKey = encryptionService.encrypt(bintrayConfig.getBintrayApiKey());
-            bintrayConfig.setBintrayApiKey(apiKey);
-            String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
-            bintrayConfig.setSonatypeOssPassword(encryptionService.encrypt(sonatypeOssPassword));
-        }
+    private BintrayConfig createEncryptedBintrayConfig(BintrayConfig bintrayConfig) {
+        BintrayConfig encConfig = new BintrayConfig();
+        String apiKey = encryptionService.encrypt(bintrayConfig.getBintrayApiKey());
+        String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
+        encConfig.setBintrayApiKey(apiKey);
+        encConfig.setSonatypeOssPassword(encryptionService.encrypt(sonatypeOssPassword));
+        encConfig.setBintrayUsername(bintrayConfig.getBintrayUsername());
+        encConfig.setSonatypeOssUsername(bintrayConfig.getSonatypeOssUsername());
+        return encConfig;
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {

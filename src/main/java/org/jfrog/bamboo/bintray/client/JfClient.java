@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.bintray.client;
 
-import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.build.api.Build;
 
@@ -26,7 +25,7 @@ public interface JfClient {
     /**
      * Sync your build from Bintray to Maven Central
      */
-    String mavenCentralSync(String subject, String repo, String packageName, String version);
+    List<String> mavenCentralSync(String subject, String repo, String packageName, String version);
 
     /**
      * Retrieves repository properties
@@ -46,6 +45,5 @@ public interface JfClient {
      */
     Map<String, List<Map>> getUserPluginInfo();
 
-    BintrayConfig getBintrayConfig();
     ServerConfig getArtifactoryServerConfig();
 }

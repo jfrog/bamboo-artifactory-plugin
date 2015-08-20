@@ -46,6 +46,7 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     @Override
     public String doExecute() throws Exception {
+        context.clearLog();
         String result = super.doExecute();
         if (ERROR.equals(result)) {
             return ERROR;
@@ -60,14 +61,12 @@ public class PushToBintrayAction extends ViewBuildResults {
             addDefaultValuesForInput(buildTaskConfiguration);
             if (shouldCollectBintrayProperties()) {
                 log.debug("Collecting Push to Bintray values.");
-                BintrayOsoUtils.collectPushToBintrayProperties(this, buildTaskConfiguration);
+                BintrayOsoUtils.collectPushToBintrayProperties(this, buildTaskConfiguration, context.getActionLog());
             }
             return INPUT;
         } catch (Exception e) {
             log.error("Error occurred while loading Push to Bintray configuration page.", e);
             return ERROR;
-        } finally {
-            context.getLog().clear();
         }
     }
 

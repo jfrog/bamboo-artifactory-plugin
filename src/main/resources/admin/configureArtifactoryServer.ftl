@@ -6,12 +6,10 @@
 <body>
 [#else]
     [#assign targetAction = 'createServer']
-    [#assign titleText = 'artifactory.server.new' /]
 [/#if]
 
 [#assign cancelUri = '/admin/manageArtifactoryServers.action' /]
 
-<h1>[@ww.text name=titleText labelKey=titleText /]</h1>
 <div class="paddedClearer"></div>
 [@ww.form action=targetAction submitLabelKey='global.buttons.update'
 titleKey='artifactory.server.details'
@@ -33,7 +31,7 @@ showActionErrors='true']
     [@ww.password labelKey='artifactory.server.password' name="password" showPassword='true'/]
     [@ww.textfield labelKey='artifactory.server.timeout' name="timeout" required="true"/]
 <button class="button" id="createServer_testing" type="submit" value="Test" name="testing">Test Connection</button>
-<h2>Bintray Configuration</h2>
+<h1>Bintray Configuration</h1>
     [@ww.textfield labelKey="Bintray Username" name="bintrayUsername"/]
     [@ww.password labelKey="Bintray Api Key" name="bintrayApiKey" showPassword='true' /]
     [@ww.textfield labelKey="Sonaytype OSS Username" name="sonatypeOssUsername" /]

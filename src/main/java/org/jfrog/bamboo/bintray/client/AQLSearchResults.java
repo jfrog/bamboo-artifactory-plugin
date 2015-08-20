@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * Contains a result entry from Artifactory when using Artifactory Query Language
  *
+ * Spring migration class
  * @author Aviad Shikloshi
  */
 public class AQLSearchResults {
