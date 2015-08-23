@@ -4,7 +4,8 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
-import org.jfrog.bamboo.bintray.client.JfClient;
+import org.jfrog.bamboo.bintray.client.BintrayClient;
+import org.jfrog.bamboo.bintray.client.MavenSyncResponse;
 import org.jfrog.bamboo.util.ActionLog;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.build.api.release.BintrayUploadInfoOverride;
@@ -25,13 +26,15 @@ public class PushToBintrayRunnable implements Runnable {
     private static final String MINIMAL_SUPPORTED_VERSION = "3.6";
     private Logger log = Logger.getLogger(PushToBintrayRunnable.class);
 
-    private JfClient jfClient;
+    private BintrayClient bintrayClient;
+    private ServerConfig serverConfig;
     private PushToBintrayAction action;
     private ActionLog bintrayLog;
 
-    public PushToBintrayRunnable(PushToBintrayAction pushToBintrayAction, JfClient jfClient) {
+    public PushToBintrayRunnable(PushToBintrayAction pushToBintrayAction, ServerConfig serverConfig, BintrayClient bintrayClient) {
         this.action = pushToBintrayAction;
-        this.jfClient = jfClient;
+        this.serverConfig = serverConfig;
+        this.bintrayClient = bintrayClient;
         this.bintrayLog = PushToBintrayAction.context.getActionLog();
     }
 
@@ -46,7 +49,7 @@ public class PushToBintrayRunnable implements Runnable {
             bintrayLog.logMessage("Starting Push to Bintray action.");
             PushToBintrayAction.context.getLock().lock();
             PushToBintrayAction.context.setDone(false);
-            artifactoryClient = getArtifactoryBuildInfoClient(jfClient.getArtifactoryServerConfig());
+            artifactoryClient = getArtifactoryBuildInfoClient(serverConfig);
             if (!isValidArtifactoryVersion(artifactoryClient)) {
                 bintrayLog.logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
                 PushToBintrayAction.context.setDone(true);
@@ -108,9 +111,10 @@ public class PushToBintrayRunnable implements Runnable {
     private void mavenCentralSync() {
         try {
             bintrayLog.logMessage("Syncing build with Sonatype OSS.");
-            List<String> responseMessages = jfClient.mavenCentralSync(action.getSubject(), action.getRepository(),
+            MavenSyncResponse mavenSyncResponse = bintrayClient.mavenCentralSync(action.getSubject(), action.getRepository(),
                     action.getPackageName(), action.getVersion());
-            bintrayLog.logListOfMessages(responseMessages, true);
+            bintrayLog.logMessage("Bintray response status: " + mavenSyncResponse.getStatus() + ".");
+            bintrayLog.logMessage(mavenSyncResponse.getMessages());
         } catch (Exception e) {
             bintrayLog.logError("Error while trying to sync with Maven Central", e);
         }
@@ -141,6 +145,4 @@ public class PushToBintrayRunnable implements Runnable {
         }
         return Lists.newArrayList(licensesArray);
     }
-
-
 }

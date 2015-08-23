@@ -3,10 +3,9 @@ package org.jfrog.bamboo.bintray;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.bintray.client.AQLEntry;
 import org.jfrog.bamboo.bintray.client.GavcSearchEntry;
-import org.jfrog.bamboo.bintray.client.JfClient;
 import org.jfrog.bamboo.util.ActionLog;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Module;
@@ -19,13 +18,12 @@ import java.util.regex.Pattern;
 /**
  * Fills in Push to Bintray configuration values when using bintrayOsoPush plugin
  * <p>
- *
+ * <p>
  * Spring migration class
+ *
  * @author Aviad Shikloshi
  */
 public class BintrayPropertiesCollector {
-
-    private static Logger log = Logger.getLogger(BintrayPropertiesCollector.class);
 
     private static final String GAV_REGEXP = "(.*):(.*)(?=:)";
     private static final String GROUP_PATTERN = "(.*:.*)(?=:)";
@@ -36,9 +34,11 @@ public class BintrayPropertiesCollector {
 
     private List<String> moduleIds;
     private ActionLog bintrayLog;
+    private ServerConfig serverConfig;
 
-    public BintrayPropertiesCollector(Build buildInfo, ActionLog bintrayLog) {
+    public BintrayPropertiesCollector(ServerConfig serverConfig, Build buildInfo, ActionLog bintrayLog) {
         this.bintrayLog = bintrayLog;
+        this.serverConfig = serverConfig;
         bintrayLog.logMessage("Adding modules to BintrayPropertiesCollector:");
         moduleIds = Lists.newArrayList();
         if (buildInfo != null) {
@@ -106,11 +106,11 @@ public class BintrayPropertiesCollector {
     /**
      * A way to get the repository key for the files just uploaded with the build
      */
-    public String getRepoKeyByArtifactorySearch(JfClient jfClient) {
+    public String getRepoKeyByArtifactorySearch() {
         bintrayLog.logMessage("Searching repository key by artifact GAVC search.");
         if (!moduleIds.isEmpty()) {
             String[] gavc = moduleIds.get(0).split(":");
-            List<GavcSearchEntry> resultsList = jfClient.gavcSearch(gavc[GROUP], gavc[ARTIFACT]).getResults();
+            List<GavcSearchEntry> resultsList = BintrayOsoUtils.gavcSearch(serverConfig, gavc[GROUP], gavc[ARTIFACT]).getResults();
             if (!resultsList.isEmpty()) {
                 String uriStr = resultsList.get(0).getUri();
                 bintrayLog.logMessage("Using URI - " + uriStr + " to get repository key.");

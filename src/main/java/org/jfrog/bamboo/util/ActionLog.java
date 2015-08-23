@@ -56,18 +56,6 @@ public class ActionLog {
         logEntries.add(String.format(messageFormat, message));
     }
 
-    public void logListOfMessages(List<String> messages, boolean errorMessages){
-        if (errorMessages) {
-            for (String message : messages) {
-                logError(message);
-            }
-        } else {
-            for (String message : messages) {
-                logMessage(message);
-            }
-        }
-    }
-
     private void logStackTrace(Exception e) {
         String stackTrace = ExceptionUtils.getStackTrace(e);
         stackTrace = String.format(errorFormat, stackTrace);

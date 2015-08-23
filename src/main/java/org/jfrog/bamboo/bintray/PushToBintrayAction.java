@@ -7,8 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
-import org.jfrog.bamboo.bintray.client.JfClient;
-import org.jfrog.bamboo.bintray.client.JfHttpClient;
+import org.jfrog.bamboo.bintray.client.BintrayClient;
 import org.jfrog.bamboo.promotion.PromotionContext;
 import org.jfrog.bamboo.util.TaskUtils;
 
@@ -30,7 +29,7 @@ public class PushToBintrayAction extends ViewBuildResults {
     private static final String BINTRAY_CONFIG_PREFIX = "bintray.";
     private static Map<String, String> signMethodList = ImmutableMap.of(
             "false", "Don't Sign", "true", "Sign", "", "According to descriptor file");
-    private static JfClient jfClient;
+    private static BintrayClient bintrayClient;
 
     private boolean pushing = true;
     private boolean overrideDescriptorFile;
@@ -56,12 +55,12 @@ public class PushToBintrayAction extends ViewBuildResults {
             context.setBuildKey(this.getImmutableBuild().getName());
             ServerConfig serverConfig = TaskUtils.getArtifactoryServerConfig(getImmutableBuild());
             BintrayConfig bintrayConfig = TaskUtils.getBintrayConfig();
-            jfClient = initJfClient(serverConfig, bintrayConfig);
+            bintrayClient = new BintrayClient(bintrayConfig);
             Map<String, String> buildTaskConfiguration = TaskUtils.findConfigurationForBuildTask(this);
             addDefaultValuesForInput(buildTaskConfiguration);
-            if (shouldCollectBintrayProperties()) {
+            if (shouldCollectBintrayProperties(serverConfig)) {
                 log.debug("Collecting Push to Bintray values.");
-                BintrayOsoUtils.collectPushToBintrayProperties(this, buildTaskConfiguration, context.getActionLog());
+                BintrayOsoUtils.collectPushToBintrayProperties(this, serverConfig, buildTaskConfiguration, context.getActionLog());
             }
             return INPUT;
         } catch (Exception e) {
@@ -72,8 +71,9 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     public String doPush() {
         String result;
+        ServerConfig serverConfig = TaskUtils.getArtifactoryServerConfig(getImmutableBuild());
         try {
-            new Thread(new PushToBintrayRunnable(this, jfClient)).start();
+            new Thread(new PushToBintrayRunnable(this, serverConfig, bintrayClient)).start();
             pushing = false;
             result = SUCCESS;
         } catch (Exception e) {
@@ -86,22 +86,14 @@ public class PushToBintrayAction extends ViewBuildResults {
         return SUCCESS;
     }
 
-    private boolean shouldCollectBintrayProperties() {
-        return !validPushToBintrayFields() && BintrayOsoUtils.isOsoPushPluginDeployed(jfClient);
+    private boolean shouldCollectBintrayProperties(ServerConfig serverConfig) {
+        return !validPushToBintrayFields() && BintrayOsoUtils.isOsoPushPluginDeployed(serverConfig);
     }
 
     // If package name already in the Bintray configuration page we shouldn't generate it again
     private boolean validPushToBintrayFields() {
         return StringUtils.isNotBlank(this.packageName);
     }
-
-    private JfClient initJfClient(ServerConfig serverConfig, BintrayConfig bintrayConfig) {
-        if (serverConfig != null) {
-            return new JfHttpClient(serverConfig, bintrayConfig);
-        }
-        throw new IllegalStateException("No server configured.");
-    }
-
 
     public Map<String, String> getSignMethodList() {
         return signMethodList;
@@ -201,10 +193,6 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     public boolean isDone() {
         return context.isDone();
-    }
-
-    public JfClient getJfClient() {
-        return jfClient;
     }
 
     /**
