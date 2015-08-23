@@ -2,7 +2,6 @@ package org.jfrog.bamboo.promotion;
 
 import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.variable.VariableDefinition;
-import com.atlassian.bamboo.variable.VariableDefinitionContext;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.google.common.collect.Maps;
 import org.apache.commons.httpclient.HttpStatus;
@@ -20,14 +19,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.jfrog.bamboo.release.action.ReleaseAndPromotionAction;
+import org.jfrog.bamboo.util.ActionLog;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.builder.PromotionBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
@@ -46,12 +44,16 @@ public class PromotionThread extends Thread {
     private ReleaseAndPromotionAction action;
     private ArtifactoryBuildInfoClient client;
     private String bambooUsername;
+    private ActionLog releaseLog;
 
     public PromotionThread(ReleaseAndPromotionAction action, ArtifactoryBuildInfoClient client,
                            String bambooUsername) {
         this.action = action;
         this.client = client;
         this.bambooUsername = bambooUsername;
+        this.releaseLog = ReleaseAndPromotionAction.promotionContext.getActionLog();
+        releaseLog.setLogger(log);
+
     }
 
     @Override
@@ -69,7 +71,7 @@ public class PromotionThread extends Thread {
 
         } catch (Exception e) {
             String message = "An error occurred: " + e.getMessage();
-            logErrorToUiAndLogger(message, e);
+            releaseLog.logError(message, e);
         } finally {
             try {
                 client.shutdown();
@@ -81,13 +83,12 @@ public class PromotionThread extends Thread {
     }
 
     private boolean executePushToNexusPlugin() throws IOException {
-        logMessageToUiAndLogger("Executing 'Promotion to Bintray and Central' plugin ...");
+        releaseLog.logError("Executing 'Promotion to Bintray and Central' plugin ...");
         VariableDefinitionManager varDefManager = action.getVariableDefinitionManager();
-        Map<String, VariableDefinitionContext> globalVars = null;
         PlanIdentifier planIdentifier = action.getPlanManager().getPlanIdentifierForPermissionCheckingByKey(action.getPlanKey());
         if (planIdentifier == null) {
             String message = "Plugin execution failed: Couldn't find nexusPush variables.<br/>";
-            logErrorToUiAndLogger(message);
+            releaseLog.logError(message);
             return false;
         }
 
@@ -107,15 +108,14 @@ public class PromotionThread extends Thread {
         try {
             nexusPushResponse = client.executePromotionUserPlugin(NEXUS_PUSH_PLUGIN_NAME, action.getImmutableBuild().getName(),
                     action.getBuildNumber().toString(), null);
-//            nexusPushResponse = client.executeUserPlugin(NEXUS_PUSH_PLUGIN_NAME, executeRequestParams);
             StatusLine responseStatusLine = nexusPushResponse.getStatusLine();
             if (HttpStatus.SC_OK == responseStatusLine.getStatusCode()) {
-                logMessageToUiAndLogger("Plugin successfully executed!");
+                releaseLog.logMessage("Plugin successfully executed!");
                 return true;
             } else {
                 String responseContent = entityToString(nexusPushResponse);
                 String message = "Plugin execution failed: " + responseStatusLine + "<br/>" + responseContent;
-                logErrorToUiAndLogger(message);
+                releaseLog.logError(message);
                 return false;
             }
         } finally {
@@ -129,13 +129,13 @@ public class PromotionThread extends Thread {
     }
 
     private boolean performPromotion() throws IOException {
-        logMessageToUiAndLogger("Promoting build ...");
+        releaseLog.logMessage("Promoting build ...");
         // do a dry run first
         PromotionBuilder promotionBuilder = new PromotionBuilder().status(action.getTarget())
                 .comment(action.getComment()).ciUser(bambooUsername).targetRepo(action.getPromotionRepo())
                 .dependencies(action.isIncludeDependencies()).copy(action.isUseCopy())
                 .dryRun(true);
-        logMessageToUiAndLogger("Performing dry run promotion (no changes are made during dry run) ...");
+        releaseLog.logMessage("Performing dry run promotion (no changes are made during dry run) ...");
         String buildName = action.getImmutableBuild().getName();
         String buildNumber = action.getBuildNumber().toString();
         HttpResponse dryResponse = null;
@@ -143,10 +143,10 @@ public class PromotionThread extends Thread {
         try {
             dryResponse = client.stageBuild(buildName, buildNumber, promotionBuilder.build());
             if (checkSuccess(dryResponse, true)) {
-                logMessageToUiAndLogger("Dry run finished successfully. Performing promotion ...");
+                releaseLog.logMessage("Dry run finished successfully. Performing promotion ...");
                 wetResponse = client.stageBuild(buildName, buildNumber, promotionBuilder.dryRun(false).build());
                 if (checkSuccess(wetResponse, false)) {
-                    logMessageToUiAndLogger("Promotion completed successfully!");
+                    releaseLog.logMessage("Promotion completed successfully!");
 
                     return true;
                 }
@@ -185,11 +185,11 @@ public class PromotionThread extends Thread {
             if (dryRun) {
                 String message = "Promotion failed during dry run (no change in Artifactory was done): " +
                         status + "<br/>" + content;
-                logErrorToUiAndLogger(message);
+                releaseLog.logMessage(message);
             } else {
                 String message = "Promotion failed. View Artifactory logs for more details: " + status +
                         "<br/>" + content;
-                logErrorToUiAndLogger(message);
+                releaseLog.logError(message);
             }
             return false;
         }
@@ -203,33 +203,13 @@ public class PromotionThread extends Thread {
             String message = node.get("message").getTextValue();
             if (("WARNING".equals(level) || "ERROR".equals(level)) && !message.startsWith("No items were")) {
                 String errorMessage = "Received " + level + ": " + message;
-                logErrorToUiAndLogger(errorMessage);
+                releaseLog.logError(errorMessage);
                 return false;
             }
         }
         return true;
     }
 
-    private void logErrorToUiAndLogger(String message) {
-        logErrorToUiAndLogger(message, null);
-    }
-
-    private void logErrorToUiAndLogger(String message, Exception e) {
-        if (e != null) {
-            StringWriter sTStringWriter = new StringWriter();
-            PrintWriter sTPrintWriter = new PrintWriter(sTStringWriter);
-            e.printStackTrace(sTPrintWriter);
-            promotionContext.getLog().add(message + "<br/>" + sTStringWriter.toString());
-        } else {
-            promotionContext.getLog().add(message + "<br/>");
-        }
-        log.error(message, e);
-    }
-
-    private void logMessageToUiAndLogger(String message) {
-        log.info(message);
-        promotionContext.getLog().add(message + "<br/>");
-    }
 
     private JsonFactory createJsonFactory() {
         JsonFactory jsonFactory = new JsonFactory();

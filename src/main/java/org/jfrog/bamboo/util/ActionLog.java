@@ -25,11 +25,9 @@ public class ActionLog {
         this.logEntries = Lists.newArrayList();
     }
 
-    public ActionLog(Logger log) {
+    public void setLogger(Logger log) {
         this.log = log;
-        this.logEntries = Lists.newArrayList();
     }
-
     public List<String> getLogEntries() {
         return logEntries;
     }
