@@ -25,6 +25,9 @@ import static org.jfrog.bamboo.util.ConstantValues.ADMIN_CONFIG_SERVLET_CONTEXT_
  * A helper class to be used for the Artifactory tasks configuration.
  */
 public class ConfigurationHelper implements Serializable {
+
+    public static final String DEFAULT_JDK = "JAVA_HOME";
+
     private static ConfigurationHelper instance = new ConfigurationHelper();
     private AdministrationConfigurationAccessor administrationConfigurationAccessor;
     private HttpClient httpClient = new HttpClient();
@@ -41,15 +44,12 @@ public class ConfigurationHelper implements Serializable {
         this.administrationConfigurationAccessor = administrationConfigurationAccessor;
     }
 
-    public BuildJdkOverride getBuildJdkOverride(String planKey) {
+    public void setBuildJdkOverride(BuildParamsOverrideManager buildParamsOverrideManager, String planKey) {
         Map<String, String> variables = getAllVariables(planKey);
-
-        BuildJdkOverride override = new BuildJdkOverride();
-        override.setOverride(Boolean.valueOf(variables.get(BuildJdkOverride.SHOULD_OVERRIDE_JDK_KEY)));
-        String envVar = variables.get(BuildJdkOverride.OVERRIDE_JDK_ENV_VAR_KEY);
-        override.setOverrideWithEnvVarName(envVar == null ? "JAVA_HOME" : envVar);
-
-        return override;
+        buildParamsOverrideManager.setJdkOverrideFlag(Boolean.valueOf(variables.get(BuildParamsOverrideManager.SHOULD_OVERRIDE_JDK_KEY)));
+        String overrideJdkValue = buildParamsOverrideManager.getOverrideValue(BuildParamsOverrideManager.OVERRIDE_JDK_ENV_VAR_KEY);
+        buildParamsOverrideManager.addOverrideParam(BuildParamsOverrideManager.OVERRIDE_JDK_ENV_VAR_KEY,
+                overrideJdkValue.isEmpty() ? DEFAULT_JDK : overrideJdkValue);
     }
 
     public Map<String, String> getAllVariables(String planKey) {

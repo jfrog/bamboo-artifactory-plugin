@@ -146,7 +146,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         }
 
         // Override the JAVA_HOME according to the build configuration:
-        String jdkPath = getConfiguredJdkPath(context.getBuildContext(), gradleBuildContext, capabilityContext);
+        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, context.getBuildContext(), gradleBuildContext, capabilityContext);
         environmentVariables.put("JAVA_HOME", jdkPath);
 
         log.debug("Running Gradle command: " + command.toString());
@@ -196,7 +196,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
 
             String scriptTemplate = IOUtils.toString(initScriptStream);
             GradleInitScriptHelper initScriptHelper = new GradleInitScriptHelper();
-            initScriptHelper.init(taskContext.getBuildContext());
+            initScriptHelper.init(buildParamsOverrideManager, taskContext.getBuildContext());
             initScriptHelper.setAdministrationConfiguration(administrationConfiguration);
             return initScriptHelper
                     .createAndGetGradleInitScriptPath(gradleDependenciesDir, buildContext, taskContext.getBuildLogger(),

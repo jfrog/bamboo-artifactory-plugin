@@ -111,7 +111,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-            @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfigMap.put("baseUrl", administrationConfiguration.getBaseUrl());
 
@@ -180,7 +180,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     protected void populateContextWithConfiguration(@NotNull Map<String, Object> context,
-        @NotNull TaskDefinition taskDefinition, Set<String> fieldsToCopy) {
+                                                    @NotNull TaskDefinition taskDefinition, Set<String> fieldsToCopy) {
 
         // Encrypt the password fields, so that they do not appear as free-text on the task configuration UI.
         encryptFields(taskDefinition.getConfiguration());
@@ -212,32 +212,26 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         this.administrationConfiguration = administrationConfiguration;
     }
 
-    private boolean isEncrypted(String value) {
-        String decryptedValue = TaskUtils.decryptIfNeeded(value);
-        return !decryptedValue.equals(value);
-    }
-
     /**
      * This method is used by the encryptFields and decryptFields methods.
-     * It encrypts or descrypts the task config fields, if their key ends with 'password'.
+     * It encrypts or decrypts the task config fields, if their key ends with 'password'.
      * While encrypting / decrypting, if the keys are already encrypted / decrypted,
      * the keys values will not change.
+     *
      * @param taskConfigMap The task config fields map.
-     * @param enc   If true - encrypt, else - decrypt.
+     * @param enc           If true - encrypt, else - decrypt.
      */
     private void encOrDecFields(Map<String, String> taskConfigMap, boolean enc) {
         for (Map.Entry<String, String> entry : taskConfigMap.entrySet()) {
             String key = entry.getKey().toLowerCase();
             if (key.endsWith("password") && key.contains("artifactory")) {
                 String value = entry.getValue();
-                if (isEncrypted(value)) {
-                    try {
-                        value = URLDecoder.decode(value, "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        throw new RuntimeException(e);
-                    }
-                    value = TaskUtils.decryptIfNeeded(value);
+                try {
+                    value = URLDecoder.decode(value, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
                 }
+                value = TaskUtils.decryptIfNeeded(value);
                 if (enc) {
                     value = encryptionService.encrypt(value);
                     try {
@@ -254,6 +248,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     /**
      * Encrypt the task config fields, if their key ends with 'password'.
      * If the keys are already encrypted, their value will not change.
+     *
      * @param taskConfigMap The task config fields map.
      */
     private void encryptFields(Map<String, String> taskConfigMap) {
@@ -263,6 +258,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     /**
      * Decrypt the task config fields, if their key ends with 'password'.
      * If the keys are already decrypted, their value will not change.
+     *
      * @param taskConfigMap The task config fields map.
      */
     protected void decryptFields(Map<String, String> taskConfigMap) {

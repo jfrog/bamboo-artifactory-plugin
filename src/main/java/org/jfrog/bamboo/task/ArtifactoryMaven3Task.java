@@ -90,7 +90,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         }
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
             ArtifactoryBuildInfoPropertyHelper propertyHelper = new MavenPropertyHelper();
-            propertyHelper.init(taskContext.getBuildContext());
+            propertyHelper.init(buildParamsOverrideManager, taskContext.getBuildContext());
             buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(mavenBuildContext, logger,
                     environmentVariableAccessor.getEnvironment(taskContext),
                     environmentVariableAccessor.getEnvironment(), artifactoryPluginVersion);
@@ -146,7 +146,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      * @return Java bin path
      */
     public String getExecutable(BuildContext buildContext, AbstractBuildContext context) throws TaskException {
-        String jdkPath = getConfiguredJdkPath(buildContext, context, capabilityContext);
+        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, buildContext, context, capabilityContext);
         StringBuilder binPathBuilder = new StringBuilder(jdkPath);
         if (SystemUtils.IS_OS_WINDOWS) {
             binPathBuilder.append("bin").append(File.separator).append("java.exe");

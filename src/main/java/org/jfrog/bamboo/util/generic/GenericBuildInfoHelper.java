@@ -15,6 +15,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.*;
@@ -130,14 +131,14 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return principal;
     }
 
-    public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, File> filesMap,
-                                                                   File rootDir, BuildContext buildContext, GenericContext genericContext)
+    public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, File> filesMap, BuildContext buildContext,
+                                                                   GenericContext genericContext)
             throws IOException, NoSuchAlgorithmException {
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
-
+        String repoKey = overrideParam(genericContext.getRepoKey(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
         for (Map.Entry<String, File> entry : filesMap.entries()) {
-            details.addAll(buildDeployDetailsFromFileSet(entry, genericContext.getRepoKey(), dynamicPropertyMap));
+            details.addAll(buildDeployDetailsFromFileSet(entry, repoKey, dynamicPropertyMap));
         }
         List<Artifact> artifacts = convertDeployDetailsToArtifacts(details);
         ModuleBuilder moduleBuilder =

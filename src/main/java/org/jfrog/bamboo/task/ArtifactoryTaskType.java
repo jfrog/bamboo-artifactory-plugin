@@ -11,13 +11,14 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.plugin.Plugin;
 import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.*;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.configuration.BuildJdkOverride;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.ConstantValues;
@@ -38,12 +39,19 @@ public abstract class ArtifactoryTaskType implements TaskType {
     protected PluginAccessor pluginAccessor;
     protected final EnvironmentVariableAccessor environmentVariableAccessor;
     private final TestCollationService testCollationService;
+    protected BuildParamsOverrideManager buildParamsOverrideManager;
+    protected CustomVariableContext customVariableContext;
 
     protected ArtifactoryTaskType(TestCollationService testCollationService,
         EnvironmentVariableAccessor environmentVariableAccessor) {
         ContainerManager.autowireComponent(this);
         this.testCollationService = testCollationService;
         this.environmentVariableAccessor = environmentVariableAccessor;
+        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
+    }
+
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
     }
 
     @SuppressWarnings("unused")
@@ -89,12 +97,13 @@ public abstract class ArtifactoryTaskType implements TaskType {
      * @param capabilityContext The capability context of the build.
      * @return                  The path to the Java home.
      */
-    protected String getConfiguredJdkPath(BuildContext buildContext, AbstractBuildContext context, CapabilityContext capabilityContext) {
+    protected String getConfiguredJdkPath(BuildParamsOverrideManager buildParamsOverrideManager, BuildContext buildContext,
+                                          AbstractBuildContext context, CapabilityContext capabilityContext) {
         // If the relevant Bamboo variables have been configured, read the build JDK from the configured
         // environment variable, instead of using the JDK configured inside the task:
-        BuildJdkOverride buildJdkOverride = ConfigurationHelper.getInstance().getBuildJdkOverride(buildContext.getPlanKey());
-        if (buildJdkOverride.isOverride()) {
-            String envVarName = buildJdkOverride.getOverrideWithEnvVarName();
+        ConfigurationHelper.getInstance().setBuildJdkOverride(buildParamsOverrideManager, buildContext.getPlanKey());
+        if (buildParamsOverrideManager.shouldOverrideJdk()) {
+            String envVarName = buildParamsOverrideManager.getOverrideValue(BuildParamsOverrideManager.OVERRIDE_JDK_ENV_VAR_KEY);
             String envVarValue = environmentVariables.get(envVarName);
             if (envVarValue == null) {
                 throw new RuntimeException("The task is configured to use the '" + envVarName + "' environment variable for the build JDK, but this environment variable is not defined.");

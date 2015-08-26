@@ -1,3 +1,5 @@
+<div id="artifactory-error" class="aui-message aui-message-error error shadowed"
+     style="display: none; width: 80%; font-size: 80%"></div>
 [@ww.textfield labelKey='artifactory.task.ivy.buildFile' name='builder.artifactoryIvyBuilder.buildFile' required='true' /]
 [@ww.textfield labelKey='artifactory.task.ivy.targets' name='builder.artifactoryIvyBuilder.target' required='true'/]
 
@@ -149,19 +151,24 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
                 }
             },
             error:function (XMLHttpRequest, textStatus, errorThrown) {
-                var errorMessage = 'An error has occurred while retrieving the target repository list.\n' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
+                var errorMessage = 'An error has occurred while retrieving the target repository list.<br>' +
+                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
                 if (XMLHttpRequest.status == 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accesible.'
+                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
                             'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
-                alert(errorMessage);
+
+                errorMessage += "<br>";
+                errorDiv.innerHTML += errorMessage;
+                errorDiv.style.display = '';
             }
         });
     }
-
+    var errorDiv = document.getElementById('artifactory-error');
+    errorDiv.innerHTML = '';
+    errorDiv.style.display = 'none';
     displayIvyArtifactoryConfigs(${selectedServerId});
 </script>

@@ -107,7 +107,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         Map<String, String> environment = Maps.newHashMap(globalEnv);
         if (StringUtils.isNotBlank(ivyDependenciesDir)) {
             ArtifactoryBuildInfoPropertyHelper propertyHelper = new IvyPropertyHelper();
-            propertyHelper.init(context.getBuildContext());
+            propertyHelper.init(buildParamsOverrideManager, context.getBuildContext());
             buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(ivyBuildContext, context.getBuildLogger(),
                     environmentVariableAccessor.getEnvironment(context), globalEnv, artifactoryPluginVersion);
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
@@ -146,7 +146,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         }
 
         // Override the JAVA_HOME according to the build configuration:
-        String jdkPath = getConfiguredJdkPath(context.getBuildContext(), ivyBuildContext, capabilityContext);
+        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, context.getBuildContext(), ivyBuildContext, capabilityContext);
         environment.put("JAVA_HOME", jdkPath);
 
         log.debug("Running Ant command: " + command.toString());

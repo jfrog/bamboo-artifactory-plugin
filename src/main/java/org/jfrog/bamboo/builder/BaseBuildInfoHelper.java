@@ -28,6 +28,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
@@ -56,13 +57,15 @@ public abstract class BaseBuildInfoHelper {
     protected AdministrationConfigurationAccessor administrationConfigurationAccessor;
     private HttpClient httpClient;
     protected String bambooBaseUrl;
+    protected BuildParamsOverrideManager buildParamsOverrideManager;
 
-    public void init(BuildContext context) {
+    public void init(BuildParamsOverrideManager buildParamsOverrideManager, BuildContext context) {
         this.context = context;
         serverConfigManager = ServerConfigManager.getInstance();
         ContainerManager.autowireComponent(this);
         httpClient = new HttpClient();
         bambooBaseUrl = determineBambooBaseUrl();
+        this.buildParamsOverrideManager = buildParamsOverrideManager;
     }
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
@@ -223,5 +226,18 @@ public abstract class BaseBuildInfoHelper {
             return administrationConfigurationAccessor.getAdministrationConfiguration().getBaseUrl();
         }
         return null;
+    }
+
+    /**
+     * Checks of variable was overridden and if so returns the new (replaces) value
+     * if not return the original value
+     *
+     * @param originalValue value from the build configuration
+     * @param overrideKey   to search for override value
+     * @return the overridden value or the original value from build configuration
+     */
+    public String overrideParam(String originalValue, String overrideKey) {
+        String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);
+        return overriddenValue.isEmpty() ? originalValue : overriddenValue;
     }
 }

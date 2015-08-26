@@ -30,6 +30,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.TaskUtils;
@@ -233,11 +234,12 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.publisher.setContextUrl(serverUrl);
         clientConf.resolver.setContextUrl(serverUrl);
         clientConf.setTimeout(serverConfig.getTimeout());
-        clientConf.publisher.setRepoKey(buildContext.getPublishingRepo());
+        String publishingRepo = overrideParam(buildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
+        clientConf.publisher.setRepoKey(publishingRepo);
         if (StringUtils.isNotBlank(buildContext.releaseManagementContext.getReleaseRepoKey())) {
             clientConf.publisher.setRepoKey(buildContext.releaseManagementContext.getReleaseRepoKey());
         }
-        String resolutionRepo = buildContext.getResolutionRepo();
+        String resolutionRepo = overrideParam(buildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         if (StringUtils.isNotBlank(resolutionRepo) &&
                 !GradleBuildContext.NO_RESOLUTION_REPO_KEY_CONFIGURED.equals(resolutionRepo)) {
             clientConf.resolver.setRepoKey(resolutionRepo);
@@ -248,11 +250,13 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.resolver.setUsername(globalServerUsername);
         clientConf.resolver.setPassword(globalServerPassword);
 
-        String deployerUsername = serverConfigManager.substituteVariables(buildContext.getDeployerUsername());
+        String deployerUsername = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerUsername())
+                , BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
         if (StringUtils.isBlank(deployerUsername)) {
             deployerUsername = globalServerUsername;
         }
-        String deployerPassword = serverConfigManager.substituteVariables(buildContext.getDeployerPassword());
+        String deployerPassword = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerPassword())
+                , BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
         if (StringUtils.isBlank(deployerPassword)) {
             deployerPassword = globalServerPassword;
         }

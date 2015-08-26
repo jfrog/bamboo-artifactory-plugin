@@ -35,7 +35,6 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
 
     private static final Logger log = Logger.getLogger(ArtifactoryDeploymentTask.class);
 
-    private ServerConfig serverConfig;
     private String repositoryKey;
     private String artifactsRootDirectory;
     private BuildLogger buildLogger;
@@ -52,7 +51,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
             // Compatibility with version 1.8.0
             serverId = deploymentTaskContext.getConfigurationMap().get("artifactoryServerId");
         }
-        serverConfig = serverConfigManager.getServerConfigById(Long.parseLong(serverId));
+        ServerConfig serverConfig = serverConfigManager.getServerConfigById(Long.parseLong(serverId));
         if (serverConfig == null) {
             buildLogger.addErrorLogEntry("Please check Artifactory server configuration in the job configuration.");
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
@@ -69,7 +68,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
         String username = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentConfiguration.USERNAME);
         String password = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentConfiguration.PASSWORD);
         // If deployer credentials were not configured in the task configuration, use the credentials configured
-        // globaly
+        // globally
         if (StringUtils.isBlank(username) && StringUtils.isBlank(password)) {
             username = serverConfig.getUsername();
             password = serverConfig.getPassword();

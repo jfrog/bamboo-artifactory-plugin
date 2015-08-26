@@ -17,10 +17,15 @@
 package org.jfrog.bamboo.admin;
 
 import com.atlassian.bamboo.bandana.PlanAwareBandanaContext;
+import com.atlassian.bamboo.plan.PlanIdentifier;
+import com.atlassian.bamboo.plan.PlanKey;
+import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.security.EncryptionException;
 import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.bamboo.variable.VariableDefinition;
+import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.bandana.BandanaManager;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
@@ -56,11 +61,16 @@ public class ServerConfigManager implements Serializable {
     private transient BandanaManager bandanaManager;
     private AtomicLong nextAvailableId = new AtomicLong(0);
     private CustomVariableContext customVariableContext;
+    private PlanManager planManager;
 
     public static ServerConfigManager getInstance() {
         ServerConfigManager serverConfigManager = new ServerConfigManager();
         ContainerManager.autowireComponent(serverConfigManager);
         return serverConfigManager;
+    }
+
+    public void setPlanManager(PlanManager planManager) {
+        this.planManager = planManager;
     }
 
     public List<ServerConfig> getAllServerConfigs() {
@@ -108,7 +118,7 @@ public class ServerConfigManager implements Serializable {
     }
 
     public void setBandanaManager(BandanaManager bandanaManager) {
-         this.bandanaManager = bandanaManager;
+        this.bandanaManager = bandanaManager;
 
         Object existingArtifactoryConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY);
         if (existingArtifactoryConfig != null) {
@@ -134,13 +144,13 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    private BintrayConfig decryptExistingBintrayConfig(BintrayConfig existingArtifactoryConfig) throws EncryptionException {
-        String bintrayApi = existingArtifactoryConfig.getBintrayApiKey();
-        String sonatypeOssPassword = existingArtifactoryConfig.getSonatypeOssPassword();
+    private BintrayConfig decryptExistingBintrayConfig(BintrayConfig bintrayConfig) throws EncryptionException {
+        String bintrayApi = bintrayConfig.getBintrayApiKey();
+        String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
         bintrayApi = TaskUtils.decryptIfNeeded(bintrayApi);
         sonatypeOssPassword = TaskUtils.decryptIfNeeded(sonatypeOssPassword);
-        return new BintrayConfig(existingArtifactoryConfig.getBintrayUsername(), bintrayApi,
-                existingArtifactoryConfig.getSonatypeOssUsername(), sonatypeOssPassword);
+        return new BintrayConfig(bintrayConfig.getBintrayUsername(), bintrayApi,
+                bintrayConfig.getSonatypeOssUsername(), sonatypeOssPassword);
     }
 
     public void setBintrayConfig(BintrayConfig bintrayConfig) {
@@ -165,20 +175,21 @@ public class ServerConfigManager implements Serializable {
         ArtifactoryBuildInfoClient client;
 
         String serverUrl = substituteVariables(serverConfig.getUrl());
-        String username = null;
-        String password = null;
-        if (req != null) {
-            username = req.getParameter("user");
-            password = req.getParameter("password");
-        }
-        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
-            password = TaskUtils.decryptIfNeeded(password);
-        } else {
-            username = serverConfig.getUsername();
-            password = serverConfig.getPassword();
-        }
+        String username = serverConfig.getUsername();
+        String password = serverConfig.getPassword();
+
         username = substituteVariables(username);
         password = substituteVariables(password);
+/*
+        username = replaceBambooVariableToValue(username, planKey);
+        password = replaceBambooVariableToValue(password, planKey);
+*/
+
+
+        /*VariableSubstitutor variableSubstitutor = customVariableContext.getVariableSubstitutorFactory().
+                newSubstitutorForPlan(planManager.getPlanByKey(planKey));
+        variableSubstitutor.substituteString(username);
+        variableSubstitutor.substituteString(password);*/
 
         if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
@@ -204,7 +215,43 @@ public class ServerConfigManager implements Serializable {
 
             return Lists.newArrayList();
         }
+
     }
+
+    //"${bamboo.username}" -> "bamboo.username"
+    private String replaceBambooVariableToValue(String variable, String planKey) {
+        VariableDefinitionManager variableDefinitionManager = ComponentAccessor.VARIABLE_DEFINITION_MANAGER.get();
+        String value = variable;
+        PlanIdentifier planIdentifier = planManager.getPlanIdentifierForPermissionCheckingByKey(planKey);
+        String prefix = "${";
+        if (planIdentifier != null && StringUtils.startsWith(variable, prefix)) {
+            variable = StringUtils.remove(variable, prefix);
+            variable = StringUtils.substring(variable, 0, variable.length() - 1);
+            VariableDefinition planVariableByKey = variableDefinitionManager.getPlanVariableByKey(planIdentifier, variable);
+            value = planVariableByKey != null ? planVariableByKey.getValue() : StringUtils.EMPTY;
+        }
+        return value;
+    }
+
+
+/*    private String getPlanVariableByKey(String planKey, String variable) {
+        // todo: move as field
+        VariableDefinitionManager variableDefinitionManager = ComponentAccessor.VARIABLE_DEFINITION_MANAGER.get();
+        String value = variable;
+        if (StringUtils.isEmpty(planKey)) {
+            VariableDefinition globalVariableByKey = variableDefinitionManager.getGlobalVariableByKey(variable);
+            variable = globalVariableByKey != null ? globalVariableByKey.getKey() : StringUtils.EMPTY;
+        }
+        PlanIdentifier planIdentifier = planManager.getPlanIdentifierForPermissionCheckingByKey(planKey);
+        String prefix = "${";
+        if (StringUtils.startsWith(variable, prefix)) {
+            variable = StringUtils.remove(variable, prefix);
+            variable = StringUtils.substring(variable, 0, variable.length() - 1);
+            VariableDefinition planVariableByKey = variableDefinitionManager.getPlanVariableByKey(planIdentifier, variable);
+            value = planVariableByKey != null ? planVariableByKey.getValue() : StringUtils.EMPTY;
+        }
+        return value;
+    }*/
 
     /**
      * Substitute (replace) Bamboo variable names with their defined values
@@ -269,6 +316,10 @@ public class ServerConfigManager implements Serializable {
             bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY, createEncryptedBintrayConfig(bintrayConfig));
         }
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigs);
+    }
+
+    private String substituteFromTaskConf(PlanKey planKey, String s) {
+        return customVariableContext.getVariableSubstitutorFactory().newSubstitutorForPlan(planManager.getPlanByKey(planKey)).substituteString(s);
     }
 
     private BintrayConfig createEncryptedBintrayConfig(BintrayConfig bintrayConfig) {

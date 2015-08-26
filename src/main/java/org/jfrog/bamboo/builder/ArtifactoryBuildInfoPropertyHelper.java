@@ -24,10 +24,10 @@ import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.ScmHelper;
@@ -37,7 +37,6 @@ import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
 import org.joda.time.DateTime;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -50,8 +49,9 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
 
     private static final Logger log = Logger.getLogger(ArtifactoryBuildInfoPropertyHelper.class);
 
-    public String createFileAndGetPath(AbstractBuildContext buildContext, BuildLogger logger,
-                                       Map<String, String> taskEnv, Map<String, String> generalEnv, String artifactoryPluginVersion) {
+    public String createFileAndGetPath(AbstractBuildContext buildContext,
+                                       BuildLogger logger, Map<String, String> taskEnv, Map<String, String> generalEnv,
+                                       String artifactoryPluginVersion) {
         long selectedServerId = buildContext.getArtifactoryServerId();
 
         if (selectedServerId != -1) {
@@ -67,7 +67,6 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
             } else {
                 ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(new NullLog());
                 addBuilderInfoProperties(buildContext, serverConfig, clientConf, taskEnv, generalEnv, artifactoryPluginVersion);
-                FileOutputStream propertiesFileStream = null;
                 try {
                     File tempPropertiesFile = File.createTempFile("buildInfo", "properties");
                     clientConf.setPropertiesFile(tempPropertiesFile.getAbsolutePath());
@@ -82,8 +81,6 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
                 } catch (IOException ioe) {
                     log.error("Error occurred while writing build info properties to a temp file. Build info " +
                             "collection is disabled.", ioe);
-                } finally {
-                    IOUtils.closeQuietly(propertiesFileStream);
                 }
             }
         }
@@ -183,7 +180,6 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
                 }
             }
         }
-
         return principal;
     }
 
@@ -215,19 +211,20 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         }
     }
 
-    protected void addClientProperties(AbstractBuildContext buildContext, ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig) {
+    protected void addClientProperties(AbstractBuildContext artifactoryBuildContext, ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig) {
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         clientConf.publisher.setContextUrl(serverUrl);
         clientConf.setTimeout(serverConfig.getTimeout());
-        clientConf.publisher.setRepoKey(buildContext.getPublishingRepo());
-        if (StringUtils.isNotBlank(buildContext.releaseManagementContext.getReleaseRepoKey())) {
-            clientConf.publisher.setRepoKey(buildContext.releaseManagementContext.getReleaseRepoKey());
+        String publishingRepo = overrideParam(artifactoryBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
+        clientConf.publisher.setRepoKey(publishingRepo);
+        if (StringUtils.isNotBlank(artifactoryBuildContext.releaseManagementContext.getReleaseRepoKey())) {
+            clientConf.publisher.setRepoKey(artifactoryBuildContext.releaseManagementContext.getReleaseRepoKey());
         }
-        String deployerUsername = buildContext.getDeployerUsername();
+        String deployerUsername = overrideParam(artifactoryBuildContext.getDeployerUsername(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
         if (StringUtils.isBlank(deployerUsername)) {
             deployerUsername = serverConfig.getUsername();
         }
-        String password = buildContext.getDeployerPassword();
+        String password = overrideParam(artifactoryBuildContext.getDeployerPassword(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
         if (StringUtils.isBlank(password)) {
             password = serverConfig.getPassword();
         }
@@ -235,13 +232,15 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
             clientConf.publisher.setUsername(deployerUsername);
             clientConf.publisher.setPassword(password);
         }
-        clientConf.publisher.setPublishArtifacts(buildContext.isPublishArtifacts());
-        clientConf.publisher.setIncludePatterns(buildContext.getIncludePattern());
-        clientConf.publisher.setExcludePatterns(buildContext.getExcludePattern());
-        clientConf.publisher.setFilterExcludedArtifactsFromBuild(buildContext.isFilterExcludedArtifactsFromBuild());
-        clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
-        clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
-        clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
-        clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
+        clientConf.publisher.setPublishArtifacts(artifactoryBuildContext.isPublishArtifacts());
+        clientConf.publisher.setIncludePatterns(artifactoryBuildContext.getIncludePattern());
+        clientConf.publisher.setExcludePatterns(artifactoryBuildContext.getExcludePattern());
+        clientConf.publisher.setFilterExcludedArtifactsFromBuild(artifactoryBuildContext.isFilterExcludedArtifactsFromBuild());
+        clientConf.publisher.setPublishBuildInfo(artifactoryBuildContext.isPublishBuildInfo());
+        clientConf.setIncludeEnvVars(artifactoryBuildContext.isIncludeEnvVars());
+        clientConf.setEnvVarsIncludePatterns(artifactoryBuildContext.getEnvVarsIncludePatterns());
+        clientConf.setEnvVarsExcludePatterns(artifactoryBuildContext.getEnvVarsExcludePatterns());
     }
+
+
 }
