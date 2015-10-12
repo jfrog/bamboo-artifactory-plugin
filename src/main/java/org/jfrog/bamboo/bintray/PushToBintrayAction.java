@@ -58,10 +58,6 @@ public class PushToBintrayAction extends ViewBuildResults {
             bintrayClient = new BintrayClient(bintrayConfig);
             Map<String, String> buildTaskConfiguration = TaskUtils.findConfigurationForBuildTask(this);
             addDefaultValuesForInput(buildTaskConfiguration);
-            if (shouldCollectBintrayProperties(serverConfig)) {
-                log.debug("Collecting Push to Bintray values.");
-                BintrayOsoUtils.collectPushToBintrayProperties(this, serverConfig, buildTaskConfiguration, context.getActionLog());
-            }
             return INPUT;
         } catch (Exception e) {
             log.error("Error occurred while loading Push to Bintray configuration page.", e);
@@ -84,10 +80,6 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     public String doGetPushToBintrayLog() {
         return SUCCESS;
-    }
-
-    private boolean shouldCollectBintrayProperties(ServerConfig serverConfig) {
-        return !validPushToBintrayFields() && BintrayOsoUtils.isOsoPushPluginDeployed(serverConfig);
     }
 
     // If package name already in the Bintray configuration page we shouldn't generate it again
