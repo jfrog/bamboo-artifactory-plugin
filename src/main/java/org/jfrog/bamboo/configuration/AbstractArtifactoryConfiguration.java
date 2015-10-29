@@ -228,8 +228,8 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
                 String value = entry.getValue();
                 try {
                     value = URLDecoder.decode(value, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception ignore) {
+                    /* Ignore. Trying to decode password that was not encoded. */
                 }
                 value = TaskUtils.decryptIfNeeded(value);
                 if (enc) {
