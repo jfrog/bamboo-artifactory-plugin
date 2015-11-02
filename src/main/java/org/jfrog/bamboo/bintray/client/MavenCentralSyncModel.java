@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Mapping of Bintray REST call to MavenSync Java Bean
- * Should be sent as payload when making a MavenSyunc call
+ * Should be sent as payload when making a MavenSync call
  *
  * @author Aviad Shikloshi
  */

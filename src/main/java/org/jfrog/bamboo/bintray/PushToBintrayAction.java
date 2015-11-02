@@ -53,7 +53,6 @@ public class PushToBintrayAction extends ViewBuildResults {
         try {
             context.setBuildNumber(this.getBuildNumber());
             context.setBuildKey(this.getImmutableBuild().getName());
-            ServerConfig serverConfig = TaskUtils.getArtifactoryServerConfig(getImmutableBuild());
             BintrayConfig bintrayConfig = TaskUtils.getBintrayConfig();
             bintrayClient = new BintrayClient(bintrayConfig);
             Map<String, String> buildTaskConfiguration = TaskUtils.findConfigurationForBuildTask(this);

@@ -49,14 +49,14 @@ public class PushToBintrayRunnable implements Runnable {
             bintrayLog.logMessage("Starting Push to Bintray action.");
             PushToBintrayAction.context.getLock().lock();
             PushToBintrayAction.context.setDone(false);
-            artifactoryClient = getArtifactoryBuildInfoClient(serverConfig);
+            artifactoryClient = getArtifactoryBuildInfoClient();
             if (!isValidArtifactoryVersion(artifactoryClient)) {
                 bintrayLog.logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
                 PushToBintrayAction.context.setDone(true);
                 return;
             }
-            boolean successfulPush = performPushToBintray(artifactoryClient);
-            if (successfulPush && action.isMavenSync()) {
+            performPushToBintray(artifactoryClient);
+            if (action.isMavenSync()) {
                 bintrayLog.logMessage("Starting MavenSync.");
                 mavenCentralSync();
             }
@@ -75,7 +75,7 @@ public class PushToBintrayRunnable implements Runnable {
      * Create the relevant objects from input and send it to build info artifactoryClient that will preform the actual push
      * Set the result of the action to true if successful to use in the action view.
      */
-    private boolean performPushToBintray(ArtifactoryBuildInfoClient artifactoryClient) {
+    private void performPushToBintray(ArtifactoryBuildInfoClient artifactoryClient) {
 
         String buildName = PushToBintrayAction.context.getBuildKey();
         String buildNumber = Integer.toString(PushToBintrayAction.context.getBuildNumber());
@@ -98,11 +98,9 @@ public class PushToBintrayRunnable implements Runnable {
                     artifactoryClient.pushToBintray(buildName, buildNumber, signMethod, passphrase, uploadInfoOverride);
             bintrayLog.logMessage(response.toString());
             log.info("Push to Bintray finished: " + response.toString());
-            return response.isSuccessful();
         } catch (Exception e) {
-            bintrayLog.logError("Push to Bintray Failed with Exception.", e);
+            throw new RuntimeException("Push to Bintray Failed with Exception.", e);
         }
-        return false;
     }
 
     /**
@@ -131,7 +129,7 @@ public class PushToBintrayRunnable implements Runnable {
         return validVersion;
     }
 
-    private ArtifactoryBuildInfoClient getArtifactoryBuildInfoClient(ServerConfig serverConfig) {
+    private ArtifactoryBuildInfoClient getArtifactoryBuildInfoClient() {
         String username = serverConfig.getUsername();
         String password = serverConfig.getPassword();
         String artifactoryUrl = serverConfig.getUrl();
