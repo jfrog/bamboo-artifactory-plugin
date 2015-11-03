@@ -49,9 +49,9 @@ public class BintrayClient {
     }
 
     private String getMavenSyncEndpoint() {
-        String bintrayUrl = System.getenv("BINTRAY_APIURL");
+        String bintrayUrl = System.getenv("BAMBOO_BINTRAY_URL");
         if (StringUtils.isEmpty(bintrayUrl)) {
-            bintrayUrl = ConstantValues.BINTRAY_API;
+            bintrayUrl = ConstantValues.BINTRAY_URL;
         }
         return bintrayUrl + "/maven_central_sync/";
     }

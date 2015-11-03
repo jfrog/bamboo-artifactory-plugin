@@ -35,5 +35,5 @@ public interface ConstantValues extends Serializable {
     String PLUGIN_CONFIG_MANAGER_KEY = "artifactoryServerConfigManager";
     String ARTIFACTORY_BAMBOO_UTILS_HELPER_KEY = "artifactoryBambooUtilsHelper";
     String PLAN_KEY_PARAM = "planKey";
-    String BINTRAY_API = "https://api.bintray.com/";
+    String BINTRAY_URL = "https://api.bintray.com/";
 }
