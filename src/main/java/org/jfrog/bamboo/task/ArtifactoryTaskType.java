@@ -205,7 +205,7 @@ public abstract class ArtifactoryTaskType implements TaskType {
         return StringUtils.EMPTY;
     }
 
-    private Boolean shouldOverrideJdk() {
+    private boolean shouldOverrideJdk() {
         return Boolean.valueOf(buildParamsOverrideManager.getOverrideValue(SHOULD_OVERRIDE_JDK_KEY));
 
     }
