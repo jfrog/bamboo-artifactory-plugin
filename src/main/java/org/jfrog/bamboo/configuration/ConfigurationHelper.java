@@ -44,14 +44,6 @@ public class ConfigurationHelper implements Serializable {
         this.administrationConfigurationAccessor = administrationConfigurationAccessor;
     }
 
-    public void setBuildJdkOverride(BuildParamsOverrideManager buildParamsOverrideManager, String planKey) {
-        Map<String, String> variables = getAllVariables(planKey);
-        buildParamsOverrideManager.setJdkOverrideFlag(Boolean.valueOf(variables.get(BuildParamsOverrideManager.SHOULD_OVERRIDE_JDK_KEY)));
-        String overrideJdkValue = buildParamsOverrideManager.getOverrideValue(BuildParamsOverrideManager.OVERRIDE_JDK_ENV_VAR_KEY);
-        buildParamsOverrideManager.addOverrideParam(BuildParamsOverrideManager.OVERRIDE_JDK_ENV_VAR_KEY,
-                overrideJdkValue.isEmpty() ? DEFAULT_JDK : overrideJdkValue);
-    }
-
     public Map<String, String> getAllVariables(String planKey) {
         HashMap<String, String> params = Maps.newHashMap();
         params.put(ConstantValues.PLAN_KEY_PARAM, planKey);

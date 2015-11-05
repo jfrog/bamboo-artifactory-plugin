@@ -146,7 +146,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         }
 
         // Override the JAVA_HOME according to the build configuration:
-        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, context.getBuildContext(), ivyBuildContext, capabilityContext);
+        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, ivyBuildContext, capabilityContext);
         environment.put("JAVA_HOME", jdkPath);
 
         log.debug("Running Ant command: " + command.toString());

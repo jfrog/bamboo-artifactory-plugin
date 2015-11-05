@@ -82,20 +82,4 @@ public class BuildParamsOverrideManager {
         }
         return StringUtils.EMPTY;
     }
-
-
-    // special handling with the JDK variable
-
-    /**
-     * Should the build JDK should be overridden with the value defined in an environment variable.
-     */
-    private boolean overrideJdkFlag;
-
-    public boolean shouldOverrideJdk() {
-        return overrideJdkFlag;
-    }
-
-    public void setJdkOverrideFlag(boolean override) {
-        this.overrideJdkFlag = override;
-    }
 }

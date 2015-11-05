@@ -146,7 +146,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         }
 
         // Override the JAVA_HOME according to the build configuration:
-        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, context.getBuildContext(), gradleBuildContext, capabilityContext);
+        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, gradleBuildContext, capabilityContext);
         environmentVariables.put("JAVA_HOME", jdkPath);
 
         log.debug("Running Gradle command: " + command.toString());
