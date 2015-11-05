@@ -111,7 +111,7 @@ public abstract class ArtifactoryTaskType implements TaskType {
             if (envVarValue == null) {
                 throw new RuntimeException("The task is configured to use the '" + jdkEnvVarName + "' environment variable for the build JDK, but this environment variable is not defined.");
             }
-            return envVarValue;
+            return getPathBuilder(envVarValue).toString();
         }
 
         String jdkCapabilityKey = JDK_LABEL_KEY + context.getJdkLabel();
