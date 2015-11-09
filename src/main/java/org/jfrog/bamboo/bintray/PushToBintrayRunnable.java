@@ -5,7 +5,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.bintray.client.BintrayClient;
-import org.jfrog.bamboo.bintray.client.MavenSyncResponse;
 import org.jfrog.bamboo.util.ActionLog;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.build.api.release.BintrayUploadInfoOverride;
@@ -14,6 +13,7 @@ import org.jfrog.build.client.bintrayResponse.BintrayResponse;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -30,12 +30,17 @@ public class PushToBintrayRunnable implements Runnable {
     private ServerConfig serverConfig;
     private PushToBintrayAction action;
     private ActionLog bintrayLog;
+    private String buildName;
+    private String buildNumber;
+
 
     public PushToBintrayRunnable(PushToBintrayAction pushToBintrayAction, ServerConfig serverConfig, BintrayClient bintrayClient) {
         this.action = pushToBintrayAction;
         this.serverConfig = serverConfig;
         this.bintrayClient = bintrayClient;
         this.bintrayLog = PushToBintrayAction.context.getActionLog();
+        this.buildName = PushToBintrayAction.context.getBuildKey();
+        this.buildNumber = Integer.toString(PushToBintrayAction.context.getBuildNumber());
     }
 
     /**
@@ -77,9 +82,6 @@ public class PushToBintrayRunnable implements Runnable {
      */
     private void performPushToBintray(ArtifactoryBuildInfoClient artifactoryClient) {
 
-        String buildName = PushToBintrayAction.context.getBuildKey();
-        String buildNumber = Integer.toString(PushToBintrayAction.context.getBuildNumber());
-
         String subject = action.getSubject(),
                 repoName = action.getRepository(),
                 packageName = action.getPackageName(),
@@ -87,19 +89,22 @@ public class PushToBintrayRunnable implements Runnable {
                 vcsUrl = action.getVcsUrl(),
                 signMethod = action.getSignMethod(),
                 passphrase = action.getGpgPassphrase();
-
         List<String> licenses = createLicensesListFromString(action.getLicenses());
 
         BintrayUploadInfoOverride uploadInfoOverride = new BintrayUploadInfoOverride(subject, repoName, packageName,
                 versionName, licenses, vcsUrl);
 
+        BintrayResponse response;
         try {
-            BintrayResponse response =
-                    artifactoryClient.pushToBintray(buildName, buildNumber, signMethod, passphrase, uploadInfoOverride);
+            response = artifactoryClient.pushToBintray(buildName, buildNumber, signMethod, passphrase, uploadInfoOverride);
             bintrayLog.logMessage(response.toString());
             log.info("Push to Bintray finished: " + response.toString());
         } catch (Exception e) {
-            throw new RuntimeException("Push to Bintray Failed with Exception.", e);
+            throw new RuntimeException("Push to Bintray failed with Exception.", e);
+        }
+
+        if (!response.isSuccessful()) {
+            throw new RuntimeException("Push to Bintray failed with Exception");
         }
     }
 
@@ -107,15 +112,36 @@ public class PushToBintrayRunnable implements Runnable {
      * Trigger's Bintray MavenCentralSync API
      */
     private void mavenCentralSync() {
+
+        if (!Boolean.valueOf(action.isOverrideDescriptorFile())) {
+            prepareMavenCentralSync();
+        }
+
         try {
             bintrayLog.logMessage("Syncing build with Sonatype OSS.");
-            MavenSyncResponse mavenSyncResponse = bintrayClient.mavenCentralSync(action.getSubject(), action.getRepository(),
+            int status = bintrayClient.mavenCentralSync(action.getSubject(), action.getRepository(),
                     action.getPackageName(), action.getVersion());
-            bintrayLog.logMessage("Bintray response status: " + mavenSyncResponse.getStatus() + ".");
-            bintrayLog.logMessage(mavenSyncResponse.getMessages());
+            if (status == 200) {
+                bintrayLog.logMessage("Maven Central sync finished successfully.");
+            } else {
+                bintrayLog.logError("Maven Central sync failed with status code " + status + ".");
+            }
         } catch (Exception e) {
             bintrayLog.logError("Error while trying to sync with Maven Central", e);
         }
+    }
+
+    // When using descriptor file with MavenCentralSync we don't have any of the details Bintray is expecting for (package name,
+    // version, subject etc. So we must read it from the bintray-info.json file frmo Artifactory.
+    private void prepareMavenCentralSync() {
+        // fetch the location of the file from Artifactory
+        Map<String, Object> response = bintrayClient.getBintrayJsonFileLocation(serverConfig, buildName, buildNumber);
+        // parse Artifactory response and get the download URI
+        String fileUrl = MavenSyncHelper.getBintrayDescriptorFileUrl(response);
+        // download the file to memory
+        Map<String, Object> bintrayJsonMap = bintrayClient.downloadBintrayInfoDescriptor(serverConfig, fileUrl);
+        // populate the properties we now have to the action context - subject, repo name, package name and version.
+        MavenSyncHelper.updateBintrayActionContext(action, bintrayJsonMap);
     }
 
     private boolean isValidArtifactoryVersion(ArtifactoryBuildInfoClient client) {
@@ -143,4 +169,5 @@ public class PushToBintrayRunnable implements Runnable {
         }
         return Lists.newArrayList(licensesArray);
     }
+
 }

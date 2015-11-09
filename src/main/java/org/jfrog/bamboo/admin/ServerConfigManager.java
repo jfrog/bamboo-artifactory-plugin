@@ -93,8 +93,7 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    public void updateServerConfiguration(ServerConfig updated, BintrayConfig bintrayConfig) {
-        this.setBintrayConfig(bintrayConfig);
+    public void updateServerConfiguration(ServerConfig updated) {
         for (ServerConfig configuredServer : configuredServers) {
             if (configuredServer.getId() == updated.getId()) {
                 configuredServer.setUrl(updated.getUrl());
@@ -105,6 +104,11 @@ public class ServerConfigManager implements Serializable {
                 break;
             }
         }
+    }
+
+    public void updateBintrayConfiguration(BintrayConfig bintrayConfig) {
+        this.bintrayConfig = bintrayConfig;
+        persistBintray();
     }
 
     public void setBandanaManager(BandanaManager bandanaManager) {
@@ -263,10 +267,13 @@ public class ServerConfigManager implements Serializable {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
                     encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
         }
+        bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigs);
+    }
+
+    private synchronized void persistBintray() {
         if (bintrayConfig != null) {
             bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY, createEncryptedBintrayConfig(bintrayConfig));
         }
-        bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigs);
     }
 
     private BintrayConfig createEncryptedBintrayConfig(BintrayConfig bintrayConfig) {

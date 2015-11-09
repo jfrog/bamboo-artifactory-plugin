@@ -66,7 +66,7 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     public String doPush() {
         String result;
-        ServerConfig serverConfig = TaskUtils.getArtifactoryServerConfig(getImmutableBuild());
+        ServerConfig serverConfig = TaskUtils.getArtifactoryServerConfig(getImmutablePlan());
         try {
             new Thread(new PushToBintrayRunnable(this, serverConfig, bintrayClient)).start();
             pushing = false;
@@ -160,6 +160,10 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     public void setOverrideDescriptorFile(boolean overrideDescriptorFile) {
         this.overrideDescriptorFile = overrideDescriptorFile;
+    }
+
+    public boolean getOverrideDescriptorFile() {
+        return this.overrideDescriptorFile;
     }
 
     public boolean isMavenSync() {

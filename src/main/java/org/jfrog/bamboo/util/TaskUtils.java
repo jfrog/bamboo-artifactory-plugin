@@ -1,8 +1,7 @@
 package org.jfrog.bamboo.util;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
-import com.atlassian.bamboo.plan.Plan;
-import com.atlassian.bamboo.plan.cache.ImmutableBuildable;
+import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.security.EncryptionException;
 import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.spring.ComponentAccessor;
@@ -150,7 +149,7 @@ public class TaskUtils {
      * @param plan - plan configuration in which we are trying to find the maven/gradle task
      * @return appropriate task definition or null in case no such task exist
      */
-    public static TaskDefinition getMavenOrGradleTaskDefinition(Plan plan) {
+    public static TaskDefinition getMavenOrGradleTaskDefinition(ImmutablePlan plan) {
         if (plan == null) {
             return null;
         }
@@ -162,15 +161,14 @@ public class TaskUtils {
     }
 
     /**
-     * Get Server config object for speicifc build
+     * Get Server config object for specific build
      *
-     * @param build server config for this build
+     * @param plan server config for this plan
      * @return ServerConfig object with Artifactory details
      */
-    public static ServerConfig getArtifactoryServerConfig(ImmutableBuildable build) {
-        List<TaskDefinition> taskDefinitionList = build.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition relevantTaskDef = taskDefinitionList.get(taskDefinitionList.size() - 1);
-        String serverIdStr = TaskUtils.getSelectedServerId(relevantTaskDef);
+    public static ServerConfig getArtifactoryServerConfig(ImmutablePlan plan) {
+        TaskDefinition mavenOrGradleTaskDefinition = TaskUtils.getMavenOrGradleTaskDefinition(plan);
+        String serverIdStr = TaskUtils.getSelectedServerId(mavenOrGradleTaskDefinition);
         if (StringUtils.isNotEmpty(serverIdStr)) {
             long serverId = Long.parseLong(serverIdStr);
             return ((ServerConfigManager) ContainerManager.getComponent(

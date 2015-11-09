@@ -31,11 +31,16 @@ showActionErrors='true']
     [@ww.password labelKey='artifactory.server.password' name="password" showPassword='true'/]
     [@ww.textfield labelKey='artifactory.server.timeout' name="timeout" required="true"/]
 <button class="button" id="createServer_testing" type="submit" value="Test" name="testing">Test Connection</button>
+[/@ww.form]
+<hr>
+<div class="section">
 <h1>Bintray Configuration</h1>
+[@ww.form action='updateBintrayConfig' submitLabelKey='global.buttons.update' showActionErrors='false']
     [@ww.textfield labelKey="Bintray Username" name="bintrayUsername"/]
     [@ww.password labelKey="Bintray Api Key" name="bintrayApiKey" showPassword='true' /]
     [@ww.textfield labelKey="Sonaytype OSS Username" name="sonatypeOssUsername" /]
     [@ww.password labelKey="Sonatype OSS Password" name="sonatypeOssPassword" showPassword='true' /]
+</div>
 [/@ww.form]
 
 [#if mode=='edit']

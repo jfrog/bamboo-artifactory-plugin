@@ -48,6 +48,10 @@
                 <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
                 <param name="mode">add</param>
             </action>
+            <action name="updateBintrayConfig" class="org.jfrog.bamboo.admin.ConfigureBintrayAction" method="updateBintray">
+                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
+            </action>
             <action name="editServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="edit">
                 <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
                 <param name="mode">edit</param>

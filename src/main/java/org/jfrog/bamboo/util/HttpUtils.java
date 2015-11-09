@@ -2,15 +2,10 @@ package org.jfrog.bamboo.util;
 
 import com.google.gson.Gson;
 import com.sun.syndication.io.impl.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.message.BasicHeader;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -31,19 +26,6 @@ public class HttpUtils {
         String encoded = Base64.encode(authRawString);
         String auth = "Basic " + encoded;
         return new BasicHeader("Authorization", auth);
-    }
-
-    /**
-     * Parse response to appropriate object
-     */
-    public static <T> T handleResponse(HttpResponse response, Class<T> toClass) throws IOException {
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode == HttpStatus.SC_OK) {
-            InputStream content = response.getEntity().getContent();
-            String jsonString = IOUtils.toString(content);
-            return objectFromJsonString(jsonString, toClass);
-        }
-        throw new RuntimeException("Request to Artifactory failed.");
     }
 
     /**

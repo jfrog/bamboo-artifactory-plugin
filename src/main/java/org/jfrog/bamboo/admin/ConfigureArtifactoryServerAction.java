@@ -47,11 +47,6 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     private String password;
     private int timeout;
 
-    private String bintrayUsername;
-    private String bintrayApiKey;
-    private String sonatypeOssUsername;
-    private String sonatypeOssPassword;
-
     private transient ServerConfigManager serverConfigManager;
 
     public ConfigureArtifactoryServerAction() {
@@ -91,18 +86,15 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
 
         serverConfigManager.addServerConfiguration(
                 new ServerConfig(-1, getUrl(), getUsername(), getPassword(), getTimeout()));
-        serverConfigManager.setBintrayConfig(
-                new BintrayConfig(bintrayUsername, bintrayApiKey, sonatypeOssUsername, sonatypeOssPassword));
         return SUCCESS;
     }
 
     public String doEdit() throws Exception {
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(serverId);
-        BintrayConfig bintrayConfig = serverConfigManager.getBintrayConfig();
         if (serverConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server configuration by the ID " + serverId);
         }
-        updateFieldsFromServerConfig(serverConfig, bintrayConfig);
+        updateFieldsFromServerConfig(serverConfig);
         return INPUT;
     }
 
@@ -112,21 +104,15 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
             testConnection();
             return INPUT;
         }
-        serverConfigManager.updateServerConfiguration(createServerConfig(), createBintrayConfiguration());
+        serverConfigManager.updateServerConfiguration(createServerConfig());
         return SUCCESS;
     }
 
-    private BintrayConfig createBintrayConfiguration() {
-        return new BintrayConfig(bintrayUsername, bintrayApiKey, sonatypeOssUsername, sonatypeOssPassword);
-    }
+
 
     public String doDelete() throws Exception {
         serverConfigManager.deleteServerConfiguration(getServerId());
 
-        return SUCCESS;
-    }
-
-    public String doCreateBintray() {
         return SUCCESS;
     }
 
@@ -190,37 +176,6 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         this.timeout = timeout;
     }
 
-    public String getBintrayUsername() {
-        return bintrayUsername;
-    }
-
-    public void setBintrayUsername(String bintrayUsername) {
-        this.bintrayUsername = bintrayUsername;
-    }
-
-    public String getBintrayApiKey() {
-        return bintrayApiKey;
-    }
-
-    public void setBintrayApiKey(String bintrayApiKey) {
-        this.bintrayApiKey = bintrayApiKey;
-    }
-
-    public String getSonatypeOssUsername() {
-        return sonatypeOssUsername;
-    }
-
-    public void setSonatypeOssUsername(String sonatypeOssUsername) {
-        this.sonatypeOssUsername = sonatypeOssUsername;
-    }
-
-    public String getSonatypeOssPassword() {
-        return sonatypeOssPassword;
-    }
-
-    public void setSonatypeOssPassword(String sonatypeOssPassword) {
-        this.sonatypeOssPassword = sonatypeOssPassword;
-    }
 
     private void testConnection() {
         ArtifactoryBuildInfoClient testClient;
@@ -252,17 +207,11 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         log.error("Error while testing the connection to Artifactory server " + url, e);
     }
 
-    private void updateFieldsFromServerConfig(ServerConfig serverConfig, BintrayConfig bintrayConfig) {
+    private void updateFieldsFromServerConfig(ServerConfig serverConfig) {
         setUrl(serverConfig.getUrl());
         setUsername(serverConfig.getUsername());
         setPassword(serverConfig.getPassword());
         setTimeout(serverConfig.getTimeout());
-        if (bintrayConfig != null) {
-            bintrayUsername = bintrayConfig.getBintrayUsername();
-            bintrayApiKey = bintrayConfig.getBintrayApiKey();
-            sonatypeOssUsername = bintrayConfig.getSonatypeOssUsername();
-            sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
-        }
     }
 
     @NotNull
