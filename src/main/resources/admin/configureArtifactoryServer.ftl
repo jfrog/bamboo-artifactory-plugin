@@ -17,6 +17,10 @@ cancelUri=cancelUri
 descriptionKey='artifactory.server.description'
 showActionErrors='true']
 
+    [@ww.param name='buttons']
+        [@ww.submit value="Test" name="testing" theme='simple' /]
+    [/@ww.param]
+
     [#if actionErrors?? && (actionErrors.size()>0)]
     <div class="warningBox">
         [#foreach error in formattedActionErrors]
@@ -30,17 +34,14 @@ showActionErrors='true']
     [@ww.textfield labelKey='artifactory.server.username' name="username"/]
     [@ww.password labelKey='artifactory.server.password' name="password" showPassword='true'/]
     [@ww.textfield labelKey='artifactory.server.timeout' name="timeout" required="true"/]
-<button class="button" id="createServer_testing" type="submit" value="Test" name="testing">Test Connection</button>
 [/@ww.form]
 <hr>
-<div class="section">
 <h1>Bintray Configuration</h1>
-[@ww.form action='updateBintrayConfig' submitLabelKey='global.buttons.update' showActionErrors='false']
+[@ww.form action='updateBintrayConfig' submitLabelKey='global.buttons.update']
     [@ww.textfield labelKey="Bintray Username" name="bintrayUsername"/]
-    [@ww.password labelKey="Bintray Api Key" name="bintrayApiKey" showPassword='true' /]
-    [@ww.textfield labelKey="Sonaytype OSS Username" name="sonatypeOssUsername" /]
-    [@ww.password labelKey="Sonatype OSS Password" name="sonatypeOssPassword" showPassword='true' /]
-</div>
+    [@ww.password labelKey='Bintray Api Key' name="bintrayApiKey"/]
+    [@ww.textfield labelKey='Sonaytype OSS Username' name="sonatypeOssUsername"/]
+    [@ww.password labelKey='Sonatype OSS Password' name="sonatypeOssPassword"/]
 [/@ww.form]
 
 [#if mode=='edit']

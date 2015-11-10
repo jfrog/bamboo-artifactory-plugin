@@ -20,7 +20,6 @@ public class ConfigureBintrayAction extends BambooActionSupport implements Globa
     public ConfigureBintrayAction() {
         serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
                 ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
-
     }
 
     public String doUpdateBintray() {
