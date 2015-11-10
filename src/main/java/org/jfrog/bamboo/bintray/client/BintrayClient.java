@@ -34,7 +34,7 @@ public class BintrayClient {
     /**
      * Sync your build from Bintray to Maven Central
      */
-    public int mavenCentralSync(String subject, String repo, String packageName, String version) {
+    public String mavenCentralSync(String subject, String repo, String packageName, String version) {
         try {
             String apiUri = MavenSyncHelper.getMavenSyncEndpoint() + HttpUtils.encodePath(subject) + "/" + HttpUtils.encodePath(repo) + "/" +
                     HttpUtils.encodePath(packageName) + "/versions/" + HttpUtils.encodePath(version);
@@ -46,7 +46,7 @@ public class BintrayClient {
             String jsonString = HttpUtils.jsonStringToObject(model);
             mavenSyncRequest.setEntity(new StringEntity(jsonString));
             HttpResponse response = this.client.execute(mavenSyncRequest);
-            return response.getStatusLine().getStatusCode();
+            return IOUtils.toString(response.getEntity().getContent());
         } catch (Exception e) {
             throw new RuntimeException("Error while trying to sync with Sonatype OSS.", e);
         }

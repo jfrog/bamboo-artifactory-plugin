@@ -119,13 +119,9 @@ public class PushToBintrayRunnable implements Runnable {
 
         try {
             bintrayLog.logMessage("Syncing build with Sonatype OSS.");
-            int status = bintrayClient.mavenCentralSync(action.getSubject(), action.getRepository(),
+            String response = bintrayClient.mavenCentralSync(action.getSubject(), action.getRepository(),
                     action.getPackageName(), action.getVersion());
-            if (status == 200) {
-                bintrayLog.logMessage("Maven Central sync finished successfully.");
-            } else {
-                bintrayLog.logError("Maven Central sync failed with status code " + status + ".");
-            }
+            bintrayLog.logMessage(response);
         } catch (Exception e) {
             bintrayLog.logError("Error while trying to sync with Maven Central", e);
         }
