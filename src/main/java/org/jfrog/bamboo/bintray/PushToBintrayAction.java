@@ -28,7 +28,7 @@ public class PushToBintrayAction extends ViewBuildResults {
 
     private static final String BINTRAY_CONFIG_PREFIX = "bintray.";
     private static Map<String, String> signMethodList = ImmutableMap.of(
-            "false", "Don't Sign", "true", "Sign", "", "According to descriptor file");
+            "false", "Don't Sign", "true", "Sign", "descriptor", "According to descriptor file");
     private static BintrayClient bintrayClient;
 
     private boolean pushing = true;
