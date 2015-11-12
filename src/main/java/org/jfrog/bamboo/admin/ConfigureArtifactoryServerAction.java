@@ -40,20 +40,36 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     private transient Logger log = Logger.getLogger(ConfigureArtifactoryServerAction.class);
 
     private String mode;
-    private String testing;
+    private String artifactoryTest;
     private long serverId;
     private String url;
     private String username;
     private String password;
     private int timeout;
 
+    private String bintrayUsername;
+    private String bintrayApiKey;
+    private String sonatypeOssUsername;
+    private String sonatypeOssPassword;
+
     private transient ServerConfigManager serverConfigManager;
 
     public ConfigureArtifactoryServerAction() {
         serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
                 ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+        populateBintrayConfigToView();
         mode = "add";
         timeout = 300;
+    }
+
+    private void populateBintrayConfigToView() {
+        BintrayConfig config = serverConfigManager.getBintrayConfig();
+        if (config != null) {
+            this.bintrayUsername = config.getBintrayUsername();
+            this.bintrayApiKey = config.getBintrayApiKey();
+            this.sonatypeOssUsername = config.getSonatypeOssUsername();
+            this.sonatypeOssPassword = config.getSonatypeOssPassword();
+        }
     }
 
     @Override
@@ -108,8 +124,6 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         return SUCCESS;
     }
 
-
-
     public String doDelete() throws Exception {
         serverConfigManager.deleteServerConfiguration(getServerId());
 
@@ -124,16 +138,16 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         this.mode = mode;
     }
 
-    public String getTesting() {
-        return testing;
+    public String getArtifactoryTest() {
+        return artifactoryTest;
     }
 
     private boolean isTesting() {
-        return "Test".equals(getTesting());
+        return "Test".equals(getArtifactoryTest());
     }
 
-    public void setTesting(String testing) {
-        this.testing = testing;
+    public void setArtifactoryTest(String artifactoryTest) {
+        this.artifactoryTest = artifactoryTest;
     }
 
     public long getServerId() {
@@ -176,6 +190,21 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         this.timeout = timeout;
     }
 
+    public String getBintrayUsername() {
+        return bintrayUsername;
+    }
+
+    public String getBintrayApiKey() {
+        return bintrayApiKey;
+    }
+
+    public String getSonatypeOssUsername() {
+        return sonatypeOssUsername;
+    }
+
+    public String getSonatypeOssPassword() {
+        return sonatypeOssPassword;
+    }
 
     private void testConnection() {
         ArtifactoryBuildInfoClient testClient;
