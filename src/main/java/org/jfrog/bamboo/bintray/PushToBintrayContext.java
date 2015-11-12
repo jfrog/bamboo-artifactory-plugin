@@ -18,8 +18,10 @@ public class PushToBintrayContext {
     public static final String PASSPHRASE = "bintray.gpgPassphrase";
     public static final String LICENSES = "bintray.licenses";
     public static final String VCS_URL = "bintray.vcsUrl";
+    public static final String MAVEN_CENTRAL_SYNC = "bintray.mavenSync";
 
-    public static final Set<String> bintrayFields = ImmutableSet.of(SUBJECT, REPO_NAME, PACKAGE_NAME, SIGN, PASSPHRASE, LICENSES, VCS_URL);
+    public static final Set<String> bintrayFields = ImmutableSet.of(SUBJECT, REPO_NAME, PACKAGE_NAME, SIGN, PASSPHRASE,
+            LICENSES, VCS_URL, MAVEN_CENTRAL_SYNC);
 
     private boolean bintrayConfiguration;
 
@@ -30,6 +32,7 @@ public class PushToBintrayContext {
     private String licenses;
     private String gpgPassphrase;
     private String vcsUrl;
+    private boolean mavenCentralSync;
 
     public PushToBintrayContext() {
     }
@@ -94,6 +97,14 @@ public class PushToBintrayContext {
         this.vcsUrl = vcsUrl;
     }
 
+    public boolean isMavenCentralSync() {
+        return mavenCentralSync;
+    }
+
+    public void setMavenCentralSync(boolean mavenCentralSync) {
+        this.mavenCentralSync = mavenCentralSync;
+    }
+
     public boolean isBintrayConfiguration() {
         return bintrayConfiguration;
     }
@@ -101,4 +112,5 @@ public class PushToBintrayContext {
     public void setBintrayConfiguration(boolean bintrayConfiguration) {
         this.bintrayConfiguration = bintrayConfiguration;
     }
+
 }

@@ -11,7 +11,6 @@ import org.jfrog.bamboo.bintray.client.BintrayClient;
 import org.jfrog.bamboo.promotion.PromotionContext;
 import org.jfrog.bamboo.util.TaskUtils;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -196,14 +195,14 @@ public class PushToBintrayAction extends ViewBuildResults {
      * @param buildTaskConfiguration Artifactory build task configuration
      */
     private void addDefaultValuesForInput(Map<String, String> buildTaskConfiguration) throws IllegalAccessException, NoSuchFieldException {
-        for (String bintrayFieldKey : buildTaskConfiguration.keySet()) {
-            String bintrayValue = buildTaskConfiguration.get(bintrayFieldKey);
-            if (StringUtils.startsWith(bintrayFieldKey, BINTRAY_CONFIG_PREFIX) && StringUtils.isNotBlank(bintrayValue)) {
-                String valueKey = bintrayFieldKey.split("\\.")[1];
-                Field field = this.getClass().getDeclaredField(valueKey);
-                field.set(this, buildTaskConfiguration.get(bintrayFieldKey));
-            }
-        }
+        setSubject(buildTaskConfiguration.get("bintray.subject"));
+        setRepository(buildTaskConfiguration.get("bintray.repository"));
+        setPackageName(buildTaskConfiguration.get("bintray.packageName"));
+        setLicenses(buildTaskConfiguration.get("bintray.licenses"));
+        setSignMethod(buildTaskConfiguration.get("bintray.signMethod"));
+        setVcsUrl(buildTaskConfiguration.get("bintray.vcsUrl"));
+        setGpgPassphrase(buildTaskConfiguration.get("bintray.gpgSign"));
+        setMavenSync(Boolean.valueOf(buildTaskConfiguration.get("bintray.mavenSync")));
         setOverrideDescriptorFile(Boolean.valueOf(buildTaskConfiguration.get("bintrayConfiguration")));
     }
 }

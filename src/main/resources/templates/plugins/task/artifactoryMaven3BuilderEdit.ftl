@@ -110,6 +110,7 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
     [@ww.textfield name="bintray.vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
     [@ww.select name="bintray.signMethod" label="Sign method" list=signMethods listKey='key' listValue='value'/]
     [@ww.textfield name="bintray.gpgPassphrase" labelKey= "GPG Passphrase"/]
+    [@ww.checkbox name="bintray.mavenSync" labelKey="Maven Central Sync"/]
 [/@ui.bambooSection]
 
 

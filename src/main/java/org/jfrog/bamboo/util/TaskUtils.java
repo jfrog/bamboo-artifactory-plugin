@@ -13,6 +13,10 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +27,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -200,6 +205,20 @@ public class TaskUtils {
     }
 
     /**
+     * Test connection with Bintray
+     *
+     * @return Http status code from Bintray
+     */
+    public static int testBintrayConnection(String bintrayUrl, String bintrayUser, String bintrayApiKey) throws IOException {
+        HttpClient client = new DefaultHttpClient();
+        String testUrl = bintrayUrl + "users/" + bintrayUser;
+        HttpGet testConnectionRequest = new HttpGet(testUrl);
+        testConnectionRequest.setHeader(HttpUtils.createAuthorizationHeader(bintrayUser, bintrayApiKey));
+        HttpResponse response = client.execute(testConnectionRequest);
+        return response.getStatusLine().getStatusCode();
+    }
+
+    /**
      * Substitute (replace) Bamboo variable names with their defined values
      */
     private static String substituteVariables(ServerConfigManager serverConfigManager, String s) {
@@ -220,5 +239,13 @@ public class TaskUtils {
         ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
                 ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
         return serverConfigManager.getBintrayConfig();
+    }
+
+    public static String getBintrayUrl() {
+        String bintrayUrl = System.getenv("BAMBOO_BINTRAY_URL");
+        if (org.apache.commons.lang3.StringUtils.isEmpty(bintrayUrl)) {
+            bintrayUrl = ConstantValues.BINTRAY_URL;
+        }
+        return bintrayUrl;
     }
 }

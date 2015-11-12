@@ -35,16 +35,22 @@ showActionErrors='true']
     [@ww.password labelKey='artifactory.server.password' name="password" showPassword='true'/]
     [@ww.textfield labelKey='artifactory.server.timeout' name="timeout" required="true"/]
 [/@ww.form]
+[#if mode=='add']
 <hr>
 <h1>Bintray Configuration</h1>
 [@ww.form action='updateBintrayConfig' submitLabelKey='global.buttons.update'  showActionMessages='false' showActionErrors='false']
 
-    [@ww.textfield labelKey="Bintray Username" name="bintrayUsername"/]
-    [@ww.password labelKey='Bintray Api Key' name="bintrayApiKey" showPassword='true'/]
-    [@ww.textfield labelKey='Sonaytype OSS Username' name="sonatypeOssUsername"/]
-    [@ww.password labelKey='Sonatype OSS Password' name="sonatypeOssPassword" showPassword='true'/]
+    [@ww.param name='buttons']
+        [@ww.submit value="Test Bintray" name="bintrayTest" theme='simple' /]
+    [/@ww.param]
+
+    [@ww.textfield labelKey="bintray.username" name="bintrayUsername"/]
+    [@ww.password labelKey='bintray.apikey' name="bintrayApiKey" showPassword='true'/]
+    [@ww.textfield labelKey='bintray.sonatype.username' name="sonatypeOssUsername"/]
+    [@ww.password labelKey='bintray.sonatype.password' name="sonatypeOssPassword" showPassword='true'/]
 
 [/@ww.form]
+[/#if]
 [#if mode=='edit']
 </body>localh
 [/#if]

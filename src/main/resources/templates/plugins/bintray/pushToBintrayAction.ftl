@@ -38,7 +38,7 @@
         [@ww.select name="signMethod" labelKey="artifactory.task.pushToBintray.signMethod" list=signMethodList listKey='key' listValue='value'/]
         [@ww.textfield name="gpgPassphrase" labelKey= "GPG Passphrase"/]
 
-        [@ww.checkbox name="mavenSync" labelKey="Maven Sync" /]
+        [@ww.checkbox name="mavenSync" labelKey="Maven Central Sync" /]
     [/@ww.form]
 </div>
 <script>
