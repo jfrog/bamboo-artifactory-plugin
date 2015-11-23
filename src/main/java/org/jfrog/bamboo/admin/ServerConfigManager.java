@@ -169,12 +169,11 @@ public class ServerConfigManager implements Serializable {
         ArtifactoryBuildInfoClient client;
 
         String serverUrl = substituteVariables(serverConfig.getUrl());
-        String username = null;
-        String password = null;
-        if (req != null) {
-            username = req.getParameter("user");
-            password = req.getParameter("password");
-        }
+
+        // Retrieve the username and password that is configured in the Server Config to get the list of local repositories.
+        String username = substituteVariables(serverConfig.getUsername());
+        String password = substituteVariables(serverConfig.getPassword());
+
         if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
             password = TaskUtils.decryptIfNeeded(password);
         } else {
@@ -225,15 +224,11 @@ public class ServerConfigManager implements Serializable {
         ArtifactoryBuildInfoClient client;
 
         String serverUrl = substituteVariables(serverConfig.getUrl());
-        String username;
-        String password;
-        if (StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
-            username = substituteVariables(req.getParameter("user"));
-            password = substituteVariables(TaskUtils.decryptIfNeeded(req.getParameter("password")));
-        } else {
-            username = substituteVariables(serverConfig.getUsername());
-            password = substituteVariables(serverConfig.getPassword());
-        }
+
+        // Retrieve the username and password that is configured in the Server Config to get the list of virtual repositories.
+        String username = substituteVariables(serverConfig.getUsername());
+        String password = substituteVariables(serverConfig.getPassword());
+
 
         if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
