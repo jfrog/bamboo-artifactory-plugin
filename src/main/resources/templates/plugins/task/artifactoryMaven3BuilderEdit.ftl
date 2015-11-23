@@ -133,8 +133,6 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 
     function displayMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
@@ -149,14 +147,12 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
                     break;
                 }
             }
-            loadMaven3RepoKeys(serverId, credentialsUserName, credentialsPassword)
+            loadMaven3RepoKeys(serverId)
         }
     }
 
     function displayResolutionMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryResolutionConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
@@ -172,14 +168,14 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
                     break;
                 }
             }
-            loadMaven3ResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword)
+            loadMaven3ResolvingRepoKeys(serverId)
         }
     }
 
-    function loadMaven3RepoKeys(serverId, credentialsUserName, credentialsPassword) {
+    function loadMaven3RepoKeys(serverId) {
         AJS.$.ajax({
             url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                    '&deployableRepos=true',
             dataType:'json',
             cache:false,
             success:function (json) {
@@ -219,10 +215,10 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
         });
     }
 
-    function loadMaven3ResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword) {
+    function loadMaven3ResolvingRepoKeys(serverId) {
         AJS.$.ajax({
             url:'${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                    '&resolvingRepos=true',
             dataType:'json',
             cache:false,
             success:function (json) {

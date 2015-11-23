@@ -143,8 +143,6 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[5].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
@@ -159,15 +157,15 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                     break;
                 }
             }
-            loadGradleResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword)
-            loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword)
+            loadGradleResolvingRepoKeys(serverId)
+            loadGradlePublishRepoKeys(serverId)
         }
     }
 
-    function loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword) {
+    function loadGradlePublishRepoKeys(serverId) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                    '&deployableRepos=true',
             dataType: 'json',
             cache: false,
             success: function (json) {
