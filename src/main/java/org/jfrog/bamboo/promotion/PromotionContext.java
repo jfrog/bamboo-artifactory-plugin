@@ -1,6 +1,6 @@
 package org.jfrog.bamboo.promotion;
 
-import com.google.common.collect.Lists;
+import org.jfrog.bamboo.util.ActionLog;
 
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,7 +12,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Lior Hasson
  */
 public class PromotionContext {
-    private List<String> log = Lists.newArrayList();
+
+    private ActionLog log = new ActionLog();
     private boolean done;
     private Integer buildNumber;
     private String buildKey;
@@ -43,7 +44,15 @@ public class PromotionContext {
     }
 
     public List<String> getLog() {
+        return log.getLogEntries();
+    }
+
+    public ActionLog getActionLog(){
         return log;
+    }
+
+    public void clearLog(){
+        this.log.clearLog();
     }
 
     public ReentrantLock getLock() {

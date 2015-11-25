@@ -22,7 +22,6 @@ import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.user.User;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.opensymphony.xwork.ActionContext;
@@ -36,15 +35,18 @@ import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.promotion.PromotionContext;
 import org.jfrog.bamboo.promotion.PromotionThread;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VersionHelper;
 import org.jfrog.build.api.release.Promotion;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An action to display when entering the "Artifactory Release & Promotion" tab from within a job.
@@ -54,10 +56,9 @@ import java.util.*;
  * @author Tomer Cohen
  */
 @RemoteAgentSupported
-    public class ReleaseAndPromotionAction extends ViewBuildResults {
+public class ReleaseAndPromotionAction extends ViewBuildResults {
     public static final String PROMOTION_PUSH_TO_NEXUS_MODE = "pushToNexusMode";
     public static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
-    public static final String NEXUS_PUSH_PROPERTY_PREFIX = NEXUS_PUSH_PLUGIN_NAME + ".";
     public static final String NEXT_INTEG_KEY = "version.nextIntegValue";
     public static final String RELEASE_VALUE_KEY = "version.releaseValue";
     public static final String CURRENT_VALUE_KEY = "version.currentValue";
@@ -70,7 +71,7 @@ import java.util.*;
                     ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
                     ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
     public static PromotionContext promotionContext = new PromotionContext();
-    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
     private String promotionMode = PROMOTION_NORMAL_MODE;
     private boolean promoting = true;
     private String promotionRepo = "";
@@ -394,7 +395,7 @@ import java.util.*;
             return Lists.newArrayList();
         }
         ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
         return component.getDeployableRepos(Long.parseLong(serverId));
     }
 
@@ -556,8 +557,8 @@ import java.util.*;
             return ERROR;
         }
         ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
-        TaskDefinition definition = getMavenOrGradleTaskDefinition();
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getMutablePlan());
         if (definition == null) {
             return ERROR;
         }
@@ -575,7 +576,7 @@ import java.util.*;
 
         Map<String, String> taskConfiguration = definition.getConfiguration();
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(taskConfiguration);
-        ArtifactoryBuildInfoClient client = createClient(serverConfig, context);
+        ArtifactoryBuildInfoClient client = TaskUtils.createClient(serverConfigManager, serverConfig, context, log);
         ResultsSummary summary = getResultsSummary();
         TriggerReason reason = summary.getTriggerReason();
         String username = "";
@@ -595,19 +596,6 @@ import java.util.*;
         return promotionContext.isDone();
     }
 
-    private TaskDefinition getMavenOrGradleTaskDefinition() {
-        Plan plan = getMutablePlan();
-        if (plan == null) {
-            return null;
-        }
-        List<TaskDefinition> definitions = plan.getBuildDefinition().getTaskDefinitions();
-        if (definitions.isEmpty()) {
-            return null;
-        }
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
-        return definition;
-    }
-
     public String getPromotionMode() {
         return promotionMode;
     }
@@ -619,70 +607,19 @@ import java.util.*;
     public Map<String, String> getSupportedPromotionModes() {
         Map<String, String> promotionModes = Maps.newHashMap();
         promotionModes.put(PROMOTION_NORMAL_MODE, "Normal");
-        if (isPushToNexusEnabled()) {
+        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getMutablePlan());
+        if (MavenSyncUtils.isPushToNexusEnabled(serverConfigManager, definition, getSelectedServerId(definition))) {
             promotionModes.put(PROMOTION_PUSH_TO_NEXUS_MODE, "Promote to Bintray and Central");
         }
         return promotionModes;
     }
-
-    private boolean isPushToNexusEnabled() {
-        ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
-        TaskDefinition definition = getMavenOrGradleTaskDefinition();
-        if (definition == null) {
-            return false;
-        }
-        String serverId = getSelectedServerId(definition);
-        if (StringUtils.isBlank(serverId)) {
-            log.error("No special promotion modes enabled: no selected Artifactory server Id.");
-            return false;
-        }
-        ServerConfig serverConfig = component.getServerConfigById(Long.parseLong(serverId));
-        if (serverConfig == null) {
-            log.error("No special promotion modes enabled: error while retrieving querying for enabled user plugins: " +
-                    "could not find Artifactory server configuration by the ID " + serverId);
-            return false;
-        }
-        AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
-        ArtifactoryBuildInfoClient client = createClient(serverConfig, context);
-        try {
-            Map<String, List<Map>> userPluginInfo = client.getUserPluginInfo();
-            if (!userPluginInfo.containsKey("promotions")) {
-                log.debug("No special promotion modes enabled: no 'execute' user plugins could be found.");
-                return false;
-            }
-            List<Map> executionPlugins = userPluginInfo.get("promotions");
-            Iterables.find(executionPlugins, new Predicate<Map>() {
-                @Override
-                public boolean apply(Map pluginInfo) {
-                    if ((pluginInfo != null) && pluginInfo.containsKey("name")) {
-                        String pluginName = pluginInfo.get("name").toString();
-                        return NEXUS_PUSH_PLUGIN_NAME.equals(pluginName);
-                    }
-                    return false;
-                }
-            });
-            return true;
-        } catch (IOException ioe) {
-            log.error("No special promotion modes enabled: error while retrieving querying for enabled user plugins: " +
-                    ioe.getMessage());
-            if (log.isDebugEnabled()) {
-                log.debug("No special promotion modes enabled: error while retrieving querying for enabled user " +
-                        "plugins.", ioe);
-            }
-        } catch (NoSuchElementException nsee) {
-            log.debug("No special promotion modes enabled: no relevant execute user plugins could be found.");
-        }
-        return false;
-    }
-
 
     public List<String> getPromotionTargets() {
         return Lists.newArrayList(Promotion.RELEASED, Promotion.ROLLED_BACK);
     }
 
     public List<String> getPromotionRepos() {
-        TaskDefinition definition = getMavenOrGradleTaskDefinition();
+        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getMutablePlan());
         if (definition == null) {
             return Lists.newArrayList();
         }
@@ -692,7 +629,7 @@ import java.util.*;
             return Lists.newArrayList();
         }
         ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
         return component.getDeployableRepos(Long.parseLong(selectedServerId));
     }
 
@@ -707,34 +644,6 @@ import java.util.*;
             }
         });
         return filtered.values().iterator().next();
-    }
-
-    private ArtifactoryBuildInfoClient createClient(ServerConfig serverConfig, AbstractBuildContext context) {
-        String serverUrl = substituteVariables(serverConfig.getUrl());
-        String username = substituteVariables(context.getDeployerUsername());
-        if (StringUtils.isBlank(username)) {
-            username = substituteVariables(serverConfig.getUsername());
-        }
-        ArtifactoryBuildInfoClient client;
-        BambooBuildInfoLog bambooLog = new BambooBuildInfoLog(log);
-        if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, bambooLog);
-        } else {
-            String password = substituteVariables(context.getDeployerPassword());
-            if (StringUtils.isBlank(password)) {
-                password = substituteVariables(serverConfig.getPassword());
-            }
-            client = new ArtifactoryBuildInfoClient(serverUrl, username, password, bambooLog);
-        }
-        client.setConnectionTimeout(serverConfig.getTimeout());
-        return client;
-    }
-
-    /**
-     * Substitute (replace) Bamboo variable names with their defined values
-     */
-    private String substituteVariables(String s) {
-        return s != null ? serverConfigManager.substituteVariables(s) : null;
     }
 
     public String getPromotionRepo() {

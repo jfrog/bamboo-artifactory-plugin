@@ -7,6 +7,10 @@ import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
+import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.plugin.Plugin;
+import com.atlassian.plugin.PluginAccessor;
+import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -15,8 +19,10 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.ScmHelper;
@@ -42,17 +48,32 @@ public class ArtifactoryGenericDeployTask implements TaskType {
     public static final String TASK_NAME = "artifactoryGenericTask";
     private static final Logger log = Logger.getLogger(ArtifactoryGenericDeployTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
+    private PluginAccessor pluginAccessor;
     private BuildLogger logger;
     private GenericBuildInfoHelper buildInfoHelper;
+    private CustomVariableContext customVariableContext;
+    private BuildParamsOverrideManager buildParamsOverrideManager;
 
     public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
+        ContainerManager.autowireComponent(this);
+        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
+    }
+
+    @SuppressWarnings("unused")
+    public void setPluginAccessor(PluginAccessor pluginAccessor) {
+        this.pluginAccessor = pluginAccessor;
+    }
+
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
     }
 
     @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         logger = taskContext.getBuildLogger();
+        logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + getArtifactoryVersion());
         if (!taskContext.isFinalising()) {
             log.error(logger.addErrorLogEntry("Artifactory Generic Deploy Task must run as a final Task!"));
             return TaskResultBuilder.newBuilder(taskContext).failed().build();
@@ -79,7 +100,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         }
 
         buildInfoHelper = new GenericBuildInfoHelper(env, vcsRevision, vcsUrl);
-        buildInfoHelper.init(context);
+        buildInfoHelper.init(buildParamsOverrideManager, context);
         try {
             File sourceCodeDirectory = getWorkingDirectory(context, taskContext);
             if (sourceCodeDirectory == null) {
@@ -87,7 +108,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
                 return TaskResultBuilder.newBuilder(taskContext).success().build();
             }
             Multimap<String, File> filesMap = buildTargetPathToFiles(sourceCodeDirectory, genericContext);
-            deploy(filesMap, genericContext, taskContext, sourceCodeDirectory);
+            deploy(filesMap, genericContext, taskContext);
         } catch (Exception e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);
@@ -139,16 +160,17 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         return result;
     }
 
-    private void deploy(Multimap<String, File> filesMap, GenericContext context, TaskContext taskContext,
-                        File rootDir) throws IOException, NoSuchAlgorithmException {
+    private void deploy(Multimap<String, File> filesMap, GenericContext context, TaskContext taskContext) throws IOException, NoSuchAlgorithmException {
 
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(context.getSelectedServerId());
-        String username = serverConfigManager.substituteVariables(context.getUsername());
+        String username = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(context.getUsername()),
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
         if (StringUtils.isBlank(username)) {
             username = serverConfigManager.substituteVariables(serverConfig.getUsername());
         }
-        String password = serverConfigManager.substituteVariables(context.getPassword());
+        String password = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(context.getPassword()),
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
         if (StringUtils.isBlank(password)) {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
@@ -158,8 +180,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         try {
             BuildContext buildContext = taskContext.getBuildContext();
             Build build = buildInfoHelper.extractBuildInfo(buildContext, taskContext.getBuildLogger(), context, username);
-            Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap,
-                    rootDir, buildContext, context);
+            Set<DeployDetails> details = buildInfoHelper.createDeployDetailsAndAddToBuildInfo(build, filesMap, buildContext, context);
 
             /**
              * Look for dependencies from the Generic resolve task, if exists!
@@ -197,5 +218,13 @@ public class ArtifactoryGenericDeployTask implements TaskType {
             build.getModules().get(0).setDependencies(genericData.getDependencies());
             build.setBuildDependencies(genericData.getBuildDependencies());
         }
+    }
+
+    public String getArtifactoryVersion() {
+        Plugin plugin = pluginAccessor.getPlugin(ConstantValues.ARTIFACTORY_PLUGIN_KEY);
+        if (plugin != null) {
+            return plugin.getPluginInformation().getVersion();
+        }
+        return StringUtils.EMPTY;
     }
 }

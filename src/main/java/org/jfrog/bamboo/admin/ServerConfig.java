@@ -31,6 +31,7 @@ public class ServerConfig implements Serializable {
     private String password;
     private int timeout = 300;
 
+
     public ServerConfig() {
     }
 

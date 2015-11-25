@@ -2,6 +2,7 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import com.atlassian.bamboo.utils.EscapeChars;
+import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Maps;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -24,11 +25,15 @@ import static org.jfrog.bamboo.util.ConstantValues.ADMIN_CONFIG_SERVLET_CONTEXT_
  * A helper class to be used for the Artifactory tasks configuration.
  */
 public class ConfigurationHelper implements Serializable {
+
+    public static final String DEFAULT_JDK = "JAVA_HOME";
+
     private static ConfigurationHelper instance = new ConfigurationHelper();
     private AdministrationConfigurationAccessor administrationConfigurationAccessor;
     private HttpClient httpClient = new HttpClient();
 
     private ConfigurationHelper() {
+        ContainerManager.autowireComponent(this);
     }
 
     public static ConfigurationHelper getInstance() {
@@ -37,17 +42,6 @@ public class ConfigurationHelper implements Serializable {
 
     public void setAdministrationConfigurationAccessor(AdministrationConfigurationAccessor administrationConfigurationAccessor) {
         this.administrationConfigurationAccessor = administrationConfigurationAccessor;
-    }
-
-    public BuildJdkOverride getBuildJdkOverride(String planKey) {
-        Map<String, String> variables = getAllVariables(planKey);
-
-        BuildJdkOverride override = new BuildJdkOverride();
-        override.setOverride(Boolean.valueOf(variables.get(BuildJdkOverride.SHOULD_OVERRIDE_JDK_KEY)));
-        String envVar = variables.get(BuildJdkOverride.OVERRIDE_JDK_ENV_VAR_KEY);
-        override.setOverrideWithEnvVarName(envVar == null ? "JAVA_HOME" : envVar);
-
-        return override;
     }
 
     public Map<String, String> getAllVariables(String planKey) {

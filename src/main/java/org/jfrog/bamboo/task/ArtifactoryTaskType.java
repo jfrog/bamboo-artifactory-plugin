@@ -7,20 +7,26 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.task.TaskType;
-import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
+import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.plugin.Plugin;
+import com.atlassian.plugin.PluginAccessor;
+import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.*;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.configuration.BuildJdkOverride;
-import org.jfrog.bamboo.configuration.ConfigurationHelper;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.ConstantValues;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
+import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.SHOULD_OVERRIDE_JDK_KEY;
+import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.OVERRIDE_JDK_ENV_VAR_KEY;
 
 /**
  * Common super type for all tasks
@@ -29,17 +35,31 @@ import java.util.Map;
  */
 public abstract class ArtifactoryTaskType implements TaskType {
     protected static final String JDK_LABEL_KEY = "system.jdk.";
+    public static final String JAVA_HOME = "JAVA_HOME";
 
     protected Map<String, String> environmentVariables;
+    protected PluginAccessor pluginAccessor;
     protected final EnvironmentVariableAccessor environmentVariableAccessor;
     private final TestCollationService testCollationService;
+    protected BuildParamsOverrideManager buildParamsOverrideManager;
+    protected CustomVariableContext customVariableContext;
 
     protected ArtifactoryTaskType(TestCollationService testCollationService,
         EnvironmentVariableAccessor environmentVariableAccessor) {
-
+        ContainerManager.autowireComponent(this);
         this.testCollationService = testCollationService;
         this.environmentVariableAccessor = environmentVariableAccessor;
+        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
     }
+
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
+    }
+
+    @SuppressWarnings("unused")
+    public void setPluginAccessor(PluginAccessor pluginAccessor){
+        this.pluginAccessor = pluginAccessor;
+}
 
     protected void initEnvironmentVariables(AbstractBuildContext buildContext) {
         Map<String, String> env = Maps.newHashMap();
@@ -79,17 +99,19 @@ public abstract class ArtifactoryTaskType implements TaskType {
      * @param capabilityContext The capability context of the build.
      * @return                  The path to the Java home.
      */
-    protected String getConfiguredJdkPath(BuildContext buildContext, AbstractBuildContext context, CapabilityContext capabilityContext) {
+    protected String getConfiguredJdkPath(BuildParamsOverrideManager buildParamsOverrideManager, AbstractBuildContext context,
+                                          CapabilityContext capabilityContext) {
         // If the relevant Bamboo variables have been configured, read the build JDK from the configured
-        // environment variable, instead of using the JDK configured inside the task:
-        BuildJdkOverride buildJdkOverride = ConfigurationHelper.getInstance().getBuildJdkOverride(buildContext.getPlanKey());
-        if (buildJdkOverride.isOverride()) {
-            String envVarName = buildJdkOverride.getOverrideWithEnvVarName();
-            String envVarValue = environmentVariables.get(envVarName);
-            if (envVarValue == null) {
-                throw new RuntimeException("The task is configured to use the '" + envVarName + "' environment variable for the build JDK, but this environment variable is not defined.");
+        if (shouldOverrideJdk()) {
+            String jdkEnvVarName = buildParamsOverrideManager.getOverrideValue(OVERRIDE_JDK_ENV_VAR_KEY);
+            if (StringUtils.isEmpty(jdkEnvVarName)) {
+                jdkEnvVarName = JAVA_HOME;
             }
-            return envVarValue;
+            String envVarValue = environmentVariables.get(jdkEnvVarName);
+            if (envVarValue == null) {
+                throw new RuntimeException("The task is configured to use the '" + jdkEnvVarName + "' environment variable for the build JDK, but this environment variable is not defined.");
+            }
+            return getPathBuilder(envVarValue).toString();
         }
 
         String jdkCapabilityKey = JDK_LABEL_KEY + context.getJdkLabel();
@@ -173,5 +195,18 @@ public abstract class ArtifactoryTaskType implements TaskType {
         }
 
         return message.toString();
+    }
+
+    public String getArtifactoryVersion(){
+        Plugin plugin = pluginAccessor.getPlugin(ConstantValues.ARTIFACTORY_PLUGIN_KEY);
+        if (plugin != null) {
+            return plugin.getPluginInformation().getVersion();
+        }
+        return StringUtils.EMPTY;
+    }
+
+    private boolean shouldOverrideJdk() {
+        return Boolean.valueOf(buildParamsOverrideManager.getOverrideValue(SHOULD_OVERRIDE_JDK_KEY));
+
     }
 }

@@ -1,3 +1,5 @@
+<div id="artifactory-error" class="aui-message aui-message-error error shadowed"
+     style="display: none; width: 80%; font-size: 80%"></div>
 [@ui.bambooSection titleKey='artifactory.task.generic.deploy.title']
     [@ww.select name='builder.artifactoryGenericBuilder.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
@@ -29,7 +31,6 @@
         [@ww.textfield name="bintray.subject" labelKey="artifactory.task.pushToBintray.subject"/]
         [@ww.textfield name="bintray.repository" labelKey="artifactory.task.pushToBintray.repository"/]
         [@ww.textfield name="bintray.packageName" labelKey="artifactory.task.pushToBintray.packageName"/]
-        [@ww.textfield name="bintray.version" labelKey="artifactory.task.pushToBintray.version"/]
         [@ww.textfield name="bintray.licenses" labelKey="artifactory.task.pushToBintray.licenses"/]
         [@ww.textfield name="bintray.vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
         [@ww.select name="bintray.signMethod" label="Sign method" list=signMethods listKey='key' listValue='value'/]
@@ -99,9 +100,14 @@
                     errorMessage +=
                             'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
-                alert(errorMessage);
+                errorMessage += "<br>";
+                errorDiv.innerHTML += errorMessage;
+                errorDiv.style.display = '';
             }
         });
     }
+    var errorDiv = document.getElementById('artifactory-error');
+    errorDiv.innerHTML = '';
+    errorDiv.style.display = 'none';
     displayGenericArtifactoryConfigs(${selectedServerId});
 </script>

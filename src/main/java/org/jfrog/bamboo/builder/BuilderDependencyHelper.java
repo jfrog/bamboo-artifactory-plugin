@@ -24,7 +24,6 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.PluginProperties;
 
@@ -98,6 +97,11 @@ public class BuilderDependencyHelper implements Serializable {
         this.administrationConfiguration = administrationConfiguration;
     }
 
+    public void setAdministrationConfigurationAccessor(
+            AdministrationConfigurationAccessor administrationConfigurationAccessor) {
+        this.administrationConfigurationAccessor = administrationConfigurationAccessor;
+    }
+
     /**
      * Returns the base URL of this Bamboo instance.<br> This method is needed since we must download dependencies from
      * the Bamboo server.<br> The URL can generally be found in {@link com.atlassian.bamboo.configuration.AdministrationConfiguration},
@@ -156,11 +160,5 @@ public class BuilderDependencyHelper implements Serializable {
             IOUtils.closeQuietly(responseBodyAsStream);
             IOUtils.closeQuietly(fileOutputStream);
         }
-    }
-
-    public void setAdministrationConfigurationAccessor(
-            AdministrationConfigurationAccessor administrationConfigurationAccessor) {
-        this.administrationConfigurationAccessor = administrationConfigurationAccessor;
-        ConfigurationHelper.getInstance().setAdministrationConfigurationAccessor(administrationConfigurationAccessor);
     }
 }

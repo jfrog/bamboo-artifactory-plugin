@@ -2,19 +2,15 @@ package org.jfrog.bamboo.bintray;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
-import com.atlassian.bamboo.task.TaskDefinition;
-import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
-import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.bintray.client.BintrayClient;
 import org.jfrog.bamboo.promotion.PromotionContext;
-import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.api.util.NullLog;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -26,14 +22,16 @@ import java.util.Map;
 @RemoteAgentSupported
 public class PushToBintrayAction extends ViewBuildResults {
 
-    public static final String BINTRAY_CONFIG_PREFIX = "bintray.";
+    public static Logger log = Logger.getLogger(PushToBintrayAction.class);
     public static PromotionContext context = new PromotionContext();
+
+    private static final String BINTRAY_CONFIG_PREFIX = "bintray.";
     private static Map<String, String> signMethodList = ImmutableMap.of(
-            "false", "Don't Sign", "true", "Sign", "", "According to descriptor file");
+            "false", "Don't Sign", "true", "Sign", "descriptor", "According to descriptor file");
+    private static BintrayClient bintrayClient;
 
     private boolean pushing = true;
     private boolean overrideDescriptorFile;
-
     private String subject;
     private String repository;
     private String packageName;
@@ -42,35 +40,37 @@ public class PushToBintrayAction extends ViewBuildResults {
     private String vcsUrl;
     private String gpgPassphrase;
     private String signMethod;
+    private boolean mavenSync;
 
     @Override
     public String doExecute() throws Exception {
+        context.clearLog();
         String result = super.doExecute();
         if (ERROR.equals(result)) {
             return ERROR;
         }
-
-        Map<String, String> buildTaskConfiguration = TaskUtils.findConfigurationForBuildTask(this);
-        addDefaultValuesForInput(buildTaskConfiguration);
-        context.setBuildNumber(this.getBuildNumber());
-        context.setBuildKey(this.getImmutableBuild().getName());
-        context.getLog().clear();
-        return INPUT;
+        try {
+            context.setBuildNumber(this.getBuildNumber());
+            context.setBuildKey(this.getImmutableBuild().getName());
+            BintrayConfig bintrayConfig = TaskUtils.getBintrayConfig();
+            bintrayClient = new BintrayClient(bintrayConfig);
+            Map<String, String> buildTaskConfiguration = TaskUtils.findConfigurationForBuildTask(this);
+            addDefaultValuesForInput(buildTaskConfiguration);
+            return INPUT;
+        } catch (Exception e) {
+            log.error("Error occurred while loading Push to Bintray configuration page.", e);
+            return ERROR;
+        }
     }
-
 
     public String doPush() {
         String result;
-        ArtifactoryBuildInfoClient client = getArtifactoryBuildInfoClient();
-        if (client != null) {
-            try {
-                new Thread(new PushToBintrayRunnable(this, client)).start();
-                pushing = false;
-                result = SUCCESS;
-            } catch (Exception e) {
-                result = ERROR;
-            }
-        } else {
+        ServerConfig serverConfig = TaskUtils.getArtifactoryServerConfig(getImmutablePlan());
+        try {
+            new Thread(new PushToBintrayRunnable(this, serverConfig, bintrayClient)).start();
+            pushing = false;
+            result = SUCCESS;
+        } catch (Exception e) {
             result = ERROR;
         }
         return result;
@@ -80,28 +80,9 @@ public class PushToBintrayAction extends ViewBuildResults {
         return SUCCESS;
     }
 
-    private ServerConfig getServerConfig() {
-        List<TaskDefinition> taskDefinitionList = getImmutableBuild().getBuildDefinition().getTaskDefinitions();
-        TaskDefinition relevantTaskDef = taskDefinitionList.get(taskDefinitionList.size() - 1);
-        String serverIdStr = TaskUtils.getSelectedServerId(relevantTaskDef);
-        if (StringUtils.isNotEmpty(serverIdStr)) {
-            long serverId = Long.parseLong(serverIdStr);
-            return ((ServerConfigManager) ContainerManager.getComponent(
-                    ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY)).getServerConfigById(serverId);
-        }
-        return null;
-    }
-
-    private ArtifactoryBuildInfoClient getArtifactoryBuildInfoClient() {
-        ServerConfig serverConfig = getServerConfig();
-        if (serverConfig != null) {
-            String username = serverConfig.getUsername();
-            String password = serverConfig.getPassword();
-            String artifactoryUrl = serverConfig.getUrl();
-            NullLog log = new NullLog();
-            return new ArtifactoryBuildInfoClient(artifactoryUrl, username, password, log);
-        }
-        return null;
+    // If package name already in the Bintray configuration page we shouldn't generate it again
+    private boolean validPushToBintrayFields() {
+        return StringUtils.isNotBlank(this.packageName);
     }
 
     public Map<String, String> getSignMethodList() {
@@ -180,6 +161,18 @@ public class PushToBintrayAction extends ViewBuildResults {
         this.overrideDescriptorFile = overrideDescriptorFile;
     }
 
+    public boolean getOverrideDescriptorFile() {
+        return this.overrideDescriptorFile;
+    }
+
+    public boolean isMavenSync() {
+        return mavenSync;
+    }
+
+    public void setMavenSync(boolean mavenSync) {
+        this.mavenSync = mavenSync;
+    }
+
     public boolean isPushing() {
         return pushing;
     }
@@ -196,21 +189,20 @@ public class PushToBintrayAction extends ViewBuildResults {
         return context.isDone();
     }
 
-
     /**
      * Populate the Bintray configuration from the build task configuration to the "Push to Bintray" task
      *
      * @param buildTaskConfiguration Artifactory build task configuration
      */
     private void addDefaultValuesForInput(Map<String, String> buildTaskConfiguration) throws IllegalAccessException, NoSuchFieldException {
-        for (String bintrayFieldKey : buildTaskConfiguration.keySet()) {
-            String bintrayValue = buildTaskConfiguration.get(bintrayFieldKey);
-            if (StringUtils.startsWith(bintrayFieldKey, BINTRAY_CONFIG_PREFIX) && StringUtils.isNotBlank(bintrayValue)) {
-                String valueKey = bintrayFieldKey.split("\\.")[1];
-                Field field = this.getClass().getDeclaredField(valueKey);
-                field.set(this, buildTaskConfiguration.get(bintrayFieldKey));
-            }
-        }
+        setSubject(buildTaskConfiguration.get("bintray.subject"));
+        setRepository(buildTaskConfiguration.get("bintray.repository"));
+        setPackageName(buildTaskConfiguration.get("bintray.packageName"));
+        setLicenses(buildTaskConfiguration.get("bintray.licenses"));
+        setSignMethod(buildTaskConfiguration.get("bintray.signMethod"));
+        setVcsUrl(buildTaskConfiguration.get("bintray.vcsUrl"));
+        setGpgPassphrase(buildTaskConfiguration.get("bintray.gpgSign"));
+        setMavenSync(Boolean.valueOf(buildTaskConfiguration.get("bintray.mavenSync")));
         setOverrideDescriptorFile(Boolean.valueOf(buildTaskConfiguration.get("bintrayConfiguration")));
     }
 }

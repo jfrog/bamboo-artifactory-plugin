@@ -118,7 +118,7 @@ public class ResetCommand extends GitCommand<Ref> {
                                 JGitText.get().cannotReadCommit, commitId.toString()),
                         e);
             } finally {
-                rw.release();
+                rw.dispose();
             }
 
             // write the ref

@@ -1,3 +1,5 @@
+<div id="artifactory-error" class="aui-message aui-message-error error shadowed"
+     style="display: none; width: 80%; font-size: 80%"></div>
 [@ww.textfield labelKey='artifactory.task.gradle.switches' name='builder.artifactoryGradleBuilder.switches'/]
 
 [@ww.textfield labelKey='artifactory.task.gradle.tasks' name='builder.artifactoryGradleBuilder.tasks'/]
@@ -119,6 +121,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
     [@ww.textfield name="bintray.vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
     [@ww.select name="bintray.signMethod" label="Sign method" list=signMethods listKey='key' listValue='value'/]
     [@ww.textfield name="bintray.gpgPassphrase" labelKey= "GPG Passphrase"/]
+    [@ww.checkbox name="bintray.mavenSync" labelKey="Maven Central Sync"/]
 [/@ui.bambooSection]
 
 [@ui.bambooSection titleKey='builder.common.tests.directory.description']
@@ -188,16 +191,18 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                 }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                var errorMessage = 'An error has occurred while retrieving the publishing repository list.\n' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
+                var errorMessage = 'An error has occurred while retrieving the publishing repository list.<br>' +
+                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
                 if (XMLHttpRequest.status == 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accesible.'
+                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
                             'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
-                alert(errorMessage);
+                errorMessage += "<br>";
+                errorDiv.innerHTML += errorMessage;
+                errorDiv.style.display = '';
             }
         });
     }
@@ -229,19 +234,23 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
                 }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                var errorMessage = 'An error has occurred while retrieving the resolving repository list.\n' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
+                var errorMessage = 'An error has occurred while retrieving the resolving repository list.<br>' +
+                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
                 if (XMLHttpRequest.status == 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accesible.'
+                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
                             'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
-                alert(errorMessage);
+                errorMessage += "<br>";
+                errorDiv.innerHTML += errorMessage;
+                errorDiv.style.display = '';
             }
         });
     }
+    var errorDiv = document.getElementById('artifactory-error');
+    errorDiv.innerHTML = '';
 
     displayGradleArtifactoryConfigs(${selectedServerId});
 </script>

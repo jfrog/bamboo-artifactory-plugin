@@ -1,18 +1,18 @@
 package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
-import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
@@ -28,12 +28,13 @@ import java.util.List;
 public class ArtifactoryGenericResolveTask implements TaskType {
 
     private static final Logger log = Logger.getLogger(ArtifactoryGenericResolveTask.class);
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
-    private BuildLogger logger;
-    private GenericBuildInfoHelper buildInfoHelper;
 
-    public ArtifactoryGenericResolveTask(EnvironmentVariableAccessor environmentVariableAccessor) {
-        this.environmentVariableAccessor = environmentVariableAccessor;
+    private BuildLogger logger;
+    private BuildParamsOverrideManager buildParamsOverrideManager;
+
+
+    public ArtifactoryGenericResolveTask(CustomVariableContext customVariableContext) {
+        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
     }
 
     @NotNull
@@ -98,15 +99,20 @@ public class ArtifactoryGenericResolveTask implements TaskType {
     private ArtifactoryDependenciesClient getArtifactoryDependenciesClient(GenericContext genericContext) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(genericContext.getSelectedServerId());
-        String username = serverConfigManager.substituteVariables(genericContext.getUsername());
+        String username = overrideParam(serverConfigManager.substituteVariables(genericContext.getUsername()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME);
         if (StringUtils.isBlank(username)) {
             username = serverConfigManager.substituteVariables(serverConfig.getUsername());
         }
-        String password = serverConfigManager.substituteVariables(genericContext.getPassword());
+        String password = overrideParam(serverConfigManager.substituteVariables(genericContext.getPassword()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD);
         if (StringUtils.isBlank(password)) {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         return new ArtifactoryDependenciesClient(serverUrl, username, password, new BambooBuildInfoLog(log));
+    }
+
+    public String overrideParam(String originalValue, String overrideKey) {
+        String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);
+        return overriddenValue.isEmpty() ? originalValue : overriddenValue;
     }
 }

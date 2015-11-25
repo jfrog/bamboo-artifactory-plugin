@@ -1,3 +1,5 @@
+<div id="artifactory-error" class="aui-message aui-message-error error shadowed"
+     style="display: none; width: 80%; font-size: 80%"></div>
 [@ww.textfield labelKey='artifactory.task.maven.projectFile' name='builder.artifactoryMaven3Builder.projectFile' /]
 [@ww.textarea labelKey='artifactory.task.maven.goals' name='builder.artifactoryMaven3Builder.goal' rows='4' required='true' /]
 [@ww.textarea labelKey='artifactory.task.maven.additionalMavenParams' name='builder.artifactoryMaven3Builder.additionalMavenParams' rows='2' required='false' /]
@@ -104,11 +106,11 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
     [@ww.textfield name="bintray.subject" labelKey="artifactory.task.pushToBintray.subject"/]
     [@ww.textfield name="bintray.repository" labelKey="artifactory.task.pushToBintray.repository"/]
     [@ww.textfield name="bintray.packageName" labelKey="artifactory.task.pushToBintray.packageName"/]
-    [@ww.textfield name="bintray.version" labelKey="artifactory.task.pushToBintray.version"/]
     [@ww.textfield name="bintray.licenses" labelKey="artifactory.task.pushToBintray.licenses"/]
     [@ww.textfield name="bintray.vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
     [@ww.select name="bintray.signMethod" label="Sign method" list=signMethods listKey='key' listValue='value'/]
     [@ww.textfield name="bintray.gpgPassphrase" labelKey= "GPG Passphrase"/]
+    [@ww.checkbox name="bintray.mavenSync" labelKey="Maven Central Sync"/]
 [/@ui.bambooSection]
 
 
@@ -201,16 +203,18 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
                 }
             },
             error:function (XMLHttpRequest, textStatus, errorThrown) {
-                var errorMessage = 'An error has occurred while retrieving the target repository list.\n' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
+                var errorMessage = 'An error has occurred while retrieving the target repository list.<br>' +
+                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
                 if (XMLHttpRequest.status == 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accesible.'
+                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
                             'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
-                alert(errorMessage);
+                errorMessage += "<br>";
+                errorDiv.innerHTML += errorMessage;
+                errorDiv.style.display = '';
             }
         });
     }
@@ -245,16 +249,20 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
                         'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.\n';
                 if (XMLHttpRequest.status == 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accesible.'
+                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
                             'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
-                alert(errorMessage);
+                errorMessage += "<br>";
+                errorDiv.innerHTML += errorMessage;
+                errorDiv.style.display = '';
             }
         });
     }
-
+    var errorDiv = document.getElementById('artifactory-error');
+    errorDiv.innerHTML = '';
+    errorDiv.style.display = 'none';
     displayMaven3ArtifactoryConfigs(${selectedServerId});
     displayResolutionMaven3ArtifactoryConfigs(${selectedResolutionArtifactoryServerId});
 

@@ -21,6 +21,7 @@ import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -39,19 +40,36 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     private transient Logger log = Logger.getLogger(ConfigureArtifactoryServerAction.class);
 
     private String mode;
-    private String testing;
+    private String artifactoryTest;
     private long serverId;
     private String url;
     private String username;
     private String password;
     private int timeout;
+
+    private String bintrayUsername;
+    private String bintrayApiKey;
+    private String sonatypeOssUsername;
+    private String sonatypeOssPassword;
+
     private transient ServerConfigManager serverConfigManager;
 
     public ConfigureArtifactoryServerAction() {
         serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.ARTIFACTORY_SERVER_CONFIG_MODULE_KEY);
+                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+        populateBintrayConfigToView();
         mode = "add";
         timeout = 300;
+    }
+
+    private void populateBintrayConfigToView() {
+        BintrayConfig config = serverConfigManager.getBintrayConfig();
+        if (config != null) {
+            this.bintrayUsername = config.getBintrayUsername();
+            this.bintrayApiKey = config.getBintrayApiKey();
+            this.sonatypeOssUsername = config.getSonatypeOssUsername();
+            this.sonatypeOssPassword = config.getSonatypeOssPassword();
+        }
     }
 
     @Override
@@ -73,18 +91,18 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     }
 
     public String doAdd() throws Exception {
-        return "input";
+        return INPUT;
     }
 
     public String doCreate() throws Exception {
         if (isTesting()) {
             testConnection();
-            return "input";
+            return INPUT;
         }
 
         serverConfigManager.addServerConfiguration(
                 new ServerConfig(-1, getUrl(), getUsername(), getPassword(), getTimeout()));
-        return "success";
+        return SUCCESS;
     }
 
     public String doEdit() throws Exception {
@@ -92,29 +110,24 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         if (serverConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server configuration by the ID " + serverId);
         }
-        setUrl(serverConfig.getUrl());
-        setUsername(serverConfig.getUsername());
-        setPassword(serverConfig.getPassword());
-        setTimeout(serverConfig.getTimeout());
-
-        return "input";
+        updateFieldsFromServerConfig(serverConfig);
+        return INPUT;
     }
+
 
     public String doUpdate() throws Exception {
         if (isTesting()) {
             testConnection();
-            return "input";
+            return INPUT;
         }
-
-        serverConfigManager.updateServerConfiguration(
-                new ServerConfig(getServerId(), getUrl(), getUsername(), getPassword(), getTimeout()));
-        return "success";
+        serverConfigManager.updateServerConfiguration(createServerConfig());
+        return SUCCESS;
     }
 
     public String doDelete() throws Exception {
         serverConfigManager.deleteServerConfiguration(getServerId());
 
-        return "success";
+        return SUCCESS;
     }
 
     public String getMode() {
@@ -125,16 +138,16 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         this.mode = mode;
     }
 
-    public String getTesting() {
-        return testing;
+    public String getArtifactoryTest() {
+        return artifactoryTest;
     }
 
     private boolean isTesting() {
-        return "Test".equals(getTesting());
+        return "Test".equals(getArtifactoryTest());
     }
 
-    public void setTesting(String testing) {
-        this.testing = testing;
+    public void setArtifactoryTest(String artifactoryTest) {
+        this.artifactoryTest = artifactoryTest;
     }
 
     public long getServerId() {
@@ -177,6 +190,22 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         this.timeout = timeout;
     }
 
+    public String getBintrayUsername() {
+        return bintrayUsername;
+    }
+
+    public String getBintrayApiKey() {
+        return bintrayApiKey;
+    }
+
+    public String getSonatypeOssUsername() {
+        return sonatypeOssUsername;
+    }
+
+    public String getSonatypeOssPassword() {
+        return sonatypeOssPassword;
+    }
+
     private void testConnection() {
         ArtifactoryBuildInfoClient testClient;
         if (StringUtils.isNotBlank(username)) {
@@ -205,5 +234,17 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
         }
         addActionError("Connection failed " + errorMessage);
         log.error("Error while testing the connection to Artifactory server " + url, e);
+    }
+
+    private void updateFieldsFromServerConfig(ServerConfig serverConfig) {
+        setUrl(serverConfig.getUrl());
+        setUsername(serverConfig.getUsername());
+        setPassword(serverConfig.getPassword());
+        setTimeout(serverConfig.getTimeout());
+    }
+
+    @NotNull
+    private ServerConfig createServerConfig() {
+        return new ServerConfig(serverId, url, username, password, timeout);
     }
 }

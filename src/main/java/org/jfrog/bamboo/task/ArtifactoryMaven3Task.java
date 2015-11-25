@@ -68,6 +68,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         BuildLogger logger = getBuildLogger(taskContext);
+        String artifactoryPluginVersion = getArtifactoryVersion();
+        logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
 
@@ -88,10 +90,10 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         }
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
             ArtifactoryBuildInfoPropertyHelper propertyHelper = new MavenPropertyHelper();
-            propertyHelper.init(taskContext.getBuildContext());
+            propertyHelper.init(buildParamsOverrideManager, taskContext.getBuildContext());
             buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(mavenBuildContext, logger,
                     environmentVariableAccessor.getEnvironment(taskContext),
-                    environmentVariableAccessor.getEnvironment());
+                    environmentVariableAccessor.getEnvironment(), artifactoryPluginVersion);
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
             }
@@ -101,7 +103,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
 
-        List<String> command = getCommand(taskContext.getBuildContext(), mavenBuildContext);
+        List<String> command = getCommand(mavenBuildContext);
         String mavenHome = getMavenHome(mavenBuildContext);
         if (StringUtils.isBlank(mavenHome)) {
             log.error(logger.addErrorLogEntry("Maven home is not defined!"));
@@ -143,8 +145,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
      *
      * @return Java bin path
      */
-    public String getExecutable(BuildContext buildContext, AbstractBuildContext context) throws TaskException {
-        String jdkPath = getConfiguredJdkPath(buildContext, context, capabilityContext);
+    public String getExecutable(AbstractBuildContext context) throws TaskException {
+        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, context, capabilityContext);
         StringBuilder binPathBuilder = new StringBuilder(jdkPath);
         if (SystemUtils.IS_OS_WINDOWS) {
             binPathBuilder.append("bin").append(File.separator).append("java.exe");
@@ -180,9 +182,9 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         command.add(Commandline.quoteArgument("-Dmaven.multiModuleProjectDirectory" + "=" + rootDirectory.getPath()));
     }
 
-    private List<String> getCommand(BuildContext buildContext, Maven3BuildContext mavenBuildContext) throws TaskException {
+    private List<String> getCommand(Maven3BuildContext mavenBuildContext) throws TaskException {
         List<String> command = Lists.newArrayList();
-        String executable = getExecutable(buildContext, mavenBuildContext);
+        String executable = getExecutable(mavenBuildContext);
         if (StringUtils.isBlank(executable)) {
             log.error("No Maven executable found");
             return command;

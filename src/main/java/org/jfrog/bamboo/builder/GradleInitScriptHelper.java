@@ -30,6 +30,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.TaskUtils;
@@ -57,8 +58,8 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
     private static final Logger log = LoggerFactory.getLogger(GradleInitScriptHelper.class);
 
     public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir,
-            GradleBuildContext buildContext,
-            BuildLogger logger, String scriptTemplate, Map<String, String> taskEnv, Map<String, String> generalEnv) {
+                                   GradleBuildContext buildContext, BuildLogger logger, String scriptTemplate,
+                                   Map<String, String>taskEnv, Map<String, String> generalEnv, String artifactoryPluginVersion) {
         long selectedServerId = buildContext.getArtifactoryServerId();
         if (selectedServerId != -1) {
             //Using "getInstance()" since the field must be transient
@@ -77,7 +78,7 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
                 try {
                     File buildProps = File.createTempFile("buildinfo", "properties");
                     ArtifactoryClientConfiguration configuration =
-                            createClientConfiguration(buildContext, serverConfig, taskEnv);
+                            createClientConfiguration(buildContext, serverConfig, taskEnv, artifactoryPluginVersion);
                     // Add Bamboo build variables
                     MapDifference<String, String> buildVarDifference = Maps.difference(generalEnv, System.getenv());
                     Map<String, String> filteredBuildVarDifferences = buildVarDifference.entriesOnlyOnLeft();
@@ -110,10 +111,11 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
     }
 
     private ArtifactoryClientConfiguration createClientConfiguration(GradleBuildContext buildContext,
-            ServerConfig serverConfig, Map<String, String> taskEnv) {
+                                                                     ServerConfig serverConfig, Map<String, String> taskEnv, String artifactoryPluginVersion) {
         ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(new NullLog());
         String buildName = context.getPlanName();
         clientConf.info.setBuildName(buildName);
+        clientConf.info.setArtifactoryPluginVersion(artifactoryPluginVersion);
         clientConf.publisher.addMatrixParam("build.name", buildName);
 
         String buildNumber = String.valueOf(context.getBuildNumber());
@@ -227,16 +229,17 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
     }
 
     private void addClientProperties(ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig,
-            GradleBuildContext buildContext) {
+                                     GradleBuildContext buildContext) {
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         clientConf.publisher.setContextUrl(serverUrl);
         clientConf.resolver.setContextUrl(serverUrl);
         clientConf.setTimeout(serverConfig.getTimeout());
-        clientConf.publisher.setRepoKey(buildContext.getPublishingRepo());
+        String publishingRepo = overrideParam(buildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
+        clientConf.publisher.setRepoKey(publishingRepo);
         if (StringUtils.isNotBlank(buildContext.releaseManagementContext.getReleaseRepoKey())) {
             clientConf.publisher.setRepoKey(buildContext.releaseManagementContext.getReleaseRepoKey());
         }
-        String resolutionRepo = buildContext.getResolutionRepo();
+        String resolutionRepo = overrideParam(buildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         if (StringUtils.isNotBlank(resolutionRepo) &&
                 !GradleBuildContext.NO_RESOLUTION_REPO_KEY_CONFIGURED.equals(resolutionRepo)) {
             clientConf.resolver.setRepoKey(resolutionRepo);
@@ -247,11 +250,13 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.resolver.setUsername(globalServerUsername);
         clientConf.resolver.setPassword(globalServerPassword);
 
-        String deployerUsername = serverConfigManager.substituteVariables(buildContext.getDeployerUsername());
+        String deployerUsername = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerUsername())
+                , BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
         if (StringUtils.isBlank(deployerUsername)) {
             deployerUsername = globalServerUsername;
         }
-        String deployerPassword = serverConfigManager.substituteVariables(buildContext.getDeployerPassword());
+        String deployerPassword = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerPassword())
+                , BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
         if (StringUtils.isBlank(deployerPassword)) {
             deployerPassword = globalServerPassword;
         }

@@ -17,6 +17,7 @@
 package org.jfrog.bamboo.admin;
 
 import com.atlassian.bamboo.bandana.PlanAwareBandanaContext;
+import com.atlassian.bamboo.security.EncryptionException;
 import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.variable.CustomVariableContext;
@@ -33,7 +34,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -45,10 +45,14 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ServerConfigManager implements Serializable {
 
-    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
-    private static final String CONFIG_KEY = "org.jfrog.bamboo.server.configurations";
-    private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<ServerConfig>();
     private transient Logger log = Logger.getLogger(ServerConfigManager.class);
+
+    private static final String ARTIFACTORY_CONFIG_KEY = "org.jfrog.bamboo.server.configurations";
+    private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations";
+
+    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
+    private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<ServerConfig>();
+    private BintrayConfig bintrayConfig;
     private transient BandanaManager bandanaManager;
     private AtomicLong nextAvailableId = new AtomicLong(0);
     private CustomVariableContext customVariableContext;
@@ -80,11 +84,9 @@ public class ServerConfigManager implements Serializable {
     }
 
     public void deleteServerConfiguration(final long id) {
-        Iterator<ServerConfig> configIterator = configuredServers.iterator();
-        while (configIterator.hasNext()) {
-            ServerConfig serverConfig = configIterator.next();
-            if (serverConfig.getId() == id) {
-                configuredServers.remove(serverConfig);
+        for (ServerConfig configuredServer : configuredServers) {
+            if (configuredServer.getId() == id) {
+                configuredServers.remove(configuredServer);
                 persist();
                 break;
             }
@@ -104,49 +106,59 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
+    public void updateBintrayConfiguration(BintrayConfig bintrayConfig) {
+        this.bintrayConfig = bintrayConfig;
+        persistBintray();
+    }
+
     public void setBandanaManager(BandanaManager bandanaManager) {
         this.bandanaManager = bandanaManager;
 
-        Object existingConfigs = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, CONFIG_KEY);
-        if (existingConfigs != null) {
-            List<ServerConfig> serverConfigList = (List<ServerConfig>) existingConfigs;
+        Object existingArtifactoryConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY);
+        if (existingArtifactoryConfig != null) {
+            List<ServerConfig> serverConfigList = (List<ServerConfig>) existingArtifactoryConfig;
 
             for (ServerConfig serverConfig : serverConfigList) {
                 if (nextAvailableId.get() <= serverConfig.getId()) {
                     nextAvailableId.set(serverConfig.getId() + 1);
                 }
 
-                configuredServers.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(),
-                        serverConfig.getUsername(), encryptionService.decrypt(serverConfig.getPassword()),
-                        serverConfig.getTimeout()));
+                configuredServers.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
+                        encryptionService.decrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
+            }
+        }
+
+        Object existingBintrayConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY);
+        if (existingBintrayConfig != null) {
+            try {
+                bintrayConfig = decryptExistingBintrayConfig((BintrayConfig) existingBintrayConfig);
+            } catch (EncryptionException e) {
+                log.error("Could not load Bintray configuration.");
             }
         }
     }
 
-    public ArtifactoryBuildInfoClient createClient(long serverId) {
-        ServerConfig serverConfig = getServerConfigById(serverId);
-        if (serverConfig == null) {
-            log.error("Error while retrieving target repository list: Could not find Artifactory server " +
-                    "configuration by the ID " + serverId);
-            return null;
-        }
-        ArtifactoryBuildInfoClient client;
+    private BintrayConfig decryptExistingBintrayConfig(BintrayConfig bintrayConfig) throws EncryptionException {
+        String bintrayApi = bintrayConfig.getBintrayApiKey();
+        String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
+        bintrayApi = TaskUtils.decryptIfNeeded(bintrayApi);
+        sonatypeOssPassword = TaskUtils.decryptIfNeeded(sonatypeOssPassword);
+        return new BintrayConfig(bintrayConfig.getBintrayUsername(), bintrayApi,
+                bintrayConfig.getSonatypeOssUsername(), sonatypeOssPassword);
+    }
 
-        String serverUrl = substituteVariables(serverConfig.getUrl());
-        String username = substituteVariables(serverConfig.getUsername());
-        if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
-        } else {
-            String password = substituteVariables(serverConfig.getPassword());
-            client = new ArtifactoryBuildInfoClient(serverUrl, username, password, new BambooBuildInfoLog(log));
-        }
-        client.setConnectionTimeout(serverConfig.getTimeout());
-        return client;
+    public void setBintrayConfig(BintrayConfig bintrayConfig) {
+        this.bintrayConfig = bintrayConfig;
+    }
+
+    public BintrayConfig getBintrayConfig() {
+        return bintrayConfig;
     }
 
     public List<String> getDeployableRepos(long serverId) {
         return getDeployableRepos(serverId, null, null);
     }
+
     public List<String> getDeployableRepos(long serverId, HttpServletRequest req, HttpServletResponse resp) {
         ServerConfig serverConfig = getServerConfigById(serverId);
         if (serverConfig == null) {
@@ -169,10 +181,7 @@ public class ServerConfigManager implements Serializable {
             username = serverConfig.getUsername();
             password = serverConfig.getPassword();
         }
-        username = substituteVariables(username);
-        password = substituteVariables(password);
-
-        if (StringUtils.isBlank(username))  {
+        if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
         } else {
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
@@ -196,6 +205,7 @@ public class ServerConfigManager implements Serializable {
 
             return Lists.newArrayList();
         }
+
     }
 
     /**
@@ -257,8 +267,24 @@ public class ServerConfigManager implements Serializable {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
                     encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
         }
+        bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigs);
+    }
 
-        bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, CONFIG_KEY, serverConfigs);
+    private synchronized void persistBintray() {
+        if (bintrayConfig != null) {
+            bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY, createEncryptedBintrayConfig(bintrayConfig));
+        }
+    }
+
+    private BintrayConfig createEncryptedBintrayConfig(BintrayConfig bintrayConfig) {
+        BintrayConfig encConfig = new BintrayConfig();
+        String apiKey = encryptionService.encrypt(bintrayConfig.getBintrayApiKey());
+        String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
+        encConfig.setBintrayApiKey(apiKey);
+        encConfig.setSonatypeOssPassword(encryptionService.encrypt(sonatypeOssPassword));
+        encConfig.setBintrayUsername(bintrayConfig.getBintrayUsername());
+        encConfig.setSonatypeOssUsername(bintrayConfig.getSonatypeOssUsername());
+        return encConfig;
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {

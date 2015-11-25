@@ -52,7 +52,7 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @Override
     @NotNull
     protected String getCapabilityKey() {
-        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven.Maven 3";
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven.Artifactory Maven 3";
     }
 
     @Override
