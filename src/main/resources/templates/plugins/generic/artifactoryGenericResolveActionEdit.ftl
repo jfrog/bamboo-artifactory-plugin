@@ -17,7 +17,6 @@
 
 <script>
     function displayGenericArtifactoryConfigs(serverId) {
-        debugger;
         var configDiv = document.getElementById('genericArtifactoryConfigDiv');
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
