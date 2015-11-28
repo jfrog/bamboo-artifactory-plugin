@@ -172,7 +172,7 @@ public class TaskUtils {
      * @return ServerConfig object with Artifactory details
      */
     public static ServerConfig getArtifactoryServerConfig(ImmutablePlan plan) {
-        TaskDefinition mavenOrGradleTaskDefinition = TaskUtils.getMavenOrGradleTaskDefinition(plan);
+        TaskDefinition mavenOrGradleTaskDefinition = TaskDefinitionHelper.getPushToBintrayEnabledTaskDefinition(plan);
         String serverIdStr = TaskUtils.getSelectedServerId(mavenOrGradleTaskDefinition);
         if (StringUtils.isNotEmpty(serverIdStr)) {
             long serverId = Long.parseLong(serverIdStr);

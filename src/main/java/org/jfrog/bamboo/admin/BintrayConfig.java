@@ -48,7 +48,6 @@ public class BintrayConfig implements Serializable {
     }
 
     public void setBintrayUsername(String bintrayUsername) {
-
         this.bintrayUsername = bintrayUsername;
     }
 

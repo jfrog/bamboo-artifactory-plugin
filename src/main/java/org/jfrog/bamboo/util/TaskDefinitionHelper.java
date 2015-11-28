@@ -1,10 +1,12 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.task.TaskDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.task.ArtifactoryGenericDeployTask;
 import org.jfrog.bamboo.task.ArtifactoryGradleTask;
+import org.jfrog.bamboo.task.ArtifactoryIvyTask;
 import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
 
 import java.util.List;
@@ -81,5 +83,32 @@ public abstract class TaskDefinitionHelper {
             }
         }
         return null;
+    }
+
+    /**
+     * @return Generic Deploy task if found, null if not.
+     */
+    @Nullable
+    public static TaskDefinition findIvyTaskDefinition(List<TaskDefinition> taskDefinitions) {
+        if (taskDefinitions != null) {
+            for (TaskDefinition definition : taskDefinitions) {
+                if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryIvyTask.TASK_NAME)) {
+                    return definition;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static TaskDefinition getPushToBintrayEnabledTaskDefinition(ImmutablePlan plan) {
+        List<TaskDefinition> taskDefinitions = plan.getBuildDefinition().getTaskDefinitions();
+        TaskDefinition pushToBintrayEnabledTask = findMavenOrGradleDefinition(taskDefinitions);
+        if (pushToBintrayEnabledTask == null) {
+            pushToBintrayEnabledTask = TaskDefinitionHelper.findIvyTaskDefinition(taskDefinitions);
+        }
+        if (pushToBintrayEnabledTask == null) {
+            pushToBintrayEnabledTask = TaskDefinitionHelper.findGenericDeployDefinition(taskDefinitions);
+        }
+        return pushToBintrayEnabledTask;
     }
 }
