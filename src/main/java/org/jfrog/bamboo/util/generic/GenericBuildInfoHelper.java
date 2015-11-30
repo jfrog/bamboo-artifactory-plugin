@@ -191,7 +191,25 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         }
         String buildTimeStampString = String.valueOf(buildTimeStamp);
         details.addProperty(BuildInfoFields.BUILD_TIMESTAMP, buildTimeStampString);
+        Map<String, String> bambooProps = removePrefix(filterAndGetGlobalVariables());
+        if(bambooProps.size() > 0){
+            details.addProperties(bambooProps);
+        }
         addBuildParentProperties(details, context.getTriggerReason());
+    }
+
+    private Map<String, String> removePrefix(Map<String, String> globalPropertiesMap) {
+
+        Map<String, String> temp = Maps.newHashMap();
+
+        for( Map.Entry<String, String> entry : globalPropertiesMap.entrySet()){
+            String key = entry.getKey();
+            if(key.contains(ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX)){
+                key = StringUtils.remove(key,ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX);
+                temp.put(key, entry.getValue());
+            }
+        }
+        return temp;
     }
 
     private void addBuildParentProperties(DeployDetails.Builder details, TriggerReason triggerReason) {
