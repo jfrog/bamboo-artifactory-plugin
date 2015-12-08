@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.configuration.ConfigurationHelper;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.slf4j.Logger;
@@ -92,6 +93,20 @@ public abstract class BaseBuildInfoHelper {
             log.error("Unable to determine triggering build name.", ioe);
             return null;
         }
+    }
+
+    protected String getPublishingRepoKey(AbstractBuildContext buildContext, Map<String, String> environment) {
+        // In case this is a Release Staging build, return the publishing repo configured
+        // in the Release Staging configuration page:
+        String releaseManagementPublishRepo = environment.get("bamboo_release_management_repoKey");
+        if (StringUtils.isNotBlank(releaseManagementPublishRepo)) {
+            return releaseManagementPublishRepo;
+        }
+        // Take the publishing repo defined as a Bamboo variable or, if not defined, take the value
+        // configured in the task configuration page:
+        return overrideParam(
+            buildContext.getPublishingRepo(),
+            BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
     }
 
     /**
@@ -229,12 +244,12 @@ public abstract class BaseBuildInfoHelper {
     }
 
     /**
-     * Checks of variable was overridden and if so returns the new (replaces) value
-     * if not return the original value
+     * Checks if a Bamboo variable was defined to override the task configured value.
+     * If so then returns the value defined for the variable, else return the original value
      *
-     * @param originalValue value from the build configuration
-     * @param overrideKey   to search for override value
-     * @return the overridden value or the original value from build configuration
+     * @param originalValue Value from the task configuration.
+     * @param overrideKey   Bamboo variable name.
+     * @return              The Bamboo variable if defined. If not, the configured value.
      */
     public String overrideParam(String originalValue, String overrideKey) {
         String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);

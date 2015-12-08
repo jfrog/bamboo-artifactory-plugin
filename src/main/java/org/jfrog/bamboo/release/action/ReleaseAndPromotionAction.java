@@ -279,7 +279,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
                 getNextDevelopmentComment());
         configuration.put(AbstractBuildContext.ReleaseManagementContext.STAGING_COMMENT,
                 getStagingComment());
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.RELEASE_REPO_KEY, getReleasePublishingRepo());
+        configuration.put(AbstractBuildContext.ReleaseManagementContext.REPO_KEY, getReleasePublishingRepo());
         configuration.put(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT, getTagComment());
         configuration.put(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH, getReleaseBranch());
         String[] useReleaseBranchParam = (String[]) parameters.get("useReleaseBranch");

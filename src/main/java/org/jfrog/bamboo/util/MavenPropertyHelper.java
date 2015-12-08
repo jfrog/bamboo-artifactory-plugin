@@ -8,6 +8,8 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
+import java.util.Map;
+
 /**
  * Helper to populate Maven specific properties to the client configuration
  *
@@ -17,8 +19,8 @@ public class MavenPropertyHelper extends ArtifactoryBuildInfoPropertyHelper {
 
     @Override
     protected void addClientProperties(AbstractBuildContext builder, ArtifactoryClientConfiguration clientConf,
-            ServerConfig serverConfig) {
-        super.addClientProperties(builder, clientConf, serverConfig);
+        ServerConfig serverConfig, Map<String, String> environment) {
+
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
 
         clientConf.publisher.setRecordAllDependencies(buildContext.isRecordAllDependencies());
