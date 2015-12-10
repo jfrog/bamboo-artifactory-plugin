@@ -161,9 +161,11 @@ public class ArtifactoryGenericDeployTask implements TaskType {
     }
 
     private void deploy(Multimap<String, File> filesMap, GenericContext context, TaskContext taskContext) throws IOException, NoSuchAlgorithmException {
-
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(context.getSelectedServerId());
+        if (serverConfig == null) {
+            throw new IllegalArgumentException("Could not find Artifactpry server. Please check the Artifactory server in the task configuration.");
+        }
         String username = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(context.getUsername()),
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
         if (StringUtils.isBlank(username)) {

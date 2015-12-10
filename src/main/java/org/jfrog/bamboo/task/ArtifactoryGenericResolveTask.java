@@ -16,8 +16,8 @@ import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 
 import java.io.IOException;
 import java.util.List;
@@ -99,6 +99,9 @@ public class ArtifactoryGenericResolveTask implements TaskType {
     private ArtifactoryDependenciesClient getArtifactoryDependenciesClient(GenericContext genericContext) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(genericContext.getSelectedServerId());
+        if (serverConfig == null) {
+            throw new IllegalArgumentException("Could not find Artifactpry server. Please check the Artifactory server in the task configuration.");
+        }
         String username = overrideParam(serverConfigManager.substituteVariables(genericContext.getUsername()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME);
         if (StringUtils.isBlank(username)) {
             username = serverConfigManager.substituteVariables(serverConfig.getUsername());
