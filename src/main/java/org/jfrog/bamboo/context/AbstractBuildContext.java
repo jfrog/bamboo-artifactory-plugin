@@ -295,7 +295,7 @@ public abstract class AbstractBuildContext {
         public static final String TAG_URL = "tagUrl";
         public static final String TAG_COMMENT = "tagComment";
         public static final String NEXT_DEVELOPMENT_COMMENT = "nextDevelopmentComment";
-        public static final String RELEASE_REPO_KEY = "releaseRepoKey";
+        public static final String REPO_KEY = "release.management.repoKey";
 
         public boolean isActivateReleaseManagement() {
             return Boolean.parseBoolean(env.get(ACTIVATE_RELEASE_MANAGEMENT));
@@ -309,8 +309,8 @@ public abstract class AbstractBuildContext {
             return env.get(TAG_URL);
         }
 
-        public String getReleaseRepoKey() {
-            return env.get(RELEASE_REPO_KEY);
+        public String getRepoKey() {
+            return env.get(REPO_KEY);
         }
 
         public String getStagingComment() {

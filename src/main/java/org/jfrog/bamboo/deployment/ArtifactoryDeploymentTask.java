@@ -53,7 +53,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
         }
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(Long.parseLong(serverId));
         if (serverConfig == null) {
-            buildLogger.addErrorLogEntry("Please check Artifactory server configuration in the job configuration.");
+            buildLogger.addErrorLogEntry("Could not find Artifactpry server. Please check the Artifactory server in the task configuration.");
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
         }
 

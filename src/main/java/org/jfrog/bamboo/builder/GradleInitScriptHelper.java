@@ -58,8 +58,9 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
     private static final Logger log = LoggerFactory.getLogger(GradleInitScriptHelper.class);
 
     public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir,
-                                   GradleBuildContext buildContext, BuildLogger logger, String scriptTemplate,
-                                   Map<String, String>taskEnv, Map<String, String> generalEnv, String artifactoryPluginVersion) {
+        GradleBuildContext buildContext, BuildLogger logger, String scriptTemplate,
+        Map<String, String>taskEnv, Map<String, String> generalEnv, String artifactoryPluginVersion) {
+
         long selectedServerId = buildContext.getArtifactoryServerId();
         if (selectedServerId != -1) {
             //Using "getInstance()" since the field must be transient
@@ -111,7 +112,8 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
     }
 
     private ArtifactoryClientConfiguration createClientConfiguration(GradleBuildContext buildContext,
-                                                                     ServerConfig serverConfig, Map<String, String> taskEnv, String artifactoryPluginVersion) {
+        ServerConfig serverConfig, Map<String, String> taskEnv, String artifactoryPluginVersion) {
+
         ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(new NullLog());
         String buildName = context.getPlanName();
         clientConf.info.setBuildName(buildName);
@@ -174,7 +176,7 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
 
         clientConf.info.setReleaseEnabled(buildContext.releaseManagementContext.isActivateReleaseManagement());
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
-        addClientProperties(clientConf, serverConfig, buildContext);
+        addClientProperties(clientConf, serverConfig, buildContext, taskEnv);
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
         clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
@@ -229,16 +231,13 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
     }
 
     private void addClientProperties(ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig,
-                                     GradleBuildContext buildContext) {
+        GradleBuildContext buildContext, Map<String, String> environment) {
+
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         clientConf.publisher.setContextUrl(serverUrl);
         clientConf.resolver.setContextUrl(serverUrl);
-        clientConf.setTimeout(serverConfig.getTimeout());
-        String publishingRepo = overrideParam(buildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
-        clientConf.publisher.setRepoKey(publishingRepo);
-        if (StringUtils.isNotBlank(buildContext.releaseManagementContext.getReleaseRepoKey())) {
-            clientConf.publisher.setRepoKey(buildContext.releaseManagementContext.getReleaseRepoKey());
-        }
+        clientConf.publisher.setRepoKey(getPublishingRepoKey(buildContext, environment));
+
         String resolutionRepo = overrideParam(buildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         if (StringUtils.isNotBlank(resolutionRepo) &&
                 !GradleBuildContext.NO_RESOLUTION_REPO_KEY_CONFIGURED.equals(resolutionRepo)) {
