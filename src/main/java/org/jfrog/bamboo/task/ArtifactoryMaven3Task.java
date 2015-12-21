@@ -165,11 +165,14 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         return binPath;
     }
 
-    private Maven3BuildContext createBuildContext(TaskContext taskContext) {
+    private Maven3BuildContext createBuildContext(TaskContext context) {
         Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(taskContext.getConfigurationMap());
-        Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
-        combinedMap.putAll(customBuildData);
+        combinedMap.putAll(context.getConfigurationMap());
+        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
+        if (parentBuildContext != null) {
+            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
+            combinedMap.putAll(customBuildData);
+        }
         return new Maven3BuildContext(combinedMap);
     }
 

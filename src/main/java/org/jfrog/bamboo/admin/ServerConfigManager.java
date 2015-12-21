@@ -181,6 +181,9 @@ public class ServerConfigManager implements Serializable {
             username = serverConfig.getUsername();
             password = serverConfig.getPassword();
         }
+        username = substituteVariables(username);
+        password = substituteVariables(password);
+
         if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
         } else {
