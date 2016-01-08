@@ -33,7 +33,6 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
-import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.BuildInfoFields;
@@ -83,16 +82,9 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
                     // Add Bamboo build variables
                     MapDifference<String, String> buildVarDifference = Maps.difference(generalEnv, System.getenv());
                     Map<String, String> filteredBuildVarDifferences = buildVarDifference.entriesOnlyOnLeft();
-
-                    // Retrieve the exclude pattern and adds to the exclude pattern the bamboo_artifactory_deploy and bamboo_buildInfo_property
-                    // to avoid duplicates in the Environment tab in Artifactory.
-                    String excludePattern =  buildContext.getEnvVarsExcludePatterns();
-                    excludePattern += ",*" + ConstantValues.ADDITIONAL_ENV_VARIABLES_DEPLOY + "*";
-                    excludePattern += ",*" + ConstantValues.ADDITIONAL_ENV_VARIABLES_ROOT.toLowerCase() + ConstantValues.ADDITIONAL_ENV_VARIABLES_BUILDINFO + "*";
-
                     IncludeExcludePatterns patterns = new IncludeExcludePatterns(
                             buildContext.getEnvVarsIncludePatterns(),
-                            excludePattern);
+                            buildContext.getEnvVarsExcludePatterns());
                     configuration.info.addBuildVariables(filteredBuildVarDifferences, patterns);
                     configuration.setPropertiesFile(buildProps.getAbsolutePath());
                     configuration.persistToPropertiesFile();
@@ -184,21 +176,14 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
         addClientProperties(clientConf, serverConfig, buildContext);
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
-
-        // Retrieve the exclude pattern and adds to the exclude pattern the bamboo_artifactory_deploy and bamboo_buildInfo_property
-        // to avoid duplicates in the Environment tab in Artifactory.
-        String excludePattern =  buildContext.getEnvVarsExcludePatterns();
-        excludePattern += ",*" + ConstantValues.ADDITIONAL_ENV_VARIABLES_DEPLOY.toLowerCase() + "*";
-        excludePattern += ",*" + ConstantValues.ADDITIONAL_ENV_VARIABLES_ROOT.toLowerCase() + ConstantValues.ADDITIONAL_ENV_VARIABLES_BUILDINFO + "*";
-
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
-        clientConf.setEnvVarsExcludePatterns(excludePattern);
+        clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
 
         Map<String, String> globalVars = filterAndGetGlobalVariables();
         globalVars = TaskUtils.getEscapedEnvMap(globalVars);
         globalVars.putAll(TaskUtils.getEscapedEnvMap(taskEnv));
         IncludeExcludePatterns patterns = new IncludeExcludePatterns(buildContext.getEnvVarsIncludePatterns(),
-                excludePattern);
+                buildContext.getEnvVarsExcludePatterns());
         clientConf.info.addBuildVariables(globalVars, patterns);
         clientConf.fillFromProperties(globalVars, patterns);
         return clientConf;

@@ -36,8 +36,4 @@ public interface ConstantValues extends Serializable {
     String ARTIFACTORY_BAMBOO_UTILS_HELPER_KEY = "artifactoryBambooUtilsHelper";
     String PLAN_KEY_PARAM = "planKey";
     String BINTRAY_URL = "https://api.bintray.com/";
-    // The values as retrieved from Bamboo env variables that creates the duplication in the Artifactory Environment tab.
-    String ADDITIONAL_ENV_VARIABLES_ROOT = "BAMBOO_";
-    String ADDITIONAL_ENV_VARIABLES_DEPLOY = ADDITIONAL_ENV_VARIABLES_ROOT + "ARTIFACTORY_DEPLOY";
-    String ADDITIONAL_ENV_VARIABLES_BUILDINFO = "buildInfo_property";
 }

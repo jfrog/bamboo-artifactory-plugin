@@ -29,7 +29,6 @@ import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.build.api.util.NullLog;
@@ -161,15 +160,8 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         props.putAll(environment);
         props.putAll(generalEnv);
         props = TaskUtils.getEscapedEnvMap(props);
-
-        // Retrieve the exclude pattern and adds to the exclude pattern the bamboo_artifactory_deploy and bamboo_buildInfo_property
-        // to avoid duplicates in the Environment tab in Artifactory.
-        String excludePattern =  buildContext.getEnvVarsExcludePatterns();
-        excludePattern += ",*" + ConstantValues.ADDITIONAL_ENV_VARIABLES_DEPLOY.toLowerCase() + "*";
-        excludePattern += ",*" + ConstantValues.ADDITIONAL_ENV_VARIABLES_ROOT.toLowerCase() + ConstantValues.ADDITIONAL_ENV_VARIABLES_BUILDINFO + "*";
-
         IncludeExcludePatterns patterns = new IncludeExcludePatterns(buildContext.getEnvVarsIncludePatterns(),
-                excludePattern);
+                buildContext.getEnvVarsExcludePatterns());
         clientConf.info.addBuildVariables(props, patterns);
         clientConf.fillFromProperties(props, patterns);
     }
@@ -240,13 +232,6 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
             clientConf.publisher.setUsername(deployerUsername);
             clientConf.publisher.setPassword(password);
         }
-
-        // Retrieve the exclude pattern and adds to the exclude pattern the bamboo_artifactory_deploy and bamboo_buildInfo_property
-        // to avoid duplicates in the Environment tab in Artifactory.
-        String excludePattern =  artifactoryBuildContext.getEnvVarsExcludePatterns();
-        excludePattern += ",*" + ConstantValues.ADDITIONAL_ENV_VARIABLES_DEPLOY.toLowerCase() + "*";
-        excludePattern += ",*" + ConstantValues.ADDITIONAL_ENV_VARIABLES_ROOT.toLowerCase() + ConstantValues.ADDITIONAL_ENV_VARIABLES_BUILDINFO + "*";
-
         clientConf.publisher.setPublishArtifacts(artifactoryBuildContext.isPublishArtifacts());
         clientConf.publisher.setIncludePatterns(artifactoryBuildContext.getIncludePattern());
         clientConf.publisher.setExcludePatterns(artifactoryBuildContext.getExcludePattern());
@@ -254,7 +239,7 @@ public class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
         clientConf.publisher.setPublishBuildInfo(artifactoryBuildContext.isPublishBuildInfo());
         clientConf.setIncludeEnvVars(artifactoryBuildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(artifactoryBuildContext.getEnvVarsIncludePatterns());
-        clientConf.setEnvVarsExcludePatterns(excludePattern);
+        clientConf.setEnvVarsExcludePatterns(artifactoryBuildContext.getEnvVarsExcludePatterns());
     }
 
 
