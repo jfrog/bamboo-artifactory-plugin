@@ -50,17 +50,42 @@
     </scm>
 
     <properties>
-        <bamboo.version>5.9.0</bamboo.version>
+        <bamboo.version>5.10.0</bamboo.version>
+        <platform.version>2.21.3</platform.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <buildinfo.version>2.5.3</buildinfo.version>
-        <buildinfo.gradle.version>3.1.2</buildinfo.gradle.version>
+        <buildinfo.version>2.5.4</buildinfo.version>
+        <buildinfo.gradle.version>4.0.x-SNAPSHOT</buildinfo.gradle.version>
         <buildinfo.ivy.version>2.5.2</buildinfo.ivy.version>
-        <buildinfo.maven.version>2.5.3</buildinfo.maven.version>
+        <buildinfo.maven.version>2.5.4</buildinfo.maven.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>18.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.atlassian.platform</groupId>
+                <artifactId>platform</artifactId>
+                <version>${platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.atlassian.platform</groupId>
+                <artifactId>third-party</artifactId>
+                <version>${platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -91,12 +116,6 @@
             <groupId>com.atlassian.bamboo</groupId>
             <artifactId>atlassian-bamboo-web</artifactId>
             <version>${bamboo.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

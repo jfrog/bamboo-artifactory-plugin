@@ -1,6 +1,7 @@
 package org.jfrog.bamboo.release.provider;
 
 import com.atlassian.bamboo.security.SecureTokenService;
+import com.atlassian.bamboo.serialization.WhitelistedSerializable;
 import com.atlassian.bamboo.task.RuntimeTaskDataProvider;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
@@ -9,6 +10,7 @@ import com.atlassian.bamboo.v2.build.agent.messages.AuthenticableMessage;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,6 +40,12 @@ public class TokenDataProvider implements RuntimeTaskDataProvider {
          */
         taskDefinition.getConfiguration().put(SECURITY_TOKEN, secureTokenService.generate(AuthenticableMessage.Identification.forResultKey(commonContext.getResultKey())).getToken());
         return result;
+    }
+
+    @NotNull
+    @Override
+    public Map<String, WhitelistedSerializable> createRuntimeTaskData(@NotNull RuntimeTaskDefinition runtimeTaskDefinition, @NotNull CommonContext commonContext) {
+        return new HashMap<String, WhitelistedSerializable>();
     }
 
     @Override

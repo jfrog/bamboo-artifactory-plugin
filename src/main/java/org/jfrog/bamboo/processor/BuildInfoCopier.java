@@ -11,9 +11,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +27,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -70,7 +67,12 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
         if (buildInfo.exists()) {
             log.info(buildLogger.addBuildLogEntry("Copying the buildinfo artifacts for " +
                     "build: " + buildContext.getBuildResultKey()));
-            String securityToken = mavenDefinition.getConfiguration().get(TokenDataProvider.SECURITY_TOKEN);
+
+            TaskDefinition definition = TaskDefinitionHelper.findMavenDefinition(buildContext.getTaskDefinitions());
+            String securityToken = buildContext.getRuntimeTaskContext()
+                .getRuntimeContextForTask(definition)
+                .get(TokenDataProvider.SECURITY_TOKEN);
+
             ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.createFromString(securityToken));
             File buildInfoZip = createBuildInfoZip(buildInfo);
             if (buildInfoZip != null) {
@@ -78,8 +80,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
                 artifact.setLocation(location);
                 artifact.setCopyPattern(buildInfoZip.getName());
                 Map<String, String> config = Maps.newHashMap();
-                Set<String> successfulPublishers = Sets.newHashSet();
-                artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, config, successfulPublishers, 1);
+                artifactManager.publish(buildLogger, planResultKey, checkoutDir, artifact, config, 1);
             }
         }
         return buildContext;
@@ -102,8 +103,18 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
             stream = new GZIPOutputStream(new FileOutputStream(buildInfoZipFile));
             ByteStreams.copy(buildInfoFileStream, stream);
         } finally {
-            Closeables.closeQuietly(buildInfoFileStream);
-            Closeables.closeQuietly(stream);
+            if (buildInfoFileStream != null) {
+                try {
+                    buildInfoFileStream.close();
+                } catch (IOException e) { // Ignore
+                }
+            }
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) { // Ignore
+                }
+            }
         }
         return buildInfoZipFile;
     }
