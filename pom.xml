@@ -253,7 +253,7 @@
                             <excludes>META-INF/**/*</excludes>
                             <excludeClassifiers>uber</excludeClassifiers>
                             <includeArtifactIds>
-                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,httpclient,httpcore,jackson-core-asl,jackson-mapper-asl,build-info-vcs,p4java-jfrog,org.eclipse.jgit
+                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,jackson-core-asl,jackson-mapper-asl,build-info-vcs,p4java-jfrog,org.eclipse.jgit
                             </includeArtifactIds>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                             <overWriteReleases>true</overWriteReleases>
