@@ -68,7 +68,7 @@
         </package>
     </xwork>
 
-    <web-item key="configureArtifactoryPlugin" name="Artifactory Plugin" section="system.admin/Plugins">
+    <web-item key="configureArtifactoryPlugin" name="Artifactory Plugin" section="system.admin/plugins">
         <label key="Artifactory Plugin"/>
         <link linkId="configureArtifactoryPlugin">/admin/manageArtifactoryServers.action</link>
     </web-item>

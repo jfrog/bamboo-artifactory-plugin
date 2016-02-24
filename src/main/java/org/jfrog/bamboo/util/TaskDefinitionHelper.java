@@ -41,7 +41,7 @@ public abstract class TaskDefinitionHelper {
     }
 
     /**
-     * @return Maven task if found, null if not.
+     * @return Artifactory Gradle TaskDefinition if found, null if not.
      */
     @Nullable
     public static TaskDefinition findGradleDefinition(List<TaskDefinition> taskDefinitions) {
@@ -56,7 +56,7 @@ public abstract class TaskDefinitionHelper {
     }
 
     /**
-     * @return Gradle task if found, null if not.
+     * @return Artifactory Maven TaskDefinition if found, null if not.
      */
     @Nullable
     public static TaskDefinition findMavenDefinition(List<TaskDefinition> taskDefinitions) {
