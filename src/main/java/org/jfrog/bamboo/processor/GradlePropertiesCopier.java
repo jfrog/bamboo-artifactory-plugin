@@ -71,8 +71,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
                     .getRuntimeContextForTask(def)
                     .get(TokenDataProvider.SECURITY_TOKEN);
 
-                ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.createFromString(securityToken));
-                artifact.setName("gradle");
+                ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl("gradle", false, SecureToken.createFromString(securityToken));
                 artifact.setLocation(location);
                 artifact.setCopyPattern(gradleProps.getName());
                 Map<String, String> config = Maps.newHashMap();
