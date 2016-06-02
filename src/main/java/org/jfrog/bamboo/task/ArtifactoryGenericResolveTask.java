@@ -42,7 +42,7 @@ public class ArtifactoryGenericResolveTask implements TaskType {
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         logger = taskContext.getBuildLogger();
 
-        List<TaskDefinition> taskDefinitions = taskContext.getBuildContext().getTaskDefinitions();
+        List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
         /**
          *In case generic deploy exists in the user job, and the publish build info flag is on, we need to
          * capture all the resolution data for the build info, and prepare it to the deploy task.

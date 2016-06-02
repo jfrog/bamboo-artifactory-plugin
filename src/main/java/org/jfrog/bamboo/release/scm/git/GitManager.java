@@ -73,10 +73,8 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
 
     @Override
     public void commitWorkingCopy(String commitMessage) throws IOException, InterruptedException {
-        Git git = createGitApi();
-        try {
-            git.commit().setMessage(commitMessage).setAll(true).setCommitter(new PersonIdent(git.getRepository()))
-                    .call();
+        try (Git git = createGitApi()) {
+            git.commit().setMessage(commitMessage).setAll(true).setCommitter(new PersonIdent(git.getRepository())).call();
         } catch (Exception e) {
             String message = "An error " + e.getMessage() + " occurred while commiting the working copy";
             log.error(buildLogger.addErrorLogEntry("[RELEASE]" + message));
@@ -87,8 +85,7 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
 
     @Override
     public void createTag(String tagUrl, String commitMessage) throws IOException, InterruptedException {
-        Git git = createGitApi();
-        try {
+        try (Git git = createGitApi()) {
             git.tag().setMessage(commitMessage).setName(tagUrl).call();
         } catch (Exception e) {
             String message = "An error " + e.getMessage() + " occurred while creating a tag " + tagUrl;
@@ -160,9 +157,8 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     }
 
     public void checkoutBranch(final String branch, final boolean create) throws IOException {
-        Git git = createGitApi();
         log("Checking out branch: " + branch);
-        try {
+        try (Git git = createGitApi()) {
             git.checkout().setCreateBranch(create).setForce(create).setName(branch).call();
         } catch (Exception e) {
             String message = "An error '" + e.getMessage() + "' occurred while checking out branch: " + branch;
@@ -172,52 +168,53 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     }
 
     public void push(String url, String branch) throws IOException {
-        Git git = createGitApi();
-        PushCommand pushCommand = buildPushCommand(git);
-        pushCommand.setRefSpecs(new RefSpec(REF_PREFIX + branch)).setRemote(url);
-        Iterable<PushResult> result;
-        try {
+        try (Git git = createGitApi()) {
+            PushCommand pushCommand = buildPushCommand(git);
+            pushCommand.setRefSpecs(new RefSpec(REF_PREFIX + branch)).setRemote(url);
+            Iterable<PushResult> result;
             log("Pushing branch: " + branch + " to url: " + url);
-            result = pushCommand.call();
-        } catch (Exception ire) {
-            String message =
-                    "An error '" + ire.getMessage() + "' occurred while pushing branch: " + branch + " to url: " + url;
-            log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
-            throw new IOException(message, ire);
-        }
-        for (PushResult pushResult : result) {
-            if (StringUtils.isNotBlank(pushResult.getMessages())) {
-                log(pushResult.getMessages());
+            try {
+                result = pushCommand.call();
+            } catch (Exception ire) {
+                String message =
+                        "An error '" + ire.getMessage() + "' occurred while pushing branch: " + branch + " to url: " + url;
+                log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+                throw new IOException(message, ire);
+            }
+            for (PushResult pushResult : result) {
+                if (StringUtils.isNotBlank(pushResult.getMessages())) {
+                    log(pushResult.getMessages());
 
+                }
             }
         }
     }
 
     public void pushTag(String remoteUrl, String tagUrl) throws IOException {
-        Git git = createGitApi();
         String escapedTagName = tagUrl.replace(' ', '_');
         Iterable<PushResult> result;
-        PushCommand pushCommand = buildPushCommand(git);
-        pushCommand.setRefSpecs(new RefSpec(REFS_TAGS + escapedTagName)).setRemote(remoteUrl);
-        try {
+        try (Git git = createGitApi()) {
+            PushCommand pushCommand = buildPushCommand(git);
+            pushCommand.setRefSpecs(new RefSpec(REFS_TAGS + escapedTagName)).setRemote(remoteUrl);
             log("Pushing tag: " + escapedTagName + " to url " + remoteUrl);
-            result = pushCommand.call();
-        } catch (Exception ire) {
-            String message =
-                    "An error '" + ire.getMessage() + "' occurred while pushing tag: " + tagUrl + " to:" + remoteUrl;
-            log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
-            throw new IOException(message, ire);
-        }
-        for (PushResult pushResult : result) {
-            if (StringUtils.isNotBlank(pushResult.getMessages())) {
-                log(pushResult.getMessages());
+            try {
+                result = pushCommand.call();
+            } catch (Exception ire) {
+                String message =
+                        "An error '" + ire.getMessage() + "' occurred while pushing tag: " + tagUrl + " to:" + remoteUrl;
+                log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+                throw new IOException(message, ire);
+            }
+            for (PushResult pushResult : result) {
+                if (StringUtils.isNotBlank(pushResult.getMessages())) {
+                    log(pushResult.getMessages());
+                }
             }
         }
     }
 
     public void deleteLocalBranch(String branch) throws IOException {
-        Git git = createGitApi();
-        try {
+        try (Git git = createGitApi()) {
             log("Deleting local branch: " + branch);
             git.branchDelete().setBranchNames(branch).setForce(true).call();
         } catch (Exception e) {
@@ -228,67 +225,71 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
     }
 
     public void deleteRemoteBranch(String repository, String branch) throws IOException {
-        Git git = createGitApi();
-        PushCommand pushCommand = buildPushCommand(git);
-        pushCommand.setRefSpecs(new RefSpec(":" + REF_PREFIX + branch)).setRemote(repository);
         Iterable<PushResult> results;
-        try {
+        try (Git git = createGitApi()) {
+            PushCommand pushCommand = buildPushCommand(git);
+            pushCommand.setRefSpecs(new RefSpec(":" + REF_PREFIX + branch)).setRemote(repository);
             log("Deleting remote branch: " + branch + " from " + repository);
-            results = pushCommand.call();
-        } catch (Exception e) {
-            String message = "An error '" + e.getMessage() + "' occurred while deleting remote branch: " + branch +
-                    " from remote: " + repository;
-            log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
-            throw new IOException(message, e);
-        }
-        for (PushResult result : results) {
-            if (StringUtils.isNotBlank(result.getMessages())) {
-                log(result.getMessages());
+            try {
+                results = pushCommand.call();
+            } catch (Exception e) {
+                String message = "An error '" + e.getMessage() + "' occurred while deleting remote branch: " + branch +
+                        " from remote: " + repository;
+                log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+                throw new IOException(message, e);
+            }
+            for (PushResult result : results) {
+                if (StringUtils.isNotBlank(result.getMessages())) {
+                    log(result.getMessages());
+                }
             }
         }
     }
 
     public void deleteLocalTag(String tag) throws IOException {
-        Git git = createGitApi();
-        DeleteTagCommand deleteTagCommand = new DeleteTagCommand(git.getRepository());
-        deleteTagCommand.setName(tag);
-        try {
+        try (Git git = createGitApi()) {
+            DeleteTagCommand deleteTagCommand = new DeleteTagCommand(git.getRepository());
+            deleteTagCommand.setName(tag);
             log("Deleting local tag: " + tag);
-            RefUpdate.Result result = deleteTagCommand.call();
-            log.debug("Result of deletion of local tag: " + result);
-        } catch (Exception e) {
-            String message = "An error '" + e.getMessage() + "' occurred when deleting local tag: " + tag;
-            log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
-            throw new IOException(message, e);
+            try {
+                RefUpdate.Result result = deleteTagCommand.call();
+                log.debug("Result of deletion of local tag: " + result);
+            } catch (Exception e) {
+                String message = "An error '" + e.getMessage() + "' occurred when deleting local tag: " + tag;
+                log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+                throw new IOException(message, e);
+            }
         }
     }
 
     public void revertWorkingCopy(String ish) throws GitAPIException, IOException {
-        Git git = createGitApi();
         log("Reverting local copy to: " + ish);
-        org.eclipse.jgit.lib.Repository repository = git.getRepository();
-        ResetCommand resetCommand = new ResetCommand(repository);
-        resetCommand.setMode(ResetCommand.ResetType.HARD).setRef(ish).call();
+        try (Git git = createGitApi()) {
+            org.eclipse.jgit.lib.Repository repository = git.getRepository();
+            ResetCommand resetCommand = new ResetCommand(repository);
+            resetCommand.setMode(ResetCommand.ResetType.HARD).setRef(ish).call();
+        }
     }
 
     public void deleteRemoteTag(String repository, String tag) throws IOException {
-        Git git = createGitApi();
-        PushCommand pushCommand = buildPushCommand(git);
-        pushCommand.setRefSpecs(new RefSpec(":" + REFS_TAGS + tag)).setRemote(repository);
-        Iterable<PushResult> results;
-        try {
+        try (Git git = createGitApi()) {
+            PushCommand pushCommand = buildPushCommand(git);
+            pushCommand.setRefSpecs(new RefSpec(":" + REFS_TAGS + tag)).setRemote(repository);
+            Iterable<PushResult> results;
             log("Deleting remote tag: " + tag + " from " + repository);
-            results = pushCommand.call();
-        } catch (Exception e) {
-            String message =
-                    "An error '" + e.getMessage() + "' occurred when deleting remote tag: " + tag + " from remote: " +
-                            repository;
-            log.error(buildLogger.addErrorLogEntry("[RELEASE]" + message));
-            throw new IOException(message, e);
-        }
-        for (PushResult result : results) {
-            if (StringUtils.isNotBlank(result.getMessages())) {
-                log(result.getMessages());
+            try {
+                results = pushCommand.call();
+            } catch (Exception e) {
+                String message =
+                        "An error '" + e.getMessage() + "' occurred when deleting remote tag: " + tag + " from remote: " +
+                                repository;
+                log.error(buildLogger.addErrorLogEntry("[RELEASE]" + message));
+                throw new IOException(message, e);
+            }
+            for (PushResult result : results) {
+                if (StringUtils.isNotBlank(result.getMessages())) {
+                    log(result.getMessages());
+                }
             }
         }
     }
@@ -325,9 +326,8 @@ public class GitManager extends AbstractScmManager<AbstractRepository> {
 
     private Transport createTransport() throws IOException {
         String url = getRemoteUrl();
-        Git git = createGitApi();
         Transport transport = null;
-        try {
+        try (Git git = createGitApi()) {
             GitAuthenticationType authenticationType = getAuthType();
             if (authenticationType.equals(GitAuthenticationType.SSH_KEYPAIR)
                     || authenticationType.equals(GitAuthenticationType.SHARED_CREDENTIALS)) {

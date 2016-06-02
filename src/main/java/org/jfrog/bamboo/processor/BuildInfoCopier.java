@@ -68,15 +68,14 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
             log.info(buildLogger.addBuildLogEntry("Copying the buildinfo artifacts for " +
                     "build: " + buildContext.getBuildResultKey()));
 
-            TaskDefinition definition = TaskDefinitionHelper.findMavenDefinition(buildContext.getTaskDefinitions());
+            TaskDefinition definition = TaskDefinitionHelper.findMavenDefinition(buildContext.getRuntimeTaskDefinitions());
             String securityToken = buildContext.getRuntimeTaskContext()
                 .getRuntimeContextForTask(definition)
                 .get(TokenDataProvider.SECURITY_TOKEN);
 
-            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(SecureToken.createFromString(securityToken));
+            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl("buildInfo", false, SecureToken.createFromString(securityToken));
             File buildInfoZip = createBuildInfoZip(buildInfo);
             if (buildInfoZip != null) {
-                artifact.setName("buildInfo");
                 artifact.setLocation(location);
                 artifact.setCopyPattern(buildInfoZip.getName());
                 Map<String, String> config = Maps.newHashMap();
