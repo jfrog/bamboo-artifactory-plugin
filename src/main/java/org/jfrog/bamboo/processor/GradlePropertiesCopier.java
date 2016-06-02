@@ -66,7 +66,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
 
             File gradleProps = new File(new File(checkoutDir, location), "gradle.properties");
             if (gradleProps.exists()) {
-                TaskDefinition def = TaskDefinitionHelper.findGradleDefinition(buildContext.getTaskDefinitions());
+                TaskDefinition def = TaskDefinitionHelper.findGradleDefinition(buildContext.getRuntimeTaskDefinitions());
                 String securityToken = buildContext.getRuntimeTaskContext()
                     .getRuntimeContextForTask(def)
                     .get(TokenDataProvider.SECURITY_TOKEN);

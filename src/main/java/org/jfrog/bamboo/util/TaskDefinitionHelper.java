@@ -44,7 +44,7 @@ public abstract class TaskDefinitionHelper {
      * @return Artifactory Gradle TaskDefinition if found, null if not.
      */
     @Nullable
-    public static TaskDefinition findGradleDefinition(List<TaskDefinition> taskDefinitions) {
+    public static TaskDefinition findGradleDefinition(List<? extends TaskDefinition> taskDefinitions) {
         if (taskDefinitions != null) {
             for (TaskDefinition definition : taskDefinitions) {
                 if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryGradleTask.TASK_NAME)) {
@@ -59,7 +59,7 @@ public abstract class TaskDefinitionHelper {
      * @return Artifactory Maven TaskDefinition if found, null if not.
      */
     @Nullable
-    public static TaskDefinition findMavenDefinition(List<TaskDefinition> taskDefinitions) {
+    public static TaskDefinition findMavenDefinition(List<? extends TaskDefinition> taskDefinitions) {
         if (taskDefinitions != null) {
             for (TaskDefinition definition : taskDefinitions) {
                 if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryMaven3Task.TASK_NAME)) {
@@ -74,7 +74,7 @@ public abstract class TaskDefinitionHelper {
      * @return Generic Deploy task if found, null if not.
      */
     @Nullable
-    public static TaskDefinition findGenericDeployDefinition(List<TaskDefinition> taskDefinitions) {
+    public static TaskDefinition findGenericDeployDefinition(List<? extends TaskDefinition> taskDefinitions) {
         if (taskDefinitions != null) {
             for (TaskDefinition definition : taskDefinitions) {
                 if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryGenericDeployTask.TASK_NAME)) {
