@@ -59,10 +59,11 @@ public class ArtifactoryGenericResolveTask implements TaskType {
 
         try {
             GenericArtifactsResolver resolver = new GenericArtifactsResolver(taskContext, client,
-                    genericContext.getResolvePattern(), new BambooBuildInfoLog(log));
+                    genericContext.getResolvePattern(), new BambooBuildInfoLog(log, logger));
 
             List<BuildDependency> buildDependencies = resolver.retrieveBuildDependencies();
             List<Dependency> dependencies = resolver.retrievePublishedDependencies();
+            logger.addBuildLogEntry("Resolved " + dependencies.size() + " artifacts.");
 
             if (buildinfoFlag.equals("true")) {
                 /**

@@ -16,6 +16,7 @@
 
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.build.logger.BuildLogger;
 import org.apache.log4j.Logger;
 import org.jfrog.build.api.util.Log;
 
@@ -25,28 +26,44 @@ import org.jfrog.build.api.util.Log;
 public class BambooBuildInfoLog implements Log {
 
     private Logger log;
+    private BuildLogger logger;
 
     public BambooBuildInfoLog(Logger log) {
         this.log = log;
     }
 
+    public BambooBuildInfoLog(Logger log, BuildLogger logger){
+        this.log = log;
+        this.logger = logger;
+    }
+
     public void debug(String message) {
         log.debug(message);
+        if( logger!=null )
+            logger.addBuildLogEntry(message);
     }
 
     public void info(String message) {
         log.info(message);
+        if( logger!=null )
+            logger.addBuildLogEntry(message);
     }
 
     public void warn(String message) {
         log.warn(message);
+        if( logger!=null )
+            logger.addBuildLogEntry(message);
     }
 
     public void error(String message) {
         log.error(message);
+        if( logger!=null )
+            logger.addBuildLogEntry(message);
     }
 
     public void error(String message, Throwable e) {
         log.error(message, e);
+        if( logger!=null )
+            logger.addBuildLogEntry(message);
     }
 }

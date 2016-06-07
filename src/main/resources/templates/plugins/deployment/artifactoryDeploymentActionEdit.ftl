@@ -15,8 +15,6 @@
 <script>
     function displayDeployArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('deployArtifactoryConfiguration');
-        var credentialsUserName = document.getElementsByName("artifactory.deployment.username")[0].value;
-        var credentialsPassword = document.getElementsByName('artifactory.deployment.password')[0].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
@@ -32,14 +30,14 @@
                 }
             }
 
-            loadRepoKeys(serverId, credentialsUserName, credentialsPassword)
+            loadRepoKeys(serverId)
         }
     }
 
-    function loadRepoKeys(serverId, credentialsUserName, credentialsPassword) {
+    function loadRepoKeys(serverId) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-            '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+            '&deployableRepos=true',
             dataType: 'json',
             cache: false,
             success: function (json) {
