@@ -84,7 +84,7 @@ public abstract class ArtifactoryTaskType implements TaskType {
 
     public TaskResult collectTestResults(AbstractBuildContext buildContext, TaskContext taskContext,
             ExternalProcess process) {
-        TaskResultBuilder builder = TaskResultBuilder.create(taskContext).checkReturnCode(process);
+        TaskResultBuilder builder = TaskResultBuilder.newBuilder(taskContext).checkReturnCode(process);
         if (buildContext.isTestChecked() && buildContext.getTestDirectory() != null) {
             testCollationService.collateTestResults(taskContext, buildContext.getTestDirectory());
             builder.checkTestFailures();

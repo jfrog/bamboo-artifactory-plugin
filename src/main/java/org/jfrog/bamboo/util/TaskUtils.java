@@ -4,7 +4,6 @@ import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.security.EncryptionException;
 import com.atlassian.bamboo.security.EncryptionService;
-import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.atlassian.spring.container.ContainerManager;
@@ -44,7 +43,7 @@ public class TaskUtils {
     private static final String DOWNLOAD_ARTIFACTS_TASK_KEY = "com.atlassian.bamboo.plugins.bamboo-artifact-downloader-plugin:artifactdownloadertask";
 
     private static void initEncryptionService() {
-        encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
+        encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
     }
 
     /**

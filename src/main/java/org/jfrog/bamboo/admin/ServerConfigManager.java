@@ -19,7 +19,6 @@ package org.jfrog.bamboo.admin;
 import com.atlassian.bamboo.bandana.PlanAwareBandanaContext;
 import com.atlassian.bamboo.security.EncryptionException;
 import com.atlassian.bamboo.security.EncryptionService;
-import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bandana.BandanaManager;
 import com.atlassian.spring.container.ContainerManager;
@@ -49,9 +48,8 @@ public class ServerConfigManager implements Serializable {
 
     private static final String ARTIFACTORY_CONFIG_KEY = "org.jfrog.bamboo.server.configurations";
     private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations";
-
-    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
-    private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<ServerConfig>();
+    private static final EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
+    private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<>();
     private BintrayConfig bintrayConfig;
     private transient BandanaManager bandanaManager;
     private AtomicLong nextAvailableId = new AtomicLong(0);

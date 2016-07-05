@@ -4,8 +4,8 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.perforce.PerforceRepository;
 import com.atlassian.bamboo.security.EncryptionService;
-import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
 import org.jfrog.build.vcs.perforce.PerforceClient;
@@ -21,7 +21,7 @@ import java.io.IOException;
 public class PerforceManager extends AbstractScmManager<PerforceRepository> {
 
     private PerforceClient perforce;
-    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
+    private EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
 
     public PerforceManager(BuildContext context, Repository repository, BuildLogger buildLogger) {
         super(context, repository, buildLogger);

@@ -127,7 +127,7 @@ public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHe
             summaryUrlBuilder.append("/");
         }
         String buildUrl = summaryUrlBuilder.append("browse/").
-                append(EscapeChars.forURL(context.getBuildResultKey())).toString();
+                append(EscapeChars.forFormSubmission(context.getBuildResultKey())).toString();
         clientConf.info.setBuildUrl(buildUrl);
 
         addBuildParentProperties(clientConf, context.getTriggerReason());

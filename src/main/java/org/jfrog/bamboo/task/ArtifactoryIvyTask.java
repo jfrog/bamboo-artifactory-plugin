@@ -102,7 +102,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         String executable = getExecutable(ivyBuildContext);
         if (StringUtils.isBlank(executable)) {
             log.error(logger.addErrorLogEntry("Cannot find ivy executable"));
-            return TaskResultBuilder.create(context).failed().build();
+            return TaskResultBuilder.newBuilder(context).failed().build();
         }
         Map<String, String> globalEnv = environmentVariableAccessor.getEnvironment();
         Map<String, String> environment = Maps.newHashMap(globalEnv);

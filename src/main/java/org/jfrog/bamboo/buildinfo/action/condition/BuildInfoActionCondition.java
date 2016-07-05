@@ -16,10 +16,7 @@
 
 package org.jfrog.bamboo.buildinfo.action.condition;
 
-import com.atlassian.bamboo.plan.Plan;
-import com.atlassian.bamboo.plan.PlanKeys;
-import com.atlassian.bamboo.plan.PlanManager;
-import com.atlassian.bamboo.plan.PlanResultKey;
+import com.atlassian.bamboo.plan.*;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.resultsummary.ResultsSummaryManager;
 import com.atlassian.plugin.PluginParseException;
@@ -50,7 +47,8 @@ public class BuildInfoActionCondition implements Condition {
             return false;
         }
 
-        Plan plan = planManager.getPlanByKey(planKey);
+        PlanIdentifier planIdentifierForPermissionCheckingByKey = planManager.getPlanIdentifierForPermissionCheckingByKey(planKey);
+        Plan plan = planManager.getPlanByKey(planIdentifierForPermissionCheckingByKey.getPlanKey());
         if (plan == null) {
             return false;
         }

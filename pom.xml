@@ -50,7 +50,7 @@
     </scm>
 
     <properties>
-        <bamboo.version>5.10.0</bamboo.version>
+        <bamboo.version>5.12.0</bamboo.version>
         <platform.version>2.21.3</platform.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 

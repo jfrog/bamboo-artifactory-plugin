@@ -4,7 +4,6 @@ import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.security.EncryptionService;
-import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
@@ -40,7 +39,7 @@ import java.util.Set;
 public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfigurator implements
         TaskTestResultsSupport, BuildTaskRequirementSupport {
 
-    protected EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
+    protected EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
 
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
