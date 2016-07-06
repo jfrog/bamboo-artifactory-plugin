@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.deployment.FilesCollector;
 import org.jfrog.build.api.util.FileChecksumCalculator;
@@ -75,7 +75,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
         }
         TaskResult result;
         client = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
-                username, password, new BambooBuildInfoLog(log));
+                username, password, new BuildInfoLog(log));
 
         try {
             RuntimeTaskDefinition artifactDownloadTask = TaskUtils.findDownloadArtifactsTask(deploymentTaskContext.getCommonContext().getRuntimeTaskDefinitions());

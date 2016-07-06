@@ -21,7 +21,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
@@ -177,8 +177,9 @@ public class ArtifactoryGenericDeployTask implements TaskType {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(ArtifactoryGenericDeployTask.log, taskContext.getBuildLogger());
         ArtifactoryBuildInfoClient client =
-                new ArtifactoryBuildInfoClient(serverUrl, username, password, new BambooBuildInfoLog(log));
+                new ArtifactoryBuildInfoClient(serverUrl, username, password, bambooBuildInfoLog);
         try {
             BuildContext buildContext = taskContext.getBuildContext();
             Build build = buildInfoHelper.extractBuildInfo(buildContext, taskContext.getBuildLogger(), context, username);
@@ -196,12 +197,9 @@ public class ArtifactoryGenericDeployTask implements TaskType {
                     deploymentPathBuilder.append("/");
                 }
                 deploymentPathBuilder.append(detail.getArtifactPath());
-                logger.addBuildLogEntry(("Deploying artifact: " + deploymentPathBuilder.toString()));
                 client.deployArtifact(detail);
             }
             if (context.isPublishBuildInfo()) {
-                String url = serverUrl + "/api/build";
-                logger.addBuildLogEntry("Deploying build info to: " + url);
                 client.sendBuildInfo(build);
                 buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
             }

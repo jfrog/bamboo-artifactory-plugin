@@ -10,7 +10,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
 import org.jfrog.bamboo.util.generic.GenericData;
@@ -58,8 +58,9 @@ public class ArtifactoryGenericResolveTask implements TaskType {
         ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext);
 
         try {
+            org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
             GenericArtifactsResolver resolver = new GenericArtifactsResolver(taskContext, client,
-                    genericContext.getResolvePattern(), new BambooBuildInfoLog(log));
+                    genericContext.getResolvePattern(), bambooBuildInfoLog);
 
             List<BuildDependency> buildDependencies = resolver.retrieveBuildDependencies();
             List<Dependency> dependencies = resolver.retrievePublishedDependencies();
@@ -111,7 +112,7 @@ public class ArtifactoryGenericResolveTask implements TaskType {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-        return new ArtifactoryDependenciesClient(serverUrl, username, password, new BambooBuildInfoLog(log));
+        return new ArtifactoryDependenciesClient(serverUrl, username, password, new BuildInfoLog(log));
     }
 
     public String overrideParam(String originalValue, String overrideKey) {

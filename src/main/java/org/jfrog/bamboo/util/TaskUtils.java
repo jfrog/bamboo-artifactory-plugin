@@ -189,7 +189,7 @@ public class TaskUtils {
             username = substituteVariables(serverConfigManager, serverConfig.getUsername());
         }
         ArtifactoryBuildInfoClient client;
-        BambooBuildInfoLog bambooLog = new BambooBuildInfoLog(log);
+        BuildInfoLog bambooLog = new BuildInfoLog(log);
         if (StringUtils.isBlank(username)) {
             client = new ArtifactoryBuildInfoClient(serverUrl, bambooLog);
         } else {

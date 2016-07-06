@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.bintray.client.BintrayClient;
 import org.jfrog.bamboo.util.ActionLog;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.build.api.release.BintrayUploadInfoOverride;
 import org.jfrog.build.client.ArtifactoryVersion;
 import org.jfrog.build.client.bintrayResponse.BintrayResponse;
@@ -155,7 +155,7 @@ public class PushToBintrayRunnable implements Runnable {
         String username = serverConfig.getUsername();
         String password = serverConfig.getPassword();
         String artifactoryUrl = serverConfig.getUrl();
-        return new ArtifactoryBuildInfoClient(artifactoryUrl, username, password, new BambooBuildInfoLog(log));
+        return new ArtifactoryBuildInfoClient(artifactoryUrl, username, password, new BuildInfoLog(log));
     }
 
     private List<String> createLicensesListFromString(String licenses) {

@@ -1,7 +1,6 @@
 package org.jfrog.bamboo.util.generic;
 
 import com.atlassian.bamboo.task.TaskContext;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
 import org.jfrog.build.api.util.Log;
@@ -25,7 +24,7 @@ public class GenericArtifactsResolver {
     private TaskContext context;
 
     public GenericArtifactsResolver(TaskContext context, ArtifactoryDependenciesClient client,
-                                    String resolvePattern, BambooBuildInfoLog log) throws IOException, InterruptedException {
+                                    String resolvePattern, Log log) throws IOException, InterruptedException {
         this.context = context;
         this.client = client;
         this.resolvePattern = resolvePattern;

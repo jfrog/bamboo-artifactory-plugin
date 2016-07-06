@@ -25,7 +25,7 @@ import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
@@ -183,10 +183,10 @@ public class ServerConfigManager implements Serializable {
         password = substituteVariables(password);
 
         if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
+            client = new ArtifactoryBuildInfoClient(serverUrl, new BuildInfoLog(log));
         } else {
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
-                    new BambooBuildInfoLog(log));
+                    new BuildInfoLog(log));
         }
 
         client.setConnectionTimeout(serverConfig.getTimeout());
@@ -237,10 +237,10 @@ public class ServerConfigManager implements Serializable {
         }
 
         if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
+            client = new ArtifactoryBuildInfoClient(serverUrl, new BuildInfoLog(log));
         } else {
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
-                    new BambooBuildInfoLog(log));
+                    new BuildInfoLog(log));
         }
 
         client.setConnectionTimeout(serverConfig.getTimeout());
