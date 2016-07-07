@@ -194,24 +194,6 @@
         <resource type="download" name="icon" location="images/artifactory-maven-icon.png"/>
     </taskType>
 
-    <builder2TaskConverter key="ArtifactoryMavenConverter" name="Artifactory Maven Builder Converter"
-                           class="org.jfrog.bamboo.converter.MavenBuilder2TaskConverter">
-        <description>A configuration converter for Maven builders</description>
-        <builderKeyPattern>${groupId}.${artifactId}:artifactoryMaven3Builder</builderKeyPattern>
-    </builder2TaskConverter>
-
-    <builder2TaskConverter key="ArtifactoryGradleConverter" name="Artifactory Gradle Builder Converter"
-                           class="org.jfrog.bamboo.converter.GradleBuilder2TaskConverter">
-        <description>A configuration converter for Gradle builders</description>
-        <builderKeyPattern>${groupId}.${artifactId}:artifactoryGradleBuilder</builderKeyPattern>
-    </builder2TaskConverter>
-
-    <builder2TaskConverter key="ArtifactoryIvyConverter" name="Artifactory Ivy Builder Converter"
-                           class="org.jfrog.bamboo.converter.IvyBuilder2TaskConverter">
-        <description>A configuration converter for Ivy builders</description>
-        <builderKeyPattern>${groupId}.${artifactId}:artifactoryIvyBuilder</builderKeyPattern>
-    </builder2TaskConverter>
-
     <buildProcessor key="artifactoryChainCompleteAction" name="Artifactory Release Management Staging"
                     class="org.jfrog.bamboo.release.action.ArtifactoryPostBuildCompleteAction">
         <skipIfFailed>false</skipIfFailed>
