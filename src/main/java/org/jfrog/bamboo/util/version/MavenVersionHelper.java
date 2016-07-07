@@ -1,9 +1,11 @@
 package org.jfrog.bamboo.util.version;
 
-import com.atlassian.bamboo.fileserver.SystemDirectory;
 import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.repository.RepositoryException;
+import com.atlassian.bamboo.storage.StorageLocationService;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
+import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
@@ -42,7 +44,8 @@ public class MavenVersionHelper extends VersionHelper {
     public List<ModuleVersionHolder> filterPropertiesForRelease(Plan plan, int latestBuildNumberWithBi)
             throws RepositoryException, IOException {
         List<ModuleVersionHolder> result = Lists.newArrayList();
-        File directory = SystemDirectory.getArtifactStorage().getArtifactDirectory(plan, latestBuildNumberWithBi);
+        final StorageLocationService storageLocationService = (StorageLocationService) ContainerManager.getComponent("storageLocationService");
+        File directory = storageLocationService.getDefaultArtifactDirectoryBuilder().getBuildDirectory(PlanKeys.getPlanResultKey(plan.getKey(), latestBuildNumberWithBi));
         File buildInfoFile = new File(directory, "buildInfo/build-info.json.zip");
         if (buildInfoFile.exists()) {
             InputStreamReader reader = null;

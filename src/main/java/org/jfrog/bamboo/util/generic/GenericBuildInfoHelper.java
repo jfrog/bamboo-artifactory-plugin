@@ -59,7 +59,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
             summaryUrl.append("/");
         }
         String buildUrl = summaryUrl.append("browse/").
-                append(EscapeChars.forURL(buildContext.getBuildResultKey())).toString();
+                append(EscapeChars.forFormSubmission(buildContext.getBuildResultKey())).toString();
         DateTime start = new DateTime(buildContext.getBuildResult().getCustomBuildData().get("buildTimeStamp"));
         DateTime end = new DateTime();
         long duration = -1;

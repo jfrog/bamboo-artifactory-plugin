@@ -17,6 +17,7 @@
 package org.jfrog.bamboo.admin;
 
 import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.httpclient.HttpStatus;
@@ -60,7 +61,8 @@ public class BuildServlet extends HttpServlet {
             return;
         }
 
-        Plan plan = planManager.getPlanByKey(buildKeyValue);
+        PlanIdentifier planIdentifierForPermissionCheckingByKey = planManager.getPlanIdentifierForPermissionCheckingByKey(buildKeyValue);
+        Plan plan = planManager.getPlanById(planIdentifierForPermissionCheckingByKey.getId());
 
         if (plan == null) {
             resp.sendError(HttpStatus.SC_NOT_FOUND, "Could not find plan with the key " + buildKeyValue + ".");

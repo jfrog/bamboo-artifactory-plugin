@@ -16,15 +16,6 @@ public class BuildInfoAction extends ViewBuildResults {
     private String artifactoryReleaseManagementUrl = "";
 
     @Override
-    public String doDefault() throws Exception {
-        super.doExecute(); // to populate all the stuff
-        if (getUser() == null) {
-            return ERROR;
-        }
-        return INPUT;
-    }
-
-    @Override
     public String doExecute() throws Exception {
         String superResult = super.doExecute();
 

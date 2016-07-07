@@ -149,7 +149,7 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             summaryUrlBuilder.append("/");
         }
         String buildUrl = summaryUrlBuilder.append("browse/").
-                append(EscapeChars.forURL(context.getBuildResultKey())).toString();
+                append(EscapeChars.forFormSubmission(context.getBuildResultKey())).toString();
         clientConf.info.setBuildUrl(buildUrl);
 
         String principal = getTriggeringUserNameRecursively(context);

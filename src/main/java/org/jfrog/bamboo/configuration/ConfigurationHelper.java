@@ -1,6 +1,7 @@
 package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
+import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Maps;
@@ -45,8 +46,8 @@ public class ConfigurationHelper implements Serializable {
         this.administrationConfigurationAccessor = administrationConfigurationAccessor;
     }
 
-    public Map<String, String> getAllVariables(String planKey) {
-        HashMap<String, String> params = Maps.newHashMap();
+    public Map<String, String> getAllVariables(PlanKey planKey) {
+        HashMap<String, PlanKey> params = Maps.newHashMap();
         params.put(ConstantValues.PLAN_KEY_PARAM, planKey);
         String requestUrl = prepareRequestUrl(ADMIN_CONFIG_SERVLET_CONTEXT_NAME, params);
         GetMethod getMethod = new GetMethod(requestUrl);
@@ -74,7 +75,7 @@ public class ConfigurationHelper implements Serializable {
         }
     }
 
-    private String prepareRequestUrl(String servletName, Map<String, String> params) {
+    private String prepareRequestUrl(String servletName, Map<String, PlanKey> params) {
         String bambooBaseUrl = administrationConfigurationAccessor.getAdministrationConfiguration().getBaseUrl();
         StringBuilder builder = new StringBuilder(bambooBaseUrl);
         if (!bambooBaseUrl.endsWith("/")) {
@@ -84,11 +85,11 @@ public class ConfigurationHelper implements Serializable {
         if (params.size() != 0) {
             requestUrlBuilder.append("?");
 
-            for (Map.Entry<String, String> param : params.entrySet()) {
+            for (Map.Entry<String, PlanKey> param : params.entrySet()) {
                 if (!requestUrlBuilder.toString().endsWith("?")) {
                     requestUrlBuilder.append("&");
                 }
-                requestUrlBuilder.append(param.getKey()).append("=").append(EscapeChars.forURL(param.getValue()));
+                requestUrlBuilder.append(param.getKey()).append("=").append(EscapeChars.forFormSubmission(param.getValue().getKey()));
             }
         }
 

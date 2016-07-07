@@ -19,14 +19,13 @@ package org.jfrog.bamboo.admin;
 import com.atlassian.bamboo.bandana.PlanAwareBandanaContext;
 import com.atlassian.bamboo.security.EncryptionException;
 import com.atlassian.bamboo.security.EncryptionService;
-import com.atlassian.bamboo.spring.ComponentAccessor;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bandana.BandanaManager;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
@@ -49,9 +48,8 @@ public class ServerConfigManager implements Serializable {
 
     private static final String ARTIFACTORY_CONFIG_KEY = "org.jfrog.bamboo.server.configurations";
     private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations";
-
-    private EncryptionService encryptionService = ComponentAccessor.ENCRYPTION_SERVICE.get();
-    private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<ServerConfig>();
+    private static final EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
+    private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<>();
     private BintrayConfig bintrayConfig;
     private transient BandanaManager bandanaManager;
     private AtomicLong nextAvailableId = new AtomicLong(0);
@@ -185,10 +183,10 @@ public class ServerConfigManager implements Serializable {
         password = substituteVariables(password);
 
         if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
+            client = new ArtifactoryBuildInfoClient(serverUrl, new BuildInfoLog(log));
         } else {
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
-                    new BambooBuildInfoLog(log));
+                    new BuildInfoLog(log));
         }
 
         client.setConnectionTimeout(serverConfig.getTimeout());
@@ -239,10 +237,10 @@ public class ServerConfigManager implements Serializable {
         }
 
         if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, new BambooBuildInfoLog(log));
+            client = new ArtifactoryBuildInfoClient(serverUrl, new BuildInfoLog(log));
         } else {
             client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
-                    new BambooBuildInfoLog(log));
+                    new BuildInfoLog(log));
         }
 
         client.setConnectionTimeout(serverConfig.getTimeout());

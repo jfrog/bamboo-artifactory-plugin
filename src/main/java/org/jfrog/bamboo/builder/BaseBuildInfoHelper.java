@@ -134,7 +134,7 @@ public abstract class BaseBuildInfoHelper {
     protected Map<String, String> filterAndGetGlobalVariables() {
         Map<String, String> variablesToReturn = Maps.newHashMap();
 
-        Map<String, String> globalVariables = ConfigurationHelper.getInstance().getAllVariables(context.getPlanKey());
+        Map<String, String> globalVariables = ConfigurationHelper.getInstance().getAllVariables(context.getTypedPlanKey());
 
         String propFilePath = globalVariables.get(BuildInfoConfigProperties.PROP_PROPS_FILE);
         if (StringUtils.isNotBlank(propFilePath)) {
@@ -204,7 +204,7 @@ public abstract class BaseBuildInfoHelper {
                 if (!requestUrlBuilder.toString().endsWith("?")) {
                     requestUrlBuilder.append("&");
                 }
-                requestUrlBuilder.append(param.getKey()).append("=").append(EscapeChars.forURL(param.getValue()));
+                requestUrlBuilder.append(param.getKey()).append("=").append(EscapeChars.forFormSubmission(param.getValue()));
             }
         }
 

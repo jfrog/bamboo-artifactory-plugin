@@ -22,7 +22,7 @@ import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.util.BambooBuildInfoLog;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.util.VersionException;
@@ -209,9 +209,9 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     private void testConnection() {
         ArtifactoryBuildInfoClient testClient;
         if (StringUtils.isNotBlank(username)) {
-            testClient = new ArtifactoryBuildInfoClient(url, username, password, new BambooBuildInfoLog(log));
+            testClient = new ArtifactoryBuildInfoClient(url, username, password, new BuildInfoLog(log));
         } else {
-            testClient = new ArtifactoryBuildInfoClient(url, new BambooBuildInfoLog(log));
+            testClient = new ArtifactoryBuildInfoClient(url, new BuildInfoLog(log));
         }
         testClient.setConnectionTimeout(timeout);
         try {

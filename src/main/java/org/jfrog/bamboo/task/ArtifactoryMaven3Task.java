@@ -107,7 +107,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         String mavenHome = getMavenHome(mavenBuildContext);
         if (StringUtils.isBlank(mavenHome)) {
             log.error(logger.addErrorLogEntry("Maven home is not defined!"));
-            return TaskResultBuilder.create(taskContext).failed().build();
+            return TaskResultBuilder.newBuilder(taskContext).failed().build();
         }
         appendClassPathArguments(command, mavenHome);
         appendClassWorldsConfArgument(command, mavenHome);
