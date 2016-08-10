@@ -19,7 +19,7 @@ public class MavenPropertyHelper extends ArtifactoryBuildInfoPropertyHelper {
 
     @Override
     protected void addClientProperties(AbstractBuildContext builder, ArtifactoryClientConfiguration clientConf,
-        ServerConfig serverConfig, Map<String, String> environment) {
+                                       ServerConfig serverConfig, Map<String, String> environment) {
 
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
 

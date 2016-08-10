@@ -47,7 +47,7 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         context.put("artifactoryIvyTask", this);
         context.put("builderType", this);
         context.put("builder", this);
-        //context.put("adminConfig", administrationConfiguration);
+        context.put("adminConfig", administrationConfiguration);
         context.put("baseUrl", administrationConfiguration.getBaseUrl());
         context.put("build", context.get("plan"));
         context.put("dummyList", Lists.newArrayList());

@@ -77,8 +77,11 @@ public class PluginProperties {
     private static Properties getPluginProperties() throws IOException {
         InputStream pluginPropertiesStream = null;
         try {
+            // TODO: This was previously loaded by Thread.currentThread().getContextClassLoader() in plugins2 this
+            // returns null changing it to the current implementation
+            // PluginProperties.class.getClassLoader().getResourceAsStream("artifactory.plugin.properties") may cause some concurrency problems
             pluginPropertiesStream =
-                    Thread.currentThread().getContextClassLoader().getResourceAsStream("artifactory.plugin.properties");
+                    PluginProperties.class.getClassLoader().getResourceAsStream("artifactory.plugin.properties");
 
             if (pluginPropertiesStream == null) {
                 throw new IllegalStateException("Could not find artifactory.plugin.properties resource.");

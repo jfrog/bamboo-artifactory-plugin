@@ -357,7 +357,6 @@ public abstract class AbstractBuildContext {
                         ModuleVersionHolder existingReleaseProp;
                         try {
                             existingReleaseProp = Iterables.find(result, new Predicate<ModuleVersionHolder>() {
-                                @Override
                                 public boolean apply(ModuleVersionHolder holder) {
                                     return (holder != null) && holder.getKey().equals(propertyKey);
                                 }

@@ -19,7 +19,7 @@ list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink re
 
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryMaven3Builder.environmentVariables' /]
 [@ww.textfield labelKey='artifactory.task.maven.mavenOpts' name='builder.artifactoryMaven3Builder.mavenOpts' /]
-[@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryMaven3Builder.workingSubDirectory' helpUri='working-directory.ftl' /]
+[@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryMaven3Builder.workingSubDirectory' /]
 
 [@ww.checkbox labelKey='artifactory.task.maven.resolveFromArtifacts' name='resolveFromArtifacts' toggle='true' /]
 [@ui.bambooSection dependsOn='resolveFromArtifacts' showOn=true]

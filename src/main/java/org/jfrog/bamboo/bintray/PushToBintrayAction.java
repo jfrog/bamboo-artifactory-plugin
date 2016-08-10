@@ -5,7 +5,7 @@ import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.jfrog.bamboo.admin.BintrayConfig;
+import org.jfrog.bamboo.admin.BintrayConfiguration;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.bintray.client.BintrayClient;
 import org.jfrog.bamboo.promotion.PromotionContext;
@@ -52,7 +52,7 @@ public class PushToBintrayAction extends ViewBuildResults {
         try {
             context.setBuildNumber(this.getBuildNumber());
             context.setBuildKey(this.getImmutableBuild().getName());
-            BintrayConfig bintrayConfig = TaskUtils.getBintrayConfig();
+            BintrayConfiguration bintrayConfig = TaskUtils.getBintrayConfig();
             bintrayClient = new BintrayClient(bintrayConfig);
             Map<String, String> buildTaskConfiguration = TaskUtils.findConfigurationForBuildTask(this);
             addDefaultValuesForInput(buildTaskConfiguration);

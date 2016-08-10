@@ -14,7 +14,7 @@ public class IvyPropertyHelper extends ArtifactoryBuildInfoPropertyHelper {
 
     @Override
     protected void addClientProperties(AbstractBuildContext builder, ArtifactoryClientConfiguration clientConf,
-        ServerConfig serverConfig, Map<String, String> environment) {
+                                       ServerConfig serverConfig, Map<String, String> environment) {
 
         if (builder.isPublishArtifacts()) {
             clientConf.publisher.setM2Compatible(builder.isMaven2Compatible());

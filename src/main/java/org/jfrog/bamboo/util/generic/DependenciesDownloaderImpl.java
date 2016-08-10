@@ -29,6 +29,7 @@ public class DependenciesDownloaderImpl implements DependenciesDownloader {
     private ArtifactoryDependenciesClient client;
     private Log log;
     private File workingDirectory;
+    private boolean flatDownload = false;
 
     public DependenciesDownloaderImpl(ArtifactoryDependenciesClient client, File workingDirectory, Log log) {
         this.client = client;
@@ -122,5 +123,15 @@ public class DependenciesDownloaderImpl implements DependenciesDownloader {
                 return StringUtils.equals(filePath, path) || StringUtils.startsWith(filePath, path);
             }
         });
+    }
+
+    //TODO - as part of buildInfo V-2.6.x we need to do some changes to support the json spec
+    public boolean getFlatDownload(){
+        return this.flatDownload;
+    }
+
+    //TODO - as part of buildInfo V-2.6.x we need to do some changes to support the json spec
+    public void setFlatDownload(boolean flat){
+        this.flatDownload = flat;
     }
 }

@@ -55,11 +55,6 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
         return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven.Artifactory Maven 3";
     }
 
-    @Override
-    protected Predicate<File> getValidityPredicate() {
-        return new MavenVersionMatcher(MAVEN_VERSION_3);
-    }
-
     public static class MavenVersionMatcher implements Predicate<File> {
         private final Pattern pattern;
 

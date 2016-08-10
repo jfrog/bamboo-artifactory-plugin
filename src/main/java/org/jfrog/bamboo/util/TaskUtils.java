@@ -19,7 +19,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.admin.BintrayConfig;
+import org.jfrog.bamboo.admin.BintrayConfiguration;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -175,8 +175,7 @@ public class TaskUtils {
         String serverIdStr = TaskUtils.getSelectedServerId(mavenOrGradleTaskDefinition);
         if (StringUtils.isNotEmpty(serverIdStr)) {
             long serverId = Long.parseLong(serverIdStr);
-            return ((ServerConfigManager) ContainerManager.getComponent(
-                    ConstantValues.PLUGIN_CONFIG_MANAGER_KEY)).getServerConfigById(serverId);
+            return ServerConfigManager.getInstance().getServerConfigById(serverId);
         }
         throw new IllegalStateException("Error while trying to create ArtifactoryBuildInfoClient");
     }
@@ -234,9 +233,8 @@ public class TaskUtils {
         return s;
     }
 
-    public static BintrayConfig getBintrayConfig() {
-        ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+    public static BintrayConfiguration getBintrayConfig() {
+        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         return serverConfigManager.getBintrayConfig();
     }
 

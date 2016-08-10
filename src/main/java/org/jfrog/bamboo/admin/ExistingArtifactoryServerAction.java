@@ -16,13 +16,11 @@
 
 package org.jfrog.bamboo.admin;
 
-import bucket.core.actions.PagerPaginationSupport;
 import com.atlassian.bamboo.security.GlobalApplicationSecureObject;
 import com.atlassian.bamboo.ww2.actions.admin.user.AbstractEntityPagerSupport;
 import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
-import com.atlassian.spring.container.ContainerManager;
-import com.atlassian.user.search.page.DefaultPager;
-import org.jfrog.bamboo.util.ConstantValues;
+
+import java.util.List;
 
 /**
  * Existing global Artifactory server configuration list action
@@ -31,25 +29,22 @@ import org.jfrog.bamboo.util.ConstantValues;
  */
 public class ExistingArtifactoryServerAction extends AbstractEntityPagerSupport implements GlobalAdminSecurityAware {
 
-    private ServerConfigManager serverConfigManager;
+	private ServerConfigManager serverConfigManager;
 
-    public ExistingArtifactoryServerAction() {
-        serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
-    }
+	public ExistingArtifactoryServerAction( ServerConfigManager serverConfigManager) {
+		this.serverConfigManager = serverConfigManager;
+	}
 
-    public String doBrowse() throws Exception {
-        getPaginationSupport().setItems(new DefaultPager(serverConfigManager.getAllServerConfigs()));
-        return super.execute();
-    }
+	public String doBrowse() throws Exception {
+		return super.execute();
+	}
 
-    @Override
-    public Object getSecuredDomainObject() {
-        return GlobalApplicationSecureObject.INSTANCE;
-    }
+	public List<ServerConfig> getServerConfigs() {
+		return serverConfigManager.getAllServerConfigs();
+	}
 
-    @Override
-    public PagerPaginationSupport getPaginationSupport() {
-        return super.getPaginationSupport();
-    }
+	@Override
+	public Object getSecuredDomainObject() {
+		return GlobalApplicationSecureObject.INSTANCE;
+	}
 }

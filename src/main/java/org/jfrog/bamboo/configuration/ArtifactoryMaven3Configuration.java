@@ -35,7 +35,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("maven3Task", this);
         context.put("builderType", this);
         context.put("builder", this);
-        context.put("baseUrl", administrationConfiguration.getBaseUrl());
+         context.put("baseUrl", administrationConfiguration.getBaseUrl());
         Plan plan = (Plan) context.get("plan");
         context.put("build", plan);
         context.put("dummyList", Lists.newArrayList());

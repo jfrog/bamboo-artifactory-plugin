@@ -8,7 +8,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.jfrog.bamboo.admin.BintrayConfig;
+import org.jfrog.bamboo.admin.BintrayConfiguration;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.bintray.MavenSyncHelper;
 import org.jfrog.bamboo.util.HttpUtils;
@@ -25,9 +25,9 @@ public class BintrayClient {
     public static final String CLOSE_REPO_PARAM = "1";
 
     private HttpClient client = new DefaultHttpClient();
-    private BintrayConfig bintrayConfig;
+    private BintrayConfiguration bintrayConfig;
 
-    public BintrayClient(BintrayConfig bintrayConfig) {
+    public BintrayClient(BintrayConfiguration bintrayConfig) {
         this.bintrayConfig = bintrayConfig;
     }
 

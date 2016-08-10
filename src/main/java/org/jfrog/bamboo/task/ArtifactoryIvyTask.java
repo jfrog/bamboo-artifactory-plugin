@@ -58,8 +58,8 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
 
 
     public ArtifactoryIvyTask(final ProcessService processService,
-            final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
-            TestCollationService testCollationService) {
+                              final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
+                              TestCollationService testCollationService) {
         super(testCollationService, environmentVariableAccessor);
         this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;

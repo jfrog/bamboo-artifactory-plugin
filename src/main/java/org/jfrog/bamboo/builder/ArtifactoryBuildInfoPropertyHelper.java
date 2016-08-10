@@ -213,10 +213,10 @@ public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHe
     }
 
     abstract protected void addClientProperties(AbstractBuildContext buildContext,
-        ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment);
+                                                ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment);
 
     private void addPublisherProperties(AbstractBuildContext buildContext,
-        ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment) {
+                                        ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment) {
 
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         clientConf.publisher.setContextUrl(serverUrl);

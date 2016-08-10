@@ -79,7 +79,7 @@ public abstract class VersionHelper {
     }
 
     public static VersionHelper getHelperAccordingToType(AbstractBuildContext context,
-            CapabilityContext capabilityContext) {
+                                                         CapabilityContext capabilityContext) {
         if (context instanceof GradleBuildContext) {
             return new GradleVersionHelper(context);
         }

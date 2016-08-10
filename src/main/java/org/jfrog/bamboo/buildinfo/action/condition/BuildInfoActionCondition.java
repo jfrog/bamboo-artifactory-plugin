@@ -48,6 +48,9 @@ public class BuildInfoActionCondition implements Condition {
         }
 
         PlanIdentifier planIdentifierForPermissionCheckingByKey = planManager.getPlanIdentifierForPermissionCheckingByKey(planKey);
+        if (planIdentifierForPermissionCheckingByKey == null) {
+            return false;
+        }
         Plan plan = planManager.getPlanByKey(planIdentifierForPermissionCheckingByKey.getPlanKey());
         if (plan == null) {
             return false;

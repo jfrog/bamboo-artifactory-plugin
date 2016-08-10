@@ -1,42 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright (C) 2010 JFrog Ltd.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jfrog.bamboo</groupId>
     <artifactId>bamboo-artifactory-plugin</artifactId>
-    <version>1.11.x-SNAPSHOT</version>
-    <name>Bamboo Artifactory Plugin</name>
+    <version>2.0.x-SNAPSHOT</version>
+    <name>Bamboo JFrog Artifactory Plugin</name>
     <description>Artifactory Build Info plugin for Atlassian Bamboo.</description>
+    <packaging>atlassian-plugin</packaging>
 
-    <developers>
-        <developer>
-            <id>noamt</id>
-            <name>Noam Y. Tenne</name>
-            <email>noamt at jfrog.org</email>
-            <roles>
-                <role>Lead Developer</role>
-            </roles>
-        </developer>
-    </developers>
-    <inceptionYear>2010</inceptionYear>
     <organization>
-        <name>JFrog Ltd.</name>
-        <url>http://www.jfrog.org/</url>
+        <name>JFrog Ltd</name>
+        <url>http://www.jfrog.com</url>
     </organization>
+
+
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -50,93 +31,86 @@
     </scm>
 
     <properties>
-        <bamboo.version>5.12.0</bamboo.version>
-        <platform.version>2.21.3</platform.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <!-- This plugin is to be used as a unique ID of the plugin incl. version and not as a key regarding the
+        <bamboo.version>5.12.3.1</bamboo.version>
+        <bamboo.data.version>5.12.3.1</bamboo.data.version>
+        <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
+        <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
+        <!-- This plugin key is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <buildinfo.version>2.5.6</buildinfo.version>
+        <buildinfo.version>2.6.x-SNAPSHOT</buildinfo.version>
         <buildinfo.gradle.version>4.2.0</buildinfo.gradle.version>
         <buildinfo.ivy.version>2.5.3</buildinfo.ivy.version>
         <buildinfo.maven.version>2.5.5</buildinfo.maven.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>18.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.platform</groupId>
-                <artifactId>platform</artifactId>
-                <version>${platform.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.platform</groupId>
-                <artifactId>third-party</artifactId>
-                <version>${platform.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
+
         <dependency>
-            <groupId>com.atlassian.bamboo</groupId>
-            <artifactId>atlassian-bamboo-api</artifactId>
-            <version>${bamboo.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.tek42.perforce</groupId>
-                    <artifactId>p4java</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
         </dependency>
         <dependency>
-            <groupId>com.atlassian.bamboo</groupId>
-            <artifactId>atlassian-bamboo-core</artifactId>
-            <version>${bamboo.version}</version>
-            <scope>provided</scope>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>4.0.1.201506240215-r</version>
             <exclusions>
                 <exclusion>
-                    <groupId>com.tek42.perforce</groupId>
-                    <artifactId>p4java</artifactId>
+                    <groupId>com.jcraft</groupId>
+                    <artifactId>jsch</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.atlassian.bamboo</groupId>
-            <artifactId>atlassian-bamboo-web</artifactId>
-            <version>${bamboo.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-api</artifactId>
             <version>${buildinfo.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-client</artifactId>
             <version>${buildinfo.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-vcs</artifactId>
             <version>${buildinfo.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor</artifactId>
             <version>${buildinfo.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
@@ -162,42 +136,85 @@
             <version>${buildinfo.maven.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-smile</artifactId>
+            <version>1.9.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.atlassian.bamboo</groupId>
+            <artifactId>atlassian-bamboo-web</artifactId>
+            <version>${bamboo.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>jsr311-api</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.2.2-atlassian-1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.atlassian.bamboo</groupId>
+            <artifactId>atlassian-bamboo-api</artifactId>
+            <version>${bamboo.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.tek42.perforce</groupId>
+                    <artifactId>p4java</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.atlassian.bamboo</groupId>
+            <artifactId>atlassian-bamboo-core</artifactId>
+            <version>${bamboo.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.tek42.perforce</groupId>
+                    <artifactId>p4java</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
             <version>3.0.3</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jgit</groupId>
-            <artifactId>org.eclipse.jgit</artifactId>
-            <version>4.0.1.201506240215-r</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.jcraft</groupId>
-                    <artifactId>jsch</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-embedder</artifactId>
             <version>3.0.3</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>6.3</version>
-            <scope>test</scope>
+            <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.8.5</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
+    </dependencies>
     <build>
         <resources>
             <resource>
@@ -209,7 +226,7 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-bamboo-plugin</artifactId>
-                <version>3.9.3</version>
+                <version>6.2.4</version>
                 <extensions>true</extensions>
                 <configuration>
                     <productVersion>${bamboo.version}</productVersion>
@@ -316,32 +333,63 @@
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>2.10</version>
             </plugin>
+
+            <!--    The following plugin removes GroovyAssert from the created jat to prevent agent loading failure     -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>1.5</version>
+                <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <id>remove-GroovyAssert</id>
+                        <phase>prepare-package</phase>
                         <goals>
-                            <goal>shade</goal>
+                            <goal>run</goal>
                         </goals>
                         <configuration>
-                            <relocations>
-                                <relocation>
-                                    <pattern>org.codehaus.jackson</pattern>
-                                    <shadedPattern>org.jfrog.jackson</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.common.collect</pattern>
-                                    <shadedPattern>com.jfrog.common.collect</shadedPattern>
-                                </relocation>
-                            </relocations>
-                            <shadedGroupFilter>org.codehaus.jackson</shadedGroupFilter>
-                            <shadedGroupFilter>com.google.guava</shadedGroupFilter>
+                            <tasks>
+                                <delete>
+                                    <fileset dir="${project.build.directory}/classes/groovy/test/" includes="GroovyAssert.class"/>
+                                </delete>
+                            </tasks>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-shade-plugin</artifactId>-->
+                <!--<version>1.5</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>shade</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<relocations>-->
+                                <!--<relocation>-->
+                                    <!--<pattern>org.codehaus.jackson</pattern>-->
+                                    <!--<shadedPattern>org.jfrog.jackson</shadedPattern>-->
+                                <!--</relocation>-->
+                                <!--<relocation>-->
+                                    <!--<pattern>com.google.common.collect</pattern>-->
+                                    <!--<shadedPattern>com.jfrog.common.collect</shadedPattern>-->
+                                <!--</relocation>-->
+                            <!--</relocations>-->
+                            <!--<shadedGroupFilter>org.codehaus.jackson</shadedGroupFilter>-->
+                            <!--<shadedGroupFilter>com.google.guava</shadedGroupFilter>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

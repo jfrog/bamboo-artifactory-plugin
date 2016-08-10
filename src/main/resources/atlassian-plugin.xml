@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2010 JFrog Ltd.
+  ~ Copyright (C) 2016 JFrog Ltd.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,65 +13,178 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<atlassian-plugin key="${groupId}.${artifactId}" name="${project.name}" enabled="true">
-
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
     <plugin-info>
         <description>${project.description}</description>
         <version>${project.version}</version>
         <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+        <param name="vendor-icon">images/artifactory-icon.png</param>
+        <param name="vendor-logo">images/artifactory-icon.png</param>
+        <param name="plugin-icon">images/artifactory-icon.png</param>
+        <param name="plugin-logo">images/artifactory-icon.png</param>
     </plugin-info>
 
+    <!-- i18n resource -->
     <resource type="i18n" name="i18n" location="i18n"/>
 
+    <!-- Admin Configurations -->
     <component name="Artifactory Server Configuration Management Component" key="artifactoryServerConfigManager"
                class="org.jfrog.bamboo.admin.ServerConfigManager"/>
-
-    <!--Server admin-->
-    <xwork key="manageArtifactoryServersAdmin" name="Artifactory Plugin">
-        <package name="configureArtifactoryPlugin" extends="admin">
-            <action name="manageArtifactoryServers" class="org.jfrog.bamboo.admin.ManageArtifactoryServersAction">
-                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-            </action>
-            <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction"
-                    method="browse">
-                <result name="success" type="freemarker">/admin/existingArtifactoryServerView.ftl</result>
-            </action>
-            <action name="configureArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction">
-                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-                <result name="success" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-            </action>
-            <action name="createServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="create">
-                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="error" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
-                <param name="mode">add</param>
-            </action>
-            <action name="updateBintrayConfig" class="org.jfrog.bamboo.admin.ConfigureBintrayAction" method="updateBintray">
-                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
-            </action>
-            <action name="editServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="edit">
-                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-                <param name="mode">edit</param>
-            </action>
-            <action name="updateServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="update">
-                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
-                <param name="mode">edit</param>
-            </action>
-            <action name="deleteServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="delete">
-                <result name="error" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-            </action>
-        </package>
-    </xwork>
 
     <web-item key="configureArtifactoryPlugin" name="Artifactory Plugin" section="system.admin/plugins">
         <label key="Artifactory Plugin"/>
         <link linkId="configureArtifactoryPlugin">/admin/manageArtifactoryServers.action</link>
     </web-item>
+
+    <xwork key="manageArtifactoryServersAdmin" name="Artifactory Plugin">
+        <package name="configureArtifactoryPlugin" extends="admin">
+
+            <!-- Main container -->
+            <action name="manageArtifactoryServers" class="org.jfrog.bamboo.admin.ManageArtifactoryServersAction">
+                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+            </action>
+
+            <!-- Artifactory Configurations -->
+            <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction" method="browse">
+                <result name="success" type="freemarker">/admin/existingArtifactoryServerView.ftl</result>
+            </action>
+
+            <action name="configureArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="browse">
+                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+                <result name="success" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+            </action>
+
+            <action name="createArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="create">
+                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+                <result name="error" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
+                <param name="mode">add</param>
+            </action>
+
+            <action name="editServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="edit">
+                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+                <param name="mode">edit</param>
+            </action>
+
+            <action name="updateServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="update">
+                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
+                <param name="mode">edit</param>
+            </action>
+
+            <action name="confirmDeleteServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="confirm">
+                <result name="success" type="freemarker" >/admin/confirmDeleteServer.ftl</result>
+                <result name="input" type="freemarker" >/admin/confirmDeleteServer.ftl</result>
+            </action>
+
+            <action name="deleteServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="delete">
+                <result name="input" type="redirect">/admin/configureArtifactoryServer.ftl</result>
+                <result name="error" type="redirect">/admin/manageArtifactoryServers.action</result>
+                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
+            </action>
+
+            <!-- Bintray Configurations -->
+            <action name="viewBintray" class="org.jfrog.bamboo.admin.ConfigureBintrayAction" method="browse">
+                <result name="success" type="freemarker">/admin/viewBintray.ftl</result>
+                <result name="input" type="freemarker">/admin/viewBintray.ftl</result>
+                <result name="error" type="freemarker">/admin/error.ftl</result>
+            </action>
+
+            <action name="configureBintray" class="org.jfrog.bamboo.admin.ConfigureBintrayAction" method="browse">
+                <result name="success" type="freemarker">/admin/configureBintray.ftl</result>
+                <result name="input" type="freemarker">/admin/configureBintray.ftl</result>
+                <result name="error" type="freemarker">/admin/error.ftl</result>
+            </action>
+
+            <action name="saveBintrayConf" class="org.jfrog.bamboo.admin.ConfigureBintrayAction" method="execute">
+                <result name="input" type="freemarker">/admin/configureBintray.ftl</result>
+                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="error" type="freemarker">/admin/error.ftl</result>
+            </action>
+
+        </package>
+    </xwork>
+
+    <servlet name="Artifactory Configuration Servlet" key="artifactoryConfigServlet"
+             class="org.jfrog.bamboo.admin.ArtifactoryConfigServlet">
+        <url-pattern>/artifactoryConfigServlet</url-pattern>
+    </servlet>
+
+    <servlet name="Artifactory Build Servlet" key="artifactoryBuildServlet"
+             class="org.jfrog.bamboo.admin.BuildServlet">
+        <url-pattern>/artifactoryBuildServlet</url-pattern>
+    </servlet>
+
+    <servlet name="Artifactory Administration Configuration Servlet" key="artifactoryAdminConfigServlet"
+             class="org.jfrog.bamboo.admin.ArtifactoryAdminConfigServlet">
+        <url-pattern>/artifactoryAdminConfigServlet</url-pattern>
+    </servlet>
+
+    <resource type="download" name="builder/dependencies/" location="META-INF/lib/"/>
+    <resource type="download" name="artifactory-icon.png" location="images/artifactory-icon.png"/>
+    <resource type="download" name="artifactory-release.png" location="images/artifactory-release.png"/>
+    <resource type="download" name="bintray.png" location="images/bintray.png"/>
+
+    <!-- T a s k s -->
+
+    <!--Generic build deploy task-->
+
+    <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy"
+              class="org.jfrog.bamboo.task.ArtifactoryGenericDeployTask">
+        <description>Artifactory Generic Deploy Task</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
+        <category name="deployment"/>
+        <executable key="generic"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+    </taskType>
+
+    <!--Generic build resolve task-->
+    <taskType key="artifactoryGenericResolveTask" name="Artifactory Generic Resolve"
+              class="org.jfrog.bamboo.task.ArtifactoryGenericResolveTask">
+        <description>Artifactory Generic Deploy Task</description>
+        <category name="resolve"/>
+        <executable key="generic"/>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/generic/artifactoryGenericResolveActionEdit.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/generic/artifactoryGenericResolveActionView.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+    </taskType>
+
+
+    <!-- Maven 3 task -->
+    <taskType key="maven3Task" name="Artifactory Maven 3"
+    class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">
+    <description>Artifactory Maven 3 Task</description>
+    <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
+    <category name="builder"/>
+    <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.Maven3CapabilityHelper"/>
+    <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
+    <executable key="maven" pathHelpKey="builder.maven.pathHelp"/>
+    <resource type="freemarker" name="edit" location="/templates/plugins/task/artifactoryMaven3BuilderEdit.ftl"/>
+    <resource type="freemarker" name="view" location="/templates/plugins/task/artifactoryMaven3BuilderView.ftl"/>
+    <resource type="download" name="icon" location="images/artifactory-maven-icon.png"/>
+    </taskType>
+
+    <!--Gradle task-->
+    <taskType key="artifactoryGradleTask" name="Artifactory Gradle"
+    class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
+    <description>Artifactory Gradle task</description>
+    <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
+    <category name="builder"/>
+    <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.GradleCapabilityHelper"/>
+    <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
+    <executable key="gradle" pathHelpKey="builder.gradle.pathHelp"/>
+    <resource type="freemarker" name="edit" location="/templates/plugins/task/artifactoryGradleBuilderEdit.ftl"/>
+    <resource type="freemarker" name="view" location="/templates/plugins/task/artifactoryGradleBuilderView.ftl"/>
+    <resource type="download" name="icon" location="images/artifactory-gradle-icon.png"/>
+    </taskType>
 
     <!--build info-->
     <xwork key="buildInfoAction" name="Artifactory Release Promotion">
@@ -80,7 +193,7 @@
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
                 <result name="input" type="freemarker">/templates/plugins/result/buildInfoAction.ftl</result>
-                <result name="error" type="freemarker">/templates/plugins/result/buildInfoAction.ftl</result>
+                <result name="error" type="freemarker">/error.ftl</result>
             </action>
         </package>
     </xwork>
@@ -156,19 +269,8 @@
         </package>
     </xwork>
 
-    <taskType key="artifactoryGradleTask" name="Artifactory Gradle"
-              class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
-        <description>Artifactory Gradle task</description>
-        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
-        <category name="builder"/>
-        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.GradleCapabilityHelper"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
-        <executable key="gradle" pathHelpKey="builder.gradle.pathHelp"/>
-        <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryGradleBuilderEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryGradleBuilderView.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-gradle-icon.png"/>
-    </taskType>
 
+    <!--    Ivy Task    -->
     <taskType key="artifactoryIvyTask" name="Artifactory Ivy"
               class="org.jfrog.bamboo.task.ArtifactoryIvyTask">
         <description>Artifactory Ivy task</description>
@@ -176,23 +278,11 @@
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.IvyCapabilityHelper"/>
         <executable key="ivy" pathHelpKey="builder.ivy.pathHelp"/>
-        <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryIvyBuilderEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryIvyBuilderView.ftl"/>
+        <resource type="freemarker" name="edit" location="/templates/plugins/task/artifactoryIvyBuilderEdit.ftl"/>
+        <resource type="freemarker" name="view" location="/templates/plugins/task/artifactoryIvyBuilderView.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-ivy-icon.png"/>
     </taskType>
 
-    <taskType key="maven3Task" name="Artifactory Maven 3"
-              class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">
-        <description>Artifactory Maven 3 Task</description>
-        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
-        <category name="builder"/>
-        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.Maven3CapabilityHelper"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
-        <executable key="maven" pathHelpKey="builder.maven.pathHelp"/>
-        <resource type="freemarker" name="edit" location="templates/plugins/task/artifactoryMaven3BuilderEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/plugins/task/artifactoryMaven3BuilderView.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-maven-icon.png"/>
-    </taskType>
 
     <buildProcessor key="artifactoryChainCompleteAction" name="Artifactory Release Management Staging"
                     class="org.jfrog.bamboo.release.action.ArtifactoryPostBuildCompleteAction">
@@ -212,33 +302,11 @@
         <description>Post build processor to copy gradle properties to artifact storage.</description>
     </buildProcessor>
 
-
-    <servlet name="Artifactory Configuration Servlet" key="artifactoryConfigServlet"
-             class="org.jfrog.bamboo.admin.ArtifactoryConfigServlet">
-        <url-pattern>/artifactoryConfigServlet</url-pattern>
-    </servlet>
-
-    <servlet name="Artifactory Build Servlet" key="artifactoryBuildServlet"
-             class="org.jfrog.bamboo.admin.BuildServlet">
-        <url-pattern>/artifactoryBuildServlet</url-pattern>
-    </servlet>
-
-    <servlet name="Artifactory Administration Configuration Servlet" key="artifactoryAdminConfigServlet"
-             class="org.jfrog.bamboo.admin.ArtifactoryAdminConfigServlet">
-        <url-pattern>/artifactoryAdminConfigServlet</url-pattern>
-    </servlet>
-
-    <resource type="download" name="builder/dependencies/" location="META-INF/lib/"/>
-
-    <resource type="download" name="artifactory-icon.png" location="images/artifactory-icon.png"/>
-    <resource type="download" name="artifactory-release.png" location="images/artifactory-release.png"/>
-    <resource type="download" name="bintray.png" location="images/bintray.png"/>
-
     <additionalBuildConfigurationPlugin key="releasePlanConfiguration" name="Release Management Configuration"
                                         class="org.jfrog.bamboo.release.configuration.ReleaseManagementConfigurator">
         <description>Plugin to allow custom configuration of release management per plan</description>
-        <resource type="freemarker" name="edit" location="templates/releaseEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/brmpView.ftl"/>
+        <resource type="freemarker" name="edit" location="/templates/releaseEdit.ftl"/>
+        <resource type="freemarker" name="view" location="/templates/brmpView.ftl"/>
     </additionalBuildConfigurationPlugin>
 
     <preBuildAction key="artifactoryPreBuildAction" name="Artifactory Release Staging"
@@ -261,31 +329,10 @@
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
     </taskType>
 
-    <!--Generic build action-->
 
-    <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy"
-              class="org.jfrog.bamboo.task.ArtifactoryGenericDeployTask">
-        <description>Artifactory Generic Deploy Task</description>
-        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
-        <category name="deployment"/>
-        <executable key="generic"/>
-        <resource type="freemarker" name="edit"
-                  location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
-        <resource type="freemarker" name="view"
-                  location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
-    </taskType>
+    <component-import key="taskContextHelper" interface="com.atlassian.bamboo.task.TaskContextHelperService"/>
+    <component-import key="taskConfiguratorHelper" interface="com.atlassian.bamboo.task.TaskConfiguratorHelper"/>
+    <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties"/>
 
-    <taskType key="artifactoryGenericResolveTask" name="Artifactory Generic Resolve"
-              class="org.jfrog.bamboo.task.ArtifactoryGenericResolveTask">
-        <description>Artifactory Generic Deploy Task</description>
-        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
-        <category name="resolve"/>
-        <executable key="generic"/>
-        <resource type="freemarker" name="edit"
-                  location="templates/plugins/generic/artifactoryGenericResolveActionEdit.ftl"/>
-        <resource type="freemarker" name="view"
-                  location="templates/plugins/generic/artifactoryGenericResolveActionView.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
-    </taskType>
+
 </atlassian-plugin>

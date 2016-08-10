@@ -82,7 +82,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractArtifactoryCon
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-                                                     @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable final TaskDefinition previousTaskDefinition) {
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
         decryptFields(configMap);

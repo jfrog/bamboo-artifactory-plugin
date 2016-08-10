@@ -16,7 +16,7 @@
 
 package org.jfrog.bamboo.admin;
 
-import com.atlassian.bamboo.ww2.BambooActionSupport;
+import com.atlassian.bamboo.configuration.GlobalAdminAction;
 import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
 
 /**
@@ -24,8 +24,8 @@ import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
  *
  * @author Noam Y. Tenne
  */
-public class ManageArtifactoryServersAction extends BambooActionSupport implements GlobalAdminSecurityAware {
+public class ManageArtifactoryServersAction extends GlobalAdminAction implements GlobalAdminSecurityAware {
 
-    public ManageArtifactoryServersAction() {
-    }
+	public ManageArtifactoryServersAction() {
+	}
 }

@@ -16,7 +16,6 @@
 
 package org.jfrog.bamboo.admin;
 
-import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -24,7 +23,6 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jfrog.bamboo.util.ConstantValues;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -46,9 +44,8 @@ public class ArtifactoryConfigServlet extends HttpServlet {
 
     private ServerConfigManager serverConfigManager;
 
-    public ArtifactoryConfigServlet() {
-        serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+    public ArtifactoryConfigServlet(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
     }
 
     /**
@@ -81,7 +78,7 @@ public class ArtifactoryConfigServlet extends HttpServlet {
             resp.sendError(HttpStatus.SC_NOT_FOUND, "Could not find an Artifactory server configuration with the ID " +
                     serverId + ".");
             log.error("Unable to retrieve server configuration. No configuration was found with the ID " + serverId +
-                    ".");
+                     ".");
             return;
         }
 

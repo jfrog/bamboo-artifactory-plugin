@@ -1,4 +1,4 @@
-/*
+    /*
  * Copyright (C) 2010 JFrog Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,8 @@ import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -50,16 +52,12 @@ public class ServerConfigManager implements Serializable {
     private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations";
     private static final EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
     private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<>();
-    private BintrayConfig bintrayConfig;
+    private BintrayConfiguration bintrayConfig;
     private transient BandanaManager bandanaManager;
     private AtomicLong nextAvailableId = new AtomicLong(0);
     private CustomVariableContext customVariableContext;
 
-    public static ServerConfigManager getInstance() {
-        ServerConfigManager serverConfigManager = new ServerConfigManager();
-        ContainerManager.autowireComponent(serverConfigManager);
-        return serverConfigManager;
-    }
+
 
     public List<ServerConfig> getAllServerConfigs() {
         return Lists.newArrayList(configuredServers);
@@ -73,6 +71,12 @@ public class ServerConfigManager implements Serializable {
         }
 
         return null;
+    }
+
+    public static ServerConfigManager getInstance() {
+        ServerConfigManager serverConfigManager = new ServerConfigManager();
+        ContainerManager.autowireComponent(serverConfigManager);
+        return serverConfigManager;
     }
 
     public void addServerConfiguration(ServerConfig serverConfig) {
@@ -104,52 +108,74 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    public void updateBintrayConfiguration(BintrayConfig bintrayConfig) {
+    public void updateBintrayConfiguration(BintrayConfiguration bintrayConfig) {
         this.bintrayConfig = bintrayConfig;
         persistBintray();
     }
 
     public void setBandanaManager(BandanaManager bandanaManager) {
         this.bandanaManager = bandanaManager;
+        try {
+            setArtifactoryServers(bandanaManager);
+        } catch (EncryptionException | IOException e) {
+            log.error("Could not load Artifactory configuration. ");
+        }
+        try {
+            setBintrayServers(bandanaManager);
+        } catch (EncryptionException | IOException e) {
+            log.error("Could not load Bintray configuration. ");
+        }
+    }
 
+    private void setBintrayServers(BandanaManager bandanaManager) throws IOException, EncryptionException {
+        Object existingBintrayConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY);
+        if (existingBintrayConfig != null) {
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            String json = ow.writeValueAsString(existingBintrayConfig);
+            BintrayConfiguration tempBintrayConfig = new ObjectMapper().readValue(json, BintrayConfiguration.class);
+            bintrayConfig = decryptExistingBintrayConfig(tempBintrayConfig);
+        }
+    }
+
+    private void setArtifactoryServers(BandanaManager bandanaManager) throws IOException, EncryptionException {
         Object existingArtifactoryConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY);
         if (existingArtifactoryConfig != null) {
             List<ServerConfig> serverConfigList = (List<ServerConfig>) existingArtifactoryConfig;
+            for (Object serverConfig : serverConfigList) {
+                // Because of some class loader issues we had to get a workaround,
+                // we serialize and deserialize the serverConfig object.
+                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                String json = ow.writeValueAsString(serverConfig);
+                ServerConfig tempServerConfig = new ObjectMapper().readValue(json, ServerConfig.class);
 
-            for (ServerConfig serverConfig : serverConfigList) {
-                if (nextAvailableId.get() <= serverConfig.getId()) {
-                    nextAvailableId.set(serverConfig.getId() + 1);
+                if (nextAvailableId.get() <= tempServerConfig.getId()) {
+                    nextAvailableId.set(tempServerConfig.getId() + 1);
                 }
 
-                configuredServers.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
-                        encryptionService.decrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
-            }
-        }
-
-        Object existingBintrayConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY);
-        if (existingBintrayConfig != null) {
-            try {
-                bintrayConfig = decryptExistingBintrayConfig((BintrayConfig) existingBintrayConfig);
-            } catch (EncryptionException e) {
-                log.error("Could not load Bintray configuration.");
+                configuredServers.add(new ServerConfig(tempServerConfig.getId(), tempServerConfig.getUrl(), tempServerConfig.getUsername(),
+                        encryptionService.decrypt(tempServerConfig.getPassword()), tempServerConfig.getTimeout()));
             }
         }
     }
 
-    private BintrayConfig decryptExistingBintrayConfig(BintrayConfig bintrayConfig) throws EncryptionException {
+    public BandanaManager getBandanaManager() {
+        return this.bandanaManager;
+    }
+
+    private BintrayConfiguration decryptExistingBintrayConfig(BintrayConfiguration bintrayConfig) throws EncryptionException {
         String bintrayApi = bintrayConfig.getBintrayApiKey();
         String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
         bintrayApi = TaskUtils.decryptIfNeeded(bintrayApi);
         sonatypeOssPassword = TaskUtils.decryptIfNeeded(sonatypeOssPassword);
-        return new BintrayConfig(bintrayConfig.getBintrayUsername(), bintrayApi,
+        return new BintrayConfiguration(bintrayConfig.getBintrayUsername(), bintrayApi,
                 bintrayConfig.getSonatypeOssUsername(), sonatypeOssPassword);
     }
 
-    public void setBintrayConfig(BintrayConfig bintrayConfig) {
+    public void setBintrayConfig(BintrayConfiguration bintrayConfig) {
         this.bintrayConfig = bintrayConfig;
     }
 
-    public BintrayConfig getBintrayConfig() {
+    public BintrayConfiguration getBintrayConfig() {
         return bintrayConfig;
     }
 
@@ -193,6 +219,7 @@ public class ServerConfigManager implements Serializable {
 
         try {
             return client.getLocalRepositoriesKeys();
+
         } catch (IOException ioe) {
             log.error("Error while retrieving target repository list from: " + serverUrl, ioe);
             try {
@@ -277,8 +304,8 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    private BintrayConfig createEncryptedBintrayConfig(BintrayConfig bintrayConfig) {
-        BintrayConfig encConfig = new BintrayConfig();
+    private BintrayConfiguration createEncryptedBintrayConfig(BintrayConfiguration bintrayConfig) {
+        BintrayConfiguration encConfig = new BintrayConfiguration();
         String apiKey = encryptionService.encrypt(bintrayConfig.getBintrayApiKey());
         String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
         encConfig.setBintrayApiKey(apiKey);

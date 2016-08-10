@@ -27,14 +27,16 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.build.api.BuildInfoProperties;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +52,7 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_SERVLET_KEY_PARAM;
  */
 public abstract class BaseBuildInfoHelper {
     @SuppressWarnings({"UnusedDeclaration"})
-    private static final Logger log = LoggerFactory.getLogger(BaseBuildInfoHelper.class);
+    private static final Logger log = Logger.getLogger(BaseBuildInfoHelper.class);
 
     protected BuildContext context;
     protected ServerConfigManager serverConfigManager;
@@ -167,10 +169,10 @@ public abstract class BaseBuildInfoHelper {
         }
 
         addGlobalVariables(variablesToReturn,
-                Maps.filterKeys(globalVariables, BuildInfoExtractorUtils.MATRIX_PARAM_PREDICATE));
+                Utils.filterMapKeysByPrefix(globalVariables, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX));
 
         addGlobalVariables(variablesToReturn,
-                Maps.filterKeys(globalVariables, BuildInfoExtractorUtils.BUILD_INFO_PROP_PREDICATE));
+                Utils.filterMapKeysByPrefix(globalVariables, BuildInfoProperties.BUILD_INFO_PROP_PREFIX));
 
         return variablesToReturn;
     }

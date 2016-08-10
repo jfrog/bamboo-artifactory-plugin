@@ -64,19 +64,13 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     protected AbstractArtifactoryConfiguration(String builderContextPrefix, @Nullable String capabilityPrefix) {
+        serverConfigManager = ServerConfigManager.getInstance();
+        if (administrationConfiguration == null) {
+            administrationConfiguration =
+                    (AdministrationConfiguration) ContainerManager.getComponent("administrationConfiguration");
+        }
         this.builderContextPrefix = builderContextPrefix;
         this.capabilityPrefix = capabilityPrefix;
-
-        try {
-            if (ContainerManager.isContainerSetup()) {
-                serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(
-                        ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
-            }
-        } catch (ComponentNotFoundException cnfe) {
-            System.out.println(ArtifactoryGradleConfiguration.class.getName() + " - " + new Date() +
-                    " - Warning: could not find component 'Artifactory Server Configuration Manager' (Can be ignored " +
-                    "when running on a remote agent).");
-        }
     }
 
     public String getTestDirectory(AbstractBuildContext buildContext) {
@@ -92,18 +86,21 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+        serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
     }
 
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
+        serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
     }
 
     @Override
     public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForView(context, taskDefinition);
+        serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
     }
 

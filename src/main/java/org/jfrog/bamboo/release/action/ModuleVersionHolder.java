@@ -1,9 +1,7 @@
 package org.jfrog.bamboo.release.action;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
+import org.jfrog.bamboo.util.Utils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -90,11 +88,7 @@ public class ModuleVersionHolder implements Serializable {
     }
 
     private static int getNumberOfModules(Map<String, String> conf) {
-        return Maps.filterKeys(conf, new Predicate<String>() {
-            public boolean apply(String input) {
-                return StringUtils.startsWith(input, ReleaseAndPromotionAction.MODULE_KEY);
-            }
-        }).size();
+        return Utils.filterMapKeysByPrefix(conf, ReleaseAndPromotionAction.MODULE_KEY).size();
     }
 
     @Override

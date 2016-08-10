@@ -3,12 +3,8 @@ package org.jfrog.bamboo.capability;
 import com.atlassian.bamboo.v2.build.agent.capability.AbstractHomeDirectoryCapabilityDefaultsHelper;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.atlassian.bamboo.v2.build.agent.capability.ExecutablePathUtils;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 public class GradleCapabilityHelper extends AbstractHomeDirectoryCapabilityDefaultsHelper {
     private static final String GRADLE_HOME_POSIX = "/usr/share/gradle/";
@@ -36,10 +32,5 @@ public class GradleCapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @NotNull
     protected String getCapabilityKey() {
         return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".gradle.Gradle";
-    }
-
-    @Override
-    protected Predicate<File> getValidityPredicate() {
-        return Predicates.alwaysTrue();
     }
 }

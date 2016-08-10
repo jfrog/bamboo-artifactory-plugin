@@ -70,8 +70,8 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
 
             TaskDefinition definition = TaskDefinitionHelper.findMavenDefinition(buildContext.getRuntimeTaskDefinitions());
             String securityToken = buildContext.getRuntimeTaskContext()
-                .getRuntimeContextForTask(definition)
-                .get(TokenDataProvider.SECURITY_TOKEN);
+                    .getRuntimeContextForTask(definition)
+                    .get(TokenDataProvider.SECURITY_TOKEN);
 
             ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl("buildInfo", false, SecureToken.createFromString(securityToken));
             File buildInfoZip = createBuildInfoZip(buildInfo);

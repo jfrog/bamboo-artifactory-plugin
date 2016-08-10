@@ -9,15 +9,11 @@
 
 <body>
 
-<h1>Manage Artifactory Servers</h1>
-
-<p>You can use this page to add, edit and delete Artifactory and Bintray configurations.</p>
-
 [@ww.action name="existingArtifactoryServer" executeResult="true" /]
 
 <br/>
 
-[@ww.action name="configureArtifactoryServer!default" executeResult="true" /]
+[@ww.action name="viewBintray" executeResult="true" /]
 
 </body>
 </html>

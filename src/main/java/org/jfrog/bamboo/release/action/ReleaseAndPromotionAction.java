@@ -71,7 +71,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
                     ReleaseProvider.CFG_VERSION_PER_MODULE, "Version per module",
                     ReleaseProvider.CFG_USE_EXISTING_VERSION, "Use existing module versions");
     public static PromotionContext promotionContext = new PromotionContext();
-    ServerConfigManager serverConfigManager = (ServerConfigManager) ContainerManager.getComponent(ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+    ServerConfigManager serverConfigManager;
     private String promotionMode = PROMOTION_NORMAL_MODE;
     private boolean promoting = true;
     private String promotionRepo = "";
@@ -94,6 +94,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     private List<ModuleVersionHolder> versions;
 
     public ReleaseAndPromotionAction() {
+        this.serverConfigManager = ServerConfigManager.getInstance();
     }
 
     @Override
@@ -109,13 +110,13 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             log.error("This build has no results summary");
             return ERROR;
         }
-//        StringBuilder builder = new StringBuilder(
-//                summary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_SELECTED_SERVER_PARAM));
-//        if (!builder.toString().endsWith("/")) {
-//            builder.append("/");
-//        }
-//        builder.append("webapp/builds/").append(getImmutableBuild().getName()).append("/").append(getBuildNumber());
-//        artifactoryReleaseManagementUrl = builder.toString();
+        StringBuilder builder = new StringBuilder(
+                summary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_SELECTED_SERVER_PARAM));
+        if (!builder.toString().endsWith("/")) {
+            builder.append("/");
+        }
+        builder.append("webapp/builds/").append(getImmutableBuild().getName()).append("/").append(getBuildNumber());
+        artifactoryReleaseManagementUrl = builder.toString();
 
         return INPUT;
     }
@@ -394,8 +395,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
         if (StringUtils.isBlank(serverId)) {
             return Lists.newArrayList();
         }
-        ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+        ServerConfigManager component = ServerConfigManager.getInstance();
         return component.getDeployableRepos(Long.parseLong(serverId));
     }
 
@@ -556,8 +556,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             log.error("You are not permitted to execute build promotion.");
             return ERROR;
         }
-        ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+        ServerConfigManager component = ServerConfigManager.getInstance();
         TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getMutablePlan());
         if (definition == null) {
             return ERROR;
@@ -628,8 +627,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             log.warn("No Artifactory server Id found");
             return Lists.newArrayList();
         }
-        ServerConfigManager component = (ServerConfigManager) ContainerManager.getComponent(
-                ConstantValues.PLUGIN_CONFIG_MANAGER_KEY);
+        ServerConfigManager component = ServerConfigManager.getInstance();
         return component.getDeployableRepos(Long.parseLong(selectedServerId));
     }
 
