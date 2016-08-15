@@ -149,11 +149,16 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     private Map<String, String> getDynamicPropertyMap(Build build) {
-        Properties dynamicProperties = BuildInfoExtractorUtils.filterDynamicProperties(
-                build.getProperties(), BuildInfoExtractorUtils.MATRIX_PARAM_PREDICATE);
-        Properties prefixLessDynamicProperties = BuildInfoExtractorUtils.stripPrefixFromProperties(dynamicProperties,
-                ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX);
-        return Maps.fromProperties(prefixLessDynamicProperties);
+        Map<String, String> filteredPropertyMap = new HashMap<>();
+        for (Map.Entry<Object, Object> entry : build.getProperties().entrySet()) {
+            String key = entry.getKey().toString();
+            if (StringUtils.startsWith(key, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX)) {
+                filteredPropertyMap.put(
+                        StringUtils.removeStart(key, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX),
+                        (String) entry.getValue());
+            }
+        }
+        return filteredPropertyMap;
     }
 
     private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry, String targetRepository,
