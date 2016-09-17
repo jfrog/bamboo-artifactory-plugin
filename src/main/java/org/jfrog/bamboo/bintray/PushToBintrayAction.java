@@ -43,9 +43,9 @@ public class PushToBintrayAction extends ViewBuildResults {
     private boolean mavenSync;
 
     @Override
-    public String doExecute() throws Exception {
+    public String execute() throws Exception {
         context.clearLog();
-        String result = super.doExecute();
+        String result = super.execute();
         if (ERROR.equals(result)) {
             return ERROR;
         }

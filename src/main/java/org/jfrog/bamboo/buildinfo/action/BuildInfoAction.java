@@ -16,8 +16,8 @@ public class BuildInfoAction extends ViewBuildResults {
     private String artifactoryReleaseManagementUrl = "";
 
     @Override
-    public String doExecute() throws Exception {
-        String superResult = super.doExecute();
+    public String execute() throws Exception {
+        String superResult = super.execute();
 
         if (ERROR.equals(superResult)) {
             return ERROR;

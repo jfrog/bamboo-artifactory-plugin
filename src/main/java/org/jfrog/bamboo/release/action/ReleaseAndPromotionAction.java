@@ -97,8 +97,8 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     @Override
-    public String doExecute() throws Exception {
-        String superResult = super.doExecute();
+    public String execute() throws Exception {
+        String superResult = super.execute();
 
         if (ERROR.equals(superResult)) {
             return ERROR;
@@ -109,14 +109,6 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             log.error("This build has no results summary");
             return ERROR;
         }
-//        StringBuilder builder = new StringBuilder(
-//                summary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_SELECTED_SERVER_PARAM));
-//        if (!builder.toString().endsWith("/")) {
-//            builder.append("/");
-//        }
-//        builder.append("webapp/builds/").append(getImmutableBuild().getName()).append("/").append(getBuildNumber());
-//        artifactoryReleaseManagementUrl = builder.toString();
-
         return INPUT;
     }
 
