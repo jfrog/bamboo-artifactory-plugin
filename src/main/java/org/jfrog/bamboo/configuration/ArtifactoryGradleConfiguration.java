@@ -2,13 +2,10 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.Plan;
-import com.atlassian.bamboo.plan.PlanHelper;
-import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 
@@ -44,11 +41,6 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         context.put("selectedServerId", -1);
         context.put("selectedResolutionRepoKey", "");
         context.put("selectedPublishingRepoKey", "");
-        Repository repository = PlanHelper.getDefaultRepository(plan);
-        if (repository != null) {
-            String host = repository.getHost();
-            context.put("builder.artifactoryGradleBuilder.vcsTagBase", host);
-        }
         context.put("builder.artifactoryGradleBuilder.gitReleaseBranch", "REL-BRANCH-");
     }
 
@@ -75,25 +67,6 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
             context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
         }
     }
-
-    @Override
-    public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForView(context, taskDefinition);
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
-        context.put("serverConfigManager", serverConfigManager);
-        GradleBuildContext buildContext = GradleBuildContext.createGradleContextFromMap(context);
-        long serverId = buildContext.getArtifactoryServerId();
-        context.put("selectedServerId", serverId);
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(serverId);
-        context.put("selectedServerUrl", serverConfig.getUrl());
-        context.put("hasTests", buildContext.isTestChecked());
-        context.put("isPublishArtifacts", buildContext.isPublishArtifacts());
-        context.put("isUseM2CompatiblePatterns", buildContext.isMaven2Compatible());
-        context.put("useArtifactoryGradlePlugin", buildContext.useArtifactoryGradlePlugin());
-        context.put("isPublishBuildInfo", buildContext.isPublishBuildInfo());
-        context.put("isRunLicenseChecks", buildContext.isRunLicenseChecks());
-    }
-
 
     @NotNull
     @Override

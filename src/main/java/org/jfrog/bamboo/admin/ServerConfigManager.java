@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -133,6 +134,28 @@ public class ServerConfigManager implements Serializable {
             } catch (EncryptionException e) {
                 log.error("Could not load Bintray configuration.");
             }
+        }
+    }
+
+    public void migrateToVersionTwo() throws IllegalAccessException {
+        persistBintrayMigration();
+        persistServersMigration();
+    }
+
+    private synchronized void persistServersMigration() throws IllegalAccessException {
+        List<ServerConfig> serverConfigs = Lists.newArrayList();
+        for (ServerConfig serverConfig : configuredServers) {
+            serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
+                    encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
+        }
+        String transformedData = toXMLString(serverConfigs);
+        bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY + ".v2", transformedData);
+    }
+
+    private synchronized void persistBintrayMigration() throws IllegalAccessException {
+        if (bintrayConfig != null) {
+            String transformedData = toXMLString(createEncryptedBintrayConfig(bintrayConfig));
+            bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY + ".v2", transformedData);
         }
     }
 
@@ -290,5 +313,44 @@ public class ServerConfigManager implements Serializable {
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    private String toXMLString(List<ServerConfig> serverConfigs) throws IllegalAccessException {
+        StringBuilder stringBuilder = new StringBuilder();
+        openTag(stringBuilder, "List");
+        for (ServerConfig serverConfig : serverConfigs) {
+            stringBuilder.append(toXMLString(serverConfig));
+        }
+        closeTag(stringBuilder, "List");
+        return stringBuilder.toString();
+    }
+
+    private String toXMLString(Object object) throws IllegalAccessException {
+        StringBuilder stringBuilder = new StringBuilder();
+        openTag(stringBuilder, object.getClass().getSimpleName());
+        for (Field field : object.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            appendAttribute(stringBuilder, field.getName(), field.get(object).toString());
+        }
+        closeTag(stringBuilder, object.getClass().getSimpleName());
+        return stringBuilder.toString();
+    }
+
+    private void appendAttribute(StringBuilder stringBuilder, String field, String value) {
+        openTag(stringBuilder, field);
+        stringBuilder.append(value);
+        closeTag(stringBuilder, field);
+    }
+
+    private void openTag(StringBuilder stringBuilder, String fieldName) {
+        stringBuilder.append("<");
+        stringBuilder.append(fieldName);
+        stringBuilder.append(">");
+    }
+
+    private void closeTag(StringBuilder stringBuilder, String fieldName) {
+        stringBuilder.append("</");
+        stringBuilder.append(fieldName);
+        stringBuilder.append(">");
     }
 }

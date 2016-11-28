@@ -44,16 +44,6 @@ public class ArtifactoryGenericResolveConfiguration extends AbstractArtifactoryC
     }
 
     @Override
-    public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForView(context, taskDefinition);
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
-        context.put("serverConfigManager", serverConfigManager);
-        IvyBuildContext buildContext = IvyBuildContext.createIvyContextFromMap(context);
-        long serverId = buildContext.getArtifactoryServerId();
-        context.put("selectedServerId", serverId);
-    }
-
-    @Override
     protected String getKey() {
         return "artifactoryGenericBuilder";
     }

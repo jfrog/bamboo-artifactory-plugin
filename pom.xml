@@ -24,11 +24,19 @@
 
     <developers>
         <developer>
-            <id>noamt</id>
-            <name>Noam Y. Tenne</name>
-            <email>noamt at jfrog.org</email>
+            <id>eyalb</id>
+            <name>Eyal Ben Moshe</name>
+            <email>eyalb at jfrog.com</email>
             <roles>
-                <role>Lead Developer</role>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>diman</id>
+            <name>Dima Nevelev</name>
+            <email>diman at jfrog.com</email>
+            <roles>
+                <role>Developer</role>
             </roles>
         </developer>
     </developers>
@@ -50,7 +58,7 @@
     </scm>
 
     <properties>
-        <bamboo.version>5.13.0</bamboo.version>
+        <bamboo.version>5.14.1</bamboo.version>
         <platform.version>2.21.3</platform.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
