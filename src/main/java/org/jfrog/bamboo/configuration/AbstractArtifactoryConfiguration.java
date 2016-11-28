@@ -101,12 +101,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         populateContextForAllOperations(context);
     }
 
-    @Override
-    public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForView(context, taskDefinition);
-        populateContextForAllOperations(context);
-    }
-
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,

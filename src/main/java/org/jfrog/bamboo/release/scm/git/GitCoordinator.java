@@ -3,10 +3,10 @@ package org.jfrog.bamboo.release.scm.git;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.credentials.CredentialsAccessor;
-import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.scm.AbstractScmCoordinator;
@@ -37,7 +37,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
         boolean tagPushed;
     }
 
-    public GitCoordinator(BuildContext context, Repository repository, Map<String, String> configuration,
+    public GitCoordinator(BuildContext context, PlanRepositoryDefinition repository, Map<String, String> configuration,
                           BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         super(context, repository, buildLogger, customVariableContext, credentialsAccessor);
         this.configuration = configuration;

@@ -45,12 +45,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("selectedRepoKey", "");
         context.put("selectedResolutionArtifactoryServerId", -1);
         context.put("selectedResolutionRepoKey", "");
-        Repository repository = PlanHelper.getDefaultRepository(plan);
-        if (repository != null) {
-            String host = repository.getHost();
-            context.put("builder.artifactoryMaven3Builder.vcsTagBase", host);
-            context.put("builder.artifactoryMaven3Builder.gitReleaseBranch", "REL-BRANCH-");
-        }
+        context.put("builder.artifactoryMaven3Builder.gitReleaseBranch", "REL-BRANCH-");
     }
 
     @Override
@@ -76,26 +71,6 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         if (envVarsExcludePatterns == null) {
             context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
         }
-    }
-
-    @Override
-    public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForView(context, taskDefinition);
-        String publishingKey = Maven3BuildContext.PREFIX + Maven3BuildContext.DEPLOYABLE_REPO_KEY;
-        String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :
-                Maven3BuildContext.NO_PUBLISHING_REPO_KEY_CONFIGURED;
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
-        context.put("selectedRepoKey", selectedPublishingRepoKey);
-        Maven3BuildContext buildContext = Maven3BuildContext.createMavenContextFromMap(context);
-        long serverId = buildContext.getArtifactoryServerId();
-        context.put("selectedServerId", serverId);
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(serverId);
-        context.put("selectedServerUrl", serverConfig.getUrl());
-        context.put("isRunLicenseChecks", buildContext.isRunLicenseChecks());
-        context.put("isPublishArtifacts", buildContext.isPublishArtifacts());
-        context.put("isRecordAllDependencies", buildContext.isRecordAllDependencies());
-        context.put("hasTests", buildContext.isTestChecked());
-        context.put("serverConfigManager", serverConfigManager);
     }
 
     @NotNull

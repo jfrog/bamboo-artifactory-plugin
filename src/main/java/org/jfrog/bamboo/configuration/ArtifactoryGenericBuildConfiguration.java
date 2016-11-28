@@ -7,7 +7,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.bamboo.context.IvyBuildContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -52,16 +51,6 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractArtifactoryCon
         if (envVarsExcludePatterns == null) {
             context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
         }
-    }
-
-    @Override
-    public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForView(context, taskDefinition);
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
-        context.put("serverConfigManager", serverConfigManager);
-        IvyBuildContext buildContext = IvyBuildContext.createIvyContextFromMap(context);
-        long serverId = buildContext.getArtifactoryServerId();
-        context.put("selectedServerId", serverId);
     }
 
     @Override

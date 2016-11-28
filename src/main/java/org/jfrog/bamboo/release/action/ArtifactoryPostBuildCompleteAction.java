@@ -5,11 +5,11 @@ import com.atlassian.bamboo.build.CustomBuildProcessor;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.credentials.CredentialsAccessor;
-import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -78,7 +78,7 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
                 log("Build completed successfully");
                 provider.afterSuccessfulReleaseVersionBuild();
                 provider.beforeDevelopmentVersionChange();
-                Repository repository = ScmHelper.getRepository(buildContext);
+                PlanRepositoryDefinition repository = ScmHelper.getRepository(buildContext);
                 if (repository == null) {
                     log("No VCS repository found, resuming normally");
                     return buildContext;

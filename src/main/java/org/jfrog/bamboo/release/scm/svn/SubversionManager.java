@@ -1,11 +1,10 @@
 package org.jfrog.bamboo.release.scm.svn;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.RepositoryException;
-import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
 import org.tmatesoft.svn.core.*;
@@ -17,14 +16,14 @@ import java.io.IOException;
 /**
  * @author Tomer Cohen
  */
-public class SubversionManager extends AbstractScmManager<SvnRepository> {
+public class SubversionManager extends AbstractScmManager {
     private static final Logger log = Logger.getLogger(SubversionManager.class);
 
     private SVNClientManager manager;
     private final BuildLogger buildLogger;
     private CustomVariableContext customVariableContext;
 
-    public SubversionManager(BuildContext context, Repository repository, SVNClientManager manager,
+    public SubversionManager(BuildContext context, PlanRepositoryDefinition repository, SVNClientManager manager,
                              BuildLogger buildLogger, CustomVariableContext customVariableContext) {
         super(context, repository, buildLogger);
         this.manager = manager;
@@ -139,7 +138,7 @@ public class SubversionManager extends AbstractScmManager<SvnRepository> {
 
     @Override
     public String getRemoteUrl() {
-        return getBambooScm().getRepositoryUrl();
+        return getBambooScm().getVcsLocation().getConfiguration().get("repository.svn.repositoryRoot");
     }
 
     public void safeRevertTag(String tagUrl, String comment) {
