@@ -1,4 +1,4 @@
-    /*
+/*
  * Copyright (C) 2010 JFrog Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 
 package org.jfrog.bamboo.admin;
 
-import com.atlassian.bamboo.bandana.PlanAwareBandanaContext;
+import com.atlassian.bamboo.bandana.*;
 import com.atlassian.bamboo.security.EncryptionException;
 import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.variable.CustomVariableContext;
@@ -27,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
+import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -35,9 +36,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Global Artifactory server configuration manager
@@ -48,15 +53,14 @@ public class ServerConfigManager implements Serializable {
 
     private transient Logger log = Logger.getLogger(ServerConfigManager.class);
 
-    private static final String ARTIFACTORY_CONFIG_KEY = "org.jfrog.bamboo.server.configurations";
-    private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations";
+    private static final String ARTIFACTORY_CONFIG_KEY = "org.jfrog.bamboo.server.configurations.v2";
+    private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations.v2";
     private static final EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
     private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<>();
-    private BintrayConfiguration bintrayConfig;
-    private transient BandanaManager bandanaManager;
+    private BintrayConfig bintrayConfig;
+    private  BandanaManager bandanaManager = null;
     private AtomicLong nextAvailableId = new AtomicLong(0);
     private CustomVariableContext customVariableContext;
-
 
 
     public List<ServerConfig> getAllServerConfigs() {
@@ -82,14 +86,22 @@ public class ServerConfigManager implements Serializable {
     public void addServerConfiguration(ServerConfig serverConfig) {
         serverConfig.setId(nextAvailableId.getAndIncrement());
         configuredServers.add(serverConfig);
-        persist();
+        try {
+            persist();
+        } catch (IllegalAccessException e) {
+            log.error("Could not add Artifactory configuration.", e);
+        }
     }
 
     public void deleteServerConfiguration(final long id) {
         for (ServerConfig configuredServer : configuredServers) {
             if (configuredServer.getId() == id) {
                 configuredServers.remove(configuredServer);
-                persist();
+                try {
+                    persist();
+                } catch (IllegalAccessException e) {
+                    log.error("Could not delete Artifactory configuration.", e);
+                }
                 break;
             }
         }
@@ -102,45 +114,75 @@ public class ServerConfigManager implements Serializable {
                 configuredServer.setUsername(updated.getUsername());
                 configuredServer.setPassword(updated.getPassword());
                 configuredServer.setTimeout(updated.getTimeout());
-                persist();
+                try {
+                    persist();
+                } catch (IllegalAccessException e) {
+                    log.error("Could not update Artifactory configuration.", e);
+                }
                 break;
             }
         }
     }
 
-    public void updateBintrayConfiguration(BintrayConfiguration bintrayConfig) {
+    public void updateBintrayConfiguration(BintrayConfig bintrayConfig) {
         this.bintrayConfig = bintrayConfig;
-        persistBintray();
+        try {
+            persistBintray();
+        } catch (IllegalAccessException e) {
+            log.error("Could not update Bintray configuration.", e);
+        }
     }
 
     public void setBandanaManager(BandanaManager bandanaManager) {
         this.bandanaManager = bandanaManager;
         try {
             setArtifactoryServers(bandanaManager);
-        } catch (EncryptionException | IOException e) {
-            log.error("Could not load Artifactory configuration. ");
+        } catch (InstantiationException | IllegalAccessException | EncryptionException | IOException e) {
+            log.error("Could not load Artifactory configuration.", e);
         }
         try {
-            setBintrayServers(bandanaManager);
-        } catch (EncryptionException | IOException e) {
-            log.error("Could not load Bintray configuration. ");
+            setBintrayConfigurations(bandanaManager);
+        } catch (InstantiationException | IllegalAccessException | EncryptionException | IOException e) {
+            log.error("Could not load Bintray configuration.", e);
         }
     }
 
-    private void setBintrayServers(BandanaManager bandanaManager) throws IOException, EncryptionException {
-        Object existingBintrayConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY);
-        if (existingBintrayConfig != null) {
+    public boolean isMissedMigration() {
+        Iterator keysIterator = bandanaManager.getKeys(PlanAwareBandanaContext.GLOBAL_CONTEXT).iterator();
+        String key;
+        boolean isMissedMigration = false;
+        while (keysIterator.hasNext()) {
+            key = (String)keysIterator.next();
+            // If the new key exists no migration needed.
+            if (key.equals(ARTIFACTORY_CONFIG_KEY) || key.equals(BINTRAY_CONFIG_KEY)) {
+                return false;
+            }
+            // isMissedMigration will be true only if already found a key from the old plugin
+            if (!isMissedMigration) {
+                isMissedMigration = key.contains("org.jfrog.bamboo");
+            }
+        }
+        return isMissedMigration;
+    }
+
+    private void setBintrayConfigurations(BandanaManager bandanaManager)
+            throws IOException, EncryptionException, InstantiationException, IllegalAccessException {
+        String existingBintrayConfig = (String) bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY);
+        if (existingBintrayConfig != null && !"".equals(existingBintrayConfig)) {
+            BintrayConfig tempBintrayConfig = getObjectFromStringXml(existingBintrayConfig, BintrayConfig.class);
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            String json = ow.writeValueAsString(existingBintrayConfig);
-            BintrayConfiguration tempBintrayConfig = new ObjectMapper().readValue(json, BintrayConfiguration.class);
+            String json = ow.writeValueAsString(tempBintrayConfig);
+            tempBintrayConfig = new ObjectMapper().readValue(json, BintrayConfig.class);
             bintrayConfig = decryptExistingBintrayConfig(tempBintrayConfig);
         }
     }
 
-    private void setArtifactoryServers(BandanaManager bandanaManager) throws IOException, EncryptionException {
-        Object existingArtifactoryConfig = bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY);
-        if (existingArtifactoryConfig != null) {
-            List<ServerConfig> serverConfigList = (List<ServerConfig>) existingArtifactoryConfig;
+        private void setArtifactoryServers(BandanaManager bandanaManager)
+            throws IOException, EncryptionException, InstantiationException, IllegalAccessException {
+
+        String existingArtifactoryConfig = (String) bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY);
+        if (StringUtils.isNotBlank(existingArtifactoryConfig)) {
+            List<ServerConfig> serverConfigList = getServersFromXml(existingArtifactoryConfig);
             for (Object serverConfig : serverConfigList) {
                 // Because of some class loader issues we had to get a workaround,
                 // we serialize and deserialize the serverConfig object.
@@ -158,24 +200,21 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    public BandanaManager getBandanaManager() {
-        return this.bandanaManager;
-    }
 
-    private BintrayConfiguration decryptExistingBintrayConfig(BintrayConfiguration bintrayConfig) throws EncryptionException {
+    private BintrayConfig decryptExistingBintrayConfig(BintrayConfig bintrayConfig) throws EncryptionException {
         String bintrayApi = bintrayConfig.getBintrayApiKey();
         String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
         bintrayApi = TaskUtils.decryptIfNeeded(bintrayApi);
         sonatypeOssPassword = TaskUtils.decryptIfNeeded(sonatypeOssPassword);
-        return new BintrayConfiguration(bintrayConfig.getBintrayUsername(), bintrayApi,
+        return new BintrayConfig(bintrayConfig.getBintrayUsername(), bintrayApi,
                 bintrayConfig.getSonatypeOssUsername(), sonatypeOssPassword);
     }
 
-    public void setBintrayConfig(BintrayConfiguration bintrayConfig) {
+    public void setBintrayConfig(BintrayConfig bintrayConfig) {
         this.bintrayConfig = bintrayConfig;
     }
 
-    public BintrayConfiguration getBintrayConfig() {
+    public BintrayConfig getBintrayConfig() {
         return bintrayConfig;
     }
 
@@ -219,7 +258,6 @@ public class ServerConfigManager implements Serializable {
 
         try {
             return client.getLocalRepositoriesKeys();
-
         } catch (IOException ioe) {
             log.error("Error while retrieving target repository list from: " + serverUrl, ioe);
             try {
@@ -288,24 +326,26 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    private synchronized void persist() {
+    private synchronized void persist() throws IllegalAccessException {
         List<ServerConfig> serverConfigs = Lists.newArrayList();
 
         for (ServerConfig serverConfig : configuredServers) {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
                     encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
         }
-        bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigs);
+        String serverConfigsString = toXMLString(serverConfigs);
+        bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigsString);
     }
 
-    private synchronized void persistBintray() {
+    private synchronized void persistBintray() throws IllegalAccessException {
         if (bintrayConfig != null) {
-            bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY, createEncryptedBintrayConfig(bintrayConfig));
+            String stringbintrayConfig = toXMLString(createEncryptedBintrayConfig(bintrayConfig));
+            bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY, stringbintrayConfig);
         }
     }
 
-    private BintrayConfiguration createEncryptedBintrayConfig(BintrayConfiguration bintrayConfig) {
-        BintrayConfiguration encConfig = new BintrayConfiguration();
+    private BintrayConfig createEncryptedBintrayConfig(BintrayConfig bintrayConfig) {
+        BintrayConfig encConfig = new BintrayConfig();
         String apiKey = encryptionService.encrypt(bintrayConfig.getBintrayApiKey());
         String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
         encConfig.setBintrayApiKey(apiKey);
@@ -317,5 +357,112 @@ public class ServerConfigManager implements Serializable {
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public class BandanaContext extends PlanAwareBandanaContext{
+
+        public BandanaContext(@Nullable BambooBandanaContext parentContext, long planId, @Nullable String pluginKey) {
+            super(parentContext, planId, pluginKey);
+        }
+    }
+
+    private List<ServerConfig> getServersFromXml(String stringXml) throws IllegalAccessException, InstantiationException {
+        List<ServerConfig> serverConfigs = Lists.newArrayList();
+        List<String> stringServerConfigs = findAllObjects(ServerConfig.class, stringXml);
+        for (String stringServerConfig : stringServerConfigs) {
+            serverConfigs.add(getObjectFromStringXml(stringServerConfig, ServerConfig.class));
+        }
+        return serverConfigs;
+    }
+
+    private <T> T getObjectFromStringXml(String stringT, Class<T> tClass) throws IllegalAccessException, InstantiationException {
+        T object = tClass.newInstance();
+        boolean accsessable;
+        String value;
+        for (Field field : tClass.getDeclaredFields()) {
+            accsessable = field.isAccessible();
+            field.setAccessible(true);
+            value = findFirstObject(field.getName(), stringT, true);
+            if (field.getType().equals(long.class)) {
+                field.set(object, Long.parseLong(value));
+            } else if (field.getType().equals(int.class)) {
+                field.set(object, Integer.parseInt(value));
+            } else {
+                field.set(object, findFirstObject(field.getName(), stringT, true));
+            }
+            field.setAccessible(accsessable);
+        }
+        return object;
+    }
+
+    private List<String> findAllObjects(Class providedClass, String scannedString){
+        List<String> foundStrings = Lists.newArrayList();
+        String foundString = findFirstObject(providedClass.getSimpleName(), scannedString, false);
+        while (!"".equals(foundString)) {
+            foundStrings.add(foundString);
+            scannedString = scannedString.replaceFirst(foundString, "");
+            foundString = findFirstObject(providedClass.getSimpleName(), scannedString, false);
+        }
+        return foundStrings;
+    }
+
+    /**
+     * Returns the found string or empty string if not found
+     * @param objectToFind
+     * @param stringToScan
+     * @return
+     */
+    private String findFirstObject(String objectToFind, String stringToScan, boolean dataOnly) {
+        String patternString = String.format("<%s>?(.*?)</%s>", objectToFind, objectToFind);
+        Pattern pattern = Pattern.compile(patternString);
+        Matcher matcher = pattern.matcher(stringToScan);
+        if (matcher.find()) {
+            if (dataOnly) {
+                return matcher.group(1);
+            }
+            return matcher.group(0);
+        }
+        return "";
+    }
+
+    private String toXMLString(List<ServerConfig> serverConfigs) throws IllegalAccessException {
+        StringBuilder stringBuilder = new StringBuilder();
+        openTag(stringBuilder, "List");
+        for (ServerConfig serverConfig : serverConfigs) {
+            stringBuilder.append(toXMLString(serverConfig));
+        }
+        closeTag(stringBuilder, "List");
+        return stringBuilder.toString();
+    }
+
+    private String toXMLString(Object object) throws IllegalAccessException {
+        StringBuilder stringBuilder = new StringBuilder();
+        openTag(stringBuilder, object.getClass().getSimpleName());
+        String value;
+        for (Field field : object.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            value = field.get(object) == null ? "" : field.get(object).toString();
+            appendAttribute(stringBuilder, field.getName(), value);
+        }
+        closeTag(stringBuilder, object.getClass().getSimpleName());
+        return stringBuilder.toString();
+    }
+
+    private void appendAttribute(StringBuilder stringBuilder, String field, String value) {
+        openTag(stringBuilder, field);
+        stringBuilder.append(value);
+        closeTag(stringBuilder, field);
+    }
+
+    private void openTag(StringBuilder stringBuilder, String fieldName) {
+        stringBuilder.append("<");
+        stringBuilder.append(fieldName);
+        stringBuilder.append(">");
+    }
+
+    private void closeTag(StringBuilder stringBuilder, String fieldName) {
+        stringBuilder.append("</");
+        stringBuilder.append(fieldName);
+        stringBuilder.append(">");
     }
 }

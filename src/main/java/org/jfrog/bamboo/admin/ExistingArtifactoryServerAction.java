@@ -31,11 +31,15 @@ public class ExistingArtifactoryServerAction extends AbstractEntityPagerSupport 
 
 	private ServerConfigManager serverConfigManager;
 
-	public ExistingArtifactoryServerAction( ServerConfigManager serverConfigManager) {
+	public ExistingArtifactoryServerAction(ServerConfigManager serverConfigManager) {
 		this.serverConfigManager = serverConfigManager;
 	}
 
 	public String doBrowse() throws Exception {
+		return super.execute();
+	}
+
+	public String browse() throws Exception {
 		return super.execute();
 	}
 

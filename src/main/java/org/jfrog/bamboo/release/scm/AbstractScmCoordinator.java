@@ -2,11 +2,10 @@ package org.jfrog.bamboo.release.scm;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.credentials.CredentialsAccessor;
-import com.atlassian.bamboo.repository.Repository;
-import com.atlassian.bamboo.repository.perforce.PerforceRepository;
 import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.release.scm.git.GitCoordinator;
@@ -25,7 +24,7 @@ import java.util.Map;
  */
 public abstract class AbstractScmCoordinator implements ScmCoordinator {
     private static final Logger log = Logger.getLogger(AbstractScmCoordinator.class);
-    protected final Repository repository;
+    protected final PlanRepositoryDefinition repository;
     protected final BuildLogger buildLogger;
     protected final CustomVariableContext customVariableContext;
     protected final CredentialsAccessor credentialsAccessor;
@@ -33,7 +32,7 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
     protected boolean modifiedFilesForDevVersion;
     protected boolean modifiedFilesForReleaseVersion;
 
-    public AbstractScmCoordinator(BuildContext context, Repository repository, BuildLogger buildLogger,
+    public AbstractScmCoordinator(BuildContext context, PlanRepositoryDefinition repository, BuildLogger buildLogger,
                                   CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         this.context = context;
         this.repository = repository;
@@ -43,8 +42,7 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
     }
 
     /**
-     * Create an SCM coordinator according to the {@link Repository} type, either {@link SvnRepository} or a {@link
-     * com.atlassian.bamboo.plugins.git.GitRepository}
+     * Create an SCM coordinator according to the {@link PlanRepositoryDefinition} type, either {@link SvnRepository}
      *
      * @param configuration       The build's configuration.
      * @param credentialsAccessor
@@ -53,33 +51,23 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
     public static ScmCoordinator createScmCoordinator(BuildContext context,
                                                       Map<? extends String, ? extends String> configuration, BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
 
-        Repository repository = ScmHelper.getRepository(context);
+        PlanRepositoryDefinition repository = ScmHelper.getRepository(context);
         Map<String, String> combined = Maps.newHashMap();
         combined.putAll(configuration);
         Map<String, String> customBuildData = context.getBuildResult().getCustomBuildData();
         combined.putAll(customBuildData);
-        if (repository instanceof SvnRepository) {
+        if (ScmHelper.isSvn(repository)) {
             return new SubversionCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
         // Git is optional SCM so we cannot use the class here
-        if (isGitScm(repository)) {
+        if (ScmHelper.isGitBase(repository)) {
             return new GitCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
-        if (repository instanceof PerforceRepository) {
+        if (ScmHelper.isPerforce(repository)) {
             return new PerforceCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
         throw new UnsupportedOperationException(
-                "Scm of type: " + repository.getClass().getName() + " is not supported");
-    }
-
-    /**
-     * @return Whether this repository is a git repository.
-     * GitHub and Stash has the same behaviour like Git.
-     */
-    private static boolean isGitScm(Repository repository) {
-        return "com.atlassian.bamboo.plugins.git.GitRepository".equals(repository.getClass().getName()) ||
-                "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(repository.getClass().getName()) ||
-                "com.atlassian.bamboo.plugins.stash.StashRepository".equals(repository.getClass().getName());
+                "Scm of type: " + repository.getPluginKey() + " is not supported");
     }
 
     @Override

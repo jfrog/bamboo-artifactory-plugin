@@ -3,16 +3,22 @@ package org.jfrog.bamboo.release.scm.svn;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.credentials.CredentialsAccessor;
-import com.atlassian.bamboo.repository.Repository;
+import com.atlassian.bamboo.repository.svn.SVNClientManagerFactory;
+import com.atlassian.bamboo.repository.svn.SvnRepository;
+import com.atlassian.bamboo.security.EncryptionService;
+import com.atlassian.bamboo.utils.SystemProperty;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
+import com.atlassian.spring.container.ContainerManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.scm.AbstractScmCoordinator;
+import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
+import org.tmatesoft.svn.core.wc.SVNWCUtil;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -22,8 +28,9 @@ public class SubversionCoordinator extends AbstractScmCoordinator {
     private SubversionManager scmManager;
     private final Map<String, String> configuration;
     private boolean tagCreated;
+    private EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
 
-    public SubversionCoordinator(BuildContext context, Repository repository, Map<String, String> configuration,
+    public SubversionCoordinator(BuildContext context, PlanRepositoryDefinition repository, Map<String, String> configuration,
                                  BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         super(context, repository, buildLogger, customVariableContext, credentialsAccessor);
         this.configuration = configuration;
@@ -91,9 +98,12 @@ public class SubversionCoordinator extends AbstractScmCoordinator {
 
     private SVNClientManager getClientManager() {
         try {
-            Method svnClientManagerMethod = repository.getClass().getDeclaredMethod("getSvnClientManager");
-            svnClientManagerMethod.setAccessible(true);
-            return (SVNClientManager) svnClientManagerMethod.invoke(repository);
+            String userName = repository.getVcsLocation().getConfiguration().get("repository.svn.username");
+            String password = encryptionService.decrypt(repository.getVcsLocation().getConfiguration().get("repository.svn.userPassword"));
+            SVNClientManagerFactory clientFactory = new SVNClientManagerFactory();
+            ISVNAuthenticationManager authManager =
+                    SVNWCUtil.createDefaultAuthenticationManager(null, userName, password, SystemProperty.SVN_CACHE_CREDENTIALS.getValue(false));
+            return clientFactory.getSVNClientManager(SvnRepository.DEFAULT_SVN_OPTIONS, authManager);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

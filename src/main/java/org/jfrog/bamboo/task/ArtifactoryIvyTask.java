@@ -186,7 +186,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         }
 
         return dependencyHelper.downloadDependenciesAndGetPath(rootDirectory, context,
-                PluginProperties.IVY_DEPENDENCY_FILENAME_KEY);
+                PluginProperties.getPluginProperty(PluginProperties.IVY_DEPENDENCY_FILENAME_KEY));
     }
 
     public String getExecutable(AbstractBuildContext buildContext) throws TaskException {

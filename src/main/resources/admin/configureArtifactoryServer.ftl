@@ -31,6 +31,8 @@
         [@ww.textfield labelKey='artifactory.server.username' name="username"/]
         [@ww.password labelKey='artifactory.server.password' name="password" showPassword='true'/]
         [@ww.textfield labelKey='artifactory.server.timeout' name="timeout" required="true"/]
+        [#--The Dummy password is a workaround for the autofill (Chrome)--]
+        [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
     [/@ui.bambooSection]
 [/@ww.form]
 </body>

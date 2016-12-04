@@ -78,16 +78,6 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
     }
 
     @Override
-    public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForView(context, taskDefinition);
-        context.put("serverConfigManager", serverConfigManager);
-        contextPut(context, AbstractBuildContext.SERVER_ID_PARAM,
-            taskDefinition.getConfiguration().get(AbstractBuildContext.SERVER_ID_PARAM));
-        contextPutEmpty(context, USERNAME);
-        contextPutEmpty(context, DEPLOYMENT_REPOSITORY);
-    }
-
-    @Override
     protected String getKey() {
         return DEPLOYMENT_PREFIX;
     }

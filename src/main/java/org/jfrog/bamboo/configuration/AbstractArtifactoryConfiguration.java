@@ -8,7 +8,6 @@ import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
-import com.atlassian.spring.container.ComponentNotFoundException;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -19,13 +18,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -93,13 +90,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
-        serverConfigManager = ServerConfigManager.getInstance();
-        populateContextForAllOperations(context);
-    }
-
-    @Override
-    public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForView(context, taskDefinition);
         serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
     }

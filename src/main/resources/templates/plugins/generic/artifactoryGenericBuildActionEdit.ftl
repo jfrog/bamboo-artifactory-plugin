@@ -1,17 +1,20 @@
 <div id="artifactory-error" class="aui-message aui-message-error error shadowed"
      style="display: none; width: 80%; font-size: 80%"></div>
+
 [@ui.bambooSection titleKey='artifactory.task.generic.deploy.title']
+
     [@ww.select name='builder.artifactoryGenericBuilder.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayGenericArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
 <div id="genericArtifactoryConfigDiv">
+
     [@ww.select name='builder.artifactoryGenericBuilder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
 
-    [#--The Dummy tags are workaround for the autocomplete (Chorme)--]
-    [@ww.password name='artifactory.generic.username.DUMMY' cssStyle='display: none;'/]
     [@ww.textfield name='artifactory.generic.username' labelKey='artifactory.task.maven.deployerUsername'/]
 
-    [@ww.password name='artifactory.generic.password.DUMMY' cssStyle='display: none;'/]
     [@ww.password name='artifactory.generic.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
+
+    [#--The Dummy password is a workaround for the autofill (Chrome)--]
+    [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 
     [@ww.textarea name='artifactory.generic.deployPattern' labelKey='artifactory.task.generic.deployPattern' rows='10' cols='80' cssClass="long-field" /]
 
@@ -44,8 +47,8 @@
 <script>
     function displayGenericArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('genericArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
+        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';

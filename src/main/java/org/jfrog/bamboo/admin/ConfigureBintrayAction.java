@@ -24,9 +24,7 @@ public class ConfigureBintrayAction extends GlobalAdminAction implements GlobalA
 
     private ServerConfigManager serverConfigManager;
 
-    private BintrayConfiguration bintrayConfig;
-
-
+    private BintrayConfig bintrayConfig;
 
     public ConfigureBintrayAction(ServerConfigManager serverConfigManager) {
         this.serverConfigManager = serverConfigManager;
@@ -36,19 +34,13 @@ public class ConfigureBintrayAction extends GlobalAdminAction implements GlobalA
         }
     }
 
-    public String doDefault() throws Exception {
-        getBintrayConfig();
-        return INPUT;
-    }
-
-
     public String execute() throws Exception
     {
         if (isTesting()) {
             bintrayTest();
             return INPUT;
         }
-        BintrayConfiguration newBintrayConf = new BintrayConfiguration(
+        BintrayConfig newBintrayConf = new BintrayConfig(
                         bintrayUsername, bintrayApiKey, sonatypeOssUsername, sonatypeOssPassword);
         serverConfigManager.updateBintrayConfiguration(newBintrayConf);
         setBintrayConfig(newBintrayConf);
@@ -73,6 +65,10 @@ public class ConfigureBintrayAction extends GlobalAdminAction implements GlobalA
         return super.execute();
     }
 
+    public String browse() throws Exception {
+        return super.execute();
+    }
+
     @Override
     public void validate() {
         clearErrorsAndMessages();
@@ -88,7 +84,7 @@ public class ConfigureBintrayAction extends GlobalAdminAction implements GlobalA
         }
     }
 
-    public BintrayConfiguration getBintrayConfig() {
+    public BintrayConfig getBintrayConfig() {
         if (this.bintrayConfig == null) {
             if (serverConfigManager != null) {
                 bintrayConfig = serverConfigManager.getBintrayConfig();
@@ -99,10 +95,10 @@ public class ConfigureBintrayAction extends GlobalAdminAction implements GlobalA
                 addActionError("Server manager not loaded!" + new RuntimeException().getStackTrace());
             }
         }
-        return new BintrayConfiguration();
+        return new BintrayConfig();
     }
 
-    private void setBintrayConfig(BintrayConfiguration bintrayConfig) {
+    private void setBintrayConfig(BintrayConfig bintrayConfig) {
         if (bintrayConfig != null) {
             this.bintrayUsername = bintrayConfig.getBintrayUsername();
             this.bintrayApiKey = bintrayConfig.getBintrayApiKey();
@@ -112,6 +108,9 @@ public class ConfigureBintrayAction extends GlobalAdminAction implements GlobalA
         }
     }
 
+    public boolean isMissedMigration() {
+        return serverConfigManager.isMissedMigration();
+    }
 
     public String getSendTest() {
         return isSendTest;

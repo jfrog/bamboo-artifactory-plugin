@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.util.VersionException;
 
@@ -113,6 +112,10 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
     }
 
     public String doBrowse() throws Exception {
+        return super.execute();
+    }
+
+    public String browse() throws Exception {
         return super.execute();
     }
 

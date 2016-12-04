@@ -1,6 +1,5 @@
 [#-- @ftlvariable name="action" type="org.jfrog.bamboo.admin.ManageArtifactoryServersAction" --]
 [#-- @ftlvariable name="" type="org.jfrog.bamboo.admin.ManageArtifactoryServersAction" --]
-
 <html>
 <head>
     <title>Manage Artifactory Plugin Configuration</title>
@@ -8,12 +7,44 @@
 </head>
 
 <body>
+<div>
+[@ui.header pageKey='artifactory.server.manage.title' descriptionKey='artifactory.server.manage.description' /]
 
-[@ww.action name="existingArtifactoryServer" executeResult="true" /]
+[#if action.isMissedMigration()]
+    [@ui.messageBox type="warning"]
+        [@ww.text name=i18n.getText("Artifactory plugin data could not be found, for more info please refer JFrog's wiki.")]
+        [/@ww.text]
+    [/@ui.messageBox]
+[/#if]
+</div>
 
-<br/>
+[@dj.tabContainer headingKeys=["artifactory.server.tab.title", "bintray.config.tab.title"] selectedTab='${"artifactory.server.tab.title"}']
+    [@dj.contentPane labelKey="artifactory.server.tab.title"]
+        [@manageServersTab/]
+    [/@dj.contentPane]
+    [@dj.contentPane labelKey="bintray.config.tab.title"]
+        [@managebintrayTab/]
+    [/@dj.contentPane]
+[/@dj.tabContainer]
 
-[@ww.action name="viewBintray" executeResult="true" /]
-
+<script type="text/javascript">
+    AJS.$(function ()
+    {
+        var str = window.location.pathname+window.location.search;
+        if (str.includes("/admin/saveBintrayConf.action")) {
+            document.getElementById("aui-uid-1").click()
+        }
+    });
+</script>
 </body>
 </html>
+
+
+[#macro manageServersTab]
+    [@ww.action name="existingArtifactoryServer" executeResult="true"/]
+[/#macro]
+
+
+[#macro managebintrayTab]
+    [@ww.action name="configureBintray" executeResult="true"/]
+[/#macro]

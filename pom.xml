@@ -8,7 +8,7 @@
     <groupId>org.jfrog.bamboo</groupId>
     <artifactId>bamboo-artifactory-plugin</artifactId>
     <version>2.0.x-SNAPSHOT</version>
-    <name>Bamboo JFrog Artifactory Plugin</name>
+    <name>Bamboo Artifactory Plugin</name>
     <description>Artifactory Build Info plugin for Atlassian Bamboo.</description>
     <packaging>atlassian-plugin</packaging>
 
@@ -16,7 +16,6 @@
         <name>JFrog Ltd</name>
         <url>http://www.jfrog.com</url>
     </organization>
-
 
     <licenses>
         <license>
@@ -31,17 +30,17 @@
     </scm>
 
     <properties>
-        <bamboo.version>5.12.3.1</bamboo.version>
-        <bamboo.data.version>5.12.3.1</bamboo.data.version>
+        <bamboo.version>5.14.1</bamboo.version>
+        <bamboo.data.version>5.14.1</bamboo.data.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
         <!-- This plugin key is to be used as a unique ID of the plugin incl. version and not as a key regarding the
         Atlassian plugin descriptor -->
-        <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
+        <plugin.key>${project.groupId}.${project.artifactId}</plugin.key>
         <buildinfo.version>2.6.x-SNAPSHOT</buildinfo.version>
-        <buildinfo.gradle.version>4.2.0</buildinfo.gradle.version>
-        <buildinfo.ivy.version>2.5.3</buildinfo.ivy.version>
-        <buildinfo.maven.version>2.5.5</buildinfo.maven.version>
+        <buildinfo.maven.version>2.6.1</buildinfo.maven.version>
+        <buildinfo.gradle.version>4.4.9</buildinfo.gradle.version>
+        <buildinfo.ivy.version>2.6.1</buildinfo.ivy.version>
     </properties>
 
     <dependencies>
@@ -65,6 +64,10 @@
                 <exclusion>
                     <groupId>com.jcraft</groupId>
                     <artifactId>jsch</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -270,7 +273,7 @@
                             <excludes>META-INF/**/*</excludes>
                             <excludeClassifiers>uber</excludeClassifiers>
                             <includeArtifactIds>
-                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,jackson-core-asl,jackson-mapper-asl,build-info-vcs,p4java-jfrog,org.eclipse.jgit
+                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,,build-info-vcs,jackson-core-asl,jackson-mapper-asl,p4java-jfrog,org.eclipse.jgit
                             </includeArtifactIds>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                             <overWriteReleases>true</overWriteReleases>
@@ -355,33 +358,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-shade-plugin</artifactId>-->
-                <!--<version>1.5</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<phase>package</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>shade</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<relocations>-->
-                                <!--<relocation>-->
-                                    <!--<pattern>org.codehaus.jackson</pattern>-->
-                                    <!--<shadedPattern>org.jfrog.jackson</shadedPattern>-->
-                                <!--</relocation>-->
-                                <!--<relocation>-->
-                                    <!--<pattern>com.google.common.collect</pattern>-->
-                                    <!--<shadedPattern>com.jfrog.common.collect</shadedPattern>-->
-                                <!--</relocation>-->
-                            <!--</relocations>-->
-                            <!--<shadedGroupFilter>org.codehaus.jackson</shadedGroupFilter>-->
-                            <!--<shadedGroupFilter>com.google.guava</shadedGroupFilter>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

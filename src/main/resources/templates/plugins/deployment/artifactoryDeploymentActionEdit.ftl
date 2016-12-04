@@ -3,12 +3,11 @@
     listKey='id' listValue='url' onchange='javascript: displayDeployArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
 <div id="deployArtifactoryConfiguration">
     [@ww.select name='artifactory.deployment.deploymentRepository' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
-[#--The Dummy tags are workaround for the autocomplete (Chrome)--]
-    [@ww.password name='artifactory.deployment.username.DUMMY' cssStyle='display: none;'/]
     [@ww.textfield name='artifactory.deployment.username' labelKey='artifactory.task.maven.deployerUsername'/]
 
-    [@ww.password name='artifactory.deployment.password.DUMMY' cssStyle='display: none;'/]
     [@ww.password name='artifactory.deployment.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
+    [#--The Dummy password is a workaround for the autofill (Chrome)--]
+    [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 </div>
 [/@ui.bambooSection]
 

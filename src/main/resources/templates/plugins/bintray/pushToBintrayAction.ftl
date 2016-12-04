@@ -15,7 +15,7 @@
         </h2>
     </div>
 [#if pushing]
-    [@ww.form action='push'  submitLabelKey="Push to Bintray"]
+    [@ww.form action='push'  submitLabelKey="artifactory.task.pushToBintray.lable"]
 
         [@ww.checkbox name="overrideDescriptorFile" labelKey="artifactory.task.pushToBintray.overrideDescriptor" value=false toggle='true'/]
 

@@ -73,22 +73,6 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         }
     }
 
-    @Override
-    public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForView(context, taskDefinition);
-        taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
-        context.put("serverConfigManager", serverConfigManager);
-        IvyBuildContext buildContext = IvyBuildContext.createIvyContextFromMap(context);
-        long serverId = buildContext.getArtifactoryServerId();
-        context.put("selectedServerId", serverId);
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(serverId);
-        context.put("selectedServerUrl", serverConfig.getUrl());
-        context.put("isUseM2CompatiblePatterns", buildContext.isMaven2Compatible());
-        context.put("isRunLicenseChecks", buildContext.isRunLicenseChecks());
-        context.put("isPublishArtifacts", buildContext.isPublishArtifacts());
-        context.put("hasTests", buildContext.isTestChecked());
-    }
-
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,

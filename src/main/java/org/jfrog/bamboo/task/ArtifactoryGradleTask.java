@@ -72,17 +72,6 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         ContainerManager.autowireComponent(dependencyHelper);
     }
 
-    private GradleBuildContext createBuildContext(TaskContext context) {
-        Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(context.getConfigurationMap());
-        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
-        if (parentBuildContext != null) {
-            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
-            combinedMap.putAll(customBuildData);
-        }
-        return new GradleBuildContext(combinedMap);
-    }
-
     @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext context) throws TaskException {
@@ -166,6 +155,17 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         } finally {
             context.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());
         }
+    }
+
+    private GradleBuildContext createBuildContext(TaskContext context) {
+        Map<String, String> combinedMap = Maps.newHashMap();
+        combinedMap.putAll(context.getConfigurationMap());
+        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
+        if (parentBuildContext != null) {
+            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
+            combinedMap.putAll(customBuildData);
+        }
+        return new GradleBuildContext(combinedMap);
     }
 
     private ConfigurationPathHolder getGradleInitScriptFile(TaskContext taskContext, GradleBuildContext buildContext,
@@ -259,7 +259,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         }
 
         return dependencyHelper.downloadDependenciesAndGetPath(rootDirectory, context,
-                PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY);
+                PluginProperties.getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
     }
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {

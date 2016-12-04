@@ -12,7 +12,8 @@
         </ul>
     </div>
 </div>
-[@ui.header pageKey="artifactory.server.manage.heading"/]
+
+[@ui.header descriptionKey=i18n.getText("artifactory.server.description") /]
 
 [@ui.bambooPanel]
 

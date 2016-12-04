@@ -8,9 +8,7 @@ import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
-import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.RepositoryException;
-import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
 import com.atlassian.bamboo.task.TaskDefinition;
@@ -18,14 +16,13 @@ import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
-import com.atlassian.spring.container.ContainerManager;
+import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import com.atlassian.user.User;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.opensymphony.xwork.ActionContext;
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -35,18 +32,17 @@ import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.promotion.PromotionContext;
 import org.jfrog.bamboo.promotion.PromotionThread;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
+import org.jfrog.bamboo.release.scm.RepositoryConfiguration;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.bamboo.util.version.VersionHelper;
 import org.jfrog.build.api.release.Promotion;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * An action to display when entering the "Artifactory Release & Promotion" tab from within a job.
@@ -98,8 +94,8 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     @Override
-    public String doExecute() throws Exception {
-        String superResult = super.doExecute();
+    public String execute() throws Exception {
+        String superResult = super.execute();
 
         if (ERROR.equals(superResult)) {
             return ERROR;
@@ -110,14 +106,6 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
             log.error("This build has no results summary");
             return ERROR;
         }
-        StringBuilder builder = new StringBuilder(
-                summary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_SELECTED_SERVER_PARAM));
-        if (!builder.toString().endsWith("/")) {
-            builder.append("/");
-        }
-        builder.append("webapp/builds/").append(getImmutableBuild().getName()).append("/").append(getBuildNumber());
-        artifactoryReleaseManagementUrl = builder.toString();
-
         return INPUT;
     }
 
@@ -217,37 +205,30 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * @return True if this build is using GIT as its SCM.
      */
     public boolean isGit() {
-        Repository repository = getRepository();
+        PlanRepositoryDefinition repository = getRepository();
         if (repository == null) {
             return false;
         }
-        String className = repository.getClass().getName();
-        return "com.atlassian.bamboo.plugins.git.GitRepository".equals(className) ||
-                "com.atlassian.bamboo.plugins.git.GitHubRepository".equals(className) ||
-                "com.atlassian.bamboo.plugins.stash.StashRepository".equals(className);
+        return ScmHelper.isGitBase(repository);
     }
 
-    private Repository getRepository() {
-        return PlanHelper.getDefaultRepository(getMutablePlan());
+    private PlanRepositoryDefinition getRepository() {
+        return PlanHelper.getDefaultPlanRepositoryDefinition(getMutablePlan());
     }
 
     public boolean isUseShallowClone() {
-        if (!isGit()) {
-            return false;
-        }
-        Repository repository = getRepository();
+        PlanRepositoryDefinition repository = getRepository();
         if (repository == null) {
             return false;
         }
-        if ("com.atlassian.bamboo.plugins.git.GitRepository".equals(repository.getClass().getName())) {
-            HierarchicalConfiguration configuration = repository.toConfiguration();
-            return configuration.getBoolean("repository.git.useShallowClones", false);
+        if (!ScmHelper.isGitBase(repository)) {
+            return false;
         }
-        if ("com.atlassian.bamboo.plugins.git.GitHubRepository".equals(repository.getClass().getName())) {
-            HierarchicalConfiguration configuration = repository.toConfiguration();
-            return configuration.getBoolean("repository.github.useShallowClones", false);
-        }
-        return false;
+        RepositoryConfiguration repositoryConfiguration = new RepositoryConfiguration(repository);
+
+        return ScmHelper.isGit(repository) && repositoryConfiguration.getBoolean("repository.git.useShallowClones", false) ||
+                ScmHelper.isGithub(repository) && repositoryConfiguration.getBoolean("repository.github.useShallowClones", false) ||
+                ScmHelper.isStash(repository) && repositoryConfiguration.getBoolean("repository.stash.useShallowClones", false);
     }
 
     public Map<String, String> getModuleVersionTypes() {
@@ -437,11 +418,11 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     private String getBaseTagUrlAccordingToScm(String baseTagUrl) {
-        Repository repository = getRepository();
+        PlanRepositoryDefinition repository = getRepository();
         if (repository == null) {
             return baseTagUrl;
         }
-        if (repository instanceof SvnRepository && !baseTagUrl.endsWith("/")) {
+        if (ScmHelper.isSvn(repository) && !baseTagUrl.endsWith("/")) {
             return baseTagUrl + "/";
         }
         return baseTagUrl;

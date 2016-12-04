@@ -26,6 +26,13 @@ import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
  */
 public class ManageArtifactoryServersAction extends GlobalAdminAction implements GlobalAdminSecurityAware {
 
-	public ManageArtifactoryServersAction() {
+	private ServerConfigManager serverConfigManager;
+
+	public ManageArtifactoryServersAction(ServerConfigManager serverConfigManager) {
+		this.serverConfigManager = serverConfigManager;
+	}
+
+	public boolean isMissedMigration() {
+		return serverConfigManager.isMissedMigration();
 	}
 }

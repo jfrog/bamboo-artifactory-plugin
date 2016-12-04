@@ -30,13 +30,11 @@ list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink re
     listKey='repoKey' listValue='repoKey' toggle='true' /]
 
 
-[#--The Dummy tags are workaround for the autocomplete (Chorme)--]
-[@ww.password name='builder.artifactoryMaven3Builder.resolverUsername.DUMMY' cssStyle='display: none;'/]
 [@ww.textfield labelKey='artifactory.task.maven.resolverUsername' name='builder.artifactoryMaven3Builder.resolverUsername'/]
 
-[@ww.password name='builder.artifactoryMaven3Builder.resolverPassword.DUMMY' cssStyle='display: none;'/]
 [@ww.password labelKey='artifactory.task.maven.resolverPassword' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true' /]
-
+[#--The Dummy password is a workaround for the autofill (Chrome)--]
+[@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 
 </div>
 [/@ui.bambooSection]
@@ -49,12 +47,11 @@ listKey='id' listValue='url' onchange='javascript: displayMaven3ArtifactoryConfi
 [@ww.select name='builder.artifactoryMaven3Builder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList
 listKey='repoKey' listValue='repoKey' toggle='true' /]
 
-[#--The Dummy tags are workaround for the autocomplete (Chorme)--]
-[@ww.password name='builder.artifactoryMaven3Builder.deployerUsername.DUMMY' cssStyle='display: none;' /]
 [@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryMaven3Builder.deployerUsername' /]
 
-[@ww.password name='builder.artifactoryMaven3Builder.deployerPassword.DUMMY' cssStyle='display: none;' /]
 [@ww.password labelKey='artifactory.task.maven.deployerPassword' name='builder.artifactoryMaven3Builder.deployerPassword' showPassword='true'/]
+[#--The Dummy password is a workaround for the autofill (Chrome)--]
+[@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 
 [@ww.checkbox labelKey='artifactory.task.maven.deployMavenArtifacts' name='deployMavenArtifacts' toggle='true' /]
 
@@ -133,8 +130,8 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 
     function displayMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
+        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
@@ -155,8 +152,8 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
 
     function displayResolutionMaven3ArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('maven3ArtifactoryResolutionConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[4].value;
+        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';

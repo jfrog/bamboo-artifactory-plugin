@@ -19,7 +19,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.admin.BintrayConfiguration;
+import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -233,7 +233,7 @@ public class TaskUtils {
         return s;
     }
 
-    public static BintrayConfiguration getBintrayConfig() {
+    public static BintrayConfig getBintrayConfig() {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         return serverConfigManager.getBintrayConfig();
     }

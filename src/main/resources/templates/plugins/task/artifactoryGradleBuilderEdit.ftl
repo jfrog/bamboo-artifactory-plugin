@@ -20,13 +20,13 @@
 [@ww.checkbox labelKey='artifactory.task.gradle.useGradleWrapper' name='builder.artifactoryGradleBuilder.useGradleWrapper' toggle='true'/]
 
 [@ui.bambooSection dependsOn='builder.artifactoryGradleBuilder.useGradleWrapper' showOn=true]
-    [@ww.textfield labelKey='artifactory.task.gradle.gradleWrapperLocation' name='builder.artifactoryGradleBuilder.gradleWrapperLocation'/]
+    [@ww.textfield labelKey='artifactory.task.gradle.gradleWrapperLocation' name='builder.artifactoryGradleBuilder.gradleWrapperLocation' /]
 [/@ui.bambooSection]
 
 [@ui.bambooSection dependsOn='builder.artifactoryGradleBuilder.useGradleWrapper' showOn=false]
     [#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='gradle'/][/#assign]
     [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryGradleBuilder.executable'
-    list=uiConfigBean.getExecutableLabels('gradle') extraUtility=addExecutableLink/]
+    list=uiConfigBean.getExecutableLabels('gradle') extraUtility=addExecutableLink required='true'/]
 [/@ui.bambooSection]
 
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryGradleBuilder.environmentVariables' /]
@@ -41,13 +41,11 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 [@ww.select name='builder.artifactoryGradleBuilder.publishingRepo' labelKey='artifactory.task.gradle.publishingRepo' list=dummyList
 listKey='repoKey' listValue='repoKey' toggle='true'/]
 
-
-[@ww.password name='builder.artifactoryGradleBuilder.deployerUsername.DUMMY' cssStyle='display: none;'/]
 [@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername'/]
 
-[@ww.password  name='builder.artifactoryGradleBuilder.deployerPassword.DUMMY' cssStyle='display: none;' /]
 [@ww.password labelKey='artifactory.task.gradle.deployerPassword' name='builder.artifactoryGradleBuilder.deployerPassword' showPassword='true'/]
-
+[#--The Dummy password is a workaround for the autofill (Chrome)--]
+[@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 
 [@ww.checkbox labelKey='artifactory.task.gradle.useArtifactoryGradlePlugin' name='builder.artifactoryGradleBuilder.useArtifactoryGradlePlugin' toggle='true'/]
 
@@ -143,8 +141,8 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
     function displayGradleArtifactoryConfigs(serverId) {
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[3].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[5].value;
+        var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
+        var credentialsPassword = configDiv.getElementsByTagName('input')[3].value;
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';

@@ -312,7 +312,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         }
 
         return dependencyHelper.downloadDependenciesAndGetPath(rootDir, mavenBuildContext,
-                PluginProperties.MAVEN3_DEPENDENCY_FILENAME_KEY);
+                PluginProperties.getPluginProperty(PluginProperties.MAVEN3_DEPENDENCY_FILENAME_KEY));
     }
 
     private void appendAdditionalMavenParameters(List<String> arguments, Maven3BuildContext context) {

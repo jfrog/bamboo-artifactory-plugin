@@ -1,10 +1,10 @@
 package org.jfrog.bamboo.release.scm.perforce;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.repository.Repository;
 import com.atlassian.bamboo.repository.perforce.PerforceRepository;
 import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
@@ -18,26 +18,25 @@ import java.io.IOException;
  *
  * @author Shay Yaakov
  */
-public class PerforceManager extends AbstractScmManager<PerforceRepository> {
+public class PerforceManager extends AbstractScmManager {
 
     private PerforceClient perforce;
     private EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
 
-    public PerforceManager(BuildContext context, Repository repository, BuildLogger buildLogger) {
+    public PerforceManager(BuildContext context, PlanRepositoryDefinition repository, BuildLogger buildLogger) {
         super(context, repository, buildLogger);
     }
 
     public void prepare() throws IOException {
         PerforceClient.Builder builder = new PerforceClient.Builder();
-        PerforceRepository perforceRepository = getBambooScm();
-        String hostAddress = perforceRepository.getPort();
+        String hostAddress = configuration.getString("repository.p4.port");
         if (!hostAddress.contains(":")) {
             hostAddress = "localhost:" + hostAddress;
         }
-        builder.hostAddress(hostAddress).client(perforceRepository.getClient());
-        String user = perforceRepository.getUser();
+        builder.hostAddress(hostAddress).client(configuration.getString("repository.p4.client"));
+        String user = configuration.getString("repository.p4.user");
         if (!StringUtils.isEmpty(user)) {
-            builder.username(user).password(encryptionService.decrypt(perforceRepository.getEncryptedPassword()));
+            builder.username(user).password(encryptionService.decrypt(configuration.getString("repository.p4.password")));
         }
         String charset = System.getenv("P4CHARSET");
         if (!StringUtils.isBlank(charset)) {

@@ -67,6 +67,7 @@ public class PushToBintrayRunnable implements Runnable {
             }
         } catch (Exception e) {
             bintrayLog.logError("Error while trying to Push build to Bintray.", e);
+            log.error("Error while trying to Push build to Bintray.", e);
         } finally {
             if (artifactoryClient != null) {
                 artifactoryClient.shutdown();
@@ -124,6 +125,7 @@ public class PushToBintrayRunnable implements Runnable {
             bintrayLog.logMessage(response);
         } catch (Exception e) {
             bintrayLog.logError("Error while trying to sync with Maven Central", e);
+            log.error("Error while trying to sync with Maven Central", e);
         }
     }
 
@@ -147,6 +149,7 @@ public class PushToBintrayRunnable implements Runnable {
             validVersion = version.isAtLeast(new ArtifactoryVersion(MINIMAL_SUPPORTED_VERSION));
         } catch (Exception e) {
             bintrayLog.logError("Error while checking Artifactory version", e);
+            log.error("Error while checking Artifactory version", e);
         }
         return validVersion;
     }

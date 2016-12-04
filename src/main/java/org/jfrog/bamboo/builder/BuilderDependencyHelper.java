@@ -28,6 +28,8 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.PluginProperties;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Noam Y. Tenne
@@ -42,7 +44,7 @@ public class BuilderDependencyHelper implements Serializable {
         this.builderKey = builderKey;
     }
 
-    public String downloadDependenciesAndGetPath(File rootDir, AbstractBuildContext context, String dependencyKey)
+    public String downloadDependenciesAndGetPath(File rootDir, AbstractBuildContext context, String dependencyName)
             throws IOException {
         String pluginKey = PluginProperties.getPluginKey();
         String pluginDescriptorKey = PluginProperties.getPluginDescriptorKey();
@@ -65,7 +67,9 @@ public class BuilderDependencyHelper implements Serializable {
         File pluginDir = new File(rootDirParent, pluginKey);
         File builderDependencyDir = new File(pluginDir, builderKey);
         if (builderDependencyDir.isDirectory()) {
-            if (builderDependencyDir.list().length != 0) {
+            // Validates extractor existence
+            List<String> files = Arrays.asList(builderDependencyDir.list());
+            if (!files.isEmpty() && files.contains(dependencyName)) {
                 return builderDependencyDir.getCanonicalPath();
             }
         } else {
@@ -82,7 +86,7 @@ public class BuilderDependencyHelper implements Serializable {
             String dependencyBaseUrl = builder.append("download/resources/")
                     .append(pluginDescriptorKey).append("/builder/dependencies/").toString();
             try {
-                downloadDependencies(dependencyBaseUrl, builderDependencyDir, dependencyKey);
+                downloadDependencies(dependencyBaseUrl, builderDependencyDir, dependencyName);
                 return builderDependencyDir.getCanonicalPath();
             } catch (IOException ioe) {
                 FileUtils.deleteDirectory(builderDependencyDir);
@@ -120,10 +124,9 @@ public class BuilderDependencyHelper implements Serializable {
         return null;
     }
 
-    private void downloadDependencies(String dependencyBaseUrl, File builderDependencyDir, String dependencyKey)
+    private void downloadDependencies(String dependencyBaseUrl, File builderDependencyDir, String dependencyFileName)
             throws IOException {
         HttpClient client = new HttpClient();
-        String dependencyFileName = PluginProperties.getPluginProperty(dependencyKey);
         String dependencyUrl = dependencyBaseUrl + dependencyFileName;
         GetMethod getMethod = new GetMethod(dependencyUrl);
 
