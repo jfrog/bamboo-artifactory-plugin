@@ -11,7 +11,7 @@
 
 <h1>Manage Artifactory Servers</h1>
 
-[#--[@ww.action name="migrationView" executeResult="true" /]--]
+[@ww.action name="migrationView" executeResult="true" /]
 
 <p>You can use this page to add, edit and delete Artifactory and Bintray configurations.</p>
 
