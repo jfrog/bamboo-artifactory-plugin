@@ -8,8 +8,6 @@ import java.io.Serializable;
  * @author Aviad Shikloshi
  */
 public class BintrayConfig implements Serializable {
-
-
     private String bintrayUsername;
     private String bintrayApiKey;
     private String sonatypeOssUsername;

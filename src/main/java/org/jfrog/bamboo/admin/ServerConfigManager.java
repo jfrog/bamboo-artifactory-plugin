@@ -149,10 +149,9 @@ public class ServerConfigManager implements Serializable {
 
     public boolean isMissedMigration() {
         Iterator keysIterator = bandanaManager.getKeys(PlanAwareBandanaContext.GLOBAL_CONTEXT).iterator();
-        String key;
         boolean isMissedMigration = false;
         while (keysIterator.hasNext()) {
-            key = (String)keysIterator.next();
+            String key = (String)keysIterator.next();
             // If the new key exists no migration needed.
             if (key.equals(ARTIFACTORY_CONFIG_KEY) || key.equals(BINTRAY_CONFIG_KEY)) {
                 return false;
@@ -438,10 +437,9 @@ public class ServerConfigManager implements Serializable {
     private String toXMLString(Object object) throws IllegalAccessException {
         StringBuilder stringBuilder = new StringBuilder();
         openTag(stringBuilder, object.getClass().getSimpleName());
-        String value;
         for (Field field : object.getClass().getDeclaredFields()) {
             field.setAccessible(true);
-            value = field.get(object) == null ? "" : field.get(object).toString();
+            String value = field.get(object) == null ? "" : field.get(object).toString();
             appendAttribute(stringBuilder, field.getName(), value);
         }
         closeTag(stringBuilder, object.getClass().getSimpleName());
