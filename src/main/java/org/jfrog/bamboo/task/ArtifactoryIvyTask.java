@@ -30,6 +30,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
 import org.jfrog.bamboo.util.IvyPropertyHelper;
 import org.jfrog.bamboo.util.PluginProperties;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 
 import java.io.File;
@@ -122,6 +123,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             command.add(Commandline.quoteArgument(ivyDependenciesDir));
             command.add("-listener");
             command.add(Commandline.quoteArgument("org.jfrog.build.extractor.listener.ArtifactoryBuildListener"));
+            TaskUtils.appendBuildInfoPropertiesArgument(command, buildInfoPropertiesFile);
         }
         String buildFile = ivyBuildContext.getBuildFile();
         if (StringUtils.isNotBlank(buildFile)) {
