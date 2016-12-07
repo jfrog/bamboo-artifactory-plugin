@@ -29,7 +29,7 @@ public class MigrateDataAction extends BambooActionSupport implements GlobalAdmi
             log.error("Error occurred while migrating data to plugins 2.", e);
             return INPUT;
         }
-        addActionMessage("Migration done successfully!");
+        addActionMessage("Migration completed successfully!");
         return INPUT;
     }
 }

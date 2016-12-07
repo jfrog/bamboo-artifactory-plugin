@@ -33,7 +33,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -137,12 +139,12 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    public void migrateToVersionTwo() throws IllegalAccessException {
+    public void migrateToVersionTwo() throws IllegalAccessException, UnsupportedEncodingException {
         persistBintrayMigration();
         persistServersMigration();
     }
 
-    private synchronized void persistServersMigration() throws IllegalAccessException {
+    private synchronized void persistServersMigration() throws IllegalAccessException, UnsupportedEncodingException {
         List<ServerConfig> serverConfigs = Lists.newArrayList();
         for (ServerConfig serverConfig : configuredServers) {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
@@ -152,7 +154,7 @@ public class ServerConfigManager implements Serializable {
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY + ".v2", transformedData);
     }
 
-    private synchronized void persistBintrayMigration() throws IllegalAccessException {
+    private synchronized void persistBintrayMigration() throws IllegalAccessException, UnsupportedEncodingException {
         if (bintrayConfig != null) {
             String transformedData = toXMLString(createEncryptedBintrayConfig(bintrayConfig));
             bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY + ".v2", transformedData);
@@ -315,7 +317,7 @@ public class ServerConfigManager implements Serializable {
         this.customVariableContext = customVariableContext;
     }
 
-    private String toXMLString(List<ServerConfig> serverConfigs) throws IllegalAccessException {
+    private String toXMLString(List<ServerConfig> serverConfigs) throws IllegalAccessException, UnsupportedEncodingException {
         StringBuilder stringBuilder = new StringBuilder();
         openTag(stringBuilder, "List");
         for (ServerConfig serverConfig : serverConfigs) {
@@ -325,7 +327,7 @@ public class ServerConfigManager implements Serializable {
         return stringBuilder.toString();
     }
 
-    private String toXMLString(Object object) throws IllegalAccessException {
+    private String toXMLString(Object object) throws IllegalAccessException, UnsupportedEncodingException {
         StringBuilder stringBuilder = new StringBuilder();
         openTag(stringBuilder, object.getClass().getSimpleName());
         for (Field field : object.getClass().getDeclaredFields()) {
@@ -336,9 +338,10 @@ public class ServerConfigManager implements Serializable {
         return stringBuilder.toString();
     }
 
-    private void appendAttribute(StringBuilder stringBuilder, String field, String value) {
+    private void appendAttribute(StringBuilder stringBuilder, String field, String value) throws UnsupportedEncodingException {
         openTag(stringBuilder, field);
-        stringBuilder.append(value);
+        // Encoding the value to Base64 to prevent saving special chars like % to the database
+        stringBuilder.append(Base64.getEncoder() .encodeToString(value.getBytes("utf-8")));
         closeTag(stringBuilder, field);
     }
 
