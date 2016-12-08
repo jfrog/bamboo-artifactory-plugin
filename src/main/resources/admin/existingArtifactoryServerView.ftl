@@ -13,8 +13,6 @@
     </div>
 </div>
 
-[@ui.header descriptionKey=i18n.getText("artifactory.server.description") /]
-
 [@ui.bambooPanel]
 
 <div>

@@ -8,8 +8,8 @@
 
 <body>
 <div>
-[@ui.header pageKey='artifactory.server.manage.title' descriptionKey='artifactory.server.manage.description' /]
-
+[@ui.header pageKey='artifactory.server.manage.title' /]
+<br/>
 [#if action.isMissedMigration()]
     [@ui.messageBox type="warning"]
         [@ww.text name=i18n.getText("Artifactory plugin data could not be found, for more info please refer JFrog's wiki.")]

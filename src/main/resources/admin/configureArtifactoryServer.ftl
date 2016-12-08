@@ -16,7 +16,7 @@
 <div class="paddedClearer"></div>
 [@ww.form action=targetAction
           titleKey='artifactory.server.details'
-          descriptionKey='artifactory.server.description'
+          descriptionKey=''
           submitLabelKey='global.buttons.update'
           cancelUri='/admin/manageArtifactoryServers.action'
           showActionErrors='true'
