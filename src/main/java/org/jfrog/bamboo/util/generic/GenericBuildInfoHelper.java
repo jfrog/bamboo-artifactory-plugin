@@ -150,12 +150,14 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
 
     private Map<String, String> getDynamicPropertyMap(Build build) {
         Map<String, String> filteredPropertyMap = new HashMap<>();
-        for (Map.Entry<Object, Object> entry : build.getProperties().entrySet()) {
-            String key = entry.getKey().toString();
-            if (StringUtils.startsWith(key, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX)) {
-                filteredPropertyMap.put(
+        if (build.getProperties() != null) {
+            for (Map.Entry<Object, Object> entry : build.getProperties().entrySet()) {
+                String key = entry.getKey().toString();
+                if (StringUtils.startsWith(key, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX)) {
+                    filteredPropertyMap.put(
                         StringUtils.removeStart(key, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX),
                         (String) entry.getValue());
+                }
             }
         }
         return filteredPropertyMap;
