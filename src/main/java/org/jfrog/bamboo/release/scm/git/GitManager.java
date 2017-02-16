@@ -29,6 +29,7 @@ import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.io.File;
@@ -61,10 +62,10 @@ public class GitManager extends AbstractScmManager {
         this.credentialsAccessor = credentialsAccessor;
         if (ScmHelper.isGit(repository)) {
             username = configuration.getString("repository.git.username", "");
-            password = encryptionService.decrypt(configuration.getString("repository.git.password", ""));
+            password = TaskUtils.decryptIfNeeded(configuration.getString("repository.git.password", ""));
         } else if (ScmHelper.isGithub(repository)) {
             username = configuration.getString("repository.github.username", "");
-            password = encryptionService.decrypt(configuration.getString("repository.github.password", ""));
+            password = TaskUtils.decryptIfNeeded(configuration.getString("repository.github.password", ""));
         }
     }
 
@@ -335,8 +336,8 @@ public class GitManager extends AbstractScmManager {
                         final CredentialsData credentials = credentialsAccessor.getCredentials(sharedCredentialsId);
                         if (credentials != null) {
                             final PrivateKeyCredentials sshCredentials = new SshCredentialsImpl(credentials);
-                            sshKey = encryptionService.decrypt(sshCredentials.getKey());
-                            passphrase = encryptionService.decrypt(sshCredentials.getPassphrase());
+                            sshKey = TaskUtils.decryptIfNeeded(sshCredentials.getKey());
+                            passphrase = TaskUtils.decryptIfNeeded(sshCredentials.getPassphrase());
                         } else {
                             sshKey = "";
                             passphrase = "";
@@ -344,10 +345,10 @@ public class GitManager extends AbstractScmManager {
                     } else {
                         //Stash ssh private key
                         if (ScmHelper.isStash(repository)) {
-                            sshKey = encryptionService.decrypt(configuration.getString("repository.stash.key.private"));
+                            sshKey = TaskUtils.decryptIfNeeded(configuration.getString("repository.stash.key.private"));
                         } else {
-                            sshKey = encryptionService.decrypt(configuration.getString("repository.git.ssh.key", ""));
-                            passphrase = encryptionService.decrypt(configuration.getString("repository.git.ssh.passphrase", ""));
+                            sshKey = TaskUtils.decryptIfNeeded(configuration.getString("repository.git.ssh.key", ""));
+                            passphrase = TaskUtils.decryptIfNeeded(configuration.getString("repository.git.ssh.passphrase", ""));
                         }
                     }
                     SshSessionFactory factory = new GitSshSessionFactory(sshKey, passphrase);

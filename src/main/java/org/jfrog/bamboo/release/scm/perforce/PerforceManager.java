@@ -8,6 +8,7 @@ import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.release.scm.AbstractScmManager;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.vcs.perforce.PerforceClient;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public class PerforceManager extends AbstractScmManager {
         builder.hostAddress(hostAddress).client(configuration.getString("repository.p4.client"));
         String user = configuration.getString("repository.p4.user");
         if (!StringUtils.isEmpty(user)) {
-            builder.username(user).password(encryptionService.decrypt(configuration.getString("repository.p4.password")));
+            builder.username(user).password(TaskUtils.decryptIfNeeded(configuration.getString("repository.p4.password")));
         }
         String charset = System.getenv("P4CHARSET");
         if (!StringUtils.isBlank(charset)) {
