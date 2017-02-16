@@ -14,6 +14,7 @@ import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import com.atlassian.spring.container.ContainerManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.scm.AbstractScmCoordinator;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
@@ -99,7 +100,7 @@ public class SubversionCoordinator extends AbstractScmCoordinator {
     private SVNClientManager getClientManager() {
         try {
             String userName = repository.getVcsLocation().getConfiguration().get("repository.svn.username");
-            String password = encryptionService.decrypt(repository.getVcsLocation().getConfiguration().get("repository.svn.userPassword"));
+            String password = TaskUtils.decryptIfNeeded(repository.getVcsLocation().getConfiguration().get("repository.svn.userPassword"));
             SVNClientManagerFactory clientFactory = new SVNClientManagerFactory();
             ISVNAuthenticationManager authManager =
                     SVNWCUtil.createDefaultAuthenticationManager(null, userName, password, SystemProperty.SVN_CACHE_CREDENTIALS.getValue(false));
