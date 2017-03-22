@@ -27,7 +27,7 @@
     </plugin-info>
 
     <!-- i18n resource -->
-    <resource type="i18n" name="i18n" location="i18n"/>
+    <resource type="i18n" name="i18n-jfrog" location="i18n-jfrog"/>
 
     <!-- Admin Configurations -->
     <component name="Artifactory Server Configuration Management Component" key="artifactoryServerConfigManager"
@@ -326,5 +326,6 @@
     <component-import key="taskContextHelper" interface="com.atlassian.bamboo.task.TaskContextHelperService"/>
     <component-import key="taskConfiguratorHelper" interface="com.atlassian.bamboo.task.TaskConfiguratorHelper"/>
     <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties"/>
+    <component-import key="i18nResolver" interface="com.atlassian.sal.api.message.I18nResolver" />
 
 </atlassian-plugin>

@@ -8,7 +8,7 @@
 
 <body>
 <div>
-[@ui.header pageKey='artifactory.server.manage.title' /]
+[@ui.header pageKey=i18n.getText('artifactory.server.manage.title') /]
 <br/>
 [#if action.isMissedMigration()]
     [@ui.messageBox type="warning"]
