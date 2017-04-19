@@ -13,6 +13,8 @@
     </div>
 </div>
 
+<br/>
+
 [@ui.bambooPanel]
 
 <div>
