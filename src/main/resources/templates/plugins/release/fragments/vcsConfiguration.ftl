@@ -2,9 +2,6 @@
     VCS Configuration
 </h2>
 [#if git]
-    [#if useShallowClone]
-    <span style="font-weight: bold; color: red">WARNING: Cannot use release plugin with shallow clones. Please disable the use of shallow clones. </span>
-    [/#if]
     [@ww.checkbox labelKey='artifactory.vcs.useReleaseBranch' name='useReleaseBranch' toggle='true'/]
 [@ui.bambooSection dependsOn='useReleaseBranch' showOn=true]
     [@ww.textfield labelKey='artifactory.vcs.releaseBranch' name='releaseBranch'/]
