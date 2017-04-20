@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jfrog.bamboo.release.scm;
+package org.jfrog.bamboo.release.vcs;
 
 import com.atlassian.bamboo.repository.RepositoryException;
 import org.tmatesoft.svn.core.SVNException;
@@ -26,7 +26,7 @@ import java.io.IOException;
  *
  * @author Yossi Shaul
  */
-public interface ScmManager {
+public interface VcsManager {
 
     void commitWorkingCopy(String commitMessage)
             throws IOException, InterruptedException, RepositoryException, SVNException;

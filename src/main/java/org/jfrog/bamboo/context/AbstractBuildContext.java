@@ -71,8 +71,20 @@ public abstract class AbstractBuildContext {
     public static final String ALTERNATIVE_TASKS = "alternativeTasks";
     public static final String RELEASE_PROPS = "releaseProps";
     public static final String NEXT_INTEG_PROPS = "nextIntegProps";
-
+    public static final String VCS_TYPE = "type";
+    public static final String GIT_URL = "git.url";
+    public static final String GIT_AUTHENTICATION_TYPE = "git.authenticationType";
+    public static final String GIT_USERNAME = "git.username";
+    public static final String GIT_PASSWORD = "git.password";
+    public static final String GIT_SSH_KEY = "git.ssh.key";
+    public static final String GIT_PASSPHRASE = "git.ssh.passphrase";
+    public static final String PERFORCE_PORT = "p4.port";
+    public static final String PERFORCE_CLIENT = "p4.client";
+    public static final String PERFORCE_DEPOT = "p4.depot";
+    public static final String PERFORCE_USERNAME = "p4.username";
+    public static final String PERFORCE_PASSWORD = "p4.password";
     public static final String BLACKDUCK_PREFIX = "artifactory.common.blackduck.";
+    public static final String VCS_PREFIX = "artifactory.vcs.";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
     public final PushToBintrayContext pushToBintrayContext = new PushToBintrayContext();
@@ -134,6 +146,23 @@ public abstract class AbstractBuildContext {
                 BLACKDUCK_PREFIX + BlackDuckPropertiesFields.INCLUDE_PUBLISHED_ARTIFACTS,
                 BLACKDUCK_PREFIX + AutoCreateMissingComponentRequests,
                 BLACKDUCK_PREFIX + AutoDiscardStaleComponentRequests);
+    }
+
+    public static List<String> getVcsFieldsToCopy() {
+        return Arrays.asList(
+                VCS_PREFIX + VCS_TYPE,
+                VCS_PREFIX + GIT_AUTHENTICATION_TYPE,
+                VCS_PREFIX + GIT_USERNAME,
+                VCS_PREFIX + GIT_PASSWORD,
+                VCS_PREFIX + GIT_URL,
+                VCS_PREFIX + GIT_PASSPHRASE,
+                VCS_PREFIX + GIT_SSH_KEY,
+                VCS_PREFIX + PERFORCE_CLIENT,
+                VCS_PREFIX + PERFORCE_PORT,
+                VCS_PREFIX + PERFORCE_DEPOT,
+                VCS_PREFIX + PERFORCE_USERNAME,
+                VCS_PREFIX + PERFORCE_PASSWORD
+        );
     }
 
     public long getArtifactoryServerId() {

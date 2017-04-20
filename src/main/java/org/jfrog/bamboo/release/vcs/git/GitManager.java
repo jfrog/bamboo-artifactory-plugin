@@ -1,15 +1,7 @@
-package org.jfrog.bamboo.release.scm.git;
+package org.jfrog.bamboo.release.vcs.git;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.credentials.CredentialsAccessor;
-import com.atlassian.bamboo.credentials.CredentialsData;
-import com.atlassian.bamboo.credentials.PrivateKeyCredentials;
-import com.atlassian.bamboo.credentials.SshCredentialsImpl;
-import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.v2.build.BuildContext;
-import com.atlassian.bamboo.variable.CustomVariableContext;
-import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
-import com.atlassian.spring.container.ContainerManager;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -28,44 +20,48 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.release.scm.AbstractScmManager;
-import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.version.ScmHelper;
+import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.release.vcs.AbstractVcsManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Manager that manages the Git repository.
  *
  * @author Tomer Cohen
  */
-public class GitManager extends AbstractScmManager {
+public class GitManager extends AbstractVcsManager {
     private static final Logger log = Logger.getLogger(GitManager.class);
     private static final String REF_PREFIX = "refs/heads/";
     private static final String REFS_TAGS = "refs/tags/";
-    private EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
     private BuildLogger buildLogger;
     private TextProvider textProvider;
-    private CustomVariableContext customVariableContext;
-    private CredentialsAccessor credentialsAccessor;
     private String username = "";
     private String password = "";
+    private String url = "";
+    private String sshKey = "";
+    private String sshPassphrase = "";
+    private String authenticationType = "";
 
-    public GitManager(BuildContext context, PlanRepositoryDefinition repository, BuildLogger buildLogger,
-                      CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
-        super(context, repository, buildLogger);
+    public GitManager(BuildContext context, BuildLogger buildLogger) {
+        super(context, buildLogger);
         this.buildLogger = buildLogger;
-        this.customVariableContext = customVariableContext;
-        this.credentialsAccessor = credentialsAccessor;
-        if (ScmHelper.isGit(repository)) {
-            username = configuration.getString("repository.git.username", "");
-            password = TaskUtils.decryptIfNeeded(configuration.getString("repository.git.password", ""));
-        } else if (ScmHelper.isGithub(repository)) {
-            username = configuration.getString("repository.github.username", "");
-            password = TaskUtils.decryptIfNeeded(configuration.getString("repository.github.password", ""));
+        initVcsConfiguration();
+    }
+
+    private void initVcsConfiguration() {
+        Map<String, String> confMap = getTaskConfiguration();
+        if (confMap != null) {
+            url = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_URL);
+            authenticationType = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_AUTHENTICATION_TYPE);
+            username = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_USERNAME);
+            password = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_PASSWORD);
+            sshKey = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_SSH_KEY);
+            sshPassphrase = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_PASSPHRASE);
         }
     }
 
@@ -74,7 +70,7 @@ public class GitManager extends AbstractScmManager {
         try (Git git = createGitApi()) {
             git.commit().setMessage(commitMessage).setAll(true).setCommitter(new PersonIdent(git.getRepository())).call();
         } catch (Exception e) {
-            String message = "An error " + e.getMessage() + " occurred while commiting the working copy";
+            String message = "An error " + e.getMessage() + " occurred while committing the working copy";
             log.error(buildLogger.addErrorLogEntry("[RELEASE]" + message));
             throw new IOException(message, e);
         }
@@ -94,17 +90,7 @@ public class GitManager extends AbstractScmManager {
 
     @Override
     public String getRemoteUrl() {
-        if (ScmHelper.isGit(repository)) {
-            return customVariableContext.substituteString(configuration.getString("repository.git.repositoryUrl"));
-        } else if (ScmHelper.isGithub(repository)) {
-            String repository = customVariableContext.substituteString(configuration.getString("repository.github.repository"));
-            return "https://github.com/" + repository + ".git";
-            //Stash repository url
-        } else if (ScmHelper.isStash(repository)) {
-            return configuration.getString("repository.stash.repositoryUrl");
-        }
-
-        return "";
+        return url;
     }
 
     public String getCurrentCommitHash() throws IOException {
@@ -299,7 +285,7 @@ public class GitManager extends AbstractScmManager {
             UsernamePasswordCredentialsProvider provider = new UsernamePasswordCredentialsProvider(username, password);
             pushCommand.setCredentialsProvider(provider);
         } else {
-            Transport transport = createTransport();
+            Transport transport = createSshTransport();
             pushCommand = new SshPushCommand(git.getRepository(), transport);
         }
         return pushCommand;
@@ -320,43 +306,17 @@ public class GitManager extends AbstractScmManager {
         return gitDirectory;
     }
 
-    private Transport createTransport() throws IOException {
+    private Transport createSshTransport() throws IOException {
         String url = getRemoteUrl();
         Transport transport = null;
         try (Git git = createGitApi()) {
-            GitAuthenticationType authenticationType = getAuthType();
-            if (authenticationType.equals(GitAuthenticationType.SSH_KEYPAIR)
-                    || authenticationType.equals(GitAuthenticationType.SHARED_CREDENTIALS)) {
                 transport = Transport.open(git.getRepository(), url);
                 if (transport instanceof SshTransport) {
-                    String sshKey = "";
-                    String passphrase = "";
-                    if (authenticationType.equals(GitAuthenticationType.SHARED_CREDENTIALS)) {
-                        Long sharedCredentialsId = configuration.getLong("repository.git.sharedCrendentials", null);
-                        final CredentialsData credentials = credentialsAccessor.getCredentials(sharedCredentialsId);
-                        if (credentials != null) {
-                            final PrivateKeyCredentials sshCredentials = new SshCredentialsImpl(credentials);
-                            sshKey = TaskUtils.decryptIfNeeded(sshCredentials.getKey());
-                            passphrase = TaskUtils.decryptIfNeeded(sshCredentials.getPassphrase());
-                        } else {
-                            sshKey = "";
-                            passphrase = "";
-                        }
-                    } else {
-                        //Stash ssh private key
-                        if (ScmHelper.isStash(repository)) {
-                            sshKey = TaskUtils.decryptIfNeeded(configuration.getString("repository.stash.key.private"));
-                        } else {
-                            sshKey = TaskUtils.decryptIfNeeded(configuration.getString("repository.git.ssh.key", ""));
-                            passphrase = TaskUtils.decryptIfNeeded(configuration.getString("repository.git.ssh.passphrase", ""));
-                        }
-                    }
-                    SshSessionFactory factory = new GitSshSessionFactory(sshKey, passphrase);
+                    SshSessionFactory factory = new GitSshSessionFactory(sshKey, sshPassphrase);
                     ((SshTransport) transport).setSshSessionFactory(factory);
                 }
-            }
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            throw new IOException(e);
         } finally {
             if (transport != null) {
                 transport.close();
@@ -366,17 +326,13 @@ public class GitManager extends AbstractScmManager {
     }
 
     private GitAuthenticationType getAuthType() {
-        if (ScmHelper.isGithub(repository)) {
+        if (authenticationType.equals("SSH_KEYPAIR")) {
+            return GitAuthenticationType.SSH_KEYPAIR;
+        } else if (authenticationType.equals("PASSWORD")) {
             return GitAuthenticationType.PASSWORD;
         }
-        //Stash work with ssh Authentication, when using the "Application Links" concept.
-        if (ScmHelper.isStash(repository)) {
-            return GitAuthenticationType.SSH_KEYPAIR;
-        }
-        String authentication = configuration.getString("repository.git.authenticationType", "");
-        return GitAuthenticationType.valueOf(authentication);
+        return GitAuthenticationType.NONE;
     }
-
 
     private static class GitSshSessionFactory extends JschConfigSessionFactory {
 

@@ -2,11 +2,8 @@ package org.jfrog.bamboo.util;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
-import com.atlassian.bamboo.security.EncryptionException;
-import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
-import com.atlassian.spring.container.ContainerManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
@@ -23,6 +20,7 @@ import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
@@ -36,15 +34,10 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public class TaskUtils {
-    private static EncryptionService encryptionService = null;
     private static final char PROPERTIES_DELIMITER = ';';
     private static final char KEY_VALUE_SEPARATOR = '=';
     /* This is the name of the "Download Artifacts" task in bamboo, we are looking it up as downloading artifacts is a pre condition to our task */
     private static final String DOWNLOAD_ARTIFACTS_TASK_KEY = "com.atlassian.bamboo.plugins.bamboo-artifact-downloader-plugin:artifactdownloadertask";
-
-    private static void initEncryptionService() {
-        encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
-    }
 
     /**
      * Get an escaped version of the environment map that is to be passed onwards to the extractors. Bamboo escapes the
@@ -224,12 +217,11 @@ public class TaskUtils {
     }
 
     public static String decryptIfNeeded(String s) {
-        if (encryptionService == null) {
-            initEncryptionService();
-        }
         try {
-            s = encryptionService.decrypt(s);
-        } catch (EncryptionException e) { /* Ignore. The field may not be encrypted. */ }
+            s = EncryptionHelper.decrypt(s);
+        } catch (RuntimeException e) {
+            // Ignore. The field may not be encrypted.
+        }
         return s;
     }
 

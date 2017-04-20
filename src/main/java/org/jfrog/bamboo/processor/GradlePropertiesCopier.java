@@ -19,7 +19,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.release.provider.TokenDataProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
-import org.jfrog.bamboo.util.version.ScmHelper;
+import org.jfrog.bamboo.util.version.VcsHelper;
 
 import java.io.File;
 import java.util.List;
@@ -46,7 +46,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
         BuildLogger buildLogger = buildLoggerManager.getLogger(planResultKey);
         BuildDefinition definition = buildContext.getBuildDefinition();
-        File checkoutDir = ScmHelper.getCheckoutDirectory(buildContext);
+        File checkoutDir = VcsHelper.getCheckoutDirectory(buildContext);
         if (checkoutDir == null) {
             return buildContext;
         }

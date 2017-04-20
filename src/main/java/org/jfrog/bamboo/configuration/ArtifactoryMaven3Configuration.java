@@ -43,6 +43,8 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("selectedResolutionArtifactoryServerId", -1);
         context.put("selectedResolutionRepoKey", "");
         context.put("builder.artifactoryMaven3Builder.gitReleaseBranch", "REL-BRANCH-");
+        context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
+        context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
     }
 
     @Override
@@ -68,6 +70,8 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         if (envVarsExcludePatterns == null) {
             context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
         }
+        context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
+        context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
     }
 
     @NotNull
@@ -80,7 +84,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         resetConfigIfNeeded(buildContext);
         taskConfigMap.put(Maven3BuildContext.PREFIX + Maven3BuildContext.TEST_RESULT_DIRECTORY,
                 getTestDirectory(buildContext));
-
+        taskConfigMap.putAll(super.getSshFileContent(params, previousTaskDefinition));
         decryptFields(taskConfigMap);
         return taskConfigMap;
     }

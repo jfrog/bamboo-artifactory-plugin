@@ -70,7 +70,7 @@ public class PushToBintrayRunnable implements Runnable {
             log.error("Error while trying to Push build to Bintray.", e);
         } finally {
             if (artifactoryClient != null) {
-                artifactoryClient.shutdown();
+                artifactoryClient.close();
             }
             PushToBintrayAction.context.setDone(true);
             PushToBintrayAction.context.getLock().unlock();

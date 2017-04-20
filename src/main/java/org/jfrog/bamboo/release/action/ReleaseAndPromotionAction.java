@@ -4,7 +4,6 @@ import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.plan.Plan;
-import com.atlassian.bamboo.plan.PlanHelper;
 import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
@@ -16,7 +15,6 @@ import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
-import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import com.atlassian.user.User;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
@@ -32,11 +30,12 @@ import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.promotion.PromotionContext;
 import org.jfrog.bamboo.promotion.PromotionThread;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
-import org.jfrog.bamboo.release.scm.RepositoryConfiguration;
+import org.jfrog.bamboo.release.vcs.VcsTypes;
+import org.jfrog.bamboo.task.ArtifactoryGradleTask;
+import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.version.ScmHelper;
 import org.jfrog.bamboo.util.version.VersionHelper;
 import org.jfrog.build.api.release.Promotion;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -118,13 +117,8 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      */
     public List<ModuleVersionHolder> getVersions() throws RepositoryException, IOException {
         if (versions == null) {
-            Job job = getPlanJob();
-            List<TaskDefinition> taskDefinitions = job.getBuildDefinition().getTaskDefinitions();
-            if (taskDefinitions.isEmpty()) {
-                log.warn("No task definitions defined");
-                return Lists.newArrayList();
-            }
-            for (TaskDefinition definition : taskDefinitions) {
+            TaskDefinition definition = getReleaseTaskDefinition();
+            if (definition != null) {
                 AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
                 if (context != null) {
                     VersionHelper versionHelper =
@@ -175,15 +169,11 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * @return True if this build is a Gradle build.
      */
     public boolean isGradle() {
-        try {
-            Job job = getPlanJob();
-            List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-            return TaskDefinitionHelper.findGradleDefinition(definitions) != null;
-        } catch (Exception e) {
-            e.toString();
+        TaskDefinition taskDefinition = getReleaseTaskDefinition();
+        if (taskDefinition == null) {
+            return false;
         }
-
-        return false;
+        return StringUtils.endsWith(taskDefinition.getPluginKey(), ArtifactoryGradleTask.TASK_NAME);
     }
 
     /**
@@ -193,9 +183,11 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * @return True if this build is a Maven build.
      */
     public boolean isMaven() {
-        Job job = getPlanJob();
-        List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-        return TaskDefinitionHelper.findMavenDefinition(definitions) != null;
+        TaskDefinition taskDefinition = getReleaseTaskDefinition();
+        if (taskDefinition == null) {
+            return false;
+        }
+        return StringUtils.endsWith(taskDefinition.getPluginKey(), ArtifactoryMaven3Task.TASK_NAME);
     }
 
     /**
@@ -205,30 +197,21 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
      * @return True if this build is using GIT as its SCM.
      */
     public boolean isGit() {
-        PlanRepositoryDefinition repository = getRepository();
-        if (repository == null) {
+        TaskDefinition taskDefinition = getReleaseTaskDefinition();
+        if (taskDefinition == null) {
             return false;
         }
-        return ScmHelper.isGitBase(repository);
+        return VcsTypes.GIT.name().equals(
+                taskDefinition.getConfiguration().get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.VCS_TYPE));
     }
 
-    private PlanRepositoryDefinition getRepository() {
-        return PlanHelper.getDefaultPlanRepositoryDefinition(getMutablePlan());
-    }
-
-    public boolean isUseShallowClone() {
-        PlanRepositoryDefinition repository = getRepository();
-        if (repository == null) {
+    public boolean isReleaseConfigured() {
+        TaskDefinition taskDefinition = getReleaseTaskDefinition();
+        if (taskDefinition == null) {
             return false;
         }
-        if (!ScmHelper.isGitBase(repository)) {
-            return false;
-        }
-        RepositoryConfiguration repositoryConfiguration = new RepositoryConfiguration(repository);
-
-        return ScmHelper.isGit(repository) && repositoryConfiguration.getBoolean("repository.git.useShallowClones", false) ||
-                ScmHelper.isGithub(repository) && repositoryConfiguration.getBoolean("repository.github.useShallowClones", false) ||
-                ScmHelper.isStash(repository) && repositoryConfiguration.getBoolean("repository.stash.useShallowClones", false);
+        return StringUtils.isNotBlank(
+                taskDefinition.getConfiguration().get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.VCS_TYPE));
     }
 
     public Map<String, String> getModuleVersionTypes() {
@@ -287,11 +270,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     public String getSelectedServerId() {
-        List<TaskDefinition> taskDefinitions = getPlanJob().getBuildDefinition().getTaskDefinitions();
-        if (taskDefinitions.isEmpty()) {
-            return "";
-        }
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
+        TaskDefinition definition = getReleaseTaskDefinition();
         if (definition == null) {
             return "";
         }
@@ -382,8 +361,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
 
     public String getReleasePublishingRepo() {
         if (StringUtils.isBlank(releasePublishingRepo)) {
-            List<TaskDefinition> definitions = getPlanJob().getBuildDefinition().getTaskDefinitions();
-            TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
+            TaskDefinition definition = getReleaseTaskDefinition();
             if (definition == null) {
                 return "";
             }
@@ -405,27 +383,15 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     }
 
     private String getDefaultTagUrl() {
-        Job job = getPlanJob();
-        List<TaskDefinition> definitions = job.getBuildDefinition().getTaskDefinitions();
-        TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
+        TaskDefinition definition = getReleaseTaskDefinition();
         if (definition == null) {
             return "";
         }
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
-        String tagUrl = StringUtils.trimToEmpty(context.releaseManagementContext.getVcsTagBase());
-        StringBuilder sb = new StringBuilder(getBaseTagUrlAccordingToScm(tagUrl));
-        return sb.toString();
-    }
-
-    private String getBaseTagUrlAccordingToScm(String baseTagUrl) {
-        PlanRepositoryDefinition repository = getRepository();
-        if (repository == null) {
-            return baseTagUrl;
+        if (context == null) {
+            return "";
         }
-        if (ScmHelper.isSvn(repository) && !baseTagUrl.endsWith("/")) {
-            return baseTagUrl + "/";
-        }
-        return baseTagUrl;
+        return StringUtils.trimToEmpty(context.releaseManagementContext.getVcsTagBase());
     }
 
     public boolean isUseReleaseBranch() {
@@ -438,11 +404,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
 
     public String getReleaseBranch() throws RepositoryException, IOException {
         if (releaseBranch == null) {
-            List<TaskDefinition> taskDefinitions = getPlanJob().getBuildDefinition().getTaskDefinitions();
-            if (taskDefinitions.isEmpty()) {
-                return "";
-            }
-            TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
+            TaskDefinition definition = getReleaseTaskDefinition();
             if (definition == null) {
                 return "";
             }
@@ -519,6 +481,15 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
 
     public boolean isPermittedToPromote() {
         return bambooPermissionManager.hasPlanPermission(BambooPermission.BUILD, PlanKeys.getPlanKey(getPlanKey()));
+    }
+
+    private TaskDefinition getReleaseTaskDefinition() {
+        Job job = getPlanJob();
+        if (job == null) {
+            return null;
+        }
+        List<TaskDefinition> taskDefinitions = job.getBuildDefinition().getTaskDefinitions();
+        return TaskDefinitionHelper.findReleaseTaskDefinition(taskDefinitions);
     }
 
     public String doPromote() throws IOException {

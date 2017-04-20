@@ -14,8 +14,8 @@
     <div class="form-view">
         <h2>
             <img style="margin-right: 10px; margin-bottom: 5px" width="48px" height="48px"
-                 src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>Artifactory
-            Release Promotion
+                 src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>
+            Artifactory Release Promotion
         </h2>
     </div>
 </div>
@@ -72,27 +72,34 @@
 <div class="form-view">
     <h2>
         <img style="margin-right: 10px; margin-bottom: 5px" width="48px" height="48px"
-             src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>Artifactory Pro
-        Release Staging
+             src="${baseUrl}/download/resources/${groupId}.${artifactId}/artifactory-release.png"/>
+        Artifactory Pro Release Staging
     </h2>
 </div>
 [#assign singlePlan = false]
 [#assign sort = false]
 [#assign targetAction = 'releaseBuild']
-[@ww.form action=targetAction submitLabelKey='artifactory.release.submit' showActionErrors='false']
-    [@ww.hidden name='planKey' value=planKey /]
-<div class="section">
+[#if !action.isReleaseConfigured()]
+    [@ui.messageBox type="error"]
+        [@ww.text name=i18n.getText('artifactory,release.vcs.error')]
+        [/@ww.text]
+    [/@ui.messageBox]
+[#else]
+    [@ww.form action=targetAction submitLabelKey='artifactory.release.submit' showActionErrors='false']
+        [@ww.hidden name='planKey' value=planKey /]
+    <div class="section">
 
-    [#if gradle]
-        [#include "fragments/gradleVersions.ftl"/]
-        [#include "fragments/vcsConfiguration.ftl"/]
-    [#elseif maven]
-        [#include "fragments/mavenVersions.ftl"/]
-        [#include "fragments/vcsConfiguration.ftl"/]
-    [#else]
-        Only Gradle and Maven types are supported
-    [/#if]
-</div>
-[/@ww.form]
+        [#if gradle]
+            [#include "fragments/gradleVersions.ftl"/]
+            [#include "fragments/vcsConfiguration.ftl"/]
+        [#elseif maven]
+            [#include "fragments/mavenVersions.ftl"/]
+            [#include "fragments/vcsConfiguration.ftl"/]
+        [#else]
+            Only Gradle and Maven types are supported
+        [/#if]
+    </div>
+    [/@ww.form]
+[/#if]
 </body>
 </html>

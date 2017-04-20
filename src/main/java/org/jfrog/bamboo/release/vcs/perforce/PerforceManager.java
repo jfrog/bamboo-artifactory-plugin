@@ -1,43 +1,50 @@
-package org.jfrog.bamboo.release.scm.perforce;
+package org.jfrog.bamboo.release.vcs.perforce;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.perforce.PerforceRepository;
-import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.v2.build.BuildContext;
-import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
-import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.release.scm.AbstractScmManager;
-import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.release.vcs.AbstractVcsManager;
 import org.jfrog.build.vcs.perforce.PerforceClient;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Manager that manages the {@link PerforceRepository}
  *
  * @author Shay Yaakov
  */
-public class PerforceManager extends AbstractScmManager {
+public class PerforceManager extends AbstractVcsManager {
 
     private PerforceClient perforce;
-    private EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
+    private String port = "";
+    private String client = "";
+    private String username = "";
+    private String password = "";
 
-    public PerforceManager(BuildContext context, PlanRepositoryDefinition repository, BuildLogger buildLogger) {
-        super(context, repository, buildLogger);
+    public PerforceManager(BuildContext context, BuildLogger buildLogger) {
+        super(context, buildLogger);
+        Map<String, String> confMap = getTaskConfiguration();
+        if (confMap != null) {
+            port = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_PORT);
+            client = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_CLIENT);
+            username = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_USERNAME);
+            password = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_PASSWORD);
+        }
     }
 
     public void prepare() throws IOException {
         PerforceClient.Builder builder = new PerforceClient.Builder();
-        String hostAddress = configuration.getString("repository.p4.port");
+        String hostAddress = port;
         if (!hostAddress.contains(":")) {
             hostAddress = "localhost:" + hostAddress;
         }
-        builder.hostAddress(hostAddress).client(configuration.getString("repository.p4.client"));
-        String user = configuration.getString("repository.p4.user");
-        if (!StringUtils.isEmpty(user)) {
-            builder.username(user).password(TaskUtils.decryptIfNeeded(configuration.getString("repository.p4.password")));
+        builder.hostAddress(hostAddress).client(client);
+        if (!StringUtils.isEmpty(username)) {
+            builder.username(username).password(password);
         }
         String charset = System.getenv("P4CHARSET");
         if (!StringUtils.isBlank(charset)) {

@@ -15,9 +15,9 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
-import org.jfrog.bamboo.release.scm.AbstractScmCoordinator;
-import org.jfrog.bamboo.release.scm.ScmCoordinator;
-import org.jfrog.bamboo.util.version.ScmHelper;
+import org.jfrog.bamboo.release.vcs.AbstractVcsCoordinator;
+import org.jfrog.bamboo.release.vcs.VcsCoordinator;
+import org.jfrog.bamboo.util.version.VcsHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +32,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
     private static final Logger log = Logger.getLogger(AbstractReleaseProvider.class);
 
     private boolean isReleaseEnabled;
-    protected ScmCoordinator coordinator;
+    protected VcsCoordinator coordinator;
     protected final AbstractBuildContext buildContext;
     protected final BuildLogger buildLogger;
     protected final BuildContext context;
@@ -43,7 +43,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
         this.buildContext = buildContext;
         this.buildLogger = buildLogger;
         this.isReleaseEnabled = buildContext.releaseManagementContext.isReleaseMgmtEnabled();
-        this.coordinator = AbstractScmCoordinator.createScmCoordinator(context,
+        this.coordinator = AbstractVcsCoordinator.createVcsCoordinator(context,
                 getTaskConfiguration(context.getBuildDefinition()), buildLogger, customVariableContext, credentialsAccessor);
     }
 
@@ -192,7 +192,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
 
     @Nullable
     protected File getSourceDir() throws RepositoryException {
-        return ScmHelper.getCheckoutDirectory(context);
+        return VcsHelper.getCheckoutDirectory(context);
     }
 
     protected void log(String message) {

@@ -30,7 +30,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.version.ScmHelper;
+import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
@@ -100,13 +100,13 @@ public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHe
         clientConf.info.setBuildNumber(buildNumber);
         clientConf.publisher.addMatrixParam("build.number", buildNumber);
 
-        String vcsRevision = ScmHelper.getRevisionKey(context);
+        String vcsRevision = VcsHelper.getRevisionKey(context);
         if (StringUtils.isNotBlank(vcsRevision)) {
             clientConf.info.setVcsRevision(vcsRevision);
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);
         }
 
-        String vcsUrl = ScmHelper.getVcsUrl(context);
+        String vcsUrl = VcsHelper.getVcsUrl(context);
         if (StringUtils.isNotBlank(vcsUrl)) {
             clientConf.info.setVcsUrl(vcsUrl);
         }
