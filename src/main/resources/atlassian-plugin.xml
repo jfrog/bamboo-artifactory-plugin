@@ -143,7 +143,7 @@
     <taskType key="artifactoryGenericResolveTask" name="Artifactory Generic Resolve"
               class="org.jfrog.bamboo.task.ArtifactoryGenericResolveTask">
         <description>Artifactory Generic Deploy Task</description>
-        <category name="resolve"/>
+        <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/generic/artifactoryGenericResolveActionEdit.ftl"/>
@@ -154,30 +154,36 @@
 
     <!-- Maven 3 task -->
     <taskType key="maven3Task" name="Artifactory Maven 3"
-    class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">
-    <description>Artifactory Maven 3 Task</description>
-    <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
-    <category name="builder"/>
-    <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.Maven3CapabilityHelper"/>
-    <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
-    <executable key="maven" pathHelpKey="builder.maven.pathHelp"/>
-    <resource type="freemarker" name="edit" location="/templates/plugins/task/artifactoryMaven3BuilderEdit.ftl"/>
-    <resource type="freemarker" name="view" location="/templates/plugins/task/artifactoryMaven3BuilderView.ftl"/>
-    <resource type="download" name="icon" location="images/artifactory-maven-icon.png"/>
+                class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">
+        <description>Artifactory Maven 3 Task</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
+        <category name="builder"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.Maven3CapabilityHelper"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
+        <executable key="maven" pathHelpKey="builder.maven.pathHelp"/>
+        <resource type="freemarker" name="edit"
+                  location="/templates/plugins/task/artifactoryMaven3BuilderEdit.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="/templates/plugins/task/artifactoryMaven3BuilderView.ftl"/>
+        <resource type="download" name="icon"
+                  location="images/artifactory-maven-icon.png"/>
     </taskType>
 
     <!--Gradle task-->
     <taskType key="artifactoryGradleTask" name="Artifactory Gradle"
-    class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
-    <description>Artifactory Gradle task</description>
-    <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
-    <category name="builder"/>
-    <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.GradleCapabilityHelper"/>
-    <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
-    <executable key="gradle" pathHelpKey="builder.gradle.pathHelp"/>
-    <resource type="freemarker" name="edit" location="/templates/plugins/task/artifactoryGradleBuilderEdit.ftl"/>
-    <resource type="freemarker" name="view" location="/templates/plugins/task/artifactoryGradleBuilderView.ftl"/>
-    <resource type="download" name="icon" location="images/artifactory-gradle-icon.png"/>
+                class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
+        <description>Artifactory Gradle task</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
+        <category name="builder"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.GradleCapabilityHelper"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
+        <executable key="gradle" pathHelpKey="builder.gradle.pathHelp"/>
+        <resource type="freemarker" name="edit"
+                  location="/templates/plugins/task/artifactoryGradleBuilderEdit.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="/templates/plugins/task/artifactoryGradleBuilderView.ftl"/>
+        <resource type="download" name="icon"
+                  location="images/artifactory-gradle-icon.png"/>
     </taskType>
 
     <!--build info-->
@@ -219,6 +225,7 @@
         <label key="Push to Bintray"/>
         <link linkId="pushToBintray">/build/pushToBintray.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
         <condition class="org.jfrog.bamboo.buildinfo.action.condition.BuildInfoActionCondition"/>
+        <condition class="org.jfrog.bamboo.release.action.condition.ReleaseAndPromotionActionCondition"/>
     </web-item>
 
     <xwork key="brmpAdminActions" name="Release Management Admin Actions">
@@ -326,6 +333,6 @@
     <component-import key="taskContextHelper" interface="com.atlassian.bamboo.task.TaskContextHelperService"/>
     <component-import key="taskConfiguratorHelper" interface="com.atlassian.bamboo.task.TaskConfiguratorHelper"/>
     <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties"/>
-    <component-import key="i18nResolver" interface="com.atlassian.sal.api.message.I18nResolver" />
+    <component-import key="i18nResolver" interface="com.atlassian.sal.api.message.I18nResolver"/>
 
 </atlassian-plugin>

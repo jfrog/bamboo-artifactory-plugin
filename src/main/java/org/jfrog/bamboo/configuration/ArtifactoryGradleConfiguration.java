@@ -42,6 +42,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         context.put("selectedResolutionRepoKey", "");
         context.put("selectedPublishingRepoKey", "");
         context.put("builder.artifactoryGradleBuilder.gitReleaseBranch", "REL-BRANCH-");
+        context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
+        context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
     }
 
     @Override
@@ -66,6 +68,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         if (envVarsExcludePatterns == null) {
             context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
         }
+        context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
+        context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
     }
 
     @NotNull
@@ -78,7 +82,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         resetConfigIfNeeded(buildContext);
         taskConfigMap.put(GradleBuildContext.PREFIX + GradleBuildContext.TEST_RESULT_DIRECTORY,
                 getTestDirectory(buildContext));
-
+        taskConfigMap.putAll(super.getSshFileContent(params, previousTaskDefinition));
         decryptFields(taskConfigMap);
         return taskConfigMap;
     }

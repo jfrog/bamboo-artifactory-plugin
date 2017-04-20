@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.jfrog.bamboo.release.scm;
+package org.jfrog.bamboo.release.vcs;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- * Base interface for specific scm coordinators.
+ * Base interface for specific vcs coordinators.
  *
  * @author Yossi Shaul
  */
-public interface ScmCoordinator {
+public interface VcsCoordinator {
     /**
      * Called immediately after the coordinator is created.
      */
@@ -76,7 +76,7 @@ public interface ScmCoordinator {
 
     /**
      * Set the checkout branch of the current working copy.<p> <b>NOTE:</b> This is here since the instance of the
-     * {@code ScmCoordinator} is not saved from the pre-build action and the post build action, and the post build
+     * {@code VcsCoordinator} is not saved from the pre-build action and the post build action, and the post build
      * action needs some information from the pre-build. This method should only be used <b>ONCE</b> for this
      * scenario.</p>
      *
@@ -91,7 +91,7 @@ public interface ScmCoordinator {
 
     /**
      * Set the working branch of the current working copy.<p> <b>NOTE:</b> This is here since the instance of the {@code
-     * ScmCoordinator} is not saved from the pre-build action and the post build action, and the post build action needs
+     * VcsCoordinator} is not saved from the pre-build action and the post build action, and the post build action needs
      * some information from the pre-build. This method should only be used <b>ONCE</b> for this scenario.</p>
      *
      * @param currentWorkingBranch The current working branch.

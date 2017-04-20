@@ -9,14 +9,12 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
-import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
-import org.jfrog.bamboo.util.version.ScmHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -78,11 +76,6 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
                 log("Build completed successfully");
                 provider.afterSuccessfulReleaseVersionBuild();
                 provider.beforeDevelopmentVersionChange();
-                PlanRepositoryDefinition repository = ScmHelper.getRepository(buildContext);
-                if (repository == null) {
-                    log("No VCS repository found, resuming normally");
-                    return buildContext;
-                }
                 boolean modified = provider.transformDescriptor(configuration, false);
                 provider.afterDevelopmentVersionChange(modified);
             }

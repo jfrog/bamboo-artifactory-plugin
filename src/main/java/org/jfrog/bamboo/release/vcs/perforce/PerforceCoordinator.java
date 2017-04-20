@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.release.scm.perforce;
+package org.jfrog.bamboo.release.vcs.perforce;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
@@ -6,9 +6,8 @@ import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
-import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.release.scm.AbstractScmCoordinator;
+import org.jfrog.bamboo.release.vcs.AbstractVcsCoordinator;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +18,7 @@ import java.util.Map;
  *
  * @author Shay Yaakov
  */
-public class PerforceCoordinator extends AbstractScmCoordinator {
+public class PerforceCoordinator extends AbstractVcsCoordinator {
 
     private PerforceManager perforce;
 
@@ -27,15 +26,15 @@ public class PerforceCoordinator extends AbstractScmCoordinator {
     private boolean tagCreated;
     private int currentChangeListId;
 
-    public PerforceCoordinator(BuildContext context, PlanRepositoryDefinition repository, Map<String, String> configuration,
-                               BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
-        super(context, repository, buildLogger, customVariableContext, credentialsAccessor);
+    public PerforceCoordinator(BuildContext context, Map<String, String> configuration, BuildLogger buildLogger,
+                               CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
+        super(context, buildLogger, customVariableContext, credentialsAccessor);
         this.configuration = configuration;
     }
 
     @Override
     public void prepare() throws IOException {
-        perforce = new PerforceManager(context, repository, buildLogger);
+        perforce = new PerforceManager(context, buildLogger);
         perforce.prepare();
     }
 

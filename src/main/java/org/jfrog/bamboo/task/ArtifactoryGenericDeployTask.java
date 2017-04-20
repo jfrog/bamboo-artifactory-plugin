@@ -25,7 +25,7 @@ import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
-import org.jfrog.bamboo.util.version.ScmHelper;
+import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.client.DeployDetails;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
@@ -89,12 +89,12 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         Map<String, String> env = Maps.newHashMap();
         env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
         env.putAll(environmentVariableAccessor.getEnvironment());
-        String vcsRevision = ScmHelper.getRevisionKey(context);
+        String vcsRevision = VcsHelper.getRevisionKey(context);
         if (StringUtils.isBlank(vcsRevision)) {
             vcsRevision = "";
         }
 
-        String vcsUrl = ScmHelper.getVcsUrl(context);
+        String vcsUrl = VcsHelper.getVcsUrl(context);
         if (StringUtils.isBlank(vcsUrl)) {
             vcsUrl = "";
         }
@@ -123,7 +123,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
     }
 
     private File getWorkingDirectory(BuildContext context, TaskContext taskContext) throws RepositoryException {
-        File checkoutDir = ScmHelper.getCheckoutDirectory(context);
+        File checkoutDir = VcsHelper.getCheckoutDirectory(context);
         if (checkoutDir != null) {
             return checkoutDir;
         } else {
@@ -204,7 +204,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
                 buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
             }
         } finally {
-            client.shutdown();
+            client.close();
         }
     }
 

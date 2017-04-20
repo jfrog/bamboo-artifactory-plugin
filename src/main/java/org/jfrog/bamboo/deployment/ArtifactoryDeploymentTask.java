@@ -88,7 +88,7 @@ public class ArtifactoryDeploymentTask implements DeploymentTaskType {
             buildLogger.addErrorLogEntry("Error while deploying artifacts to Artifactory: " + e.getMessage());
             result = TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
         } finally {
-            client.shutdown();
+            client.close();
         }
         return result;
     }

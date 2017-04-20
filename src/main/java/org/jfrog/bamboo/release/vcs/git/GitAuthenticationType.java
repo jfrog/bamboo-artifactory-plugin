@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.release.scm.git;
+package org.jfrog.bamboo.release.vcs.git;
 
 /**
  * Taken from Atlassian Bamboo Git Plugin, in use by the release management for performing Git operations
@@ -9,6 +9,5 @@ package org.jfrog.bamboo.release.scm.git;
 public enum GitAuthenticationType {
     NONE,
     PASSWORD,
-    SSH_KEYPAIR,
-    SHARED_CREDENTIALS
+    SSH_KEYPAIR
 }

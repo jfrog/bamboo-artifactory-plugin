@@ -11,6 +11,8 @@ import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
 
 import java.util.List;
 
+import static org.jfrog.bamboo.context.AbstractBuildContext.ENABLE_RELEASE_MANAGEMENT;
+
 /**
  * Utility class to help find tasks of a certain type.
  *
@@ -63,6 +65,21 @@ public abstract class TaskDefinitionHelper {
         if (taskDefinitions != null) {
             for (TaskDefinition definition : taskDefinitions) {
                 if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryMaven3Task.TASK_NAME)) {
+                    return definition;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return Artifactory Maven TaskDefinition if found, null if not.
+     */
+    @Nullable
+    public static TaskDefinition findReleaseTaskDefinition(List<? extends TaskDefinition> taskDefinitions) {
+        if (taskDefinitions != null) {
+            for (TaskDefinition definition : taskDefinitions) {
+                if ("true".equals(definition.getConfiguration().get(ENABLE_RELEASE_MANAGEMENT))) {
                     return definition;
                 }
             }

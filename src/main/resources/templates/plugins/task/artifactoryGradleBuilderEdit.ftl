@@ -106,6 +106,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
     [@ww.textfield labelKey='artifactory.task.release.releaseProps' name='builder.artifactoryGradleBuilder.releaseProps'/]
     [@ww.textfield labelKey='artifactory.task.release.nextIntegProps' name='builder.artifactoryGradleBuilder.nextIntegProps'/]
     [@ww.textfield labelKey='artifactory.task.release.gradle.alternativeTasks' name='builder.artifactoryGradleBuilder.alternativeTasks'/]
+    [#include 'vcsConfiguration.ftl'/]
 [/@ui.bambooSection]
 
 [@ww.checkbox labelKey="Bintray configuration" name="bintrayConfiguration" toggle='true'/]

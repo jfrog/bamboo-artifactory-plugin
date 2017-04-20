@@ -1,17 +1,13 @@
-package org.jfrog.bamboo.release.scm;
+package org.jfrog.bamboo.release.vcs;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.credentials.CredentialsAccessor;
-import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
-import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
-import org.jfrog.bamboo.release.scm.git.GitCoordinator;
-import org.jfrog.bamboo.release.scm.perforce.PerforceCoordinator;
-import org.jfrog.bamboo.release.scm.svn.SubversionCoordinator;
-import org.jfrog.bamboo.util.version.ScmHelper;
+import org.jfrog.bamboo.release.vcs.git.GitCoordinator;
+import org.jfrog.bamboo.release.vcs.perforce.PerforceCoordinator;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,9 +18,8 @@ import java.util.Map;
  *
  * @author Tomer Cohen
  */
-public abstract class AbstractScmCoordinator implements ScmCoordinator {
-    private static final Logger log = Logger.getLogger(AbstractScmCoordinator.class);
-    protected final PlanRepositoryDefinition repository;
+public abstract class AbstractVcsCoordinator implements VcsCoordinator {
+    private static final Logger log = Logger.getLogger(AbstractVcsCoordinator.class);
     protected final BuildLogger buildLogger;
     protected final CustomVariableContext customVariableContext;
     protected final CredentialsAccessor credentialsAccessor;
@@ -32,42 +27,39 @@ public abstract class AbstractScmCoordinator implements ScmCoordinator {
     protected boolean modifiedFilesForDevVersion;
     protected boolean modifiedFilesForReleaseVersion;
 
-    public AbstractScmCoordinator(BuildContext context, PlanRepositoryDefinition repository, BuildLogger buildLogger,
+    public AbstractVcsCoordinator(BuildContext context, BuildLogger buildLogger,
                                   CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         this.context = context;
-        this.repository = repository;
         this.buildLogger = buildLogger;
         this.customVariableContext = customVariableContext;
         this.credentialsAccessor = credentialsAccessor;
     }
 
     /**
-     * Create an SCM coordinator according to the {@link PlanRepositoryDefinition} type, either {@link SvnRepository}
+     * Create an VCS coordinator according to the vcs type
      *
      * @param configuration       The build's configuration.
      * @param credentialsAccessor
      * @return SCM coordinator according to the repository type.
      */
-    public static ScmCoordinator createScmCoordinator(BuildContext context,
-                                                      Map<? extends String, ? extends String> configuration, BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
+    public static VcsCoordinator createVcsCoordinator(BuildContext context,
+                                                      Map<? extends String, ? extends String> configuration,
+                                                      BuildLogger buildLogger,
+                                                      CustomVariableContext customVariableContext,
+                                                      CredentialsAccessor credentialsAccessor) {
 
-        PlanRepositoryDefinition repository = ScmHelper.getRepository(context);
         Map<String, String> combined = Maps.newHashMap();
         combined.putAll(configuration);
         Map<String, String> customBuildData = context.getBuildResult().getCustomBuildData();
         combined.putAll(customBuildData);
-        if (ScmHelper.isSvn(repository)) {
-            return new SubversionCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
-        }
         // Git is optional SCM so we cannot use the class here
-        if (ScmHelper.isGitBase(repository)) {
-            return new GitCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
+        if (VcsTypes.GIT.name().equals(configuration.get("artifactory.vcs.type"))) {
+            return new GitCoordinator(context, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
-        if (ScmHelper.isPerforce(repository)) {
-            return new PerforceCoordinator(context, repository, combined, buildLogger, customVariableContext, credentialsAccessor);
+        if (VcsTypes.PERFORCE.name().equals(configuration.get("artifactory.vcs.type"))) {
+            return new PerforceCoordinator(context, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
-        throw new UnsupportedOperationException(
-                "Scm of type: " + repository.getPluginKey() + " is not supported");
+        throw new UnsupportedOperationException("This VCS type is not supported");
     }
 
     @Override

@@ -74,7 +74,7 @@ public class PromotionThread extends Thread {
             releaseLog.logError(message, e);
         } finally {
             try {
-                client.shutdown();
+                client.close();
             } finally {
                 promotionContext.setDone(true);
                 promotionContext.getLock().unlock();

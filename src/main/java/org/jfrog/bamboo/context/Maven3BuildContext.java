@@ -144,6 +144,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
         fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
         fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
+        fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }
 

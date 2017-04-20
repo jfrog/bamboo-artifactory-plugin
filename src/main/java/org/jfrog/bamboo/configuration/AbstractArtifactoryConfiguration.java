@@ -3,28 +3,36 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
-import com.atlassian.bamboo.security.EncryptionService;
+import com.atlassian.bamboo.repository.NameValuePair;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
+import com.atlassian.sal.api.message.I18nResolver;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.configuration.ConversionException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
+import org.jfrog.bamboo.release.vcs.VcsTypes;
+import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.TaskUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Base class for all {@link com.atlassian.bamboo.task.TaskConfigurator}s that are used by the plugin. It sets the
@@ -36,8 +44,7 @@ import java.util.Set;
 public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfigurator implements
         TaskTestResultsSupport, BuildTaskRequirementSupport {
 
-    protected EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
-
+    protected I18nResolver i18nResolver;
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
     private static final Map TEST_RESULTS_FILE_PATTERN_TYPES = ImmutableMap
@@ -51,6 +58,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     protected UIConfigSupport uiConfigSupport;
     private String builderContextPrefix;
     private String capabilityPrefix;
+    private static final Logger log = Logger.getLogger(AbstractArtifactoryConfiguration.class);
 
     protected AbstractArtifactoryConfiguration() {
         this(null, null);
@@ -198,6 +206,30 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         this.administrationConfiguration = administrationConfiguration;
     }
 
+    protected String readFileByKey(final ActionParametersMap params, String keyToRead) {
+        final File private_key_file = params.getFiles().get(keyToRead);
+        if (private_key_file != null) {
+            try {
+                return FileUtils.readFileToString(private_key_file);
+            } catch (IOException e) {
+                log.error("Cannot read uploaded file", e);
+            }
+        } else {
+            log.error("Unable to load file from config submission!");
+        }
+        return null;
+    }
+
+    private boolean isEncrypted(String value) {
+        try {
+            value = URLDecoder.decode(value, "UTF-8");
+        } catch (Exception ignore) {
+            // Ignore. Trying to decode password that was not encoded.
+        }
+        String decryptedValue = TaskUtils.decryptIfNeeded(value);
+        return !decryptedValue.equals(value);
+    }
+
     /**
      * This method is used by the encryptFields and decryptFields methods.
      * It encrypts or decrypts the task config fields, if their key ends with 'password'.
@@ -210,16 +242,18 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private void encOrDecFields(Map<String, String> taskConfigMap, boolean enc) {
         for (Map.Entry<String, String> entry : taskConfigMap.entrySet()) {
             String key = entry.getKey().toLowerCase();
-            if (key.endsWith("password") && key.contains("artifactory")) {
+            if (shouldEncrypt(key)) {
                 String value = entry.getValue();
-                try {
-                    value = URLDecoder.decode(value, "UTF-8");
-                } catch (Exception ignore) {
+                if (isEncrypted(value)) {
+                    try {
+                        value = URLDecoder.decode(value, "UTF-8");
+                    } catch (Exception ignore) {
                     /* Ignore. Trying to decode password that was not encoded. */
+                    }
+                    value = TaskUtils.decryptIfNeeded(value);
                 }
-                value = TaskUtils.decryptIfNeeded(value);
                 if (enc) {
-                    value = encryptionService.encrypt(value);
+                    value = EncryptionHelper.encrypt(value);
                     try {
                         value = URLEncoder.encode(value, "UTF-8");
                     } catch (UnsupportedEncodingException e) {
@@ -229,6 +263,10 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
                 entry.setValue(value);
             }
         }
+    }
+
+    private boolean shouldEncrypt(String key) {
+         return key.contains("artifactory") && (key.contains("password") || key.contains("ssh"));
     }
 
     /**
@@ -291,5 +329,45 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         if (StringUtils.isNotBlank(newServerId)) {
             configuration.put("artifactory.generic.artifactoryServerId", newServerId);
         }
+    }
+
+    protected List<NameValuePair> getGitAuthenticationTypes() {
+        return Arrays.stream(GitAuthenticationType.values())
+                .map(Enum::name)
+                .map(name -> new NameValuePair(name, getAuthTypeName(name)))
+                .collect(Collectors.toList());
+    }
+
+    protected List<NameValuePair> getVcsTypes() {
+        return Arrays.stream(VcsTypes.values())
+                .map(Enum::name)
+                .map(name -> new NameValuePair(name, getVcsTypeName(name)))
+                .collect(Collectors.toList());
+    }
+
+    protected Map<String, String> getSshFileContent(ActionParametersMap params, TaskDefinition previousTaskDefinition) {
+        Map<String, String> taskConfigMap = new HashMap<>();
+        String sshFileKey = AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_SSH_KEY;
+        String sshFileContent = readFileByKey(params, sshFileKey);
+        if (StringUtils.isNotBlank(sshFileContent)) {
+            taskConfigMap.put(sshFileKey, sshFileContent);
+        } else {
+            if (previousTaskDefinition != null) {
+                taskConfigMap.put(sshFileKey, previousTaskDefinition.getConfiguration().get(sshFileKey));
+            }
+        }
+        return taskConfigMap;
+    }
+
+    private String getVcsTypeName(final String vcsType) {
+        return i18nResolver.getText("artifactory.vcs.type." + StringUtils.lowerCase(vcsType));
+    }
+
+    private String getAuthTypeName(final String authType) {
+        return i18nResolver.getText("artifactory.vcs.git.authenticationType." + StringUtils.lowerCase(authType));
+    }
+
+    public void setI18nResolver(final I18nResolver i18nResolver) {
+        this.i18nResolver = i18nResolver;
     }
 }

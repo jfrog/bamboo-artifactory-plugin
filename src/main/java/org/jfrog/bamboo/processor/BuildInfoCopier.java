@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.release.provider.TokenDataProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
-import org.jfrog.bamboo.util.version.ScmHelper;
+import org.jfrog.bamboo.util.version.VcsHelper;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,7 +47,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
     public BuildContext call() throws Exception {
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
         BuildLogger buildLogger = buildLoggerManager.getLogger(planResultKey);
-        File checkoutDir = ScmHelper.getCheckoutDirectory(buildContext);
+        File checkoutDir = VcsHelper.getCheckoutDirectory(buildContext);
         if (checkoutDir == null) {
             return buildContext;
         }

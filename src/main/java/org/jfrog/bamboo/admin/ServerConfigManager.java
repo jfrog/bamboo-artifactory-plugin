@@ -17,8 +17,6 @@
 package org.jfrog.bamboo.admin;
 
 import com.atlassian.bamboo.bandana.*;
-import com.atlassian.bamboo.security.EncryptionException;
-import com.atlassian.bamboo.security.EncryptionService;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bandana.BandanaManager;
 import com.atlassian.spring.container.ContainerManager;
@@ -28,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -57,7 +56,6 @@ public class ServerConfigManager implements Serializable {
 
     private static final String ARTIFACTORY_CONFIG_KEY = "org.jfrog.bamboo.server.configurations.v2";
     private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations.v2";
-    private static final EncryptionService encryptionService = (EncryptionService) ContainerManager.getComponent("encryptionService");
     private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<>();
     private BintrayConfig bintrayConfig;
     private  BandanaManager bandanaManager = null;
@@ -139,12 +137,12 @@ public class ServerConfigManager implements Serializable {
         this.bandanaManager = bandanaManager;
         try {
             setArtifactoryServers(bandanaManager);
-        } catch (InstantiationException | IllegalAccessException | EncryptionException | IOException e) {
+        } catch (InstantiationException | IllegalAccessException | IOException e) {
             log.error("Could not load Artifactory configuration.", e);
         }
         try {
             setBintrayConfigurations(bandanaManager);
-        } catch (InstantiationException | IllegalAccessException | EncryptionException | IOException e) {
+        } catch (InstantiationException | IllegalAccessException | IOException e) {
             log.error("Could not load Bintray configuration.", e);
         }
     }
@@ -167,7 +165,7 @@ public class ServerConfigManager implements Serializable {
     }
 
     private void setBintrayConfigurations(BandanaManager bandanaManager)
-            throws IOException, EncryptionException, InstantiationException, IllegalAccessException {
+            throws IOException,  InstantiationException, IllegalAccessException {
         String existingBintrayConfig = (String) bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY);
         if (existingBintrayConfig != null && !"".equals(existingBintrayConfig)) {
             BintrayConfig tempBintrayConfig = getObjectFromStringXml(existingBintrayConfig, BintrayConfig.class);
@@ -179,7 +177,7 @@ public class ServerConfigManager implements Serializable {
     }
 
         private void setArtifactoryServers(BandanaManager bandanaManager)
-            throws IOException, EncryptionException, InstantiationException, IllegalAccessException {
+            throws IOException, InstantiationException, IllegalAccessException {
 
         String existingArtifactoryConfig = (String) bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY);
         if (StringUtils.isNotBlank(existingArtifactoryConfig)) {
@@ -196,13 +194,13 @@ public class ServerConfigManager implements Serializable {
                 }
 
                 configuredServers.add(new ServerConfig(tempServerConfig.getId(), tempServerConfig.getUrl(), tempServerConfig.getUsername(),
-                        encryptionService.decrypt(tempServerConfig.getPassword()), tempServerConfig.getTimeout()));
+                        EncryptionHelper.decrypt(tempServerConfig.getPassword()), tempServerConfig.getTimeout()));
             }
         }
     }
 
 
-    private BintrayConfig decryptExistingBintrayConfig(BintrayConfig bintrayConfig) throws EncryptionException {
+    private BintrayConfig decryptExistingBintrayConfig(BintrayConfig bintrayConfig) {
         String bintrayApi = bintrayConfig.getBintrayApiKey();
         String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
         bintrayApi = TaskUtils.decryptIfNeeded(bintrayApi);
@@ -332,7 +330,7 @@ public class ServerConfigManager implements Serializable {
 
         for (ServerConfig serverConfig : configuredServers) {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
-                    encryptionService.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
+                    EncryptionHelper.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
         }
         String serverConfigsString = toXMLString(serverConfigs);
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigsString);
@@ -347,10 +345,10 @@ public class ServerConfigManager implements Serializable {
 
     private BintrayConfig createEncryptedBintrayConfig(BintrayConfig bintrayConfig) {
         BintrayConfig encConfig = new BintrayConfig();
-        String apiKey = encryptionService.encrypt(bintrayConfig.getBintrayApiKey());
+        String apiKey = EncryptionHelper.encrypt(bintrayConfig.getBintrayApiKey());
         String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
         encConfig.setBintrayApiKey(apiKey);
-        encConfig.setSonatypeOssPassword(encryptionService.encrypt(sonatypeOssPassword));
+        encConfig.setSonatypeOssPassword(EncryptionHelper.encrypt(sonatypeOssPassword));
         encConfig.setBintrayUsername(bintrayConfig.getBintrayUsername());
         encConfig.setSonatypeOssUsername(bintrayConfig.getSonatypeOssUsername());
         return encConfig;

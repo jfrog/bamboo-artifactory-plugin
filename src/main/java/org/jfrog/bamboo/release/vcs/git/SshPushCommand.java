@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.release.scm.git;
+package org.jfrog.bamboo.release.vcs.git;
 
 import com.google.common.collect.Lists;
 import org.eclipse.jgit.api.PushCommand;

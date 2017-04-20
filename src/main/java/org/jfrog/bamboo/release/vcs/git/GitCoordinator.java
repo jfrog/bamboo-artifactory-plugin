@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.release.scm.git;
+package org.jfrog.bamboo.release.vcs.git;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
@@ -6,10 +6,9 @@ import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
-import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.release.scm.AbstractScmCoordinator;
+import org.jfrog.bamboo.release.vcs.AbstractVcsCoordinator;
 
 import java.io.IOException;
 import java.util.Map;
@@ -19,8 +18,8 @@ import java.util.Map;
  *
  * @author Tomer Cohen
  */
-public class GitCoordinator extends AbstractScmCoordinator {
-    private GitManager scmManager;
+public class GitCoordinator extends AbstractVcsCoordinator {
+    private GitManager vcsManager;
     private String releaseBranch;
     private String checkoutBranch;
     // the commit hash of the initial checkout
@@ -37,9 +36,9 @@ public class GitCoordinator extends AbstractScmCoordinator {
         boolean tagPushed;
     }
 
-    public GitCoordinator(BuildContext context, PlanRepositoryDefinition repository, Map<String, String> configuration,
+    public GitCoordinator(BuildContext context, Map<String, String> configuration,
                           BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
-        super(context, repository, buildLogger, customVariableContext, credentialsAccessor);
+        super(context, buildLogger, customVariableContext, credentialsAccessor);
         this.configuration = configuration;
         this.buildLogger = buildLogger;
     }
@@ -47,20 +46,20 @@ public class GitCoordinator extends AbstractScmCoordinator {
     @Override
     public void prepare() throws IOException {
         releaseBranch = configuration.get(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH);
-        scmManager = new GitManager(context, repository, buildLogger, customVariableContext, credentialsAccessor);
-        baseCommitIsh = scmManager.getCurrentCommitHash();
-        checkoutBranch = scmManager.getCurrentBranch();
+        vcsManager = new GitManager(context, buildLogger);
+        baseCommitIsh = vcsManager.getCurrentCommitHash();
+        checkoutBranch = vcsManager.getCurrentBranch();
     }
 
     @Override
     public void beforeReleaseVersionChange() throws IOException {
         if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH))) {
-            scmManager.checkoutBranch(releaseBranch, true);
+            vcsManager.checkoutBranch(releaseBranch, true);
             state.currentWorkingBranch = releaseBranch;
             state.releaseBranchCreated = true;
         } else {
             // make sure we are on the checkout branch
-            scmManager.checkoutBranch(checkoutBranch, false);
+            vcsManager.checkoutBranch(checkoutBranch, false);
             state.currentWorkingBranch = checkoutBranch;
         }
     }
@@ -74,21 +73,21 @@ public class GitCoordinator extends AbstractScmCoordinator {
             if (StringUtils.isBlank(comment)) {
                 comment = "";
             }
-            scmManager.commitWorkingCopy(comment);
+            vcsManager.commitWorkingCopy(comment);
         }
         if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG))) {
-            scmManager.createTag(configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_URL),
+            vcsManager.createTag(configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_URL),
                     configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT));
             state.tagCreated = true;
         }
         if (state.releaseBranchCreated) {
             // push the current branch
-            scmManager.push(scmManager.getRemoteUrl(), state.currentWorkingBranch);
+            vcsManager.push(vcsManager.getRemoteUrl(), state.currentWorkingBranch);
             state.releaseBranchPushed = true;
         }
         if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG))) {
             // push the tag
-            scmManager.pushTag(scmManager.getRemoteUrl(),
+            vcsManager.pushTag(vcsManager.getRemoteUrl(),
                     configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_URL));
             state.tagPushed = true;
         }
@@ -98,7 +97,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
     public void beforeDevelopmentVersionChange() throws IOException {
         if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH))) {
             // done working on the release branch, checkout back to master
-            scmManager.checkoutBranch(checkoutBranch, false);
+            vcsManager.checkoutBranch(checkoutBranch, false);
             state.currentWorkingBranch = checkoutBranch;
         }
     }
@@ -112,7 +111,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
             if (StringUtils.isBlank(comment)) {
                 comment = "";
             }
-            scmManager.commitWorkingCopy(comment);
+            vcsManager.commitWorkingCopy(comment);
         }
     }
 
@@ -121,27 +120,25 @@ public class GitCoordinator extends AbstractScmCoordinator {
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
         CurrentBuildResult result = buildContext.getBuildResult();
         if (BuildState.SUCCESS.equals(result.getBuildState())) {
-            // pull before attempting to push changes?
-            //scmManager.pull(scmManager.getRemoteUrl(), checkoutBranch);
             if (modifiedFilesForDevVersion) {
-                scmManager.push(scmManager.getRemoteUrl(), checkoutBranch);
+                vcsManager.push(vcsManager.getRemoteUrl(), checkoutBranch);
             }
         } else {
             // go back to the original checkout branch (required to delete the release branch and reset the working copy)
-            scmManager.checkoutBranch(checkoutBranch, false);
+            vcsManager.checkoutBranch(checkoutBranch, false);
             state.currentWorkingBranch = checkoutBranch;
 
             if (state.releaseBranchCreated) {
                 safeDeleteBranch(releaseBranch);
             }
             if (state.releaseBranchPushed) {
-                safeDeleteRemoteBranch(scmManager.getRemoteUrl(), releaseBranch);
+                safeDeleteRemoteBranch(vcsManager.getRemoteUrl(), releaseBranch);
             }
             if (state.tagCreated) {
                 safeDeleteTag(context.releaseManagementContext.getTagUrl());
             }
             if (state.tagPushed) {
-                safeDeleteRemoteTag(scmManager.getRemoteUrl(), context.releaseManagementContext.getTagUrl());
+                safeDeleteRemoteTag(vcsManager.getRemoteUrl(), context.releaseManagementContext.getTagUrl());
             }
             // reset changes done on the original checkout branch (next dev version)
             safeRevertWorkingCopy();
@@ -155,7 +152,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
 
     private void safeDeleteBranch(String branch) {
         try {
-            scmManager.deleteLocalBranch(branch);
+            vcsManager.deleteLocalBranch(branch);
         } catch (Exception e) {
             log(buildLogger.addBuildLogEntry("Failed to delete release branch: " + e.getLocalizedMessage()));
         }
@@ -163,7 +160,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
 
     private void safeDeleteRemoteBranch(String remoteRepository, String branch) {
         try {
-            scmManager.deleteRemoteBranch(remoteRepository, branch);
+            vcsManager.deleteRemoteBranch(remoteRepository, branch);
         } catch (Exception e) {
             log(buildLogger.addBuildLogEntry("Failed to delete remote release branch: " + e.getLocalizedMessage()));
         }
@@ -171,7 +168,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
 
     private void safeDeleteTag(String tag) {
         try {
-            scmManager.deleteLocalTag(tag);
+            vcsManager.deleteLocalTag(tag);
         } catch (Exception e) {
             log(buildLogger.addBuildLogEntry("Failed to delete tag: " + e.getLocalizedMessage()));
         }
@@ -179,7 +176,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
 
     private void safeDeleteRemoteTag(String remoteRepository, String tag) {
         try {
-            scmManager.deleteRemoteTag(remoteRepository, tag);
+            vcsManager.deleteRemoteTag(remoteRepository, tag);
         } catch (Exception e) {
             log(buildLogger.addBuildLogEntry("Failed to delete remote tag: " + e.getLocalizedMessage()));
         }
@@ -187,7 +184,7 @@ public class GitCoordinator extends AbstractScmCoordinator {
 
     private void safeRevertWorkingCopy() {
         try {
-            scmManager.revertWorkingCopy(baseCommitIsh);
+            vcsManager.revertWorkingCopy(baseCommitIsh);
         } catch (Exception e) {
             log(buildLogger.addBuildLogEntry("Failed to revert working copy: " + e.getLocalizedMessage()));
         }

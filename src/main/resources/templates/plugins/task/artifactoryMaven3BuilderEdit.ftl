@@ -95,6 +95,7 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
     [@ww.textfield labelKey='artifactory.task.release.vcsTagBase' name='builder.artifactoryMaven3Builder.vcsTagBase'/]
     [@ww.textfield labelKey='artifactory.task.release.gitReleaseBranch' name='builder.artifactoryMaven3Builder.gitReleaseBranch'/]
     [@ww.textfield labelKey='artifactory.task.release.alternativeTasks' name='builder.artifactoryMaven3Builder.alternativeTasks'/]
+    [#include 'vcsConfiguration.ftl'/]
 [/@ui.bambooSection]
 
 [@ww.checkbox labelKey="Bintray configuration" name="bintrayConfiguration" toggle='true'/]

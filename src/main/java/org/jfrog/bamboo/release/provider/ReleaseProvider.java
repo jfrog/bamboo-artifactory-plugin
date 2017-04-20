@@ -2,6 +2,7 @@ package org.jfrog.bamboo.release.provider;
 
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import org.jfrog.bamboo.release.vcs.VcsCoordinator;
 
 import java.io.IOException;
 import java.util.Map;
@@ -89,7 +90,7 @@ public interface ReleaseProvider {
 
     /**
      * Set the current checkout branch that the release works on. <p> <b>NOTE:</b> This shouldn't be used directly, this
-     * is here due to the fact that the same instance of the {@link org.jfrog.bamboo.release.scm.ScmCoordinator} cannot
+     * is here due to the fact that the same instance of the {@link VcsCoordinator} cannot
      * be used by the pre-build action and the post build action, so this property is set to be shared</p>
      *
      * @param checkoutBranch The current checkout branch.
@@ -103,7 +104,7 @@ public interface ReleaseProvider {
 
     /**
      * Set the current working branch that the release works on. <p> <b>NOTE:</b> This shouldn't be used directly, this
-     * is here due to the fact that the same instance of the {@link org.jfrog.bamboo.release.scm.ScmCoordinator} cannot
+     * is here due to the fact that the same instance of the {@link VcsCoordinator} cannot
      * be used by the pre-build action and the post build action, so this property is set to be shared</p>
      *
      * @param currentWorkingBranch The current working branch
@@ -112,7 +113,7 @@ public interface ReleaseProvider {
 
     /**
      * Set the current base commit hash that the release works on. <p> <b>NOTE:</b> This shouldn't be used directly,
-     * this is here due to the fact that the same instance of the {@link org.jfrog.bamboo.release.scm.ScmCoordinator}
+     * this is here due to the fact that the same instance of the {@link VcsCoordinator}
      * cannot be used by the pre-build action and the post build action, so this property is set to be shared</p>
      *
      * @param commitIsh The current base commit hash
