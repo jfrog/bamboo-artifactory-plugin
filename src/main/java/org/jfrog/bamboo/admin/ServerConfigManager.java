@@ -238,7 +238,8 @@ public class ServerConfigManager implements Serializable {
             password = req.getParameter("password");
         }
         if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
-            password = TaskUtils.decryptIfNeeded(password);
+            username = substituteVariables(username);
+            password = substituteVariables(TaskUtils.decryptIfNeeded(password));
         } else {
             username = serverConfig.getUsername();
             password = serverConfig.getPassword();
