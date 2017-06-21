@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.dispatcher.Parameter;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
@@ -70,9 +71,9 @@ public class GradleVersionHelper extends VersionHelper {
         String releaseProps = buildContext.getReleaseProps();
         String[] split = StringUtils.split(releaseProps, ", ");
         int index = 0;
-        String[] moduleKeys = (String[]) parameters.get(ReleaseAndPromotionAction.MODULE_KEY);
-        if (moduleKeys != null) {
-            for (String key : moduleKeys) {
+        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.MODULE_KEY));
+        if (moduleKeysParams != null) {
+            for (String key : moduleKeysParams.getMultipleValues()) {
                 configuration.put(ReleaseAndPromotionAction.MODULE_KEY + "." + index, key);
                 configuration.put(ReleaseAndPromotionAction.RELEASE_PROP_KEY + "." + index,
                         String.valueOf(isReleaseProp(split, key)));
@@ -80,26 +81,26 @@ public class GradleVersionHelper extends VersionHelper {
             }
         }
         index = 0;
-        String[] originalValues = (String[]) parameters.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY);
-        if (originalValues != null) {
-            for (String key : originalValues) {
+        Parameter originalValuesParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY));
+        if (originalValuesParams != null) {
+            for (String key : originalValuesParams.getMultipleValues()) {
                 configuration.put(ReleaseAndPromotionAction.CURRENT_VALUE_KEY + "." + index, key);
                 index++;
             }
         }
         index = 0;
-        String[] nextIntegrationKeys = (String[]) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY);
-        if (nextIntegrationKeys != null) {
-            for (String key : nextIntegrationKeys) {
+        Parameter nextIntegrationKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY));
+        if (nextIntegrationKeysParams != null) {
+            for (String key : nextIntegrationKeysParams.getMultipleValues()) {
                 configuration.put(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + index, key);
                 configuration.put(ReleaseAndPromotionAction.RELEASE_PROP_KEY + "." + index, "false");
                 index++;
             }
         }
         index = 0;
-        String[] releaseValueKeys = (String[]) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY);
-        if (releaseValueKeys != null) {
-            for (String key : releaseValueKeys) {
+        Parameter releaseValueKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY));
+        if (releaseValueKeysParams != null) {
+            for (String key : releaseValueKeysParams.getMultipleValues()) {
                 configuration.put(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + index, key);
                 index++;
             }

@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.opensymphony.xwork.ActionContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.struts2.dispatcher.Parameter;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -41,7 +42,10 @@ import org.jfrog.build.api.release.Promotion;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An action to display when entering the "Artifactory Release & Promotion" tab from within a job.
@@ -247,11 +251,11 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
         configuration.put(AbstractBuildContext.ReleaseManagementContext.REPO_KEY, getReleasePublishingRepo());
         configuration.put(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT, getTagComment());
         configuration.put(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH, getReleaseBranch());
-        String[] useReleaseBranchParam = (String[]) parameters.get("useReleaseBranch");
-        String useReleaseBranch = useReleaseBranchParam != null ? useReleaseBranchParam[0] : "false";
+        Parameter useReleaseBranchParam = ((Parameter) parameters.get("useReleaseBranch"));
+        String useReleaseBranch = useReleaseBranchParam != null ? useReleaseBranchParam.getValue() : "false";
         configuration.put(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH, useReleaseBranch);
-        String[] createVcsTagParam = (String[]) parameters.get("createVcsTag");
-        String createVcsTag = createVcsTagParam != null ? createVcsTagParam[0] : "false";
+        Parameter createVcsTagParam = ((Parameter) parameters.get("createVcsTag"));
+        String createVcsTag = createVcsTagParam != null ? createVcsTagParam.getValue() : "false";
         configuration.put(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG, createVcsTag);
         configuration.put(ReleaseProvider.MODULE_VERSION_CONFIGURATION, getModuleVersionConfiguration());
         TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);

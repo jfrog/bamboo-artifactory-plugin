@@ -66,7 +66,7 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
         File buildInfo = new File(new File(checkoutDir, location), "build-info.json");
         if (buildInfo.exists()) {
             log.info(buildLogger.addBuildLogEntry("Copying the buildinfo artifacts for " +
-                    "build: " + buildContext.getBuildResultKey()));
+                    "build: " + buildContext.getPlanResultKey().getKey()));
 
             TaskDefinition definition = TaskDefinitionHelper.findMavenDefinition(buildContext.getRuntimeTaskDefinitions());
             String securityToken = buildContext.getRuntimeTaskContext()

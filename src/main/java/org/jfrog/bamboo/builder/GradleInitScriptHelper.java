@@ -29,6 +29,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
@@ -40,8 +41,6 @@ import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
 import org.joda.time.DateTime;
-import org.apache.log4j.Logger;
-
 
 import java.io.File;
 import java.io.IOException;
@@ -149,7 +148,7 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             summaryUrlBuilder.append("/");
         }
         String buildUrl = summaryUrlBuilder.append("browse/").
-                append(EscapeChars.forFormSubmission(context.getBuildResultKey())).toString();
+                append(EscapeChars.forFormSubmission(context.getPlanResultKey().getKey())).toString();
         clientConf.info.setBuildUrl(buildUrl);
 
         String principal = getTriggeringUserNameRecursively(context);

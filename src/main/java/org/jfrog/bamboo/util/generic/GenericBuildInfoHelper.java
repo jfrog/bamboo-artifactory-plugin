@@ -8,7 +8,6 @@ import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.FilenameUtils;
@@ -24,7 +23,6 @@ import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.api.util.FileChecksumCalculator;
 import org.jfrog.build.client.DeployDetails;
-import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
 import org.jfrog.build.extractor.clientConfiguration.PatternMatcher;
@@ -59,7 +57,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
             summaryUrl.append("/");
         }
         String buildUrl = summaryUrl.append("browse/").
-                append(EscapeChars.forFormSubmission(buildContext.getBuildResultKey())).toString();
+                append(EscapeChars.forFormSubmission(buildContext.getPlanResultKey().getKey())).toString();
         DateTime start = new DateTime(buildContext.getBuildResult().getCustomBuildData().get("buildTimeStamp"));
         DateTime end = new DateTime();
         long duration = -1;

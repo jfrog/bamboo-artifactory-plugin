@@ -11,6 +11,7 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.struts2.dispatcher.Parameter;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.release.action.ReleaseAndPromotionAction;
@@ -85,31 +86,33 @@ public class MavenVersionHelper extends VersionHelper {
 
     private void addPerModuleVersioning(Map parameters, Map<String, String> configuration) {
         int index = 0;
-        String[] moduleKeys = (String[]) parameters.get(ReleaseAndPromotionAction.MODULE_KEY);
-        if (moduleKeys != null) {
-            for (String key : moduleKeys) {
+        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.MODULE_KEY));
+        if (moduleKeysParams != null) {
+            for (String key : moduleKeysParams.getMultipleValues()) {
                 configuration.put(ReleaseAndPromotionAction.MODULE_KEY + "." + index, key);
                 index++;
             }
         }
         index = 0;
-        String[] originalValues = (String[]) parameters.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY);
-        if (originalValues != null) {
-            for (String key : originalValues) {
+        Parameter originalValuesParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY));
+        if (originalValuesParams != null) {
+            for (String key : originalValuesParams.getMultipleValues()) {
                 configuration.put(ReleaseAndPromotionAction.CURRENT_VALUE_KEY + "." + index, key);
                 index++;
             }
         }
-        String[] nextIntegrationKeys = (String[]) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY);
-        if (nextIntegrationKeys != null) {
+        Parameter nextIntegrationKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY));
+        if (nextIntegrationKeysParams != null) {
+            String[] nextIntegrationKeys = nextIntegrationKeysParams.getMultipleValues();
             for (index = 1; index < nextIntegrationKeys.length; index++) {
                 String key = nextIntegrationKeys[index];
                 configuration.put(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + (index - 1), key);
             }
         }
 
-        String[] releaseValueKeys = (String[]) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY);
-        if (releaseValueKeys != null) {
+        Parameter releaseValueKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY));
+        if (releaseValueKeysParams != null) {
+            String[] releaseValueKeys = releaseValueKeysParams.getMultipleValues();
             for (index = 1; index < releaseValueKeys.length; index++) {
                 String key = releaseValueKeys[index];
                 configuration.put(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + (index - 1), key);
@@ -119,14 +122,14 @@ public class MavenVersionHelper extends VersionHelper {
 
     private void addGlobalVersion(Map parameters, Map<String, String> configuration) {
         int index = 0;
-        String[] moduleKeys = (String[]) parameters.get(ReleaseAndPromotionAction.MODULE_KEY);
-        if (moduleKeys != null) {
-            String[] releaseValueKeys = (String[]) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY);
-            String[] nextIntegrationKeys = (String[]) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY);
-            for (String key : moduleKeys) {
+        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.MODULE_KEY));
+        if (moduleKeysParams != null) {
+            Parameter releaseValueKeysParam = ((Parameter) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY));
+            Parameter nextIntegrationKeysParam = ((Parameter) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY));
+            for (String key : moduleKeysParams.getMultipleValues()) {
                 configuration.put(ReleaseAndPromotionAction.MODULE_KEY + "." + index, key);
-                configuration.put(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + index, releaseValueKeys[0]);
-                configuration.put(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + index, nextIntegrationKeys[0]);
+                configuration.put(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + index, releaseValueKeysParam.getValue());
+                configuration.put(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + index, nextIntegrationKeysParam.getValue());
                 index++;
             }
         }
