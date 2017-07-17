@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 import org.apache.struts2.dispatcher.Parameter;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
-import org.jfrog.bamboo.release.action.ReleaseAndPromotionAction;
+import org.jfrog.bamboo.release.action.ReleasePromotionAction;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Module;
@@ -86,50 +86,50 @@ public class MavenVersionHelper extends VersionHelper {
 
     private void addPerModuleVersioning(Map parameters, Map<String, String> configuration) {
         int index = 0;
-        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.MODULE_KEY));
+        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleasePromotionAction.MODULE_KEY));
         if (moduleKeysParams != null) {
             for (String key : moduleKeysParams.getMultipleValues()) {
-                configuration.put(ReleaseAndPromotionAction.MODULE_KEY + "." + index, key);
+                configuration.put(ReleasePromotionAction.MODULE_KEY + "." + index, key);
                 index++;
             }
         }
         index = 0;
-        Parameter originalValuesParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY));
+        Parameter originalValuesParams = ((Parameter) parameters.get(ReleasePromotionAction.CURRENT_VALUE_KEY));
         if (originalValuesParams != null) {
             for (String key : originalValuesParams.getMultipleValues()) {
-                configuration.put(ReleaseAndPromotionAction.CURRENT_VALUE_KEY + "." + index, key);
+                configuration.put(ReleasePromotionAction.CURRENT_VALUE_KEY + "." + index, key);
                 index++;
             }
         }
-        Parameter nextIntegrationKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY));
+        Parameter nextIntegrationKeysParams = ((Parameter) parameters.get(ReleasePromotionAction.NEXT_INTEG_KEY));
         if (nextIntegrationKeysParams != null) {
             String[] nextIntegrationKeys = nextIntegrationKeysParams.getMultipleValues();
             for (index = 1; index < nextIntegrationKeys.length; index++) {
                 String key = nextIntegrationKeys[index];
-                configuration.put(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + (index - 1), key);
+                configuration.put(ReleasePromotionAction.NEXT_INTEG_KEY + "." + (index - 1), key);
             }
         }
 
-        Parameter releaseValueKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY));
+        Parameter releaseValueKeysParams = ((Parameter) parameters.get(ReleasePromotionAction.RELEASE_VALUE_KEY));
         if (releaseValueKeysParams != null) {
             String[] releaseValueKeys = releaseValueKeysParams.getMultipleValues();
             for (index = 1; index < releaseValueKeys.length; index++) {
                 String key = releaseValueKeys[index];
-                configuration.put(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + (index - 1), key);
+                configuration.put(ReleasePromotionAction.RELEASE_VALUE_KEY + "." + (index - 1), key);
             }
         }
     }
 
     private void addGlobalVersion(Map parameters, Map<String, String> configuration) {
         int index = 0;
-        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.MODULE_KEY));
+        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleasePromotionAction.MODULE_KEY));
         if (moduleKeysParams != null) {
-            Parameter releaseValueKeysParam = ((Parameter) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY));
-            Parameter nextIntegrationKeysParam = ((Parameter) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY));
+            Parameter releaseValueKeysParam = ((Parameter) parameters.get(ReleasePromotionAction.RELEASE_VALUE_KEY));
+            Parameter nextIntegrationKeysParam = ((Parameter) parameters.get(ReleasePromotionAction.NEXT_INTEG_KEY));
             for (String key : moduleKeysParams.getMultipleValues()) {
-                configuration.put(ReleaseAndPromotionAction.MODULE_KEY + "." + index, key);
-                configuration.put(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + index, releaseValueKeysParam.getValue());
-                configuration.put(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + index, nextIntegrationKeysParam.getValue());
+                configuration.put(ReleasePromotionAction.MODULE_KEY + "." + index, key);
+                configuration.put(ReleasePromotionAction.RELEASE_VALUE_KEY + "." + index, releaseValueKeysParam.getValue());
+                configuration.put(ReleasePromotionAction.NEXT_INTEG_KEY + "." + index, nextIntegrationKeysParam.getValue());
                 index++;
             }
         }

@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A promotion context used to share data between {@link org.jfrog.bamboo.promotion.PromotionThread} which is the thread running the promotion
- * and {@code org.jfrog.bamboo.release.action.ReleaseAndPromotionAction} which is the view displaying the promotion result.
+ * and {@code org.jfrog.bamboo.release.action.ReleasePromotionAction} which is the view displaying the promotion result.
  *
  * @author Lior Hasson
  */

@@ -28,19 +28,19 @@ public class PushToBintrayRunnable implements Runnable {
 
     private BintrayClient bintrayClient;
     private ServerConfig serverConfig;
-    private PushToBintrayAction action;
+    private BintrayPushAction action;
     private ActionLog bintrayLog;
     private String buildName;
     private String buildNumber;
 
 
-    public PushToBintrayRunnable(PushToBintrayAction pushToBintrayAction, ServerConfig serverConfig, BintrayClient bintrayClient) {
-        this.action = pushToBintrayAction;
+    public PushToBintrayRunnable(BintrayPushAction bintrayPushAction, ServerConfig serverConfig, BintrayClient bintrayClient) {
+        this.action = bintrayPushAction;
         this.serverConfig = serverConfig;
         this.bintrayClient = bintrayClient;
-        this.bintrayLog = PushToBintrayAction.context.getActionLog();
-        this.buildName = PushToBintrayAction.context.getBuildKey();
-        this.buildNumber = Integer.toString(PushToBintrayAction.context.getBuildNumber());
+        this.bintrayLog = bintrayPushAction.context.getActionLog();
+        this.buildName = bintrayPushAction.context.getBuildKey();
+        this.buildNumber = Integer.toString(bintrayPushAction.context.getBuildNumber());
     }
 
     /**
@@ -52,12 +52,12 @@ public class PushToBintrayRunnable implements Runnable {
         ArtifactoryBuildInfoClient artifactoryClient = null;
         try {
             bintrayLog.logMessage("Starting Push to Bintray action.");
-            PushToBintrayAction.context.getLock().lock();
-            PushToBintrayAction.context.setDone(false);
+            BintrayPushAction.context.getLock().lock();
+            BintrayPushAction.context.setDone(false);
             artifactoryClient = getArtifactoryBuildInfoClient();
             if (!isValidArtifactoryVersion(artifactoryClient)) {
                 bintrayLog.logError("Push to Bintray supported from Artifactory version " + MINIMAL_SUPPORTED_VERSION);
-                PushToBintrayAction.context.setDone(true);
+                BintrayPushAction.context.setDone(true);
                 return;
             }
             performPushToBintray(artifactoryClient);
@@ -72,8 +72,8 @@ public class PushToBintrayRunnable implements Runnable {
             if (artifactoryClient != null) {
                 artifactoryClient.close();
             }
-            PushToBintrayAction.context.setDone(true);
-            PushToBintrayAction.context.getLock().unlock();
+            BintrayPushAction.context.setDone(true);
+            BintrayPushAction.context.getLock().unlock();
         }
     }
 

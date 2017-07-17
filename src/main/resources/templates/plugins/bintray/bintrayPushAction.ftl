@@ -47,7 +47,7 @@
 [#else]
     [@ui.header pageKey='Push to Bintray Log' /]
 
-<div id="pushToBintrayLog" class="log"></div>
+<div id="logBintrayPush" class="log"></div>
 
 <script type="text/javascript">
 
@@ -60,7 +60,7 @@
                 cache: false,
                 success: function (html) {
                     var result = AJS.$(html);
-                    AJS.$('#pushToBintrayLog').html(result.filter('#pushLog').html());
+                    AJS.$('#logBintrayPush').html(result.filter('#pushLog').html());
                     if (result.filter('#pushDone').length) {
                         return;
                     }

@@ -11,14 +11,14 @@
 <body>
 [/#if]
 
-[#assign cancelUri = '/admin/manageArtifactoryServers.action' /]
+[#assign cancelUri = '/admin/jfrogConfig.action' /]
 
 <div class="paddedClearer"></div>
 [@ww.form action=targetAction
           titleKey='artifactory.server.details'
           descriptionKey=''
           submitLabelKey='global.buttons.update'
-          cancelUri='/admin/manageArtifactoryServers.action'
+          cancelUri='/admin/jfrogConfig.action'
           showActionErrors='true'
 ]
     [@ww.param name='buttons']

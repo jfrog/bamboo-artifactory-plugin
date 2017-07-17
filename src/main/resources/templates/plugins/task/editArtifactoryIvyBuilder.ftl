@@ -68,7 +68,7 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
     [/@ui.bambooSection]
 
     [#--blackduck integration--]
-    [#include 'BlackDuckBuilderEditSnippet.ftl'/]
+    [#include 'editBlackDuckBuilderSnippet.ftl'/]
 [/@ui.bambooSection]
 
 [@ww.checkbox labelKey="Bintray configuration" name="bintrayConfiguration" toggle='true'/]

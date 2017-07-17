@@ -6,7 +6,7 @@
         <ul class="toolbar-group">
             <li class="toolbar-item">
                 <a class="toolbar-trigger"
-                   href="[@s.url action='configureArtifactoryServer' namespace='/admin' /]">
+                   href="[@s.url action='artifactoryServerConfig' namespace='/admin' /]">
                 [@s.text name='artifactory.server.add' /]</a>
             </li>
         </ul>
@@ -64,4 +64,4 @@
 
 [@dj.simpleDialogForm triggerSelector=".delete" width=560 height=400 headerKey="artifactory.server.delete" submitCallback="reloadThePage"/]
 
-[#--[@cp.entityPagination actionUrl='${req.contextPath}/admin/manageArtifactoryServers.action?' paginationSupport=paginationSupport /]--]
+[#--[@cp.entityPagination actionUrl='${req.contextPath}/admin/jfrogConfig.action?' paginationSupport=paginationSupport /]--]

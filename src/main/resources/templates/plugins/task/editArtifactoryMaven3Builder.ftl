@@ -85,7 +85,7 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
     [/@ui.bambooSection]
 
     [#--blackduck integration--]
-    [#include 'BlackDuckBuilderEditSnippet.ftl'/]
+    [#include 'editBlackDuckBuilderSnippet.ftl'/]
 
 [/@ui.bambooSection]
 

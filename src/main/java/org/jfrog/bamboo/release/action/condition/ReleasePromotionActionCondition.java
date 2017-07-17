@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A condition that checks whether the action of {@link org.jfrog.bamboo.release.action.ReleaseAndPromotionAction},
+ * A condition that checks whether the action of {@link org.jfrog.bamboo.release.action.ReleasePromotionAction},
  * which is the "Artifactory Release & Promotion" tab should be displayed.
  *
  * @author Tomer Cohen
  */
-public class ReleaseAndPromotionActionCondition extends AbstractPlanPermissionCondition {
+public class ReleasePromotionActionCondition extends AbstractPlanPermissionCondition {
 
     private PlanManager planManager;
 

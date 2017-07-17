@@ -13,7 +13,7 @@ import org.apache.struts2.dispatcher.Parameter;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
-import org.jfrog.bamboo.release.action.ReleaseAndPromotionAction;
+import org.jfrog.bamboo.release.action.ReleasePromotionAction;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -71,37 +71,37 @@ public class GradleVersionHelper extends VersionHelper {
         String releaseProps = buildContext.getReleaseProps();
         String[] split = StringUtils.split(releaseProps, ", ");
         int index = 0;
-        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.MODULE_KEY));
+        Parameter moduleKeysParams = ((Parameter) parameters.get(ReleasePromotionAction.MODULE_KEY));
         if (moduleKeysParams != null) {
             for (String key : moduleKeysParams.getMultipleValues()) {
-                configuration.put(ReleaseAndPromotionAction.MODULE_KEY + "." + index, key);
-                configuration.put(ReleaseAndPromotionAction.RELEASE_PROP_KEY + "." + index,
+                configuration.put(ReleasePromotionAction.MODULE_KEY + "." + index, key);
+                configuration.put(ReleasePromotionAction.RELEASE_PROP_KEY + "." + index,
                         String.valueOf(isReleaseProp(split, key)));
                 index++;
             }
         }
         index = 0;
-        Parameter originalValuesParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY));
+        Parameter originalValuesParams = ((Parameter) parameters.get(ReleasePromotionAction.CURRENT_VALUE_KEY));
         if (originalValuesParams != null) {
             for (String key : originalValuesParams.getMultipleValues()) {
-                configuration.put(ReleaseAndPromotionAction.CURRENT_VALUE_KEY + "." + index, key);
+                configuration.put(ReleasePromotionAction.CURRENT_VALUE_KEY + "." + index, key);
                 index++;
             }
         }
         index = 0;
-        Parameter nextIntegrationKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY));
+        Parameter nextIntegrationKeysParams = ((Parameter) parameters.get(ReleasePromotionAction.NEXT_INTEG_KEY));
         if (nextIntegrationKeysParams != null) {
             for (String key : nextIntegrationKeysParams.getMultipleValues()) {
-                configuration.put(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + index, key);
-                configuration.put(ReleaseAndPromotionAction.RELEASE_PROP_KEY + "." + index, "false");
+                configuration.put(ReleasePromotionAction.NEXT_INTEG_KEY + "." + index, key);
+                configuration.put(ReleasePromotionAction.RELEASE_PROP_KEY + "." + index, "false");
                 index++;
             }
         }
         index = 0;
-        Parameter releaseValueKeysParams = ((Parameter) parameters.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY));
+        Parameter releaseValueKeysParams = ((Parameter) parameters.get(ReleasePromotionAction.RELEASE_VALUE_KEY));
         if (releaseValueKeysParams != null) {
             for (String key : releaseValueKeysParams.getMultipleValues()) {
-                configuration.put(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + index, key);
+                configuration.put(ReleasePromotionAction.RELEASE_VALUE_KEY + "." + index, key);
                 index++;
             }
         }
