@@ -252,11 +252,11 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
         configuration.put(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT, getTagComment());
         configuration.put(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH, getReleaseBranch());
         Parameter useReleaseBranchParam = ((Parameter) parameters.get("useReleaseBranch"));
-        String useReleaseBranch = useReleaseBranchParam != null ? useReleaseBranchParam.getValue() : "false";
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH, useReleaseBranch);
+        boolean useReleaseBranch =  useReleaseBranchParam != null && Boolean.parseBoolean(useReleaseBranchParam.getValue());
+        configuration.put(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH, String.valueOf(useReleaseBranch));
         Parameter createVcsTagParam = ((Parameter) parameters.get("createVcsTag"));
-        String createVcsTag = createVcsTagParam != null ? createVcsTagParam.getValue() : "false";
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG, createVcsTag);
+        boolean createVcsTag = createVcsTagParam != null && Boolean.parseBoolean(createVcsTagParam.getValue());
+        configuration.put(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG, String.valueOf(createVcsTag));
         configuration.put(ReleaseProvider.MODULE_VERSION_CONFIGURATION, getModuleVersionConfiguration());
         TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
         if (definition == null) {
