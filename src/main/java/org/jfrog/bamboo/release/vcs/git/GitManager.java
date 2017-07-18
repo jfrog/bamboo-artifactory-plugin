@@ -71,7 +71,8 @@ public class GitManager extends AbstractVcsManager {
             git.commit().setMessage(commitMessage).setAll(true).setCommitter(new PersonIdent(git.getRepository())).call();
         } catch (Exception e) {
             String message = "An error " + e.getMessage() + " occurred while committing the working copy";
-            log.error(buildLogger.addErrorLogEntry("[RELEASE]" + message));
+            log.error("[RELEASE] " + message, e);
+            buildLogger.addErrorLogEntry("[RELEASE] " + message, e);
             throw new IOException(message, e);
         }
     }
@@ -83,7 +84,8 @@ public class GitManager extends AbstractVcsManager {
             git.tag().setMessage(commitMessage).setName(tagUrl).call();
         } catch (Exception e) {
             String message = "An error " + e.getMessage() + " occurred while creating a tag " + tagUrl;
-            log.error(buildLogger.addErrorLogEntry("[RELEASE]" + message));
+            log.error("[RELEASE] " + message, e);
+            buildLogger.addErrorLogEntry("[RELEASE] " + message, e);
             throw new IOException("An error occurred while creating a tag", e);
         }
     }
@@ -101,9 +103,10 @@ public class GitManager extends AbstractVcsManager {
             ObjectId objId = localRepository.resolve(Constants.HEAD);
             return (objId != null ? objId.getName() : null);
         } catch (IOException e) {
-            log.warn(buildLogger
-                    .addBuildLogEntry(textProvider.getText("repository.git.messages.cannotDetermineRevision", Arrays
-                            .asList(workingDir)) + " " + e.getMessage()), e);
+            String message = textProvider.getText("repository.git.messages.cannotDetermineRevision", Arrays
+                    .asList(workingDir)) + " " + e.getMessage();
+            log.warn(message, e);
+            buildLogger.addErrorLogEntry(message, e);
             return null;
         } finally {
             if (localRepository != null) {
@@ -119,9 +122,10 @@ public class GitManager extends AbstractVcsManager {
             localRepository = new FileRepository(workingDir);
             return localRepository.getBranch();
         } catch (IOException e) {
-            log.warn(buildLogger
-                    .addBuildLogEntry(textProvider.getText("repository.git.messages.cannotDetermineRevision", Arrays
-                            .asList(workingDir)) + " " + e.getMessage()), e);
+            String message = textProvider.getText("repository.git.messages.cannotDetermineRevision", Arrays
+                    .asList(workingDir)) + " " + e.getMessage();
+            log.warn(message, e);
+            buildLogger.addErrorLogEntry(message, e);
             return null;
         } finally {
             if (localRepository != null) {
@@ -144,7 +148,8 @@ public class GitManager extends AbstractVcsManager {
             git.checkout().setCreateBranch(create).setForce(create).setName(branch).call();
         } catch (Exception e) {
             String message = "An error '" + e.getMessage() + "' occurred while checking out branch: " + branch;
-            log.error(buildLogger.addErrorLogEntry(message));
+            log.error(message, e);
+            buildLogger.addErrorLogEntry(message, e);
             throw new IOException(message, e);
         }
     }
@@ -160,13 +165,13 @@ public class GitManager extends AbstractVcsManager {
             } catch (Exception ire) {
                 String message =
                         "An error '" + ire.getMessage() + "' occurred while pushing branch: " + branch + " to url: " + url;
-                log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+                log.error("[RELEASE] " + message, ire);
+                buildLogger.addErrorLogEntry("[RELEASE] " + message, ire);
                 throw new IOException(message, ire);
             }
             for (PushResult pushResult : result) {
                 if (StringUtils.isNotBlank(pushResult.getMessages())) {
                     log(pushResult.getMessages());
-
                 }
             }
         }
@@ -184,7 +189,8 @@ public class GitManager extends AbstractVcsManager {
             } catch (Exception ire) {
                 String message =
                         "An error '" + ire.getMessage() + "' occurred while pushing tag: " + tagUrl + " to:" + remoteUrl;
-                log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+                log.error("[RELEASE] " + message, ire);
+                buildLogger.addErrorLogEntry("[RELEASE] " + message, ire);
                 throw new IOException(message, ire);
             }
             for (PushResult pushResult : result) {
@@ -201,7 +207,8 @@ public class GitManager extends AbstractVcsManager {
             git.branchDelete().setBranchNames(branch).setForce(true).call();
         } catch (Exception e) {
             String message = "An error '" + e.getMessage() + "' occurred while deleting local branch: " + branch;
-            log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+            log.error("[RELEASE] " + message, e);
+            buildLogger.addErrorLogEntry("[RELEASE] " + message, e);
             throw new IOException(message, e);
         }
     }
@@ -217,7 +224,8 @@ public class GitManager extends AbstractVcsManager {
             } catch (Exception e) {
                 String message = "An error '" + e.getMessage() + "' occurred while deleting remote branch: " + branch +
                         " from remote: " + repository;
-                log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+                log.error("[RELEASE] " + message, e);
+                buildLogger.addErrorLogEntry("[RELEASE] " + message, e);
                 throw new IOException(message, e);
             }
             for (PushResult result : results) {
@@ -238,7 +246,8 @@ public class GitManager extends AbstractVcsManager {
                 log.debug("Result of deletion of local tag: " + result);
             } catch (Exception e) {
                 String message = "An error '" + e.getMessage() + "' occurred when deleting local tag: " + tag;
-                log.error(buildLogger.addErrorLogEntry("[RELEASE] " + message));
+                log.error("[RELEASE] " + message, e);
+                buildLogger.addErrorLogEntry("[RELEASE] " + message, e);
                 throw new IOException(message, e);
             }
         }
@@ -265,7 +274,8 @@ public class GitManager extends AbstractVcsManager {
                 String message =
                         "An error '" + e.getMessage() + "' occurred when deleting remote tag: " + tag + " from remote: " +
                                 repository;
-                log.error(buildLogger.addErrorLogEntry("[RELEASE]" + message));
+                log.error("[RELEASE] " + message, e);
+                buildLogger.addErrorLogEntry("[RELEASE] " + message, e);
                 throw new IOException(message, e);
             }
             for (PushResult result : results) {
@@ -316,6 +326,8 @@ public class GitManager extends AbstractVcsManager {
                     ((SshTransport) transport).setSshSessionFactory(factory);
                 }
         } catch (URISyntaxException e) {
+            log.error(e.getMessage(), e);
+            buildLogger.addErrorLogEntry(e.getMessage(), e);
             throw new IOException(e);
         } finally {
             if (transport != null) {
