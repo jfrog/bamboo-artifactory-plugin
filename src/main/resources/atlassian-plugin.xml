@@ -142,7 +142,7 @@
     <!--Generic build resolve task-->
     <taskType key="artifactoryGenericResolveTask" name="Artifactory Generic Resolve"
               class="org.jfrog.bamboo.task.ArtifactoryGenericResolveTask">
-        <description>Artifactory Generic Deploy Task</description>
+        <description>Artifactory Generic Resolve Task</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
         <resource type="freemarker" name="edit"

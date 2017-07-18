@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.bintray.PushToBintrayContext;
+import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
 
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +20,10 @@ public class GenericContext {
     public static final String USERNAME = "artifactory.generic.username";
     public static final String PASSWORD = "artifactory.generic.password";
     public static final String DEPLOY_PATTERN = "artifactory.generic.deployPattern";
+    public static final String USE_SPECS_CHOICE = "artifactory.generic.useSpecsChoice";
+    public static final String SPEC_SOURCE_CHOICE = "artifactory.generic.specSourceChoice";
+    public static final String SPEC_SOURCE_JOB_CONFIGURATION = "artifactory.generic.jobConfiguration";
+    public static final String SPEC_SOURCE_FILE = "artifactory.generic.file";
     public static final String RESOLVE_PATTERN = "artifactory.generic.resolvePattern";
     public static final String PUBLISH_BUILD_INFO = "artifactory.generic.publishBuildInfo";
     public static final String INCLUDE_ENV_VARS = "artifactory.generic.includeEnvVars";
@@ -38,8 +43,9 @@ public class GenericContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, ARTIFACT_SPECS,
-                RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS, ENABLE_BINTRAY_CONFIGURATION);
+        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION,
+                SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS, ENABLE_BINTRAY_CONFIGURATION,
+                USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE);
         fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
         return fieldsToCopy;
     }
@@ -77,6 +83,22 @@ public class GenericContext {
 
     public String getDeployPattern() {
         return env.get(DEPLOY_PATTERN);
+    }
+
+    public boolean isUseFileSpecs() {
+        return (AbstractArtifactoryConfiguration.CFG_FILE_SPECS.equals(env.get(USE_SPECS_CHOICE)));
+    }
+
+    public boolean isFileSpecInJobConfiguration() {
+        return (AbstractArtifactoryConfiguration.CFG_SPEC_SOURCE_JOB_CONFIGURATION.equals(env.get(SPEC_SOURCE_CHOICE)));
+    }
+
+    public String getJobConfigurationSpec() {
+        return env.get(SPEC_SOURCE_JOB_CONFIGURATION);
+    }
+
+    public String getFilePathSpec() {
+        return env.get(SPEC_SOURCE_FILE);
     }
 
     public String getResolvePattern() {

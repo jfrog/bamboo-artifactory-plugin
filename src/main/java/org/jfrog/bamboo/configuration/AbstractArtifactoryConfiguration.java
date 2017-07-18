@@ -21,8 +21,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
+import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.release.vcs.VcsTypes;
+import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.TaskUtils;
 
@@ -50,8 +51,13 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private static final Map TEST_RESULTS_FILE_PATTERN_TYPES = ImmutableMap
             .of(CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD, "Look in the standard test results directory.",
                     CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM, "Specify custom results directories");
-    public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of(
-            "false", "Don't Sign", "true", "Sign");
+    public static final String CFG_LEGACY_PATTERNS = "legacyPatterns";
+    public static final String CFG_FILE_SPECS = "specs";
+    public static final Map USE_SPECS_OPTIONS = ImmutableMap.of(CFG_FILE_SPECS, "Specs", CFG_LEGACY_PATTERNS, "Legacy patterns (deprecated)");
+    public static final String CFG_SPEC_SOURCE_FILE = "file";
+    public static final String CFG_SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";
+    public static final Map<String, String> CFG_SPEC_SOURCE = ImmutableMap.of(CFG_SPEC_SOURCE_JOB_CONFIGURATION, "Job configuration", CFG_SPEC_SOURCE_FILE, "File");
+    public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of("false", "Don't Sign", "true", "Sign");
     public static final String SIGN_METHOD_MAP_KEY = "signMethods";
     protected transient ServerConfigManager serverConfigManager;
     protected AdministrationConfiguration administrationConfiguration;
@@ -190,6 +196,10 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         context.put(AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM, "true");
         context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
         context.put(SIGN_METHOD_MAP_KEY, SIGN_METHOD_MAP);
+        context.put("useSpecsOptions", USE_SPECS_OPTIONS);
+        context.put(GenericContext.USE_SPECS_CHOICE, CFG_FILE_SPECS);
+        context.put("specSourceOptions", CFG_SPEC_SOURCE);
+        context.put(GenericContext.SPEC_SOURCE_CHOICE, CFG_SPEC_SOURCE_JOB_CONFIGURATION);
     }
 
     /**
