@@ -23,11 +23,11 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.builder.ArtifactoryBuildInfoPropertyHelper;
+import org.jfrog.bamboo.builder.ArtifactoryBuildInfoDataHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.MavenPropertyHelper;
+import org.jfrog.bamboo.util.MavenDataHelper;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 
@@ -89,14 +89,17 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
                     "Build Info support is disabled.", e);
         }
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
-            ArtifactoryBuildInfoPropertyHelper propertyHelper = new MavenPropertyHelper();
-            propertyHelper.init(buildParamsOverrideManager, taskContext.getBuildContext());
-            buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(mavenBuildContext, logger,
-                    environmentVariableAccessor.getEnvironment(taskContext),
-                    environmentVariableAccessor.getEnvironment(), artifactoryPluginVersion);
+            ArtifactoryBuildInfoDataHelper mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
+                    mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
+            try {
+                buildInfoPropertiesFile = mavenDataHelper.createBuildInfoPropsFileAndGetItsPath();
+            } catch (IOException e) {
+                throw new TaskException("Failed to create Build Info properties file.", e);
+            }
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
             }
+            environmentVariables.putAll(mavenDataHelper.getPasswordsMap(mavenBuildContext));
         }
         String subDirectory = mavenBuildContext.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(subDirectory)) {
@@ -327,7 +330,6 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             arguments.addAll(Arrays.asList("-f", projectFile));
         }
     }
-
 
     private String getMavenHome(Maven3BuildContext context) {
         return capabilityContext.getCapabilityValue("system.builder.maven." + context.getExecutable());

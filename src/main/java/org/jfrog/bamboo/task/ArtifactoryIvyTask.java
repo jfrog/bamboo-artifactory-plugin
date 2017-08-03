@@ -24,11 +24,11 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.builder.ArtifactoryBuildInfoPropertyHelper;
+import org.jfrog.bamboo.builder.ArtifactoryBuildInfoDataHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
-import org.jfrog.bamboo.util.IvyPropertyHelper;
+import org.jfrog.bamboo.util.IvyDataHelper;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.BuildInfoConfigProperties;
@@ -108,13 +108,17 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         Map<String, String> globalEnv = environmentVariableAccessor.getEnvironment();
         Map<String, String> environment = Maps.newHashMap(globalEnv);
         if (StringUtils.isNotBlank(ivyDependenciesDir)) {
-            ArtifactoryBuildInfoPropertyHelper propertyHelper = new IvyPropertyHelper();
-            propertyHelper.init(buildParamsOverrideManager, context.getBuildContext());
-            buildInfoPropertiesFile = propertyHelper.createFileAndGetPath(ivyBuildContext, context.getBuildLogger(),
-                    environmentVariableAccessor.getEnvironment(context), globalEnv, artifactoryPluginVersion);
+            ArtifactoryBuildInfoDataHelper ivyDataHelper =
+                    new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
+            try {
+                buildInfoPropertiesFile = ivyDataHelper.createBuildInfoPropsFileAndGetItsPath();
+            } catch (IOException e) {
+                throw new TaskException("Failed to create Build Info properties file.", e);
+            }
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
                 environment.put(BuildInfoConfigProperties.PROP_PROPS_FILE, buildInfoPropertiesFile);
+                environment.putAll(ivyDataHelper.getPasswordsMap(ivyBuildContext));
             }
         }
         List<String> command = Lists.newArrayList(executable);
@@ -158,16 +162,13 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command)
                         .env(environment);
         try {
-
             ExternalProcess process = processService.createExternalProcess(context, processBuilder);
             process.execute();
-
             if (process.getHandler() != null && !process.getHandler().succeeded()) {
                 String externalProcessOutput = getErrorMessage(process);
                 logger.addBuildLogEntry(externalProcessOutput);
                 log.debug("Process command error: " + externalProcessOutput);
             }
-
             return TaskResultBuilder.newBuilder(context)
                     .checkReturnCode(process).build();
         } finally {

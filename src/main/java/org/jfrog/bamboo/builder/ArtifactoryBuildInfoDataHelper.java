@@ -16,7 +16,8 @@
 
 package org.jfrog.bamboo.builder;
 
-import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
+import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.util.BuildUtils;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
@@ -26,6 +27,7 @@ import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -38,6 +40,7 @@ import org.joda.time.DateTime;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.jfrog.bamboo.util.ConstantValues.*;
@@ -45,52 +48,77 @@ import static org.jfrog.bamboo.util.ConstantValues.*;
 /**
  * @author Noam Y. Tenne
  */
-public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHelper {
+public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper {
 
-    private static final Logger log = Logger.getLogger(ArtifactoryBuildInfoPropertyHelper.class);
+    private static final Logger log = Logger.getLogger(ArtifactoryBuildInfoDataHelper.class);
 
-    public String createFileAndGetPath(AbstractBuildContext buildContext,
-                                       BuildLogger logger, Map<String, String> taskEnv, Map<String, String> generalEnv,
-                                       String artifactoryPluginVersion) {
-        long selectedServerId = buildContext.getArtifactoryServerId();
+    protected ServerConfig serverConfig;
+    protected ArtifactoryClientConfiguration clientConf;
 
+    public ArtifactoryBuildInfoDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
+                                          AbstractBuildContext abstractBuildContext,
+                                          EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion) {
+        BuildContext buildContext = context.getBuildContext();
+        super.init(buildParamsOverrideManager, buildContext);
+        long selectedServerId = abstractBuildContext.getArtifactoryServerId();
         if (selectedServerId != -1) {
-
-            ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+            serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
             if (serverConfig == null) {
-
                 String warningMessage =
                         "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
                                 ") but could not find a matching configuration. Build info collection is disabled.";
-                logger.addBuildLogHeader(warningMessage, true);
+                context.getBuildLogger().addBuildLogHeader(warningMessage, true);
                 log.warn(warningMessage);
-            } else {
-                ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(new NullLog());
-                addBuilderInfoProperties(buildContext, serverConfig, clientConf, taskEnv, generalEnv, artifactoryPluginVersion);
-                try {
-                    File tempPropertiesFile = File.createTempFile("buildInfo", "properties");
-                    clientConf.setPropertiesFile(tempPropertiesFile.getAbsolutePath());
-                    clientConf.persistToPropertiesFile();
-                    String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-                    context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
-                    context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
-                    this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
-                            String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
-
-                    return tempPropertiesFile.getCanonicalPath();
-                } catch (IOException ioe) {
-                    log.error("Error occurred while writing build info properties to a temp file. Build info " +
-                            "collection is disabled.", ioe);
-                }
+                return;
             }
+            clientConf = new ArtifactoryClientConfiguration(new NullLog());
+            setBuilderData(abstractBuildContext, serverConfig, clientConf, envVarAccessor.getEnvironment(context),
+                    envVarAccessor.getEnvironment(), artifactoryPluginVersion);
+            setDataToContext(buildContext, abstractBuildContext);
         }
-
-        return null;
     }
 
-    private void addBuilderInfoProperties(AbstractBuildContext buildContext, ServerConfig serverConfig,
-                                          ArtifactoryClientConfiguration clientConf, Map<String, String> environment,
-                                          Map<String, String> generalEnv, String pluginVersion) {
+    private void setDataToContext(BuildContext context, AbstractBuildContext buildContext) {
+        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
+        context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
+        context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
+                String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
+    }
+
+    public String createBuildInfoPropsFileAndGetItsPath() throws IOException {
+        if (serverConfig == null) {
+            return null;
+        }
+        try {
+            File tempPropertiesFile = File.createTempFile("buildInfo", ".properties");
+            clientConf.setPropertiesFile(tempPropertiesFile.getAbsolutePath());
+            clientConf.persistToPropertiesFile();
+            return tempPropertiesFile.getCanonicalPath();
+        } catch (IOException e) {
+            log.error("Error occurred while writing build info properties to a temp file. Build info " +
+                    "collection is disabled.", e);
+            throw e;
+        }
+    }
+
+    @NotNull
+    public Map<String, String> getPasswordsMap(AbstractBuildContext buildContext) {
+        HashMap<String, String> result = new HashMap<>();
+        if (serverConfig == null) {
+            return result;
+        }
+        String password = overrideParam(buildContext.getDeployerPassword(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
+        if (StringUtils.isBlank(password)) {
+            password = serverConfig.getPassword();
+        }
+        result.put(clientConf.publisher.getPrefix() + "password", password);
+        return result;
+    }
+
+    private void setBuilderData(AbstractBuildContext buildContext, ServerConfig serverConfig,
+                                ArtifactoryClientConfiguration clientConf, Map<String, String> environment,
+                                Map<String, String> generalEnv, String pluginVersion) {
         String buildName = context.getPlanName();
         clientConf.info.setArtifactoryPluginVersion(pluginVersion);
         clientConf.info.setBuildName(buildName);
@@ -130,7 +158,7 @@ public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHe
                 append(EscapeChars.forFormSubmission(context.getPlanResultKey().getKey())).toString();
         clientConf.info.setBuildUrl(buildUrl);
 
-        addBuildParentProperties(clientConf, context.getTriggerReason());
+        setBuildParentData(clientConf, context.getTriggerReason());
 
         String principal = getTriggeringUserNameRecursively(context);
         if (StringUtils.isBlank(principal)) {
@@ -154,8 +182,8 @@ public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHe
             throw new RuntimeException("Could not integrate black duck properties", e);
         }
 
-        addClientProperties(buildContext, clientConf, serverConfig, environment);
-        addPublisherProperties(buildContext, clientConf, serverConfig, environment);
+        setClientData(buildContext, clientConf, serverConfig, environment);
+        setPublisherData(buildContext, clientConf, serverConfig, environment);
 
         Map<String, String> props = filterAndGetGlobalVariables();
         props.putAll(environment);
@@ -190,7 +218,7 @@ public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHe
      * @param clientConf    Properties collection
      * @param triggerReason Build trigger reason
      */
-    private void addBuildParentProperties(ArtifactoryClientConfiguration clientConf, TriggerReason triggerReason) {
+    private void setBuildParentData(ArtifactoryClientConfiguration clientConf, TriggerReason triggerReason) {
         if (triggerReason instanceof DependencyTriggerReason) {
             String triggeringBuildResultKey = ((DependencyTriggerReason) triggerReason).getTriggeringBuildResultKey();
             if (StringUtils.isNotBlank(triggeringBuildResultKey) &&
@@ -212,11 +240,11 @@ public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHe
         }
     }
 
-    abstract protected void addClientProperties(AbstractBuildContext buildContext,
-                                                ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment);
+    abstract protected void setClientData(AbstractBuildContext buildContext,
+                                          ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment);
 
-    private void addPublisherProperties(AbstractBuildContext buildContext,
-                                        ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment) {
+    private void setPublisherData(AbstractBuildContext buildContext,
+                                  ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment) {
 
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         clientConf.publisher.setContextUrl(serverUrl);
@@ -226,13 +254,8 @@ public abstract class ArtifactoryBuildInfoPropertyHelper extends BaseBuildInfoHe
         if (StringUtils.isBlank(deployerUsername)) {
             deployerUsername = serverConfig.getUsername();
         }
-        String password = overrideParam(buildContext.getDeployerPassword(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
-        if (StringUtils.isBlank(password)) {
-            password = serverConfig.getPassword();
-        }
         if (StringUtils.isNotBlank(deployerUsername)) {
             clientConf.publisher.setUsername(deployerUsername);
-            clientConf.publisher.setPassword(password);
         }
         clientConf.publisher.setRepoKey(getPublishingRepoKey(buildContext, environment));
         clientConf.publisher.setPublishArtifacts(buildContext.isPublishArtifacts());

@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GenericContext;
 
 import java.util.Map;
@@ -28,7 +29,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractArtifactoryCon
         context.put("selectedServerId", -1);
         context.put("selectedRepoKey", StringUtils.EMPTY);
         context.put(GenericContext.PUBLISH_BUILD_INFO, "true");
-        context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
+        context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
         context.put(GenericContext.SIGN_METHOD_MAP_KEY, GenericContext.SIGN_METHOD_MAP);
     }
 
@@ -49,7 +50,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractArtifactoryCon
         context.put("serverConfigManager", serverConfigManager);
         String envVarsExcludePatterns = (String)context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
         if (envVarsExcludePatterns == null) {
-            context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
+            context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
         }
     }
 
