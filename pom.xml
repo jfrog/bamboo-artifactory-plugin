@@ -27,8 +27,8 @@
     </scm>
 
     <properties>
-        <bamboo.version>6.0.2</bamboo.version>
-        <bamboo.data.version>6.0.2</bamboo.data.version>
+        <bamboo.version>6.1.0</bamboo.version>
+        <bamboo.data.version>6.1.0</bamboo.data.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
         <!-- This plugin key is to be used as a unique ID of the plugin incl.

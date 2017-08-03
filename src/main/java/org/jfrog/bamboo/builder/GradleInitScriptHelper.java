@@ -68,11 +68,11 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         //Using "getInstance()" since the field must be transient
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
         if (serverConfig == null) {
-            String warningMessage =
-                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
-                            ") but could not find a matching configuration. Build info collection is disabled.";
-            logger.addBuildLogHeader(warningMessage, true);
-            log.warn(warningMessage);
+            String warning =
+                "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
+                    ") but could not find a matching configuration. Build info collection is disabled.";
+            logger.addErrorLogEntry(warning);
+            log.warn(warning);
             return null;
         }
         String normalizedPath = FilenameUtils.separatorsToUnix(dependenciesDir);

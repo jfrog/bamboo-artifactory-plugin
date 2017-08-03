@@ -2,6 +2,7 @@ package org.jfrog.bamboo.release.action.condition;
 
 import com.atlassian.bamboo.build.DefaultJob;
 import com.atlassian.bamboo.build.Job;
+import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.plugins.web.conditions.AbstractPlanPermissionCondition;
@@ -24,17 +25,23 @@ public class ReleasePromotionActionCondition extends AbstractPlanPermissionCondi
 
     @Override
     public boolean shouldDisplay(Map<String, Object> context) {
-        String planKey = (String) context.get("planKey");
-        Job job = (DefaultJob) planManager.getPlanByKey(PlanKeys.getPlanKey(planKey));
+        String planKey = (String)context.get("planKey");
+        if (planKey == null) {
+            return false;
+        }
+        PlanKey plan = PlanKeys.getPlanKey(planKey);
+        if (!bambooPermissionManager.hasPlanPermission(BambooPermission.BUILD, plan)) {
+            return false;
+        }
+        Job job = (DefaultJob)planManager.getPlanByKey(plan);
         if (job == null) {
             return false;
         }
         List<TaskDefinition> taskDefs = job.getBuildDefinition().getTaskDefinitions();
         for (TaskDefinition taskDef : taskDefs) {
-            AbstractBuildContext buildContext = AbstractBuildContext.createContextFromMap(taskDef.getConfiguration());
-            if (buildContext != null) {
-                if (checkPlanPermission(context, BambooPermission.BUILD) &&
-                        buildContext.releaseManagementContext.isReleaseMgmtEnabled()) {
+            if (taskDef.isEnabled()) {
+                AbstractBuildContext buildContext = AbstractBuildContext.createContextFromMap(taskDef.getConfiguration());
+                if (buildContext != null && buildContext.releaseManagementContext.isReleaseMgmtEnabled()) {
                     return true;
                 }
             }

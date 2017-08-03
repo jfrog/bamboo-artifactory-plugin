@@ -49,8 +49,10 @@ public abstract class TaskDefinitionHelper {
     public static TaskDefinition findGradleDefinition(List<? extends TaskDefinition> taskDefinitions) {
         if (taskDefinitions != null) {
             for (TaskDefinition definition : taskDefinitions) {
-                if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryGradleTask.TASK_NAME)) {
-                    return definition;
+                if (definition.isEnabled()) {
+                    if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryGradleTask.TASK_NAME)) {
+                        return definition;
+                    }
                 }
             }
         }
@@ -64,8 +66,10 @@ public abstract class TaskDefinitionHelper {
     public static TaskDefinition findMavenDefinition(List<? extends TaskDefinition> taskDefinitions) {
         if (taskDefinitions != null) {
             for (TaskDefinition definition : taskDefinitions) {
-                if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryMaven3Task.TASK_NAME)) {
-                    return definition;
+                if (definition.isEnabled()) {
+                    if (StringUtils.endsWith(definition.getPluginKey(), ArtifactoryMaven3Task.TASK_NAME)) {
+                        return definition;
+                    }
                 }
             }
         }

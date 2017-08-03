@@ -1,5 +1,6 @@
 package org.jfrog.bamboo.release.provider;
 
+import org.apache.commons.lang.StringUtils;
 import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
@@ -223,6 +224,8 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
 
         // Perforce variables
         String currentChangeListId = configuration.get(ReleaseProvider.CURRENT_CHANGE_LIST_ID);
-        setCurrentChangeListId(Integer.parseInt(currentChangeListId));
+        if (StringUtils.isNotBlank(currentChangeListId)) {
+            setCurrentChangeListId(Integer.parseInt(currentChangeListId));
+        }
     }
 }

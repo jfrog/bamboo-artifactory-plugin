@@ -64,11 +64,11 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         if (selectedServerId != -1) {
             serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
             if (serverConfig == null) {
-                String warningMessage =
-                        "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
-                                ") but could not find a matching configuration. Build info collection is disabled.";
-                context.getBuildLogger().addBuildLogHeader(warningMessage, true);
-                log.warn(warningMessage);
+                String warning =
+                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
+                        ") but could not find a matching configuration. Build info collection is disabled.";
+                context.getBuildLogger().addErrorLogEntry(warning);
+                log.warn(warning);
                 return;
             }
             clientConf = new ArtifactoryClientConfiguration(new NullLog());
