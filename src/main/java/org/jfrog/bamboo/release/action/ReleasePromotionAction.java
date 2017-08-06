@@ -55,7 +55,7 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 @RemoteAgentSupported
-public class ReleaseAndPromotionAction extends ViewBuildResults {
+public class ReleasePromotionAction extends ViewBuildResults {
     public static final String PROMOTION_PUSH_TO_NEXUS_MODE = "pushToNexusMode";
     public static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
     public static final String NEXT_INTEG_KEY = "version.nextIntegValue";
@@ -63,7 +63,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     public static final String CURRENT_VALUE_KEY = "version.currentValue";
     public static final String RELEASE_PROP_KEY = "version.releaseProp";
     public static final String MODULE_KEY = "version.key";
-    private static final Logger log = Logger.getLogger(ReleaseAndPromotionAction.class);
+    private static final Logger log = Logger.getLogger(ReleasePromotionAction.class);
     private static final String PROMOTION_NORMAL_MODE = "normalMode";
     private static final Map<String, String> MODULE_VERSION_TYPES =
             ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",
@@ -92,7 +92,7 @@ public class ReleaseAndPromotionAction extends ViewBuildResults {
     private String releaseBranch;
     private List<ModuleVersionHolder> versions;
 
-    public ReleaseAndPromotionAction() {
+    public ReleasePromotionAction() {
         this.serverConfigManager = ServerConfigManager.getInstance();
     }
 

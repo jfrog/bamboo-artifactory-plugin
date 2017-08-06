@@ -85,6 +85,7 @@ public abstract class AbstractBuildContext {
     public static final String PERFORCE_PASSWORD = "p4.password";
     public static final String BLACKDUCK_PREFIX = "artifactory.common.blackduck.";
     public static final String VCS_PREFIX = "artifactory.vcs.";
+    public static final String ENV_VARS_TO_EXCLUDE = "*password*,*secret*,*security*,*key*";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
     public final PushToBintrayContext pushToBintrayContext = new PushToBintrayContext();
@@ -313,7 +314,7 @@ public abstract class AbstractBuildContext {
         env.put(prefix + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM, "false");
         env.put(PUBLISH_ARTIFACTS_PARAM, "false");
         env.put(ENABLE_RELEASE_MANAGEMENT, "false");
-        env.put(ENV_VARS_EXCLUDE_PATTERNS, "*password*,*secret*");
+        env.put(ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_TO_EXCLUDE);
     }
 
     public class ReleaseManagementContext {

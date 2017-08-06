@@ -1,5 +1,5 @@
-[#-- @ftlvariable name="action" type="org.jfrog.bamboo.admin.ManageArtifactoryServersAction" --]
-[#-- @ftlvariable name="" type="org.jfrog.bamboo.admin.ManageArtifactoryServersAction" --]
+[#-- @ftlvariable name="action" type="org.jfrog.bamboo.admin.JfrogConfigAction" --]
+[#-- @ftlvariable name="" type="org.jfrog.bamboo.admin.JfrogConfigAction" --]
 <html>
 <head>
     <title>Manage Artifactory Plugin Configuration</title>

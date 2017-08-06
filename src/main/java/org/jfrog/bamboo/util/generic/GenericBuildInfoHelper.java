@@ -146,7 +146,7 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return details;
     }
 
-    private Map<String, String> getDynamicPropertyMap(Build build) {
+    public Map<String, String> getDynamicPropertyMap(Build build) {
         Map<String, String> filteredPropertyMap = new HashMap<>();
         if (build.getProperties() != null) {
             for (Map.Entry<Object, Object> entry : build.getProperties().entrySet()) {
@@ -173,20 +173,20 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(artifactFile, "SHA1", "MD5");
         DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(artifactFile).md5(checksums.get("MD5"))
                 .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path);
-        addCommonProperties(deployDetails);
+        addCommonProperties(propertyMap);
         deployDetails.addProperties(propertyMap);
         result.add(deployDetails.build());
         return result;
     }
 
-    private void addCommonProperties(DeployDetails.Builder details) {
-        details.addProperty(BuildInfoFields.BUILD_NAME, context.getPlanName());
-        details.addProperty(BuildInfoFields.BUILD_NUMBER, String.valueOf(context.getBuildNumber()));
+    public void addCommonProperties(Map<String, String> propertyMap) {
+        propertyMap.put(BuildInfoFields.BUILD_NAME, context.getPlanName());
+        propertyMap.put(BuildInfoFields.BUILD_NUMBER, String.valueOf(context.getBuildNumber()));
         if (StringUtils.isNotBlank(vcsRevision)) {
-            details.addProperty(BuildInfoFields.VCS_REVISION, vcsRevision);
+            propertyMap.put(BuildInfoFields.VCS_REVISION, vcsRevision);
         }
         if (StringUtils.isNotBlank(vcsUrl)) {
-            details.addProperty(BuildInfoFields.VCS_URL, vcsUrl);
+            propertyMap.put(BuildInfoFields.VCS_URL, vcsUrl);
         }
 
         String buildTimeStampVal = context.getBuildResult().getCustomBuildData().get("buildTimeStamp");
@@ -195,11 +195,11 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
             buildTimeStamp = new DateTime(buildTimeStampVal).getMillis();
         }
         String buildTimeStampString = String.valueOf(buildTimeStamp);
-        details.addProperty(BuildInfoFields.BUILD_TIMESTAMP, buildTimeStampString);
-        addBuildParentProperties(details, context.getTriggerReason());
+        propertyMap.put(BuildInfoFields.BUILD_TIMESTAMP, buildTimeStampString);
+        addBuildParentProperties(propertyMap, context.getTriggerReason());
     }
 
-    private void addBuildParentProperties(DeployDetails.Builder details, TriggerReason triggerReason) {
+    private void addBuildParentProperties(Map<String, String> propertyMap, TriggerReason triggerReason) {
         if (triggerReason instanceof DependencyTriggerReason) {
             String triggeringBuildResultKey = ((DependencyTriggerReason) triggerReason).getTriggeringBuildResultKey();
             if (StringUtils.isNotBlank(triggeringBuildResultKey) &&
@@ -212,8 +212,8 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
                 if (StringUtils.isBlank(parentBuildName)) {
                     log.error("Received a null build parent name.");
                 }
-                details.addProperty(BuildInfoFields.BUILD_PARENT_NAME, parentBuildName);
-                details.addProperty(BuildInfoFields.BUILD_PARENT_NUMBER, triggeringBuildNumber);
+                propertyMap.put(BuildInfoFields.BUILD_PARENT_NAME, parentBuildName);
+                propertyMap.put(BuildInfoFields.BUILD_PARENT_NUMBER, triggeringBuildNumber);
             }
         }
     }

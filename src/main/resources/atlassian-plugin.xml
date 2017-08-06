@@ -22,8 +22,8 @@
         <param name="vendor-logo">images/artifactory-icon.png</param>
         <param name="plugin-icon">images/artifactory-icon.png</param>
         <param name="plugin-logo">images/artifactory-icon.png</param>
-        <param name="configure.url">/admin/manageArtifactoryServers.action</param>
-        <param name="post.install.url">/admin/manageArtifactoryServers.action</param>
+        <param name="configure.url">/admin/jfrogConfig.action</param>
+        <param name="post.install.url">/admin/jfrogConfig.action</param>
     </plugin-info>
 
     <!-- i18n resource -->
@@ -35,55 +35,55 @@
 
     <web-item key="configureArtifactoryPlugin" name="Artifactory Plugin" section="system.admin/plugins">
         <label key="Artifactory Plugin"/>
-        <link linkId="configureArtifactoryPlugin">/admin/manageArtifactoryServers.action</link>
+        <link linkId="configureArtifactoryPlugin">/admin/jfrogConfig.action</link>
     </web-item>
 
-    <xwork key="manageArtifactoryServersAdmin" name="Artifactory Plugin">
+    <xwork key="jfrogConfigAdmin" name="Artifactory Plugin">
         <package name="configureArtifactoryPlugin" extends="admin">
 
             <!-- Main container -->
-            <action name="manageArtifactoryServers" class="org.jfrog.bamboo.admin.ManageArtifactoryServersAction">
-                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+            <action name="jfrogConfig" class="org.jfrog.bamboo.admin.JfrogConfigAction">
+                <result name="input" type="freemarker">/admin/jfrogConfig.ftl</result>
+                <result name="success" type="freemarker">/admin/jfrogConfig.ftl</result>
             </action>
 
             <!-- Artifactory Configurations -->
             <action name="existingArtifactoryServer" class="org.jfrog.bamboo.admin.ExistingArtifactoryServerAction" method="browse">
-                <result name="success" type="freemarker">/admin/existingArtifactoryServerView.ftl</result>
+                <result name="success" type="freemarker">/admin/viewExistingArtifactoryServer.ftl</result>
             </action>
 
-            <action name="configureArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="browse">
-                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-                <result name="success" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+            <action name="artifactoryServerConfig" class="org.jfrog.bamboo.admin.ArtifactoryServerConfigAction" method="browse">
+                <result name="input" type="freemarker">/admin/artifactoryServerConfig.ftl</result>
+                <result name="success" type="freemarker">/admin/artifactoryServerConfig.ftl</result>
             </action>
 
-            <action name="createArtifactoryServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="create">
-                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
-                <result name="error" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+            <action name="createArtifactoryServer" class="org.jfrog.bamboo.admin.ArtifactoryServerConfigAction" method="create">
+                <result name="input" type="freemarker">/admin/artifactoryServerConfig.ftl</result>
+                <result name="success" type="redirect">/admin/jfrogConfig.action</result>
+                <result name="error" type="freemarker">/admin/artifactoryServerConfig.ftl</result>
                 <param name="mode">add</param>
             </action>
 
-            <action name="editServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="edit">
-                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
+            <action name="editServer" class="org.jfrog.bamboo.admin.ArtifactoryServerConfigAction" method="edit">
+                <result name="input" type="freemarker">/admin/artifactoryServerConfig.ftl</result>
                 <param name="mode">edit</param>
             </action>
 
-            <action name="updateServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="update">
-                <result name="input" type="freemarker">/admin/configureArtifactoryServer.ftl</result>
-                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
+            <action name="updateServer" class="org.jfrog.bamboo.admin.ArtifactoryServerConfigAction" method="update">
+                <result name="input" type="freemarker">/admin/artifactoryServerConfig.ftl</result>
+                <result name="success" type="redirect">/admin/jfrogConfig.action</result>
                 <param name="mode">edit</param>
             </action>
 
-            <action name="confirmDeleteServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="confirm">
+            <action name="confirmDeleteServer" class="org.jfrog.bamboo.admin.ArtifactoryServerConfigAction" method="confirm">
                 <result name="input" type="freemarker" >/admin/confirmDeleteServer.ftl</result>
                 <result name="success" type="freemarker" >/admin/confirmDeleteServer.ftl</result>
             </action>
 
-            <action name="deleteServer" class="org.jfrog.bamboo.admin.ConfigureArtifactoryServerAction" method="delete">
-                <result name="input" type="redirect">/admin/configureArtifactoryServer.ftl</result>
-                <result name="success" type="redirect">/admin/manageArtifactoryServers.action</result>
-                <result name="error" type="redirect">/admin/manageArtifactoryServers.action</result>
+            <action name="deleteServer" class="org.jfrog.bamboo.admin.ArtifactoryServerConfigAction" method="delete">
+                <result name="input" type="redirect">/admin/artifactoryServerConfig.ftl</result>
+                <result name="success" type="redirect">/admin/jfrogConfig.action</result>
+                <result name="error" type="redirect">/admin/jfrogConfig.action</result>
             </action>
 
             <!-- Bintray Configurations -->
@@ -95,8 +95,8 @@
             </action>
 
             <action name="saveBintrayConf" class="org.jfrog.bamboo.admin.ConfigureBintrayAction" method="execute">
-                <result name="input" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
-                <result name="success" type="freemarker">/admin/manageArtifactoryServers.ftl</result>
+                <result name="input" type="freemarker">/admin/jfrogConfig.ftl</result>
+                <result name="success" type="freemarker">/admin/jfrogConfig.ftl</result>
                 <result name="error" type="freemarker">/admin/error.ftl</result>
             </action>
 
@@ -133,22 +133,22 @@
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
-                  location="templates/plugins/generic/artifactoryGenericBuildActionEdit.ftl"/>
+                  location="templates/plugins/generic/editArtifactoryGenericBuildAction.ftl"/>
         <resource type="freemarker" name="view"
-                  location="templates/plugins/generic/artifactoryGenericBuildActionView.ftl"/>
+                  location="templates/plugins/generic/viewArtifactoryGenericBuildAction.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
     </taskType>
 
     <!--Generic build resolve task-->
     <taskType key="artifactoryGenericResolveTask" name="Artifactory Generic Resolve"
               class="org.jfrog.bamboo.task.ArtifactoryGenericResolveTask">
-        <description>Artifactory Generic Deploy Task</description>
+        <description>Artifactory Generic Resolve Task</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
         <resource type="freemarker" name="edit"
-                  location="templates/plugins/generic/artifactoryGenericResolveActionEdit.ftl"/>
+                  location="templates/plugins/generic/editArtifactoryGenericResolveAction.ftl"/>
         <resource type="freemarker" name="view"
-                  location="templates/plugins/generic/artifactoryGenericResolveActionView.ftl"/>
+                  location="templates/plugins/generic/viewArtifactoryGenericResolveAction.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
     </taskType>
 
@@ -162,9 +162,9 @@
         <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
         <executable key="maven" pathHelpKey="builder.maven.pathHelp"/>
         <resource type="freemarker" name="edit"
-                  location="/templates/plugins/task/artifactoryMaven3BuilderEdit.ftl"/>
+                  location="/templates/plugins/task/editArtifactoryMaven3Builder.ftl"/>
         <resource type="freemarker" name="view"
-                  location="/templates/plugins/task/artifactoryMaven3BuilderView.ftl"/>
+                  location="/templates/plugins/task/viewArtifactoryMaven3Builder.ftl"/>
         <resource type="download" name="icon"
                   location="images/artifactory-maven-icon.png"/>
     </taskType>
@@ -179,30 +179,30 @@
         <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.TokenDataProvider"/>
         <executable key="gradle" pathHelpKey="builder.gradle.pathHelp"/>
         <resource type="freemarker" name="edit"
-                  location="/templates/plugins/task/artifactoryGradleBuilderEdit.ftl"/>
+                  location="/templates/plugins/task/editArtifactoryGradleBuilder.ftl"/>
         <resource type="freemarker" name="view"
-                  location="/templates/plugins/task/artifactoryGradleBuilderView.ftl"/>
+                  location="/templates/plugins/task/viewArtifactoryGradleBuilder.ftl"/>
         <resource type="download" name="icon"
                   location="images/artifactory-gradle-icon.png"/>
     </taskType>
 
     <!--build info-->
-    <xwork key="buildInfoAction" name="Artifactory Release Promotion">
+    <xwork key="buildInfoLinkAction" name="Artifactory Release Promotion">
         <package name="artifactoryReleasePlugin" extends="buildView">
-            <action name="buildInfoAction" class="org.jfrog.bamboo.buildinfo.action.BuildInfoAction">
+            <action name="buildInfoLinkAction" class="org.jfrog.bamboo.buildinfo.action.BuildInfoAction">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="input" type="freemarker">/templates/plugins/result/buildInfoAction.ftl</result>
-                <result name="success" type="freemarker">/templates/plugins/result/buildInfoAction.ftl</result>
+                <result name="input" type="freemarker">/templates/plugins/result/buildInfoLinkAction.ftl</result>
+                <result name="success" type="freemarker">/templates/plugins/result/buildInfoLinkAction.ftl</result>
                 <result name="error" type="freemarker">/error.ftl</result>
             </action>
         </package>
     </xwork>
 
-    <web-item key="buildInfoAction:${buildKey}-${buildNumber}"
+    <web-item key="buildInfoLinkAction:${buildKey}-${buildNumber}"
               name="View Artifactory Build Info Result Summary" section="results.subMenu/results" weight="20">
         <label key="Artifactory Build Info"/>
-        <link linkId="buildInfoAction:${buildKey}-${buildNumber}">/build/buildInfoAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
+        <link linkId="buildInfoLinkAction:${buildKey}-${buildNumber}">/build/buildInfoLinkAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
         <condition class="org.jfrog.bamboo.buildinfo.action.condition.BuildInfoActionCondition"/>
     </web-item>
 
@@ -214,8 +214,8 @@
     <web-item key="brmpTab:${buildKey}-${buildNumber}" name="Artifactory Pro Release Staging"
               section="results.subMenu/results" weight="130">
         <label key="Artifactory Release &amp; Promotion"/>
-        <link linkId="brmpTab:${buildKey}-${buildNumber}">/build/releaseAndPromotionAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
-        <condition class="org.jfrog.bamboo.release.action.condition.ReleaseAndPromotionActionCondition"/>
+        <link linkId="brmpTab:${buildKey}-${buildNumber}">/build/releasePromotionAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
+        <condition class="org.jfrog.bamboo.release.action.condition.ReleasePromotionActionCondition"/>
         <condition class="org.jfrog.bamboo.buildinfo.action.condition.BuildInfoActionCondition"/>
     </web-item>
 
@@ -225,48 +225,48 @@
         <label key="Push to Bintray"/>
         <link linkId="pushToBintray">/build/pushToBintray.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
         <condition class="org.jfrog.bamboo.buildinfo.action.condition.BuildInfoActionCondition"/>
-        <condition class="org.jfrog.bamboo.release.action.condition.ReleaseAndPromotionActionCondition"/>
+        <condition class="org.jfrog.bamboo.release.action.condition.ReleasePromotionActionCondition"/>
     </web-item>
 
     <xwork key="brmpAdminActions" name="Release Management Admin Actions">
         <package name="brmpResults" extends="buildView">
-            <action name="releaseAndPromotionAction" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction">
-                <result name="input" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
-                <result name="success" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
+            <action name="releasePromotionAction" class="org.jfrog.bamboo.release.action.ReleasePromotionAction">
+                <result name="input" type="freemarker">/templates/plugins/release/releasePromotionAction.ftl</result>
+                <result name="success" type="freemarker">/templates/plugins/release/releasePromotionAction.ftl</result>
                 <result name="error" type="freemarker">/error.ftl</result>
             </action>
 
-            <action name="pushToBintray" class="org.jfrog.bamboo.bintray.PushToBintrayAction">
-                <result name="input" type="freemarker">/templates/plugins/bintray/pushToBintrayAction.ftl</result>
-                <result name="success" type="freemarker">/templates/plugins/bintray/pushToBintrayAction.ftl</result>
+            <action name="pushToBintray" class="org.jfrog.bamboo.bintray.BintrayPushAction">
+                <result name="input" type="freemarker">/templates/plugins/bintray/bintrayPushAction.ftl</result>
+                <result name="success" type="freemarker">/templates/plugins/bintray/bintrayPushAction.ftl</result>
                 <result name="error" type="freemarker">/error.ftl</result>
             </action>
 
-            <action name="getPushToBintrayLog" class="org.jfrog.bamboo.bintray.PushToBintrayAction"
+            <action name="getPushToBintrayLog" class="org.jfrog.bamboo.bintray.BintrayPushAction"
                     method="getPushToBintrayLog">
-                <result name="input" type="freemarker">/templates/plugins/bintray/pushToBintrayLog.ftl</result>
-                <result name="success" type="freemarker">/templates/plugins/bintray/pushToBintrayLog.ftl</result>
+                <result name="input" type="freemarker">/templates/plugins/bintray/logBintrayPush.ftl</result>
+                <result name="success" type="freemarker">/templates/plugins/bintray/logBintrayPush.ftl</result>
             </action>
 
-            <action name="push" class="org.jfrog.bamboo.bintray.PushToBintrayAction" method="push">
-                <result name="success" type="freemarker">/templates/plugins/bintray/pushToBintrayAction.ftl</result>
-                <result name="error" type="freemarker">/templates/plugins/bintray/pushToBintrayAction.ftl</result>
+            <action name="push" class="org.jfrog.bamboo.bintray.BintrayPushAction" method="push">
+                <result name="success" type="freemarker">/templates/plugins/bintray/bintrayPushAction.ftl</result>
+                <result name="error" type="freemarker">/templates/plugins/bintray/bintrayPushAction.ftl</result>
             </action>
 
-            <action name="promote" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction" method="promote">
+            <action name="promote" class="org.jfrog.bamboo.release.action.ReleasePromotionAction" method="promote">
                 <!-- This line is checked for completeness (i.e. no line wrapping. it breaks the descriptor).
                 If changing anything here, remember to modify the PluginDescriptorValidityTest -->
-                <result name="input" type="redirect">/build/releaseAndPromotionAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
-                <result name="success" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
-                <result name="error" type="freemarker">/templates/plugins/release/releaseAndPromotionAction.ftl</result>
+                <result name="input" type="redirect">/build/releasePromotionAction.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</result>
+                <result name="success" type="freemarker">/templates/plugins/release/releasePromotionAction.ftl</result>
+                <result name="error" type="freemarker">/templates/plugins/release/releasePromotionAction.ftl</result>
             </action>
 
-            <action name="getLog" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction" method="getLog">
-                <result name="input" type="freemarker">/templates/plugins/release/promotionLog.ftl</result>
-                <result name="success" type="freemarker">/templates/plugins/release/promotionLog.ftl</result>
+            <action name="getLog" class="org.jfrog.bamboo.release.action.ReleasePromotionAction" method="getLog">
+                <result name="input" type="freemarker">/templates/plugins/release/logPromotion.ftl</result>
+                <result name="success" type="freemarker">/templates/plugins/release/logPromotion.ftl</result>
             </action>
 
-            <action name="releaseBuild" class="org.jfrog.bamboo.release.action.ReleaseAndPromotionAction"
+            <action name="releaseBuild" class="org.jfrog.bamboo.release.action.ReleasePromotionAction"
                     method="releaseBuild">
                 <result name="success" type="redirect">/browse/${buildKey}/log</result>
             </action>
@@ -281,8 +281,8 @@
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.IvyCapabilityHelper"/>
         <executable key="ivy" pathHelpKey="builder.ivy.pathHelp"/>
-        <resource type="freemarker" name="edit" location="/templates/plugins/task/artifactoryIvyBuilderEdit.ftl"/>
-        <resource type="freemarker" name="view" location="/templates/plugins/task/artifactoryIvyBuilderView.ftl"/>
+        <resource type="freemarker" name="edit" location="/templates/plugins/task/editArtifactoryIvyBuilder.ftl"/>
+        <resource type="freemarker" name="view" location="/templates/plugins/task/viewArtifactoryIvyBuilder.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-ivy-icon.png"/>
     </taskType>
 
@@ -324,9 +324,9 @@
         <configuration class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentConfiguration"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
-                  location="templates/plugins/deployment/artifactoryDeploymentActionEdit.ftl"/>
+                  location="templates/plugins/deployment/editArtifactoryDeploymentAction.ftl"/>
         <resource type="freemarker" name="view"
-                  location="templates/plugins/deployment/artifactoryDeploymentActionView.ftl"/>
+                  location="templates/plugins/deployment/viewArtifactoryDeploymentAction.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
     </taskType>
 

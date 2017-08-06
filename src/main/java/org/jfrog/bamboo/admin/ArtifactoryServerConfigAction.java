@@ -33,9 +33,9 @@ import java.net.URL;
  *
  * @author Noam Y. Tenne
  */
-public class ConfigureArtifactoryServerAction extends BambooActionSupport implements GlobalAdminSecurityAware {
+public class ArtifactoryServerConfigAction extends BambooActionSupport implements GlobalAdminSecurityAware {
 
-    private transient Logger log = Logger.getLogger(ConfigureArtifactoryServerAction.class);
+    private transient Logger log = Logger.getLogger(ArtifactoryServerConfigAction.class);
 
     private String mode;
     private long serverId;
@@ -48,7 +48,7 @@ public class ConfigureArtifactoryServerAction extends BambooActionSupport implem
 
     private transient ServerConfigManager serverConfigManager;
 
-    public ConfigureArtifactoryServerAction(ServerConfigManager serverConfigManager) {
+    public ArtifactoryServerConfigAction(ServerConfigManager serverConfigManager) {
         this.serverConfigManager = serverConfigManager;
         mode = "add";
         timeout = 300;

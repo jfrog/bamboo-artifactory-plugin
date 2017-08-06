@@ -18,7 +18,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
-import org.jfrog.bamboo.release.action.ReleaseAndPromotionAction;
+import org.jfrog.bamboo.release.action.ReleasePromotionAction;
 import org.jfrog.bamboo.util.ActionLog;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.builder.PromotionBuilder;
@@ -29,7 +29,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import static org.jfrog.bamboo.release.action.ReleaseAndPromotionAction.*;
+import static org.jfrog.bamboo.release.action.ReleasePromotionAction.*;
 
 /**
  * Executes the promotion process
@@ -41,17 +41,17 @@ public class PromotionThread extends Thread {
     public static final String NEXUS_PUSH_PROPERTY_PREFIX = "bintrayOsoPush.";
     transient Logger log = Logger.getLogger(PromotionThread.class);
 
-    private ReleaseAndPromotionAction action;
+    private ReleasePromotionAction action;
     private ArtifactoryBuildInfoClient client;
     private String bambooUsername;
     private ActionLog releaseLog;
 
-    public PromotionThread(ReleaseAndPromotionAction action, ArtifactoryBuildInfoClient client,
+    public PromotionThread(ReleasePromotionAction action, ArtifactoryBuildInfoClient client,
                            String bambooUsername) {
         this.action = action;
         this.client = client;
         this.bambooUsername = bambooUsername;
-        this.releaseLog = ReleaseAndPromotionAction.promotionContext.getActionLog();
+        this.releaseLog = ReleasePromotionAction.promotionContext.getActionLog();
         releaseLog.setLogger(log);
 
     }

@@ -27,19 +27,24 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.GradleInitScriptHelper;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 import org.jfrog.gradle.plugin.artifactory.task.BuildInfoBaseTask;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarFile;
@@ -137,6 +142,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         // Override the JAVA_HOME according to the build configuration:
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, gradleBuildContext, capabilityContext);
         environmentVariables.put("JAVA_HOME", jdkPath);
+        environmentVariables.putAll(getPasswordsMap(gradleBuildContext));
 
         log.debug("Running Gradle command: " + command.toString());
         ExternalProcessBuilder processBuilder =
@@ -264,5 +270,35 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
         this.administrationConfiguration = administrationConfiguration;
+    }
+
+    @NotNull
+    private Map<String, String> getPasswordsMap(GradleBuildContext gradleBuildContext) {
+        Map<String, String> result = new HashMap<>();
+        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
+        long selectedServerId = gradleBuildContext.getArtifactoryServerId();
+        if (selectedServerId == -1) {
+            return result;
+        }
+        ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        if (serverConfig == null) {
+            String warningMessage =
+                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
+                            ") but could not find a matching configuration. Build info collection is disabled.";
+            log.warn(warningMessage);
+            return result;
+        }
+        String deployerPassword =
+                buildParamsOverrideManager.getOverrideValue(BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
+        if (StringUtils.isBlank(deployerPassword)) {
+            deployerPassword = serverConfigManager.substituteVariables(gradleBuildContext.getDeployerPassword());
+        }
+        if (StringUtils.isBlank(deployerPassword)) {
+            deployerPassword = serverConfigManager.substituteVariables(serverConfig.getPassword());
+        }
+        ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(null);
+        result.put(clientConf.resolver.getPrefix() + "password", serverConfig.getPassword());
+        result.put(clientConf.publisher.getPrefix() + "password", deployerPassword);
+        return result;
     }
 }

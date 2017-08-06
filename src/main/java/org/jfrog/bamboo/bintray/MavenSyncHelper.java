@@ -14,7 +14,7 @@ public class MavenSyncHelper {
     /**
      * Update the Push to Bintray context when using MavenCentralSync with descriptor file
      */
-    public static void updateBintrayActionContext(PushToBintrayAction action, Map<String, Object> bintrayJsonMap) {
+    public static void updateBintrayActionContext(BintrayPushAction action, Map<String, Object> bintrayJsonMap) {
         Map<String, String> aPackage = (Map<String, String>) bintrayJsonMap.get("package");
         action.setPackageName(aPackage.get("name"));
         action.setRepository(aPackage.get("repo"));

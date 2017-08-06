@@ -8,6 +8,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -24,7 +25,11 @@ import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -236,5 +241,19 @@ public class TaskUtils {
             bintrayUrl = ConstantValues.BINTRAY_URL;
         }
         return bintrayUrl;
+    }
+
+    public static String getSpecFromFile(File sourceCodeDirectory, String specFilePath) throws IOException {
+        FileInputStream fis = null;
+        try {
+            Path path = Paths.get(specFilePath);
+            File specFile = path.isAbsolute() ? path.toFile() : Paths.get(sourceCodeDirectory.getAbsolutePath(), specFilePath).toFile();
+            fis = new FileInputStream(specFile);
+            byte[] data = new byte[(int) specFile.length()];
+            fis.read(data);
+            return new String(data, "UTF-8");
+        } finally {
+            IOUtils.closeQuietly(fis);
+        }
     }
 }

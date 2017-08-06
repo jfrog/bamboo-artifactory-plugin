@@ -73,11 +73,11 @@ public class ModuleVersionHolder implements Serializable {
         List<ModuleVersionHolder> result = Lists.newArrayList();
         int size = getNumberOfModules(conf);
         for (int i = 0; i < size; i++) {
-            String moduleKey = conf.get(ReleaseAndPromotionAction.MODULE_KEY + "." + i);
-            String currentValue = conf.get(ReleaseAndPromotionAction.CURRENT_VALUE_KEY + "." + i);
-            String integValue = conf.get(ReleaseAndPromotionAction.NEXT_INTEG_KEY + "." + i);
-            String releaseValue = conf.get(ReleaseAndPromotionAction.RELEASE_VALUE_KEY + "." + i);
-            String releaseProp = conf.get(ReleaseAndPromotionAction.RELEASE_PROP_KEY + "." + i);
+            String moduleKey = conf.get(ReleasePromotionAction.MODULE_KEY + "." + i);
+            String currentValue = conf.get(ReleasePromotionAction.CURRENT_VALUE_KEY + "." + i);
+            String integValue = conf.get(ReleasePromotionAction.NEXT_INTEG_KEY + "." + i);
+            String releaseValue = conf.get(ReleasePromotionAction.RELEASE_VALUE_KEY + "." + i);
+            String releaseProp = conf.get(ReleasePromotionAction.RELEASE_PROP_KEY + "." + i);
             boolean isReleaseProp = Boolean.parseBoolean(releaseProp);
             ModuleVersionHolder holder = new ModuleVersionHolder(moduleKey, currentValue, isReleaseProp);
             holder.setReleaseValue(releaseValue);
@@ -88,7 +88,7 @@ public class ModuleVersionHolder implements Serializable {
     }
 
     private static int getNumberOfModules(Map<String, String> conf) {
-        return Utils.filterMapKeysByPrefix(conf, ReleaseAndPromotionAction.MODULE_KEY).size();
+        return Utils.filterMapKeysByPrefix(conf, ReleasePromotionAction.MODULE_KEY).size();
     }
 
     @Override

@@ -57,56 +57,55 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
     private static final Logger log = Logger.getLogger(GradleInitScriptHelper.class);
 
     public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir,
-                                                                    GradleBuildContext buildContext, BuildLogger logger, String scriptTemplate,
-                                                                    Map<String, String>taskEnv, Map<String, String> generalEnv, String artifactoryPluginVersion) {
+                                                                    GradleBuildContext buildContext, BuildLogger logger,
+                                                                    String scriptTemplate, Map<String, String>taskEnv,
+                                                                    Map<String, String> generalEnv, String artifactoryPluginVersion) {
 
         long selectedServerId = buildContext.getArtifactoryServerId();
-        if (selectedServerId != -1) {
-            //Using "getInstance()" since the field must be transient
-            ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
-            if (serverConfig == null) {
-
-                String warningMessage =
-                        "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
-                                ") but could not find a matching configuration. Build info collection is disabled.";
-                logger.addBuildLogHeader(warningMessage, true);
-                log.warn(warningMessage);
-                return null;
-            } else {
-                String normalizedPath = FilenameUtils.separatorsToUnix(dependenciesDir);
-                scriptTemplate = scriptTemplate.replace("${pluginLibDir}", normalizedPath);
-                try {
-                    File buildProps = File.createTempFile("buildinfo", "properties");
-                    ArtifactoryClientConfiguration configuration =
-                            createClientConfiguration(buildContext, serverConfig, taskEnv, artifactoryPluginVersion);
-                    // Add Bamboo build variables
-                    MapDifference<String, String> buildVarDifference = Maps.difference(generalEnv, System.getenv());
-                    Map<String, String> filteredBuildVarDifferences = buildVarDifference.entriesOnlyOnLeft();
-                    IncludeExcludePatterns patterns = new IncludeExcludePatterns(
-                            buildContext.getEnvVarsIncludePatterns(),
-                            buildContext.getEnvVarsExcludePatterns());
-                    configuration.info.addBuildVariables(filteredBuildVarDifferences, patterns);
-                    configuration.setPropertiesFile(buildProps.getAbsolutePath());
-                    configuration.persistToPropertiesFile();
-                    File tempInitScript = File.createTempFile("artifactory.init.script", "gradle");
-                    FileUtils.writeStringToFile(tempInitScript, scriptTemplate, "utf-8");
-                    if (buildContext.isPublishBuildInfo()) {
-                        this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM,
-                                "true");
-                        this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
-                                serverConfig.getUrl());
-                        this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
-                                String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
-                    }
-                    return new ConfigurationPathHolder(tempInitScript.getCanonicalPath(),
-                            buildProps.getCanonicalPath());
-                } catch (IOException e) {
-                    log.warn("An error occurred while creating the gradle build info init script. " +
-                            "Build-info task will not be added.", e);
-                }
-            }
+        if (selectedServerId == -1) {
+            return null;
         }
-
+        //Using "getInstance()" since the field must be transient
+        ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        if (serverConfig == null) {
+            String warning =
+                "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
+                    ") but could not find a matching configuration. Build info collection is disabled.";
+            logger.addErrorLogEntry(warning);
+            log.warn(warning);
+            return null;
+        }
+        String normalizedPath = FilenameUtils.separatorsToUnix(dependenciesDir);
+        scriptTemplate = scriptTemplate.replace("${pluginLibDir}", normalizedPath);
+        try {
+            File buildProps = File.createTempFile("buildinfo", "properties");
+            ArtifactoryClientConfiguration configuration =
+                    createClientConfiguration(buildContext, serverConfig, taskEnv, artifactoryPluginVersion);
+            // Add Bamboo build variables
+            MapDifference<String, String> buildVarDifference = Maps.difference(generalEnv, System.getenv());
+            Map<String, String> filteredBuildVarDifferences = buildVarDifference.entriesOnlyOnLeft();
+            IncludeExcludePatterns patterns = new IncludeExcludePatterns(
+                    buildContext.getEnvVarsIncludePatterns(),
+                    buildContext.getEnvVarsExcludePatterns());
+            configuration.info.addBuildVariables(filteredBuildVarDifferences, patterns);
+            configuration.setPropertiesFile(buildProps.getAbsolutePath());
+            configuration.persistToPropertiesFile();
+            File tempInitScript = File.createTempFile("artifactory.init.script", "gradle");
+            FileUtils.writeStringToFile(tempInitScript, scriptTemplate, "utf-8");
+            if (buildContext.isPublishBuildInfo()) {
+                this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM,
+                        "true");
+                this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
+                        serverConfig.getUrl());
+                this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
+                        String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
+            }
+            return new ConfigurationPathHolder(tempInitScript.getCanonicalPath(),
+                    buildProps.getCanonicalPath());
+        } catch (IOException e) {
+            log.warn("An error occurred while creating the gradle build info init script. " +
+                    "Build-info task will not be added.", e);
+        }
         return null;
     }
 
@@ -244,23 +243,15 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         }
 
         String globalServerUsername = serverConfigManager.substituteVariables(serverConfig.getUsername());
-        String globalServerPassword = serverConfigManager.substituteVariables(serverConfig.getPassword());
         clientConf.resolver.setUsername(globalServerUsername);
-        clientConf.resolver.setPassword(globalServerPassword);
 
         String deployerUsername = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerUsername())
                 , BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
         if (StringUtils.isBlank(deployerUsername)) {
             deployerUsername = globalServerUsername;
         }
-        String deployerPassword = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerPassword())
-                , BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
-        if (StringUtils.isBlank(deployerPassword)) {
-            deployerPassword = globalServerPassword;
-        }
         if (StringUtils.isNotBlank(deployerUsername)) {
             clientConf.publisher.setUsername(deployerUsername);
-            clientConf.publisher.setPassword(deployerPassword);
         }
         boolean publishArtifacts = buildContext.isPublishArtifacts();
         clientConf.publisher.setPublishArtifacts(publishArtifacts);

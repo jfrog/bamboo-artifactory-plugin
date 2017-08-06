@@ -90,11 +90,11 @@
     <div class="section">
 
         [#if gradle]
-            [#include "fragments/gradleVersions.ftl"/]
-            [#include "fragments/vcsConfiguration.ftl"/]
+            [#include "fragments/gradleVersionsConfig.ftl"/]
+            [#include "fragments/vcsConfig.ftl"/]
         [#elseif maven]
-            [#include "fragments/mavenVersions.ftl"/]
-            [#include "fragments/vcsConfiguration.ftl"/]
+            [#include "fragments/mavenVersionsConfig.ftl"/]
+            [#include "fragments/vcsConfig.ftl"/]
         [#else]
             Only Gradle and Maven types are supported
         [/#if]

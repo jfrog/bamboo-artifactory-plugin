@@ -20,9 +20,9 @@ import java.util.Map;
  * @author Aviad Shikloshi
  */
 @RemoteAgentSupported
-public class PushToBintrayAction extends ViewBuildResults {
+public class BintrayPushAction extends ViewBuildResults {
 
-    public static Logger log = Logger.getLogger(PushToBintrayAction.class);
+    public static Logger log = Logger.getLogger(BintrayPushAction.class);
     public static PromotionContext context = new PromotionContext();
 
     private static final String BINTRAY_CONFIG_PREFIX = "bintray.";
