@@ -30,12 +30,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.configuration.ConfigurationHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
-import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.api.BuildInfoProperties;
-import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 
 import java.io.File;
@@ -131,14 +129,12 @@ public abstract class BaseBuildInfoHelper {
     }
 
     /**
-     * Filters Bamboo global variables for build info model and matrix params
+     * Get parameters from buildInfoConfig.propertiesFile
+     * @param propFilePath Path to buildInfoConfig.propertiesFile
+     * @return Map of the parameters
      */
-    protected Map<String, String> filterAndGetGlobalVariables() {
+    protected Map<String, String> getBuildInfoConfigPropertiesFileParams(String propFilePath) {
         Map<String, String> variablesToReturn = Maps.newHashMap();
-
-        Map<String, String> globalVariables = ConfigurationHelper.getInstance().getAllVariables(context.getTypedPlanKey());
-
-        String propFilePath = globalVariables.get(BuildInfoConfigProperties.PROP_PROPS_FILE);
         if (StringUtils.isNotBlank(propFilePath)) {
             File propFile = new File(propFilePath);
             if (propFile.isFile()) {
@@ -155,42 +151,11 @@ public abstract class BaseBuildInfoHelper {
                     IOUtils.closeQuietly(inputStream);
                 }
 
-                Properties filteredProperties = new Properties();
-                filteredProperties.putAll(BuildInfoExtractorUtils.
-                        filterDynamicProperties(fileProperties, BuildInfoExtractorUtils.MATRIX_PARAM_PREDICATE));
-                filteredProperties.putAll(BuildInfoExtractorUtils.
-                        filterDynamicProperties(fileProperties, BuildInfoExtractorUtils.BUILD_INFO_PROP_PREDICATE));
-
-                for (Map.Entry filteredProperty : filteredProperties.entrySet()) {
-                    setVariable(variablesToReturn, ((String) filteredProperty.getKey()),
-                            ((String) filteredProperty.getValue()));
-                }
+                variablesToReturn.putAll(Utils.filterPropertiesKeysByPrefix(fileProperties, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX));
+                variablesToReturn.putAll(Utils.filterPropertiesKeysByPrefix(fileProperties, BuildInfoProperties.BUILD_INFO_PROP_PREFIX));
             }
         }
-
-        addGlobalVariables(variablesToReturn,
-                Utils.filterMapKeysByPrefix(globalVariables, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX));
-
-        addGlobalVariables(variablesToReturn,
-                Utils.filterMapKeysByPrefix(globalVariables, BuildInfoProperties.BUILD_INFO_PROP_PREFIX));
-
-        return variablesToReturn;
-    }
-
-    /**
-     * Adds the given filtered global variables to the given properties collection
-     */
-    private void addGlobalVariables(Map<String, String> variablesToReturn,
-            Map<String, String> filteredGlobalVariables) {
-        for (Map.Entry<String, String> filteredGlobalVariable : filteredGlobalVariables.entrySet()) {
-            setVariable(variablesToReturn, filteredGlobalVariable.getKey(), filteredGlobalVariable.getValue());
-        }
-    }
-
-    private void setVariable(Map<String, String> variables, String propertyKey, String propertyValue) {
-        if (StringUtils.isNotBlank(propertyValue)) {
-            variables.put(propertyKey, propertyValue);
-        }
+        return TaskUtils.getEscapedEnvMap(variablesToReturn);
     }
 
     private String prepareRequestUrl(String servletName, Map<String, String> params) {

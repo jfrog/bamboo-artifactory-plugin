@@ -10,9 +10,9 @@
     [#--The Dummy password is a workaround for the autofill (Chrome)--]
     [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 
-    [@ww.radio labelKey='Upload by' name='artifactory.generic.useSpecsChoice' listKey='key' listValue='value' toggle='true' list=useSpecsOptions toggle='true'/]
+    [@ww.radio labelKey='Download by' name='artifactory.generic.useSpecsChoice' listKey='key' listValue='value' toggle='true' list=useSpecsOptions toggle='true'/]
     [@ui.bambooSection dependsOn='artifactory.generic.useSpecsChoice' showOn='specs']
-    [@ww.select labelKey='artifactory.task.generic.deployPatternFileSpec' name='artifactory.generic.specSourceChoice' listKey='key' listValue='value' toggle='true' list=specSourceOptions/]
+    [@ww.select labelKey='artifactory.task.generic.resolvePatternFileSpec' name='artifactory.generic.specSourceChoice' listKey='key' listValue='value' toggle='true' list=specSourceOptions/]
     [@ui.bambooSection dependsOn='artifactory.generic.specSourceChoice' showOn='jobConfiguration']
         [@ww.textarea name='artifactory.generic.jobConfiguration' labelKey='artifactory.task.generic.resolvePatternFileSpec.jobConfiguration' rows='10' cols='80' cssClass="long-field" /]
     [/@ui.bambooSection]

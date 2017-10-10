@@ -4,7 +4,7 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Properties;
 
 /**
  * Created by Tamirh on 26/07/2016.
@@ -24,5 +24,19 @@ public class Utils {
         return result;
     }
 
+    public static <V> Map<String, V> filterPropertiesKeysByPrefix(Properties properties, String prefix) {
+        Map<String, V> result = new HashedMap();
+        if (properties == null) {
+            return result;
+        }
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            String key = (String) entry.getKey();
+            V value = (V) entry.getValue();
+            if (StringUtils.startsWith(key, prefix)) {
+                result.put(key, value);
+            }
+        }
+        return result;
+    }
 
 }

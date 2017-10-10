@@ -36,6 +36,7 @@ import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
+import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
@@ -179,13 +180,12 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
         clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
 
-        Map<String, String> globalVars = filterAndGetGlobalVariables();
-        globalVars = TaskUtils.getEscapedEnvMap(globalVars);
-        globalVars.putAll(TaskUtils.getEscapedEnvMap(taskEnv));
+        Map<String, String> props = Maps.newHashMap(TaskUtils.getEscapedEnvMap(taskEnv));
+        props.putAll(getBuildInfoConfigPropertiesFileParams(props.get(BuildInfoConfigProperties.PROP_PROPS_FILE)));
         IncludeExcludePatterns patterns = new IncludeExcludePatterns(buildContext.getEnvVarsIncludePatterns(),
                 buildContext.getEnvVarsExcludePatterns());
-        clientConf.info.addBuildVariables(globalVars, patterns);
-        clientConf.fillFromProperties(globalVars, patterns);
+        clientConf.info.addBuildVariables(props, patterns);
+        clientConf.fillFromProperties(props, patterns);
         return clientConf;
     }
 

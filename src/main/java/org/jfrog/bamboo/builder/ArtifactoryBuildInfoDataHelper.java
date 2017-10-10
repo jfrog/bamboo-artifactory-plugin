@@ -24,6 +24,7 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
+import com.google.common.collect.Maps;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -33,6 +34,7 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
+import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
@@ -185,10 +187,10 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         setClientData(buildContext, clientConf, serverConfig, environment);
         setPublisherData(buildContext, clientConf, serverConfig, environment);
 
-        Map<String, String> props = filterAndGetGlobalVariables();
-        props.putAll(environment);
+        Map<String, String> props = Maps.newHashMap(environment);
         props.putAll(generalEnv);
         props = TaskUtils.getEscapedEnvMap(props);
+        props.putAll(getBuildInfoConfigPropertiesFileParams(props.get(BuildInfoConfigProperties.PROP_PROPS_FILE)));
         IncludeExcludePatterns patterns = new IncludeExcludePatterns(buildContext.getEnvVarsIncludePatterns(),
                 buildContext.getEnvVarsExcludePatterns());
         clientConf.info.addBuildVariables(props, patterns);

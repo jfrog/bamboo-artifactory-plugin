@@ -113,11 +113,6 @@
         <url-pattern>/artifactoryBuildServlet</url-pattern>
     </servlet>
 
-    <servlet name="Artifactory Administration Configuration Servlet" key="artifactoryAdminConfigServlet"
-             class="org.jfrog.bamboo.admin.ArtifactoryAdminConfigServlet">
-        <url-pattern>/artifactoryAdminConfigServlet</url-pattern>
-    </servlet>
-
     <resource type="download" name="builder/dependencies/" location="META-INF/lib/"/>
     <resource type="download" name="artifactory-icon.png" location="images/artifactory-icon.png"/>
     <resource type="download" name="artifactory-release.png" location="images/artifactory-release.png"/>

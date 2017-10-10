@@ -8,6 +8,7 @@ import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.FilenameUtils;
@@ -85,17 +86,20 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         }
         builder.principal(principal);
         if (context.isIncludeEnvVars()) {
-            Map<String, String> bambooProps = filterAndGetGlobalVariables();
-            bambooProps.putAll(env);
-            bambooProps = TaskUtils.getEscapedEnvMap(bambooProps);
+            Map<String, String> props = Maps.newHashMap(TaskUtils.getEscapedEnvMap(env));
+            props.putAll(getBuildInfoConfigPropertiesFileParams(props.get(BuildInfoConfigProperties.PROP_PROPS_FILE)));
             IncludeExcludePatterns patterns = new IncludeExcludePatterns(context.getEnvVarsIncludePatterns(),
                     context.getEnvVarsExcludePatterns());
-            for (Map.Entry<String, String> prop : bambooProps.entrySet()) {
+            for (Map.Entry<String, String> prop : props.entrySet()) {
                 String varKey = prop.getKey();
                 if (PatternMatcher.pathConflicts(varKey, patterns)) {
                     continue;
                 }
-                builder.addProperty(BuildInfoProperties.BUILD_INFO_ENVIRONMENT_PREFIX + varKey, prop.getValue());
+                // Global/task variables which starts with "artifactory.deploy" and "buildInfo.property" must preserve their prefix.
+                if (!StringUtils.startsWith(varKey, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX) && !StringUtils.startsWith(varKey, BuildInfoProperties.BUILD_INFO_PROP_PREFIX)) {
+                    varKey = BuildInfoProperties.BUILD_INFO_ENVIRONMENT_PREFIX + varKey;
+                }
+                builder.addProperty(varKey, prop.getValue());
             }
         }
         return builder.build();
