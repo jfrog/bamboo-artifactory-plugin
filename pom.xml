@@ -39,9 +39,46 @@
         <buildinfo.gradle.version>4.5.4</buildinfo.gradle.version>
         <buildinfo.ivy.version>2.9.1</buildinfo.ivy.version>
     </properties>
+    
+    <profiles>
+        <profile>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <id>oss</id>
+            <repositories>
+                <repository>
+                    <id>central</id>
+                    <name>jfrog-dependencies</name>
+                    <url>http://oss.jfrog.org/artifactory/jfrog-dependencies</url>
+                </repository>
+                <repository>
+                    <snapshots />
+                    <id>snapshots</id>
+                    <name>libs-snapshot</name>
+                    <url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>central</id>
+                    <name>jfrog-dependencies</name>
+                    <url>http://oss.jfrog.org/artifactory/jfrog-dependencies</url>
+                </pluginRepository>
+                <pluginRepository>
+                    <snapshots />
+                    <id>snapshots</id>
+                    <name>plugins-snapshot</name>
+                    <url>http://oss.jfrog.org/artifactory/plugins-snapshot</url>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
 
     <dependencies>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
