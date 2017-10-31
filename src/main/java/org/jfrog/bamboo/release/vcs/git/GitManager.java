@@ -288,6 +288,7 @@ public class GitManager extends AbstractVcsManager {
 
     private PushCommand buildPushCommand(Git git) throws IOException {
         GitAuthenticationType authType = getAuthType();
+        buildLogger.addBuildLogEntry("[RELEASE] Using SCM authentication type: " + authType);
         PushCommand pushCommand;
         if (authType == GitAuthenticationType.PASSWORD || authType == GitAuthenticationType.NONE) {
             pushCommand = git.push();
@@ -338,9 +339,10 @@ public class GitManager extends AbstractVcsManager {
     }
 
     private GitAuthenticationType getAuthType() {
-        if (authenticationType.equals("SSH_KEYPAIR")) {
+        if (GitAuthenticationType.SSH_KEYPAIR.name().equals(authenticationType)) {
             return GitAuthenticationType.SSH_KEYPAIR;
-        } else if (authenticationType.equals("PASSWORD")) {
+        }
+        if (GitAuthenticationType.PASSWORD.name().equals(authenticationType)) {
             return GitAuthenticationType.PASSWORD;
         }
         return GitAuthenticationType.NONE;
