@@ -38,6 +38,9 @@ public abstract class VersionHelper {
             String versionConfiguration, Map<String, String> taskConfiguration);
 
     public String calculateReleaseVersion(String fromVersion) {
+        if (fromVersion.endsWith(".BUILD-SNAPSHOT")) {
+            return fromVersion.replace(".BUILD-SNAPSHOT", ".RELEASE");
+        }
         return fromVersion.replace("-SNAPSHOT", "");
     }
 
@@ -49,7 +52,12 @@ public abstract class VersionHelper {
      */
     public String calculateNextVersion(String fromVersion) {
         // first turn it to release version
+        boolean osgiCompatible = false;
         fromVersion = calculateReleaseVersion(fromVersion);
+        if (fromVersion.endsWith(".RELEASE")) {
+            fromVersion = fromVersion.replace(".RELEASE", "");
+            osgiCompatible = true;
+        }
         String nextVersion;
         int lastDotIndex = fromVersion.lastIndexOf('.');
         try {
@@ -75,7 +83,7 @@ public abstract class VersionHelper {
         } catch (NumberFormatException e) {
             return fromVersion;
         }
-        return nextVersion + "-SNAPSHOT";
+        return nextVersion + (osgiCompatible ? ".BUILD-SNAPSHOT" : "-SNAPSHOT");
     }
 
     public static VersionHelper getHelperAccordingToType(AbstractBuildContext context,
