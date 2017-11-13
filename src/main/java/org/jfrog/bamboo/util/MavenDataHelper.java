@@ -24,6 +24,13 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
                            AbstractBuildContext buildContext, EnvironmentVariableAccessor envVarAccessor,
                            String artifactoryPluginVersion) {
         super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion);
+        long selectedServerId = buildContext.getArtifactoryServerId();
+        if (selectedServerId == -1) {
+            selectedServerId = ((Maven3BuildContext) buildContext).getResolutionArtifactoryServerId();
+            if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
+                setClientData(buildContext, clientConf, serverConfig, envVarAccessor.getEnvironment(context));
+            }
+        }
     }
 
     @Override

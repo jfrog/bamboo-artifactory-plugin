@@ -58,8 +58,8 @@ public class IvyBuildContext extends AbstractBuildContext {
     }
 
     @Override
-    public void resetContextToDefault() {
-        super.resetContextToDefault();
+    public void resetDeployerContextToDefault() {
+        super.resetDeployerContextToDefault();
         env.put(PREFIX + DEPLOYABLE_REPO_KEY, "");
         env.put(PREFIX + INCLUDE_PATTERN, "");
         env.put(PUBLISH_ARTIFACTS, "true");

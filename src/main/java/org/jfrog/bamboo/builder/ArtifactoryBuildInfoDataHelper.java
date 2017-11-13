@@ -63,21 +63,25 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         BuildContext buildContext = context.getBuildContext();
         super.init(buildParamsOverrideManager, buildContext);
         long selectedServerId = abstractBuildContext.getArtifactoryServerId();
-        if (selectedServerId != -1) {
-            serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
-            if (serverConfig == null) {
-                String warning =
-                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
-                        ") but could not find a matching configuration. Build info collection is disabled.";
-                context.getBuildLogger().addErrorLogEntry(warning);
-                log.warn(warning);
-                return;
-            }
-            clientConf = new ArtifactoryClientConfiguration(new NullLog());
+        if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
             setBuilderData(abstractBuildContext, serverConfig, clientConf, envVarAccessor.getEnvironment(context),
                     envVarAccessor.getEnvironment(), artifactoryPluginVersion);
             setDataToContext(buildContext, abstractBuildContext);
         }
+    }
+
+    protected boolean isServerConfigured(TaskContext context, long selectedServerId) {
+        serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        if (serverConfig == null) {
+            String warning =
+                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
+                            ") but could not find a matching configuration. Build info collection is disabled.";
+            context.getBuildLogger().addErrorLogEntry(warning);
+            log.warn(warning);
+            return false;
+        }
+        clientConf = new ArtifactoryClientConfiguration(new NullLog());
+        return true;
     }
 
     private void setDataToContext(BuildContext context, AbstractBuildContext buildContext) {

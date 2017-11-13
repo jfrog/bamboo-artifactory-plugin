@@ -79,7 +79,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, FIELDS_TO_COPY);
         GradleBuildContext buildContext = new GradleBuildContext(taskConfigMap);
-        resetConfigIfNeeded(buildContext);
+        resetDeployerConfigIfNeeded(buildContext);
+        resetResolverConfigIfNeeded(buildContext);
         taskConfigMap.put(GradleBuildContext.PREFIX + GradleBuildContext.TEST_RESULT_DIRECTORY,
                 getTestDirectory(buildContext));
         taskConfigMap.putAll(super.getSshFileContent(params, previousTaskDefinition));
