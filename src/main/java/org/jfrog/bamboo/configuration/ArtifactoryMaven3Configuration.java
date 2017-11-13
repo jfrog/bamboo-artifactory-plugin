@@ -32,7 +32,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("maven3Task", this);
         context.put("builderType", this);
         context.put("builder", this);
-         context.put("baseUrl", administrationConfiguration.getBaseUrl());
+        context.put("baseUrl", administrationConfiguration.getBaseUrl());
         Plan plan = (Plan) context.get("plan");
         context.put("build", plan);
         context.put("dummyList", Lists.newArrayList());
@@ -81,12 +81,21 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, FIELDS_TO_COPY);
         Maven3BuildContext buildContext = new Maven3BuildContext(taskConfigMap);
-        resetConfigIfNeeded(buildContext);
+        resetDeployerConfigIfNeeded(buildContext);
+        resetResolverConfigIfNeeded(buildContext);
         taskConfigMap.put(Maven3BuildContext.PREFIX + Maven3BuildContext.TEST_RESULT_DIRECTORY,
                 getTestDirectory(buildContext));
         taskConfigMap.putAll(super.getSshFileContent(params, previousTaskDefinition));
         decryptFields(taskConfigMap);
         return taskConfigMap;
+    }
+
+    @Override
+    protected void resetResolverConfigIfNeeded(AbstractBuildContext buildContext) {
+        long serverId = ((Maven3BuildContext) buildContext).getResolutionArtifactoryServerId();
+        if (serverId == -1) {
+            buildContext.resetResolverContextToDefault();
+        }
     }
 
     @Override

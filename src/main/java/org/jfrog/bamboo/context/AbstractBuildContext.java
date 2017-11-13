@@ -299,9 +299,8 @@ public abstract class AbstractBuildContext {
     }
 
 
-    public void resetContextToDefault() {
+    public void resetDeployerContextToDefault() {
         env.put(prefix + SERVER_ID_PARAM, "-1");
-        env.put(prefix + RESOLUTION_REPO_PARAM, "");
         env.put(prefix + DEPLOYER_USERNAME_PARAM, "");
         env.put(prefix + DEPLOYER_PASSWORD_PARAM, "");
         env.put(USE_M2_COMPATIBLE_PATTERNS_PARAM, "true");
@@ -315,6 +314,10 @@ public abstract class AbstractBuildContext {
         env.put(PUBLISH_ARTIFACTS_PARAM, "false");
         env.put(ENABLE_RELEASE_MANAGEMENT, "false");
         env.put(ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_TO_EXCLUDE);
+    }
+
+    public void resetResolverContextToDefault() {
+        env.put(prefix + RESOLUTION_REPO_PARAM, "");
     }
 
     public class ReleaseManagementContext {

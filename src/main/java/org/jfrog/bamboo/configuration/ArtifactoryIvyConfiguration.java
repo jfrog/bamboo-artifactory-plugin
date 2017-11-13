@@ -6,7 +6,6 @@ import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
 
@@ -80,7 +79,8 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         Map<String, String> configMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
         IvyBuildContext buildContext = new IvyBuildContext(configMap);
-        resetConfigIfNeeded(buildContext);
+        resetDeployerConfigIfNeeded(buildContext);
+        resetResolverConfigIfNeeded(buildContext);
         configMap.put(IvyBuildContext.PREFIX + IvyBuildContext.TEST_RESULT_DIRECTORY, getTestDirectory(buildContext));
 
         decryptFields(configMap);

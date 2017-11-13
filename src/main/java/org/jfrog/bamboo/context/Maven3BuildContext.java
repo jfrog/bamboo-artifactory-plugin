@@ -99,8 +99,8 @@ public class Maven3BuildContext extends AbstractBuildContext {
     }
 
     @Override
-    public void resetContextToDefault() {
-        super.resetContextToDefault();
+    public void resetDeployerContextToDefault() {
+        super.resetDeployerContextToDefault();
         env.put(PREFIX + DEPLOYABLE_REPO_KEY, "");
         env.put(PUBLISH_ARTIFACTS, "true");
         env.put(RECORD_ALL_DEPENDENCIES, "false");

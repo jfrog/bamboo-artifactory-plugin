@@ -76,7 +76,10 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         Maven3BuildContext mavenBuildContext = createBuildContext(taskContext);
         initEnvironmentVariables(mavenBuildContext);
 
-        long serverId = mavenBuildContext.getArtifactoryServerId();
+        long serverId = mavenBuildContext.getResolutionArtifactoryServerId();
+        if (serverId == -1) {
+            serverId = mavenBuildContext.getArtifactoryServerId();
+        }
         File rootDirectory = taskContext.getRootDirectory();
         try {
             mavenDependenciesDir = extractMaven3Dependencies(rootDirectory, serverId, mavenBuildContext);
