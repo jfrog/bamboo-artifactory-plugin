@@ -38,7 +38,7 @@ import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
-import org.jfrog.gradle.plugin.artifactory.task.BuildInfoBaseTask;
+import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -131,7 +131,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                 command.add(Commandline.quoteArgument(pathHolder.getInitScriptPath()));
             }
             TaskUtils.appendBuildInfoPropertiesArgument(command, pathHolder.getClientConfPath());
-            command.add(BuildInfoBaseTask.BUILD_INFO_TASK_NAME);
+            command.add(ArtifactoryTask.ARTIFACTORY_PUBLISH_TASK_NAME);
         }
 
         String subDirectory = gradleBuildContext.getBuildScript();
