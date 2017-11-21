@@ -42,7 +42,7 @@ import org.joda.time.DateTime;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.jfrog.bamboo.util.ConstantValues.*;
@@ -109,17 +109,22 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
     }
 
     @NotNull
-    public Map<String, String> getPasswordsMap(AbstractBuildContext buildContext) {
-        HashMap<String, String> result = new HashMap<>();
+    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext buildContext) {
+        String password = getDeployerPassword(buildContext);
+        if (password != null) {
+            command.add("-D" + clientConf.publisher.getPrefix() + "password=" + password);
+        }
+    }
+
+    public String getDeployerPassword(AbstractBuildContext buildContext) {
         if (serverConfig == null) {
-            return result;
+            return null;
         }
         String password = overrideParam(buildContext.getDeployerPassword(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
         if (StringUtils.isBlank(password)) {
             password = serverConfig.getPassword();
         }
-        result.put(clientConf.publisher.getPrefix() + "password", password);
-        return result;
+        return password;
     }
 
     private void setBuilderData(AbstractBuildContext buildContext, ServerConfig serverConfig,

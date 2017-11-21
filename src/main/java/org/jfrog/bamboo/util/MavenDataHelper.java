@@ -11,6 +11,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,11 +60,11 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
     }
 
     @NotNull
-    public Map<String, String> getPasswordsMap(AbstractBuildContext builder) {
+    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext builder) {
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
-        Map<String, String> passwordsMap = super.getPasswordsMap(buildContext);
+        super.addPasswordsSystemProps(command, buildContext);
         if (serverConfig == null) {
-            return passwordsMap;
+            return;
         }
         String resolutionRepo = overrideParam(buildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         if (isResolutionConfigured(buildContext, resolutionRepo)) {
@@ -75,9 +76,8 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
                 password = resolutionServerConfig.getPassword();
             }
             clientConf.resolver.setPassword(password);
-            passwordsMap.put(clientConf.resolver.getPrefix() + "password", clientConf.resolver.getPassword());
+            command.add("-D" + clientConf.resolver.getPrefix() + "password=" + clientConf.resolver.getPassword());
         }
-        return passwordsMap;
     }
 
     private boolean isResolutionConfigured(Maven3BuildContext buildContext, String resolutionRepo) {
