@@ -30,9 +30,8 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
 import org.jfrog.bamboo.util.IvyDataHelper;
 import org.jfrog.bamboo.util.PluginProperties;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
-import org.jfrog.build.api.BuildInfoConfigProperties;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,11 +117,6 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             }
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
-                environment.put(BuildInfoConfigProperties.PROP_PROPS_FILE, buildInfoPropertiesFile);
-                String deployerPassword = ivyDataHelper.getDeployerPassword(ivyBuildContext);
-                if (deployerPassword != null) {
-                    environment.put(new ArtifactoryClientConfiguration(null).publisher.getPrefix() + "password", deployerPassword);
-                }
             }
         }
         List<String> command = Lists.newArrayList(executable);
@@ -131,6 +125,8 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             command.add(Commandline.quoteArgument(ivyDependenciesDir));
             command.add("-listener");
             command.add(Commandline.quoteArgument("org.jfrog.build.extractor.listener.ArtifactoryBuildListener"));
+            TaskUtils.appendBuildInfoPropertiesArgument(command, buildInfoPropertiesFile);
+            ivyDataHelper.addPasswordsSystemProps(command, ivyBuildContext);
         }
         String buildFile = ivyBuildContext.getBuildFile();
         if (StringUtils.isNotBlank(buildFile)) {
