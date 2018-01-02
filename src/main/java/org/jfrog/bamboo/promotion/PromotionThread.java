@@ -16,6 +16,7 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.jfrog.bamboo.release.action.ReleasePromotionAction;
@@ -214,8 +215,10 @@ public class PromotionThread extends Thread {
     private JsonFactory createJsonFactory() {
         JsonFactory jsonFactory = new JsonFactory();
         ObjectMapper mapper = new ObjectMapper(jsonFactory);
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JacksonAnnotationIntrospector());
-        mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        SerializationConfig serializationConfig = mapper.getSerializationConfig()
+                .withAnnotationIntrospector(new JacksonAnnotationIntrospector())
+                .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        mapper.setSerializationConfig(serializationConfig);
         jsonFactory.setCodec(mapper);
         return jsonFactory;
     }
