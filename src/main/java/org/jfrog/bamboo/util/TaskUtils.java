@@ -20,10 +20,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -255,5 +258,28 @@ public class TaskUtils {
         } finally {
             IOUtils.closeQuietly(fis);
         }
+    }
+
+    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(GenericContext genericContext, BuildParamsOverrideManager buildParamsOverrideManager, Logger log) {
+        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
+        ServerConfig serverConfig = serverConfigManager.getServerConfigById(genericContext.getSelectedServerId());
+        if (serverConfig == null) {
+            throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
+        }
+        String username = overrideParam(serverConfigManager.substituteVariables(genericContext.getUsername()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME, buildParamsOverrideManager);
+        if (StringUtils.isBlank(username)) {
+            username = serverConfigManager.substituteVariables(serverConfig.getUsername());
+        }
+        String password = overrideParam(serverConfigManager.substituteVariables(genericContext.getPassword()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD, buildParamsOverrideManager);
+        if (StringUtils.isBlank(password)) {
+            password = serverConfigManager.substituteVariables(serverConfig.getPassword());
+        }
+        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        return new ArtifactoryDependenciesClient(serverUrl, username, password, new BuildInfoLog(log));
+    }
+
+    private static String overrideParam(String originalValue, String overrideKey, BuildParamsOverrideManager buildParamsOverrideManager) {
+        String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);
+        return overriddenValue.isEmpty() ? originalValue : overriddenValue;
     }
 }

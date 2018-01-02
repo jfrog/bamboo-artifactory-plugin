@@ -313,6 +313,19 @@
         </description>
     </preBuildAction>
 
+    <!--Deployment-->
+    <taskType key="ArtifactoryDeploymentDownloadTask" name="Artifactory Download"
+              class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentDownloadTask">
+        <description>Artifactory Download Task</description>
+        <category name="deployment"/>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/deployment/editArtifactoryDeploymentDownloadTask.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/generic/viewArtifactoryGenericResolveAction.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+    </taskType>
+
     <taskType key="artifactoryDeploymentTask" name="Artifactory Deployment"
               class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentTask">
         <description>Artifactory Deployment Task</description>
