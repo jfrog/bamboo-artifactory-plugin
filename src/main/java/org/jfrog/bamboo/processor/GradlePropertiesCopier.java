@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.processor;
 
-import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.CustomBuildProcessor;
 import com.atlassian.bamboo.build.artifact.ArtifactManager;
@@ -17,13 +16,14 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
-import org.jfrog.bamboo.release.provider.TokenDataProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+
+import static org.jfrog.bamboo.util.Utils.getTaskSecurityToken;
 
 /**
  * Copy the {@code gradle.properties} file to the artifacts folder of the build, this will be later used for detecting
@@ -42,15 +42,14 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
 
     @Override
     @NotNull
-    public BuildContext call() throws Exception {
+    public BuildContext call() {
         PlanResultKey planResultKey = buildContext.getPlanResultKey();
         BuildLogger buildLogger = buildLoggerManager.getLogger(planResultKey);
-        BuildDefinition definition = buildContext.getBuildDefinition();
         File checkoutDir = VcsHelper.getCheckoutDirectory(buildContext);
         if (checkoutDir == null) {
             return buildContext;
         }
-        List<TaskDefinition> taskDefinitions = definition.getTaskDefinitions();
+        List<TaskDefinition> taskDefinitions = buildContext.getBuildDefinition().getTaskDefinitions();
         TaskDefinition gradleDefinition = TaskDefinitionHelper.findGradleDefinition(taskDefinitions);
         if (gradleDefinition == null) {
             log.debug("Current build is not a gradle build");
@@ -59,17 +58,19 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
         if (checkoutDir.exists()) {
             GradleBuildContext gradleBuildContext = (GradleBuildContext) AbstractBuildContext.createContextFromMap(gradleDefinition.getConfiguration());
             String location = "";
-            String directory = gradleBuildContext.getBuildScript();
+            String directory = gradleBuildContext == null ? "" : gradleBuildContext.getBuildScript();
             if (StringUtils.isNotBlank(directory)) {
                 location = directory;
             }
 
             File gradleProps = new File(new File(checkoutDir, location), "gradle.properties");
             if (gradleProps.exists()) {
-                TaskDefinition def = TaskDefinitionHelper.findGradleDefinition(buildContext.getRuntimeTaskDefinitions());
-                String securityToken = buildContext.getRuntimeTaskContext()
-                    .getRuntimeContextForTask(def)
-                    .get(TokenDataProvider.SECURITY_TOKEN);
+                TaskDefinition definition = TaskDefinitionHelper.findGradleDefinition(buildContext.getRuntimeTaskDefinitions());
+                String securityToken = getTaskSecurityToken(buildContext, definition);
+                if (securityToken == null) {
+                    log.error("Security token not found");
+                    return buildContext;
+                }
 
                 ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl("gradle", false, SecureToken.createFromString(securityToken));
                 artifact.setLocation(location);
