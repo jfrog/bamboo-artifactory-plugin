@@ -105,7 +105,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
             }
-            mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext);
+            mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext, taskContext);
         }
         String subDirectory = mavenBuildContext.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(subDirectory)) {
@@ -136,7 +136,6 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
 
         try {
-            Utils.hideExternalProcessBuilderLog(taskContext);
             ExternalProcess process = processService.createExternalProcess(taskContext, processBuilder);
             process.execute();
 

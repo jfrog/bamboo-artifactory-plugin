@@ -126,7 +126,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             command.add("-listener");
             command.add(Commandline.quoteArgument("org.jfrog.build.extractor.listener.ArtifactoryBuildListener"));
             TaskUtils.appendBuildInfoPropertiesArgument(command, buildInfoPropertiesFile);
-            ivyDataHelper.addPasswordsSystemProps(command, ivyBuildContext);
+            ivyDataHelper.addPasswordsSystemProps(command, ivyBuildContext, context);
         }
         String buildFile = ivyBuildContext.getBuildFile();
         if (StringUtils.isNotBlank(buildFile)) {
@@ -159,7 +159,6 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command)
                         .env(environment);
         try {
-            Utils.hideExternalProcessBuilderLog(context);
             ExternalProcess process = processService.createExternalProcess(context, processBuilder);
             process.execute();
             if (process.getHandler() != null && !process.getHandler().succeeded()) {

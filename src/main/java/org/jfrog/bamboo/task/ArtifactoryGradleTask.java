@@ -37,7 +37,6 @@ import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
 
@@ -143,9 +142,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, gradleBuildContext, capabilityContext);
         environmentVariables.put("JAVA_HOME", jdkPath);
 
-        log.debug("Running Gradle command: " + command.toString());
-        addPasswordsSystemProps(command, gradleBuildContext);
-        Utils.hideExternalProcessBuilderLog(context);
+        addPasswordsSystemProps(command, gradleBuildContext, context);
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
         try {
@@ -274,7 +271,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     }
 
     @NotNull
-    private void addPasswordsSystemProps(List<String> command, GradleBuildContext gradleBuildContext) {
+    private void addPasswordsSystemProps(List<String> command, GradleBuildContext gradleBuildContext, @NotNull TaskContext context) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         long selectedServerId = gradleBuildContext.getArtifactoryServerId();
         if (selectedServerId == -1) {
@@ -299,5 +296,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(null);
         command.add("-D" + clientConf.resolver.getPrefix() + "password=" + serverConfig.getPassword());
         command.add("-D" + clientConf.publisher.getPrefix() + "password=" + deployerPassword);
+        // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
+        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", serverConfig.getPassword());
+        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.b", deployerPassword);
     }
 }

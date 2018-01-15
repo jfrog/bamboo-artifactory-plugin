@@ -109,10 +109,12 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
     }
 
     @NotNull
-    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext buildContext) {
+    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext buildContext, @NotNull TaskContext context) {
         String password = getDeployerPassword(buildContext);
         if (password != null) {
             command.add("-D" + clientConf.publisher.getPrefix() + "password=" + password);
+            // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
+            context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", password);
         }
     }
 

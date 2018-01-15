@@ -60,9 +60,9 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
     }
 
     @NotNull
-    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext builder) {
+    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext builder, @NotNull TaskContext context) {
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
-        super.addPasswordsSystemProps(command, buildContext);
+        super.addPasswordsSystemProps(command, buildContext, context);
         if (serverConfig == null) {
             return;
         }
@@ -77,6 +77,8 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
             }
             clientConf.resolver.setPassword(password);
             command.add("-D" + clientConf.resolver.getPrefix() + "password=" + clientConf.resolver.getPassword());
+            // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
+            context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.b", clientConf.resolver.getPassword());
         }
     }
 

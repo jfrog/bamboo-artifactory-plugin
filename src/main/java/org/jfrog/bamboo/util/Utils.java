@@ -1,16 +1,12 @@
 package org.jfrog.bamboo.util;
 
-import com.atlassian.bamboo.build.logger.NullBuildLogger;
-import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskDefinition;
-import com.atlassian.bamboo.task.TaskExecutionContext;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.release.provider.TokenDataProvider;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Properties;
 
@@ -45,20 +41,6 @@ public class Utils {
             }
         }
         return result;
-    }
-
-    public static void hideExternalProcessBuilderLog(TaskContext context) {
-        try {
-            Field buildTaskExecutionContext = context.getClass().getSuperclass().getDeclaredField("taskExecutionContext");
-            buildTaskExecutionContext.setAccessible(true);
-            TaskExecutionContext taskExecutionContext = (TaskExecutionContext)buildTaskExecutionContext.get(context);
-            taskExecutionContext.getClass().getDeclaredField("buildLogger");
-            Field buildLoggerField = taskExecutionContext.getClass().getDeclaredField("buildLogger");
-            buildLoggerField.setAccessible(true);
-            buildLoggerField.set(taskExecutionContext, new NullBuildLogger());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
