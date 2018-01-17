@@ -42,7 +42,7 @@ import org.joda.time.DateTime;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.jfrog.bamboo.util.ConstantValues.*;
@@ -63,21 +63,25 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         BuildContext buildContext = context.getBuildContext();
         super.init(buildParamsOverrideManager, buildContext);
         long selectedServerId = abstractBuildContext.getArtifactoryServerId();
-        if (selectedServerId != -1) {
-            serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
-            if (serverConfig == null) {
-                String warning =
-                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
-                        ") but could not find a matching configuration. Build info collection is disabled.";
-                context.getBuildLogger().addErrorLogEntry(warning);
-                log.warn(warning);
-                return;
-            }
-            clientConf = new ArtifactoryClientConfiguration(new NullLog());
+        if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
             setBuilderData(abstractBuildContext, serverConfig, clientConf, envVarAccessor.getEnvironment(context),
                     envVarAccessor.getEnvironment(), artifactoryPluginVersion);
             setDataToContext(buildContext, abstractBuildContext);
         }
+    }
+
+    protected boolean isServerConfigured(TaskContext context, long selectedServerId) {
+        serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        if (serverConfig == null) {
+            String warning =
+                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
+                            ") but could not find a matching configuration. Build info collection is disabled.";
+            context.getBuildLogger().addErrorLogEntry(warning);
+            log.warn(warning);
+            return false;
+        }
+        clientConf = new ArtifactoryClientConfiguration(new NullLog());
+        return true;
     }
 
     private void setDataToContext(BuildContext context, AbstractBuildContext buildContext) {
@@ -105,17 +109,24 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
     }
 
     @NotNull
-    public Map<String, String> getPasswordsMap(AbstractBuildContext buildContext) {
-        HashMap<String, String> result = new HashMap<>();
+    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext buildContext, @NotNull TaskContext context) {
+        String password = getDeployerPassword(buildContext);
+        if (password != null) {
+            command.add("-D" + clientConf.publisher.getPrefix() + "password=" + password);
+            // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
+            context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", password);
+        }
+    }
+
+    public String getDeployerPassword(AbstractBuildContext buildContext) {
         if (serverConfig == null) {
-            return result;
+            return null;
         }
         String password = overrideParam(buildContext.getDeployerPassword(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
         if (StringUtils.isBlank(password)) {
             password = serverConfig.getPassword();
         }
-        result.put(clientConf.publisher.getPrefix() + "password", password);
-        return result;
+        return password;
     }
 
     private void setBuilderData(AbstractBuildContext buildContext, ServerConfig serverConfig,

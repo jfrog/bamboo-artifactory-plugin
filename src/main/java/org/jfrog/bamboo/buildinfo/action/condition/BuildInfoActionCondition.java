@@ -21,8 +21,10 @@ import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.resultsummary.ResultsSummaryManager;
 import com.atlassian.plugin.PluginParseException;
 import com.atlassian.plugin.web.Condition;
+import com.atlassian.bamboo.build.Job;
 import org.jfrog.bamboo.util.ConstantValues;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,30 +41,23 @@ public class BuildInfoActionCondition implements Condition {
     }
 
     public boolean shouldDisplay(Map<String, Object> context) {
-        String planKey = context.get("planKey") == null ? null
-                : (String) context.get("planKey");
-        String buildNumber = context.get("buildNumber") == null ? null
-                : (String) context.get("buildNumber");
-        if (planKey == null || buildNumber == null) {
+        String buildNumber = context.get("buildNumber") == null ? null : (String)context.get("buildNumber");
+        if (buildNumber == null) {
             return false;
         }
 
-        PlanIdentifier planIdentifierForPermissionCheckingByKey = planManager.getPlanIdentifierForPermissionCheckingByKey(planKey);
-        if (planIdentifierForPermissionCheckingByKey == null) {
-            return false;
-        }
-        Plan plan = planManager.getPlanByKey(planIdentifierForPermissionCheckingByKey.getPlanKey());
-        if (plan == null) {
-            return false;
-        }
-        PlanResultKey planResultKey = PlanKeys.getPlanResultKey(plan.getPlanKey(), Integer.parseInt(buildNumber));
-        ResultsSummary resultsSummary = resultsSummaryManager.getResultsSummary(planResultKey);
-        if (resultsSummary == null) {
-            return false;
-        } else if (resultsSummary.isSuccessful()) {
-            Map<String, String> customData = resultsSummary.getCustomBuildData();
-            return customData.containsKey(ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM) &&
-                    Boolean.valueOf(customData.get(ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM));
+        List<Job> planJobs = planManager.getAllPlans(Job.class);
+        for (Job job : planJobs) {
+            PlanKey planKey = job.getPlanKey();
+            PlanResultKey planResultKey = PlanKeys.getPlanResultKey(planKey, Integer.parseInt(buildNumber));
+            ResultsSummary resultsSummary = resultsSummaryManager.getResultsSummary(planResultKey);
+
+            if (resultsSummary != null && resultsSummary.isSuccessful()) {
+                String buildInfoActivated = resultsSummary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM);
+                if (Boolean.valueOf(buildInfoActivated)) {
+                    return true;
+                }
+            }
         }
         return false;
     }

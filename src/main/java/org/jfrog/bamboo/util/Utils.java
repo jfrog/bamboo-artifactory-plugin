@@ -1,7 +1,11 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
+import com.atlassian.bamboo.v2.build.BuildContext;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
+import org.jfrog.bamboo.release.provider.TokenDataProvider;
 
 import java.util.Map;
 import java.util.Properties;
@@ -39,4 +43,19 @@ public class Utils {
         return result;
     }
 
+    /**
+     * The security token is passed for remote agents to be able to copy the maven build-info.json
+     * and gradle gradle.properties files so the release management will be able to read them.
+     * @param buildContext Bamboo's build context
+     * @param runtimeTaskDefinition Maven or Gradle runtime task definition
+     * @return the security token
+     */
+    public static String getTaskSecurityToken(BuildContext buildContext, TaskDefinition runtimeTaskDefinition) {
+        for (RuntimeTaskDefinition task : buildContext.getRuntimeTaskDefinitions()) {
+            if (task.equals(runtimeTaskDefinition)) {
+                return task.getRuntimeContext().get(TokenDataProvider.SECURITY_TOKEN);
+            }
+        }
+        return null;
+    }
 }

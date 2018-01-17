@@ -30,9 +30,11 @@ import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.MavenDataHelper;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +78,10 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         Maven3BuildContext mavenBuildContext = createBuildContext(taskContext);
         initEnvironmentVariables(mavenBuildContext);
 
-        long serverId = mavenBuildContext.getArtifactoryServerId();
+        long serverId = mavenBuildContext.getResolutionArtifactoryServerId();
+        if (serverId == -1) {
+            serverId = mavenBuildContext.getArtifactoryServerId();
+        }
         File rootDirectory = taskContext.getRootDirectory();
         try {
             mavenDependenciesDir = extractMaven3Dependencies(rootDirectory, serverId, mavenBuildContext);
@@ -88,6 +93,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             log.error("Error occurred while preparing Artifactory Maven Runner dependencies. " +
                     "Build Info support is disabled.", e);
         }
+        List<String> systemProps = new ArrayList<>();
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
             ArtifactoryBuildInfoDataHelper mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
                     mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
@@ -99,7 +105,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
             }
-            environmentVariables.putAll(mavenDataHelper.getPasswordsMap(mavenBuildContext));
+            mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext, taskContext);
         }
         String subDirectory = mavenBuildContext.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(subDirectory)) {
@@ -124,6 +130,8 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         appendAdditionalMavenParameters(command, mavenBuildContext);
 
         log.debug("Running maven command: " + command.toString());
+        command.addAll(systemProps);
+
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
 

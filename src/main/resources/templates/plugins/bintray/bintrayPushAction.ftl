@@ -11,7 +11,7 @@
         <h2>
             <img style="margin-right: 10px; margin-bottom: 5px" width="48px" height="48px"
                  src="${baseUrl}/download/resources/${groupId}.${artifactId}/bintray.png"/>
-            Push to Bintray
+            Push to Bintray (deprecated)
         </h2>
     </div>
 [#if pushing]

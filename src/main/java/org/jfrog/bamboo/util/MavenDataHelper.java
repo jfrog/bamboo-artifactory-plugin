@@ -11,6 +11,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,6 +25,13 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
                            AbstractBuildContext buildContext, EnvironmentVariableAccessor envVarAccessor,
                            String artifactoryPluginVersion) {
         super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion);
+        long selectedServerId = buildContext.getArtifactoryServerId();
+        if (selectedServerId == -1) {
+            selectedServerId = ((Maven3BuildContext) buildContext).getResolutionArtifactoryServerId();
+            if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
+                setClientData(buildContext, clientConf, serverConfig, envVarAccessor.getEnvironment(context));
+            }
+        }
     }
 
     @Override
@@ -52,11 +60,11 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
     }
 
     @NotNull
-    public Map<String, String> getPasswordsMap(AbstractBuildContext builder) {
+    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext builder, @NotNull TaskContext context) {
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
-        Map<String, String> passwordsMap = super.getPasswordsMap(buildContext);
+        super.addPasswordsSystemProps(command, buildContext, context);
         if (serverConfig == null) {
-            return passwordsMap;
+            return;
         }
         String resolutionRepo = overrideParam(buildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         if (isResolutionConfigured(buildContext, resolutionRepo)) {
@@ -68,9 +76,10 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
                 password = resolutionServerConfig.getPassword();
             }
             clientConf.resolver.setPassword(password);
-            passwordsMap.put(clientConf.resolver.getPrefix() + "password", clientConf.resolver.getPassword());
+            command.add("-D" + clientConf.resolver.getPrefix() + "password=" + clientConf.resolver.getPassword());
+            // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
+            context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.b", clientConf.resolver.getPassword());
         }
-        return passwordsMap;
     }
 
     private boolean isResolutionConfigured(Maven3BuildContext buildContext, String resolutionRepo) {

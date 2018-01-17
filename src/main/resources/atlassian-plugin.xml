@@ -132,6 +132,7 @@
         <resource type="freemarker" name="view"
                   location="templates/plugins/generic/viewArtifactoryGenericBuildAction.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
     <!--Generic build resolve task-->
@@ -145,6 +146,7 @@
         <resource type="freemarker" name="view"
                   location="templates/plugins/generic/viewArtifactoryGenericResolveAction.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
     <!-- Maven 3 task -->
@@ -162,6 +164,7 @@
                   location="/templates/plugins/task/viewArtifactoryMaven3Builder.ftl"/>
         <resource type="download" name="icon"
                   location="images/artifactory-maven-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
     <!--Gradle task-->
@@ -179,6 +182,7 @@
                   location="/templates/plugins/task/viewArtifactoryGradleBuilder.ftl"/>
         <resource type="download" name="icon"
                   location="images/artifactory-gradle-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
     <!--build info-->
@@ -279,6 +283,7 @@
         <resource type="freemarker" name="edit" location="/templates/plugins/task/editArtifactoryIvyBuilder.ftl"/>
         <resource type="freemarker" name="view" location="/templates/plugins/task/viewArtifactoryIvyBuilder.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-ivy-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
     <buildProcessor key="artifactoryChainCompleteAction" name="Artifactory Release Management Staging"
@@ -313,6 +318,20 @@
         </description>
     </preBuildAction>
 
+    <!--Deployment-->
+    <taskType key="ArtifactoryDeploymentDownloadTask" name="Artifactory Download"
+              class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentDownloadTask">
+        <description>Artifactory Download Task</description>
+        <category name="deployment"/>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/deployment/editArtifactoryDeploymentDownloadTask.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/generic/viewArtifactoryGenericResolveAction.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
     <taskType key="artifactoryDeploymentTask" name="Artifactory Deployment"
               class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentTask">
         <description>Artifactory Deployment Task</description>
@@ -323,6 +342,7 @@
         <resource type="freemarker" name="view"
                   location="templates/plugins/deployment/viewArtifactoryDeploymentAction.ftl"/>
         <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
     <component-import key="taskContextHelper" interface="com.atlassian.bamboo.task.TaskContextHelperService"/>

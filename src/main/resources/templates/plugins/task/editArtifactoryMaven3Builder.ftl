@@ -98,7 +98,7 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
     [#include 'vcsConfiguration.ftl'/]
 [/@ui.bambooSection]
 
-[@ww.checkbox labelKey="Bintray configuration" name="bintrayConfiguration" toggle='true'/]
+[@ww.checkbox labelKey="Bintray configuration (deprecated)" name="bintrayConfiguration" toggle='true'/]
 
 [@ui.bambooSection dependsOn="bintrayConfiguration"  showOn=true]
     [@ww.textfield name="bintray.subject" labelKey="artifactory.task.pushToBintray.subject"/]

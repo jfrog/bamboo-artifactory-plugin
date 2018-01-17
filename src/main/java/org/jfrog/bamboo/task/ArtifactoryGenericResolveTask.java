@@ -7,8 +7,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.admin.ServerConfig;
-import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
@@ -25,16 +23,15 @@ import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 import java.io.IOException;
 import java.util.List;
 
+import static org.jfrog.bamboo.util.TaskUtils.getArtifactoryDependenciesClient;
+
 /**
  * @author Lior Hasson
  */
 public class ArtifactoryGenericResolveTask implements TaskType {
 
     private static final Logger log = Logger.getLogger(ArtifactoryGenericResolveTask.class);
-
-    private BuildLogger logger;
     private BuildParamsOverrideManager buildParamsOverrideManager;
-
 
     public ArtifactoryGenericResolveTask(CustomVariableContext customVariableContext) {
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
@@ -42,23 +39,24 @@ public class ArtifactoryGenericResolveTask implements TaskType {
 
     @NotNull
     @Override
-    public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
-        logger = taskContext.getBuildLogger();
+    public TaskResult execute(@NotNull TaskContext taskContext) {
+        BuildLogger logger = taskContext.getBuildLogger();
 
         List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
-        /**
+        /*
          *In case generic deploy exists in the user job, and the publish build info flag is on, we need to
          * capture all the resolution data for the build info, and prepare it to the deploy task.
          */
-        boolean buildinfoFlag = false;
+        boolean buildInfoFlag = false;
         TaskDefinition genericDeployDefinition = TaskDefinitionHelper.findGenericDeployDefinition(taskDefinitions);
 
-        if (genericDeployDefinition != null)
-            buildinfoFlag = Boolean.valueOf(genericDeployDefinition.getConfiguration().get("artifactory.generic.publishBuildInfo"));
+        if (genericDeployDefinition != null) {
+            buildInfoFlag = Boolean.valueOf(genericDeployDefinition.getConfiguration().get("artifactory.generic.publishBuildInfo"));
+        }
 
         GenericContext genericContext = new GenericContext(taskContext.getConfigurationMap());
 
-        ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext);
+        ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext, buildParamsOverrideManager, log);
 
         try {
             org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
@@ -80,8 +78,8 @@ public class ArtifactoryGenericResolveTask implements TaskType {
                 buildDependencies = resolver.retrieveBuildDependencies();
                 dependencies = resolver.retrievePublishedDependencies();
             }
-            if (buildinfoFlag) {
-                /**
+            if (buildInfoFlag) {
+                /*
                  * Add dependencies for the Generic deploy task, if exists!
                  * */
                 addDependenciesToContext(taskContext, buildDependencies, dependencies);
@@ -107,28 +105,5 @@ public class ArtifactoryGenericResolveTask implements TaskType {
 
         taskContext.getBuildContext().getParentBuildContext().getBuildResult().
                 getCustomBuildData().put("genericJson", json);
-    }
-
-    private ArtifactoryDependenciesClient getArtifactoryDependenciesClient(GenericContext genericContext) {
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(genericContext.getSelectedServerId());
-        if (serverConfig == null) {
-            throw new IllegalArgumentException("Could not find Artifactpry server. Please check the Artifactory server in the task configuration.");
-        }
-        String username = overrideParam(serverConfigManager.substituteVariables(genericContext.getUsername()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME);
-        if (StringUtils.isBlank(username)) {
-            username = serverConfigManager.substituteVariables(serverConfig.getUsername());
-        }
-        String password = overrideParam(serverConfigManager.substituteVariables(genericContext.getPassword()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD);
-        if (StringUtils.isBlank(password)) {
-            password = serverConfigManager.substituteVariables(serverConfig.getPassword());
-        }
-        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-        return new ArtifactoryDependenciesClient(serverUrl, username, password, new BuildInfoLog(log));
-    }
-
-    public String overrideParam(String originalValue, String overrideKey) {
-        String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);
-        return overriddenValue.isEmpty() ? originalValue : overriddenValue;
     }
 }

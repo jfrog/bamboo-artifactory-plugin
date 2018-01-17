@@ -17,7 +17,7 @@
 list=uiConfigBean.getExecutableLabels('ivy') extraUtility=addExecutableLink required='true' /]
 [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryIvyBuilder.environmentVariables' /]
 [@ww.textfield labelKey='artifactory.task.ivy.antOpts' name='builder.artifactoryIvyBuilder.antOpts'/]
-[@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryIvyBuilder.workingSubDirectory' helpUri='working-directory.ftl' /]
+[@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryIvyBuilder.workingSubDirectory' /]
 
 [@ww.select name='builder.artifactoryIvyBuilder.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
 listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
@@ -71,7 +71,7 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
     [#include 'editBlackDuckBuilderSnippet.ftl'/]
 [/@ui.bambooSection]
 
-[@ww.checkbox labelKey="Bintray configuration" name="bintrayConfiguration" toggle='true'/]
+[@ww.checkbox labelKey="Bintray configuration (Deprecated)" name="bintrayConfiguration" toggle='true'/]
 
 [@ui.bambooSection dependsOn="bintrayConfiguration"  showOn=true]
     [@ww.textfield name="bintray.subject" labelKey="artifactory.task.pushToBintray.subject"/]

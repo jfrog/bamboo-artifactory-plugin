@@ -31,7 +31,7 @@ import org.jfrog.bamboo.context.IvyBuildContext;
 import org.jfrog.bamboo.util.IvyDataHelper;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.bamboo.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,9 +107,9 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         }
         Map<String, String> globalEnv = environmentVariableAccessor.getEnvironment();
         Map<String, String> environment = Maps.newHashMap(globalEnv);
+        ArtifactoryBuildInfoDataHelper ivyDataHelper =
+                new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
         if (StringUtils.isNotBlank(ivyDependenciesDir)) {
-            ArtifactoryBuildInfoDataHelper ivyDataHelper =
-                    new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
             try {
                 buildInfoPropertiesFile = ivyDataHelper.createBuildInfoPropsFileAndGetItsPath();
             } catch (IOException e) {
@@ -117,8 +117,6 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             }
             if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
                 activateBuildInfoRecording = true;
-                environment.put(BuildInfoConfigProperties.PROP_PROPS_FILE, buildInfoPropertiesFile);
-                environment.putAll(ivyDataHelper.getPasswordsMap(ivyBuildContext));
             }
         }
         List<String> command = Lists.newArrayList(executable);
@@ -128,6 +126,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             command.add("-listener");
             command.add(Commandline.quoteArgument("org.jfrog.build.extractor.listener.ArtifactoryBuildListener"));
             TaskUtils.appendBuildInfoPropertiesArgument(command, buildInfoPropertiesFile);
+            ivyDataHelper.addPasswordsSystemProps(command, ivyBuildContext, context);
         }
         String buildFile = ivyBuildContext.getBuildFile();
         if (StringUtils.isNotBlank(buildFile)) {
@@ -155,8 +154,6 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         // Override the JAVA_HOME according to the build configuration:
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, ivyBuildContext, capabilityContext);
         environment.put("JAVA_HOME", jdkPath);
-
-        log.debug("Running Ant command: " + command.toString());
 
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command)

@@ -300,14 +300,25 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     /**
-     * Reset the build context configuration back to the default values if no server id was selected
+     * Reset the build context configuration of the deployer back to the default values if no server id was selected
      *
      * @param buildContext The build context which holds the environment for the configuration.
      */
-    protected void resetConfigIfNeeded(AbstractBuildContext buildContext) {
+    protected void resetDeployerConfigIfNeeded(AbstractBuildContext buildContext) {
         long serverId = buildContext.getArtifactoryServerId();
         if (serverId == -1) {
-            buildContext.resetContextToDefault();
+            buildContext.resetDeployerContextToDefault();
+        }
+    }
+
+    /**
+     * Reset the build context configuration of the resolver back to the default values if no server id was selected
+     * @param buildContext The build context which holds the environment for the configuration.
+     */
+    protected void resetResolverConfigIfNeeded(AbstractBuildContext buildContext) {
+        long serverId = buildContext.getArtifactoryServerId();;
+        if (serverId == -1) {
+            buildContext.resetResolverContextToDefault();
         }
     }
 

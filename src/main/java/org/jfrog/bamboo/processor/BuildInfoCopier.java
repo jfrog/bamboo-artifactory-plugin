@@ -17,7 +17,6 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.release.provider.TokenDataProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 
@@ -28,6 +27,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
+
+import static org.jfrog.bamboo.util.Utils.getTaskSecurityToken;
 
 /**
  * Copy the {@code build-info.json} file to the artifacts folder of the build, this will be later used for parsing the
@@ -69,9 +70,11 @@ public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildPro
                     "build: " + buildContext.getPlanResultKey().getKey()));
 
             TaskDefinition definition = TaskDefinitionHelper.findMavenDefinition(buildContext.getRuntimeTaskDefinitions());
-            String securityToken = buildContext.getRuntimeTaskContext()
-                    .getRuntimeContextForTask(definition)
-                    .get(TokenDataProvider.SECURITY_TOKEN);
+            String securityToken = getTaskSecurityToken(buildContext, definition);
+            if (securityToken == null) {
+                log.error("Security token not found");
+                return buildContext;
+            }
 
             ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl("buildInfo", false, SecureToken.createFromString(securityToken));
             File buildInfoZip = createBuildInfoZip(buildInfo);

@@ -38,13 +38,12 @@ import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
-import org.jfrog.gradle.plugin.artifactory.task.BuildInfoBaseTask;
+import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarFile;
@@ -131,7 +130,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                 command.add(Commandline.quoteArgument(pathHolder.getInitScriptPath()));
             }
             TaskUtils.appendBuildInfoPropertiesArgument(command, pathHolder.getClientConfPath());
-            command.add(BuildInfoBaseTask.BUILD_INFO_TASK_NAME);
+            command.add(ArtifactoryTask.ARTIFACTORY_PUBLISH_TASK_NAME);
         }
 
         String subDirectory = gradleBuildContext.getBuildScript();
@@ -142,9 +141,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         // Override the JAVA_HOME according to the build configuration:
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, gradleBuildContext, capabilityContext);
         environmentVariables.put("JAVA_HOME", jdkPath);
-        environmentVariables.putAll(getPasswordsMap(gradleBuildContext));
 
-        log.debug("Running Gradle command: " + command.toString());
+        addPasswordsSystemProps(command, gradleBuildContext, context);
         ExternalProcessBuilder processBuilder =
                 new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
         try {
@@ -273,12 +271,11 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     }
 
     @NotNull
-    private Map<String, String> getPasswordsMap(GradleBuildContext gradleBuildContext) {
-        Map<String, String> result = new HashMap<>();
+    private void addPasswordsSystemProps(List<String> command, GradleBuildContext gradleBuildContext, @NotNull TaskContext context) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         long selectedServerId = gradleBuildContext.getArtifactoryServerId();
         if (selectedServerId == -1) {
-            return result;
+            return;
         }
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
         if (serverConfig == null) {
@@ -286,7 +283,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
                     "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
                             ") but could not find a matching configuration. Build info collection is disabled.";
             log.warn(warningMessage);
-            return result;
+            return;
         }
         String deployerPassword =
                 buildParamsOverrideManager.getOverrideValue(BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
@@ -297,8 +294,10 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             deployerPassword = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
         ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(null);
-        result.put(clientConf.resolver.getPrefix() + "password", serverConfig.getPassword());
-        result.put(clientConf.publisher.getPrefix() + "password", deployerPassword);
-        return result;
+        command.add("-D" + clientConf.resolver.getPrefix() + "password=" + serverConfig.getPassword());
+        command.add("-D" + clientConf.publisher.getPrefix() + "password=" + deployerPassword);
+        // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
+        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", serverConfig.getPassword());
+        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.b", deployerPassword);
     }
 }
