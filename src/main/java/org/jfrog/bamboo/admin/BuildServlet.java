@@ -19,6 +19,8 @@ package org.jfrog.bamboo.admin;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.plan.PlanManager;
+import com.atlassian.sal.api.user.UserManager;
+import com.atlassian.sal.api.user.UserProfile;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
@@ -41,11 +43,12 @@ import java.io.PrintWriter;
 public class BuildServlet extends HttpServlet {
 
     private Logger log = Logger.getLogger(BuildServlet.class);
-
     private PlanManager planManager;
+    private final UserManager userManager;
 
-    public BuildServlet() {
+    public BuildServlet(UserManager userManager) {
         planManager = (PlanManager) ContainerManager.getComponent("planManager");
+        this.userManager = userManager;
     }
 
     /**
@@ -54,6 +57,11 @@ public class BuildServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        UserProfile profile = userManager.getRemoteUser(req);
+        if (profile == null || profile.getUserKey() == null) {
+            resp.sendError(HttpStatus.SC_NOT_FOUND);
+            return;
+        }
         String buildKeyValue = req.getParameter(ConstantValues.BUILD_SERVLET_KEY_PARAM);
         if (StringUtils.isBlank(buildKeyValue)) {
             resp.sendError(HttpStatus.SC_BAD_REQUEST, "Please provide a build key.");

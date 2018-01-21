@@ -21,10 +21,9 @@ import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.resultsummary.ResultsSummaryManager;
 import com.atlassian.plugin.PluginParseException;
 import com.atlassian.plugin.web.Condition;
-import com.atlassian.bamboo.build.Job;
+import org.apache.commons.lang3.StringUtils;
 import org.jfrog.bamboo.util.ConstantValues;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,36 +33,23 @@ import java.util.Map;
  */
 public class BuildInfoActionCondition implements Condition {
 
-    private PlanManager planManager;
     private ResultsSummaryManager resultsSummaryManager;
 
     public void init(Map<String, String> params) throws PluginParseException {
     }
 
     public boolean shouldDisplay(Map<String, Object> context) {
-        String buildNumber = context.get("buildNumber") == null ? null : (String)context.get("buildNumber");
-        if (buildNumber == null) {
+        final String buildKey = StringUtils.defaultString((String) context.get("planKey"), (String) context.get("buildKey"));
+        String buildNumber = (String) context.get("buildNumber");
+        if (buildKey == null || buildNumber == null) {
             return false;
         }
 
-        List<Job> planJobs = planManager.getAllPlans(Job.class);
-        for (Job job : planJobs) {
-            PlanKey planKey = job.getPlanKey();
-            PlanResultKey planResultKey = PlanKeys.getPlanResultKey(planKey, Integer.parseInt(buildNumber));
-            ResultsSummary resultsSummary = resultsSummaryManager.getResultsSummary(planResultKey);
-
-            if (resultsSummary != null && resultsSummary.isSuccessful()) {
-                String buildInfoActivated = resultsSummary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM);
-                if (Boolean.valueOf(buildInfoActivated)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public void setPlanManager(PlanManager planManager) {
-        this.planManager = planManager;
+        PlanResultKey planResultKey = PlanKeys.getPlanResultKey(PlanKeys.getPlanKey(buildKey), Integer.parseInt(buildNumber));
+        ResultsSummary resultsSummary = resultsSummaryManager.getResultsSummary(planResultKey);
+        return resultsSummary != null &&
+                resultsSummary.isSuccessful() &&
+                Boolean.valueOf(resultsSummary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM));
     }
 
     public void setResultsSummaryManager(ResultsSummaryManager resultsSummaryManager) {

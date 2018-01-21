@@ -16,6 +16,8 @@
 
 package org.jfrog.bamboo.admin;
 
+import com.atlassian.sal.api.user.UserManager;
+import com.atlassian.sal.api.user.UserProfile;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -41,21 +43,27 @@ import java.util.List;
 public class ArtifactoryConfigServlet extends HttpServlet {
 
     private Logger log = Logger.getLogger(ArtifactoryConfigServlet.class);
-
     private ServerConfigManager serverConfigManager;
+    private final UserManager userManager;
 
-    public ArtifactoryConfigServlet(ServerConfigManager serverConfigManager) {
+    public ArtifactoryConfigServlet(ServerConfigManager serverConfigManager, UserManager userManager) {
+        this.userManager = userManager;
         this.serverConfigManager = serverConfigManager;
     }
 
     /**
      * Requires to be provided with a server ID (param name is serverId).<br> If given with the parameter
      * "deployableRepos=true", it will return the list of deployable repositories for the server with the given ID.<br>
-     * If no other parameter is provided, the server configuration of the given ID will be returned.<br> All successful
-     * responses are returned in JSON format.
+     * All successful responses are returned in JSON format.
      */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        UserProfile profile = userManager.getRemoteUser(req);
+        if (profile == null || profile.getUserKey() == null) {
+            resp.sendError(HttpStatus.SC_NOT_FOUND);
+            return;
+        }
+
         String serverIdValue = req.getParameter("serverId");
         if (StringUtils.isBlank(serverIdValue)) {
             resp.sendError(HttpStatus.SC_BAD_REQUEST, "Please provide a server ID.");
@@ -91,7 +99,7 @@ public class ArtifactoryConfigServlet extends HttpServlet {
             List<String> resolvingRepoList = serverConfigManager.getResolvingRepos(serverId, req, resp);
             returnJsonObject(resp, resolvingRepoList);
         } else {
-            returnJsonObject(resp, serverConfig);
+            resp.sendError(HttpStatus.SC_BAD_REQUEST, "Please provide deployableRepos or resolvingRepos parameters.");
         }
     }
 
