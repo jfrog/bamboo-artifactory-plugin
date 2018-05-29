@@ -6,6 +6,9 @@ import com.atlassian.bamboo.v2.build.agent.capability.ExecutablePathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.List;
+
 public class GradleCapabilityHelper extends AbstractHomeDirectoryCapabilityDefaultsHelper {
     private static final String GRADLE_HOME_POSIX = "/usr/share/gradle/";
     private static final String GRADLE_EXECUTABLE_NAME = "gradle";
@@ -26,6 +29,13 @@ public class GradleCapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @Override
     protected String getPosixHome() {
         return GRADLE_HOME_POSIX;
+    }
+
+    @NotNull
+    @Override
+    protected List<String> getPosixHomes() {
+        String posixHome = this.getPosixHome();
+        return posixHome != null ? Collections.singletonList(posixHome) : Collections.emptyList();
     }
 
     @Override

@@ -57,6 +57,8 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
             return buildContext;
         }
 
+        // Disabling ACTIVATE_RELEASE_MANAGEMENT to avoid caching this property for the next build
+        configuration.put(AbstractBuildContext.ACTIVATE_RELEASE_MANAGEMENT, "");
         ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger,
                 customVariableContext, credentialsAccessor);
         if (provider == null) {

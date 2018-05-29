@@ -5,6 +5,9 @@ import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.atlassian.bamboo.v2.build.agent.capability.ExecutablePathUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author Tomer Cohen
  */
@@ -28,6 +31,13 @@ public class IvyCapabilityHelper extends AbstractHomeDirectoryCapabilityDefaults
     @Override
     protected String getPosixHome() {
         return POSIX_HOME;
+    }
+
+    @NotNull
+    @Override
+    protected List<String> getPosixHomes() {
+        String posixHome = this.getPosixHome();
+        return posixHome != null ? Collections.singletonList(posixHome) : Collections.emptyList();
     }
 
     @NotNull

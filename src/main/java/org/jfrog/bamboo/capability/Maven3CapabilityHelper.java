@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -47,6 +48,13 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @Override
     protected String getPosixHome() {
         return MAVEN3_HOME_POSIX;
+    }
+
+    @NotNull
+    @Override
+    protected List<String> getPosixHomes() {
+        String posixHome = this.getPosixHome();
+        return posixHome != null ? Collections.singletonList(posixHome) : Collections.emptyList();
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanKeys;
+import com.atlassian.bamboo.plan.cache.ImmutableChain;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
@@ -42,8 +43,6 @@ import org.jfrog.build.api.release.Promotion;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -142,18 +141,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     private int findLatestBuildNumberWithBuildInfo() {
-        List<ResultsSummary> summaries = resultsSummaryManager.getResultSummariesForPlan(getMutablePlan(), 0, 100);
-        Collections.sort(summaries, new Comparator<ResultsSummary>() {
-            @Override
-            public int compare(ResultsSummary o1, ResultsSummary o2) {
-                if (o1.getBuildNumber() > o2.getBuildNumber()) {
-                    return -1;
-                } else if (o2.getBuildNumber() < o2.getBuildNumber()) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
+        List <ResultsSummary> summaries = resultsSummaryManager.getLastNResultsSummaries(getMutablePlan(), 100);
         for (ResultsSummary summary : summaries) {
             if (summary.getBuildState().equals(BuildState.SUCCESS)) {
                 boolean biActive = Boolean.parseBoolean(
@@ -268,8 +256,9 @@ public class ReleasePromotionAction extends ViewBuildResults {
 
         helper.addVersionFieldsToConfiguration(parameters, configuration, getModuleVersionConfiguration(),
                 definition.getConfiguration());
-            planExecutionManager
-                .startManualExecution(getPlanJob().getParent(), user, configuration, Maps.<String, String>newHashMap());
+
+        final ImmutableChain chain = cachedPlanManager.getPlanByKey(getPlanJob().getParent().getPlanKey(), ImmutableChain.class);
+        planExecutionManager.startManualExecution(chain, user, configuration, Maps.newHashMap());
         return SUCCESS;
     }
 
