@@ -80,10 +80,6 @@ public class ArtifactoryGenericDeployTask implements TaskType {
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         logger = taskContext.getBuildLogger();
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + getArtifactoryVersion());
-        if (!taskContext.isFinalising()) {
-            log.error(logger.addErrorLogEntry("Artifactory Generic Deploy Task must run as a final Task!"));
-            return TaskResultBuilder.newBuilder(taskContext).failed().build();
-        }
         BuildContext context = taskContext.getBuildContext();
         CurrentBuildResult result = context.getBuildResult();
         // if build wasn't a success don't do anything
