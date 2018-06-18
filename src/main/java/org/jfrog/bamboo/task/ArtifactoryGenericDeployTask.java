@@ -31,7 +31,7 @@ import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.builder.ModuleBuilder;
-import org.jfrog.build.client.DeployDetails;
+import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.extractor.clientConfiguration.util.PublishedItemsHelper;
@@ -195,7 +195,12 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(ArtifactoryGenericDeployTask.log, taskContext.getBuildLogger()));
         Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
         buildInfoHelper.addCommonProperties(buildProperties);
-        List<Artifact> artifacts = specsHelper.uploadArtifactsBySpec(spec, sourceCodeDirectory, buildProperties, client);
+        List<Artifact> artifacts;
+        try {
+            artifacts = specsHelper.uploadArtifactsBySpec(spec, sourceCodeDirectory, buildProperties, client);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
 
         ModuleBuilder moduleBuilder =
                 new ModuleBuilder().id(taskContext.getBuildContext().getPlanName() + ":" + taskContext.getBuildContext().getBuildNumber())

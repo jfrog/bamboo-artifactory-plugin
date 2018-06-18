@@ -49,6 +49,9 @@ public class BuildInfoLog implements Log {
     }
 
     public void warn(String message) {
+        if (this.buildLogger != null) {
+            this.buildLogger.addBuildLogEntry(message);
+        }
         log.warn(message);
     }
 

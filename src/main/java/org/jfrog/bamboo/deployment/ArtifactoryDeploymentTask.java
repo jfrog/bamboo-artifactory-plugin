@@ -18,7 +18,7 @@ import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.deployment.FilesCollector;
 import org.jfrog.build.api.util.FileChecksumCalculator;
-import org.jfrog.build.client.DeployDetails;
+import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.File;

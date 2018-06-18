@@ -149,6 +149,20 @@
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
+    <!-- Xray scan task -->
+    <taskType key="artifactoryXrayScanTask" name="Artifactory Xray Scan"
+              class="org.jfrog.bamboo.task.ArtifactoryXrayScanTask">
+        <description>Artifactory Xray Scan Task</description>
+        <category name="deployment"/>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryXrayScanConfiguration"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/xray/editArtifactoryXrayScanAction.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/xray/viewArtifactoryXrayScanAction.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-xray-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
     <!-- Maven 3 task -->
     <taskType key="maven3Task" name="Artifactory Maven 3"
                 class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">
