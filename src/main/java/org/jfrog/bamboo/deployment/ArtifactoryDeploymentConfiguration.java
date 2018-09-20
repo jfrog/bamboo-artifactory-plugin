@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -20,16 +21,22 @@ import java.util.Set;
 public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfiguration {
 
     public static final String DEPLOYMENT_PREFIX = "artifactory.deployment.";
-    public static final String DEPLOYMENT_REPOSITORY = "deploymentRepository";
+    public static final String LEGACY_DEPLOYMENT_REPOSITORY = "deploymentRepository";
     public static final String PASSWORD = "password";
     public static final String USERNAME = "username";
+    public static final String SPEC_SOURCE_CHOICE = "specSourceChoice";
+    public static final String SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";
+    public static final String SPEC_SOURCE_FILE = "file";
 
     private static Set<String> getFieldsToCopy() {
         return Sets.newHashSet(
                 DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM,
                 DEPLOYMENT_PREFIX + USERNAME,
                 DEPLOYMENT_PREFIX + PASSWORD,
-                DEPLOYMENT_PREFIX + DEPLOYMENT_REPOSITORY
+                DEPLOYMENT_PREFIX + LEGACY_DEPLOYMENT_REPOSITORY,
+                DEPLOYMENT_PREFIX + SPEC_SOURCE_CHOICE,
+                DEPLOYMENT_PREFIX + SPEC_SOURCE_JOB_CONFIGURATION,
+                DEPLOYMENT_PREFIX + SPEC_SOURCE_FILE
         );
     }
 
@@ -42,25 +49,21 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
 
         contextPutEmpty(context, USERNAME);
         contextPutEmpty(context, PASSWORD);
-        contextPutEmpty(context, DEPLOYMENT_REPOSITORY);
         contextPutEmpty(context, AbstractBuildContext.SERVER_ID_PARAM);
     }
 
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+        // since 1.9.0 The configuration is being saved using "DEPLOYMENT_PREFIX + KEY".In order to support older
+        // versions we are to get the new values, if the value is missing we are trying to get the old style values.
         populateContextWithConfiguration(context, taskDefinition, getFieldsToCopy());
         String selectedServerId = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM);
-        String selectedRepoKey = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + DEPLOYMENT_REPOSITORY);
         String username = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + USERNAME);
         String password = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + PASSWORD);
         if (StringUtils.isBlank(selectedServerId)) {
             // Compatibility with 1.8.0
             selectedServerId = taskDefinition.getConfiguration().get("artifactoryServerId");
-        }
-        if (StringUtils.isBlank(selectedRepoKey)) {
-            // Compatibility with 1.8.0
-            selectedRepoKey = taskDefinition.getConfiguration().get("deploymentRepository");
         }
         if (StringUtils.isBlank(username)) {
             // Compatibility with 1.8.0
@@ -74,7 +77,26 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
         }
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", selectedServerId);
-        context.put("selectedRepoKey", selectedRepoKey);
+
+        // In order to move our users to specs from old deployment patterns we are converting the simple upload to spec.
+        String specSource = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + SPEC_SOURCE_CHOICE);
+        if (StringUtils.isBlank(specSource)) {
+            String spec = createSpecFromLegacyTask(taskDefinition);
+            context.put(DEPLOYMENT_PREFIX + SPEC_SOURCE_JOB_CONFIGURATION, spec);
+        }
+    }
+
+    private String createSpecFromLegacyTask(@NotNull TaskDefinition taskDefinition) {
+        String selectedRepoKey = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + LEGACY_DEPLOYMENT_REPOSITORY);
+        if (StringUtils.isBlank(selectedRepoKey)) {
+            // Compatibility with 1.8.0
+            selectedRepoKey = taskDefinition.getConfiguration().get("deploymentRepository");
+        }
+        if (StringUtils.isBlank(selectedRepoKey)) {
+            // If repo is not configured, the task is already converted or not legacy
+            return "";
+        }
+        return LegacyDeploymentUtils.buildDeploymentSpec(selectedRepoKey);
     }
 
     @Override
@@ -84,7 +106,7 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
 
     @Override
     protected String getDeployableRepoKey() {
-        return DEPLOYMENT_REPOSITORY;
+        return LEGACY_DEPLOYMENT_REPOSITORY;
     }
 
     @Override

@@ -41,10 +41,14 @@ public class ArtifactoryDeploymentDownloadTask implements DeploymentTaskType {
         try {
             org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
             String spec = genericContext.isFileSpecInJobConfiguration() ? genericContext.getJobConfigurationSpec() : TaskUtils.getSpecFromFile(deploymentTaskContext.getWorkingDirectory(), genericContext.getFilePathSpec());
-            if (StringUtils.isNotBlank(spec)) {
-                SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
-                specsHelper.downloadArtifactsBySpec(spec, client, deploymentTaskContext.getWorkingDirectory().getCanonicalPath());
+            if (StringUtils.isBlank(spec)) {
+                String err = "Spec file can't be empty.";
+                logger.addErrorLogEntry(err);
+                log.error(err);
+                return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
             }
+            SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
+            specsHelper.downloadArtifactsBySpec(spec, client, deploymentTaskContext.getWorkingDirectory().getCanonicalPath());
         } catch (IOException e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);
