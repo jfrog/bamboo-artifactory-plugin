@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.deployment;
+package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
@@ -6,7 +6,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
 
@@ -18,14 +17,19 @@ import java.util.Set;
  *
  * @author Aviad Shikloshi
  */
-public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfiguration {
+public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactoryConfiguration {
 
+    // Prefix for each configured field.
     public static final String DEPLOYMENT_PREFIX = "artifactory.deployment.";
+    // The configured repository. Used in the old deoployment implementation.
     public static final String LEGACY_DEPLOYMENT_REPOSITORY = "deploymentRepository";
     public static final String PASSWORD = "password";
     public static final String USERNAME = "username";
+    // DropDown field. Determines which spec source the task should use. Can be "file" or "jobConfiguration"
     public static final String SPEC_SOURCE_CHOICE = "specSourceChoice";
+    // Plain text field that contains the configured fileSpec. Will be used if @SPEC_SOURCE_CHOICE is configured to "jobConfiguration"
     public static final String SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";
+    // Plain text field that contains a path to a spec file on the filesystem. Will be used if @SPEC_SOURCE_CHOICE is configured to "file"
     public static final String SPEC_SOURCE_FILE = "file";
 
     private static Set<String> getFieldsToCopy() {
@@ -55,12 +59,13 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
-        // since 1.9.0 The configuration is being saved using "DEPLOYMENT_PREFIX + KEY".In order to support older
-        // versions we are to get the new values, if the value is missing we are trying to get the old style values.
         populateContextWithConfiguration(context, taskDefinition, getFieldsToCopy());
         String selectedServerId = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM);
         String username = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + USERNAME);
         String password = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + PASSWORD);
+
+        // In case selectedServerId, username or password are empty, try to read their values from an older
+        // configuration format.
         if (StringUtils.isBlank(selectedServerId)) {
             // Compatibility with 1.8.0
             selectedServerId = taskDefinition.getConfiguration().get("artifactoryServerId");
@@ -78,15 +83,15 @@ public class ArtifactoryDeploymentConfiguration extends AbstractArtifactoryConfi
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", selectedServerId);
 
-        // In order to move our users to specs from old deployment patterns we are converting the simple upload to spec.
+        // If this task hasn't been configured using a File Spec, convert the configuration to use a File Spec.
         String specSource = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + SPEC_SOURCE_CHOICE);
         if (StringUtils.isBlank(specSource)) {
-            String spec = createSpecFromLegacyTask(taskDefinition);
+            String spec = createSpecFromLegacyConfig(taskDefinition);
             context.put(DEPLOYMENT_PREFIX + SPEC_SOURCE_JOB_CONFIGURATION, spec);
         }
     }
 
-    private String createSpecFromLegacyTask(@NotNull TaskDefinition taskDefinition) {
+    private String createSpecFromLegacyConfig(@NotNull TaskDefinition taskDefinition) {
         String selectedRepoKey = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + LEGACY_DEPLOYMENT_REPOSITORY);
         if (StringUtils.isBlank(selectedRepoKey)) {
             // Compatibility with 1.8.0

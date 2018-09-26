@@ -4,14 +4,12 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
-import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Dependency;
@@ -28,7 +26,7 @@ import static org.jfrog.bamboo.util.TaskUtils.getArtifactoryDependenciesClient;
 /**
  * @author Lior Hasson
  */
-public class ArtifactoryGenericResolveTask implements TaskType {
+public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements TaskType {
 
     private static final Logger log = Logger.getLogger(ArtifactoryGenericResolveTask.class);
     private BuildParamsOverrideManager buildParamsOverrideManager;
@@ -65,13 +63,12 @@ public class ArtifactoryGenericResolveTask implements TaskType {
 
             if (genericContext.isUseFileSpecs()) {
                 buildDependencies = Lists.newArrayList();
-                String spec = genericContext.isFileSpecInJobConfiguration() ? genericContext.getJobConfigurationSpec() : TaskUtils.getSpecFromFile(taskContext.getWorkingDirectory(), genericContext.getFilePathSpec());
-                if (StringUtils.isNotBlank(spec)) {
-                    SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
-                    dependencies = specsHelper.downloadArtifactsBySpec(spec, client, taskContext.getWorkingDirectory().getCanonicalPath());
-                } else {
-                    dependencies = Lists.newArrayList();
+                TaskResult taskResult = initFileSpec(taskContext);
+                if (taskResult != null) {
+                    return taskResult;
                 }
+                SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
+                dependencies = specsHelper.downloadArtifactsBySpec(fileSpec, client, taskContext.getWorkingDirectory().getCanonicalPath());
             } else {
                 GenericArtifactsResolver resolver = new GenericArtifactsResolver(taskContext, client,
                         genericContext.getResolvePattern(), bambooBuildInfoLog);

@@ -1,16 +1,16 @@
 package org.jfrog.bamboo.util.deployment;
 
-import com.atlassian.bamboo.deployments.execution.DeploymentTaskContext;
+import com.atlassian.bamboo.task.CommonTaskContext;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.deployment.ArtifactoryDeploymentConfiguration;
+import org.jfrog.bamboo.configuration.ArtifactoryDeploymentUploadConfiguration;
 
 /**
  * Created by Dima Nevelev on 18/09/2018.
  */
 public class LegacyDeploymentUtils {
 
-    public static String buildDeploymentSpec(@NotNull DeploymentTaskContext deploymentTaskContext) {
+    public static String buildDeploymentSpec(@NotNull CommonTaskContext deploymentTaskContext) {
         String repo = getRepoKey(deploymentTaskContext);
         if (StringUtils.isBlank(repo)) {
             // If repo is not configured, the task is not legacy
@@ -31,11 +31,11 @@ public class LegacyDeploymentUtils {
                 "}";
     }
 
-    private static String getRepoKey(@NotNull DeploymentTaskContext deploymentTaskContext) {
-        String repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentConfiguration.LEGACY_DEPLOYMENT_REPOSITORY);
+    private static String getRepoKey(@NotNull CommonTaskContext commonTaskContext) {
+        String repositoryKey = commonTaskContext.getConfigurationMap().get(ArtifactoryDeploymentUploadConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentUploadConfiguration.LEGACY_DEPLOYMENT_REPOSITORY);
         if (StringUtils.isBlank(repositoryKey)) {
             // Compatibility with version 1.8.0
-            repositoryKey = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentConfiguration.LEGACY_DEPLOYMENT_REPOSITORY);
+            repositoryKey = commonTaskContext.getConfigurationMap().get(ArtifactoryDeploymentUploadConfiguration.LEGACY_DEPLOYMENT_REPOSITORY);
         }
         return repositoryKey;
     }
