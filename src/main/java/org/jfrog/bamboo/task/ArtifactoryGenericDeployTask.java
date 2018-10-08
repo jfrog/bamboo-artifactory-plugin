@@ -55,11 +55,11 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
     private PluginAccessor pluginAccessor;
     private BuildLogger logger;
     private GenericBuildInfoHelper buildInfoHelper;
-    private CustomVariableContext customVariableContext;
     private BuildParamsOverrideManager buildParamsOverrideManager;
     private TaskContext taskContext;
 
-    public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor) {
+    public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor, CustomVariableContext customVariableContext) {
+        super(customVariableContext);
         this.environmentVariableAccessor = environmentVariableAccessor;
         ContainerManager.autowireComponent(this);
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
@@ -68,10 +68,6 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
     @SuppressWarnings("unused")
     public void setPluginAccessor(PluginAccessor pluginAccessor) {
         this.pluginAccessor = pluginAccessor;
-    }
-
-    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
-        this.customVariableContext = customVariableContext;
     }
 
     @Override

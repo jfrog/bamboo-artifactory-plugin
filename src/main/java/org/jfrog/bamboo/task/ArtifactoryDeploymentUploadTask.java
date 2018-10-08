@@ -4,6 +4,7 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.deployments.execution.DeploymentTaskContext;
 import com.atlassian.bamboo.deployments.execution.DeploymentTaskType;
 import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,10 @@ public class ArtifactoryDeploymentUploadTask extends AbstractSpecTask implements
 
     private static final Logger log = Logger.getLogger(ArtifactoryDeploymentUploadTask.class);
     private BuildLogger buildLogger;
+
+    public ArtifactoryDeploymentUploadTask(CustomVariableContext customVariableContext) {
+        super(customVariableContext);
+    }
 
     @NotNull
     @Override

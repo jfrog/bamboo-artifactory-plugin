@@ -2,13 +2,11 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.CommonTaskContext;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,10 +16,13 @@ import java.io.IOException;
  */
 public abstract class AbstractSpecTask {
 
-    private static final Logger log = Logger.getLogger(AbstractSpecTask.class);
+    protected CustomVariableContext customVariableContext;
+    protected String fileSpec;
     private BuildLogger buildLogger;
 
-    protected String fileSpec;
+    public AbstractSpecTask(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
+    }
 
     protected File getWorkingDirectory(@NotNull CommonTaskContext context) {
         return context.getWorkingDirectory();
@@ -55,6 +56,7 @@ public abstract class AbstractSpecTask {
         String specFileLocation = getFilePathSpec(context);
         buildLogger.addBuildLogEntry("Using spec from file located at: " + specFileLocation);
         fileSpec = TaskUtils.getSpecFromFile(getWorkingDirectory(context), specFileLocation);
+        fileSpec = customVariableContext.substituteString(fileSpec);
     }
 
     protected void validateFileSpec() {

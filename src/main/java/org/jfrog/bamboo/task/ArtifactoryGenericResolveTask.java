@@ -32,6 +32,7 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
     private BuildParamsOverrideManager buildParamsOverrideManager;
 
     public ArtifactoryGenericResolveTask(CustomVariableContext customVariableContext) {
+        super(customVariableContext);
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
     }
 
