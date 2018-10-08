@@ -28,6 +28,7 @@ public class ArtifactoryDeploymentDownloadTask extends AbstractSpecTask implemen
     private BuildParamsOverrideManager buildParamsOverrideManager;
 
     public ArtifactoryDeploymentDownloadTask(CustomVariableContext customVariableContext) {
+        super(customVariableContext);
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
     }
 
