@@ -3,7 +3,6 @@ package org.jfrog.bamboo.task;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
@@ -24,7 +23,6 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
-import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.generic.GenericBuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.VcsHelper;
@@ -50,7 +48,7 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_SELECTED_SERVER_
 /**
  * @author Tomer Cohen
  */
-public class ArtifactoryGenericDeployTask implements TaskType {
+public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements TaskType {
     public static final String TASK_NAME = "artifactoryGenericTask";
     private static final Logger log = Logger.getLogger(ArtifactoryGenericDeployTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
@@ -59,6 +57,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
     private GenericBuildInfoHelper buildInfoHelper;
     private CustomVariableContext customVariableContext;
     private BuildParamsOverrideManager buildParamsOverrideManager;
+    private TaskContext taskContext;
 
     public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -78,6 +77,7 @@ public class ArtifactoryGenericDeployTask implements TaskType {
     @Override
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
+        this.taskContext = taskContext;
         logger = taskContext.getBuildLogger();
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + getArtifactoryVersion());
         BuildContext context = taskContext.getBuildContext();
@@ -112,14 +112,14 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         Build build = getBuild(genericContext, taskContext, username);
         ArtifactoryBuildInfoClient client = getClient(genericContext, taskContext, username, serverConfigManager, serverConfig);
         try {
-            File sourceCodeDirectory = getWorkingDirectory(context, taskContext);
+            File sourceCodeDirectory = getWorkingDirectory(taskContext);
             if (sourceCodeDirectory == null) {
                 log.error(logger.addErrorLogEntry("No build directory found!"));
                 return TaskResultBuilder.newBuilder(taskContext).success().build();
             }
             if (genericContext.isUseFileSpecs()) {
-                String spec = getFileSpecSource(genericContext, sourceCodeDirectory);
-                deployByFileSpec(sourceCodeDirectory, taskContext, build, client, spec);
+                initFileSpec(taskContext);
+                deployByFileSpec(sourceCodeDirectory, taskContext, build, client, fileSpec);
             } else {
                 deployByLegacyPattern(sourceCodeDirectory, taskContext, build, client, genericContext);
             }
@@ -141,17 +141,13 @@ public class ArtifactoryGenericDeployTask implements TaskType {
         return TaskResultBuilder.newBuilder(taskContext).success().build();
     }
 
-    private String getFileSpecSource(GenericContext genericContext, File sourceCodeDirectory) throws IOException {
-        return genericContext.isFileSpecInJobConfiguration() ? genericContext.getJobConfigurationSpec() : TaskUtils.getSpecFromFile(sourceCodeDirectory, genericContext.getFilePathSpec());
-    }
-
-    private File getWorkingDirectory(BuildContext context, TaskContext taskContext) throws RepositoryException {
-        File checkoutDir = VcsHelper.getCheckoutDirectory(context);
+    @Override
+    protected File getWorkingDirectory(@NotNull CommonTaskContext context) {
+        File checkoutDir = VcsHelper.getCheckoutDirectory(this.taskContext.getBuildContext());
         if (checkoutDir != null) {
             return checkoutDir;
-        } else {
-            return taskContext.getWorkingDirectory();
         }
+        return this.taskContext.getWorkingDirectory();
     }
 
     private Multimap<String, File> buildTargetPathToFiles(File directory, GenericContext context)
