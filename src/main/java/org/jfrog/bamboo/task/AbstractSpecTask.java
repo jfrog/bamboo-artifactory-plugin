@@ -39,11 +39,11 @@ public abstract class AbstractSpecTask {
         return new GenericContext(context.getConfigurationMap()).isFileSpecInJobConfiguration();
     }
 
-    protected TaskResult initFileSpec(@NotNull CommonTaskContext context) throws IOException {
+    protected void initFileSpec(@NotNull CommonTaskContext context) throws IOException {
         buildLogger = context.getBuildLogger();
         setFileSpec(context);
         buildLogger.addBuildLogEntry("Spec: " + fileSpec);
-        return validateFileSpec(context);
+        validateFileSpec();
     }
 
     private void setFileSpec(@NotNull CommonTaskContext context) throws IOException {
@@ -57,13 +57,9 @@ public abstract class AbstractSpecTask {
         fileSpec = TaskUtils.getSpecFromFile(getWorkingDirectory(context), specFileLocation);
     }
 
-    protected TaskResult validateFileSpec(@NotNull CommonTaskContext context) {
-        if (StringUtils.isNotBlank(fileSpec)) {
-            return null;
+    protected void validateFileSpec() {
+        if (StringUtils.isBlank(fileSpec)) {
+            throw new IllegalStateException("Artifactory Spec can't be empty");
         }
-        String err = "Spec file can't be empty";
-        buildLogger.addErrorLogEntry(err);
-        log.error(err);
-        return TaskResultBuilder.newBuilder(context).failedWithError().build();
     }
 }

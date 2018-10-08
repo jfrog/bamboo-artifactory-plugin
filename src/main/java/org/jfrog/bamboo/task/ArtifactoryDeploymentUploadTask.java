@@ -77,15 +77,16 @@ public class ArtifactoryDeploymentUploadTask extends AbstractSpecTask implements
     }
 
     @Override
-    protected TaskResult initFileSpec(@NotNull CommonTaskContext context) throws IOException {
+    protected void initFileSpec(@NotNull CommonTaskContext context) throws IOException {
         String specSourceChoice = context.getConfigurationMap().get(ArtifactoryDeploymentUploadConfiguration.DEPLOYMENT_PREFIX + ArtifactoryDeploymentUploadConfiguration.SPEC_SOURCE_CHOICE);
         if (StringUtils.isNotBlank(specSourceChoice)) {
-            return super.initFileSpec(context);
+            super.initFileSpec(context);
+            return;
         }
         buildLogger.addBuildLogEntry("Converting legacy configuration to upload spec");
         fileSpec = LegacyDeploymentUtils.buildDeploymentSpec(context);
         buildLogger.addBuildLogEntry("Spec: " + fileSpec);
-        return validateFileSpec(context);
+        validateFileSpec();
     }
 
     private TaskResult upload(@NotNull DeploymentTaskContext deploymentTaskContext, ServerConfig serverConfig, String username, String password) {
@@ -93,15 +94,14 @@ public class ArtifactoryDeploymentUploadTask extends AbstractSpecTask implements
         ArtifactoryBuildInfoClient client = new ArtifactoryBuildInfoClient(serverConfig.getUrl(), username, password, bambooBuildInfoLog);
         String artifactsRootDirectory = deploymentTaskContext.getRootDirectory().getAbsolutePath();
         try {
-            TaskResult taskResult = initFileSpec(deploymentTaskContext);
-            if (taskResult != null) {
-                return taskResult;
-            }
+            initFileSpec(deploymentTaskContext);
             SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
             specsHelper.uploadArtifactsBySpec(fileSpec, new File(artifactsRootDirectory), new HashMap<>(), client);
             return TaskResultBuilder.newBuilder(deploymentTaskContext).success().build();
         } catch (Exception e) {
-            buildLogger.addErrorLogEntry("Error while deploying artifacts to Artifactory: " + e.getMessage());
+            String message = "Exception occurred while executing deployment task";
+            log.error(message, e);
+            buildLogger.addErrorLogEntry(message, e);
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
         } finally {
             client.close();

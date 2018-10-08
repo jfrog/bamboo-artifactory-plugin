@@ -118,10 +118,7 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
                 return TaskResultBuilder.newBuilder(taskContext).success().build();
             }
             if (genericContext.isUseFileSpecs()) {
-                TaskResult taskResult = initFileSpec(taskContext);
-                if (taskResult != null) {
-                    return taskResult;
-                }
+                initFileSpec(taskContext);
                 deployByFileSpec(sourceCodeDirectory, taskContext, build, client, fileSpec);
             } else {
                 deployByLegacyPattern(sourceCodeDirectory, taskContext, build, client, genericContext);

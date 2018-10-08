@@ -13,7 +13,7 @@ public class LegacyDeploymentUtils {
     public static String buildDeploymentSpec(@NotNull CommonTaskContext deploymentTaskContext) {
         String repo = getRepoKey(deploymentTaskContext);
         if (StringUtils.isBlank(repo)) {
-            // If repo is not configured, the task is not legacy
+            // If repo is not configured, no conversion is needed.
             return "";
         }
         return buildDeploymentSpec(repo);

@@ -37,10 +37,7 @@ public class ArtifactoryDeploymentDownloadTask extends AbstractSpecTask implemen
         GenericContext genericContext = new GenericContext(deploymentTaskContext.getConfigurationMap());
         ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext, buildParamsOverrideManager, log);
         try {
-            TaskResult taskResult = initFileSpec(deploymentTaskContext);
-            if (taskResult != null) {
-                return taskResult;
-            }
+            initFileSpec(deploymentTaskContext);
             SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(log, logger));
             specsHelper.downloadArtifactsBySpec(fileSpec, client, deploymentTaskContext.getWorkingDirectory().getCanonicalPath());
         } catch (IOException e) {

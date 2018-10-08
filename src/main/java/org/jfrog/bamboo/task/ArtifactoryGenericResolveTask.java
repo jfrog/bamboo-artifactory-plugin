@@ -63,10 +63,7 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
 
             if (genericContext.isUseFileSpecs()) {
                 buildDependencies = Lists.newArrayList();
-                TaskResult taskResult = initFileSpec(taskContext);
-                if (taskResult != null) {
-                    return taskResult;
-                }
+                initFileSpec(taskContext);
                 SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
                 dependencies = specsHelper.downloadArtifactsBySpec(fileSpec, client, taskContext.getWorkingDirectory().getCanonicalPath());
             } else {
@@ -81,7 +78,6 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
                  * */
                 addDependenciesToContext(taskContext, buildDependencies, dependencies);
             }
-
         } catch (IOException|InterruptedException e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);
