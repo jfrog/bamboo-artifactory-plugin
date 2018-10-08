@@ -46,15 +46,8 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
 
     @NotNull
     @Override
-    protected String getPosixHome() {
-        return MAVEN3_HOME_POSIX;
-    }
-
-    @NotNull
-    @Override
     protected List<String> getPosixHomes() {
-        String posixHome = this.getPosixHome();
-        return posixHome != null ? Collections.singletonList(posixHome) : Collections.emptyList();
+        return Collections.singletonList(MAVEN3_HOME_POSIX);
     }
 
     @Override

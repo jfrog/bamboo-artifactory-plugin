@@ -27,15 +27,8 @@ public class GradleCapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
 
     @NotNull
     @Override
-    protected String getPosixHome() {
-        return GRADLE_HOME_POSIX;
-    }
-
-    @NotNull
-    @Override
     protected List<String> getPosixHomes() {
-        String posixHome = this.getPosixHome();
-        return posixHome != null ? Collections.singletonList(posixHome) : Collections.emptyList();
+        return Collections.singletonList(GRADLE_HOME_POSIX);
     }
 
     @Override
