@@ -28,16 +28,10 @@ public class IvyCapabilityHelper extends AbstractHomeDirectoryCapabilityDefaults
         return HOME_ENV_VAR;
     }
 
-    @Override
-    protected String getPosixHome() {
-        return POSIX_HOME;
-    }
-
     @NotNull
     @Override
     protected List<String> getPosixHomes() {
-        String posixHome = this.getPosixHome();
-        return posixHome != null ? Collections.singletonList(posixHome) : Collections.emptyList();
+        return Collections.singletonList(POSIX_HOME);
     }
 
     @NotNull
