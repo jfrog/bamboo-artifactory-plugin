@@ -6,7 +6,6 @@ import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
-import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.plugin.Plugin;
 import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.spring.container.ContainerManager;
@@ -58,8 +57,7 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
     private BuildParamsOverrideManager buildParamsOverrideManager;
     private TaskContext taskContext;
 
-    public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor, CustomVariableContext customVariableContext) {
-        super(customVariableContext);
+    public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
         ContainerManager.autowireComponent(this);
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);

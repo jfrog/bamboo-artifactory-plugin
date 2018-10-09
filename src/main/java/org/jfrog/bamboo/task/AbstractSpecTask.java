@@ -20,7 +20,7 @@ public abstract class AbstractSpecTask {
     protected String fileSpec;
     private BuildLogger buildLogger;
 
-    public AbstractSpecTask(CustomVariableContext customVariableContext) {
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
     }
 
