@@ -6,7 +6,6 @@ import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
-import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.plugin.Plugin;
 import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.spring.container.ContainerManager;
@@ -55,7 +54,6 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
     private PluginAccessor pluginAccessor;
     private BuildLogger logger;
     private GenericBuildInfoHelper buildInfoHelper;
-    private CustomVariableContext customVariableContext;
     private BuildParamsOverrideManager buildParamsOverrideManager;
     private TaskContext taskContext;
 
@@ -68,10 +66,6 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
     @SuppressWarnings("unused")
     public void setPluginAccessor(PluginAccessor pluginAccessor) {
         this.pluginAccessor = pluginAccessor;
-    }
-
-    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
-        this.customVariableContext = customVariableContext;
     }
 
     @Override

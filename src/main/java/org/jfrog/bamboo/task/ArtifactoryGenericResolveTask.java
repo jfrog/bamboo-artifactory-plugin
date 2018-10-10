@@ -2,7 +2,6 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.*;
-import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Lists;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +28,6 @@ import static org.jfrog.bamboo.util.TaskUtils.getArtifactoryDependenciesClient;
 public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements TaskType {
 
     private static final Logger log = Logger.getLogger(ArtifactoryGenericResolveTask.class);
-    private BuildParamsOverrideManager buildParamsOverrideManager;
-
-    public ArtifactoryGenericResolveTask(CustomVariableContext customVariableContext) {
-        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-    }
 
     @NotNull
     @Override
@@ -54,6 +48,7 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
 
         GenericContext genericContext = new GenericContext(taskContext.getConfigurationMap());
 
+        BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext, buildParamsOverrideManager, log);
 
         try {

@@ -5,7 +5,6 @@ import com.atlassian.bamboo.deployments.execution.DeploymentTaskContext;
 import com.atlassian.bamboo.deployments.execution.DeploymentTaskType;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
@@ -25,16 +24,12 @@ import static org.jfrog.bamboo.util.TaskUtils.getArtifactoryDependenciesClient;
  */
 public class ArtifactoryDeploymentDownloadTask extends AbstractSpecTask implements DeploymentTaskType {
     private static final Logger log = Logger.getLogger(ArtifactoryDeploymentDownloadTask.class);
-    private BuildParamsOverrideManager buildParamsOverrideManager;
-
-    public ArtifactoryDeploymentDownloadTask(CustomVariableContext customVariableContext) {
-        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-    }
 
     @NotNull
     public TaskResult execute(@NotNull DeploymentTaskContext deploymentTaskContext) {
         BuildLogger logger = deploymentTaskContext.getBuildLogger();
         GenericContext genericContext = new GenericContext(deploymentTaskContext.getConfigurationMap());
+        BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext, buildParamsOverrideManager, log);
         try {
             initFileSpec(deploymentTaskContext);
