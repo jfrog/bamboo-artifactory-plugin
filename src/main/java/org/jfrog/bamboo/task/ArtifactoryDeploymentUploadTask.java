@@ -14,7 +14,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
 import org.jfrog.build.api.util.Log;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
 import java.io.File;
@@ -91,20 +91,19 @@ public class ArtifactoryDeploymentUploadTask extends AbstractSpecTask implements
 
     private TaskResult upload(@NotNull DeploymentTaskContext deploymentTaskContext, ServerConfig serverConfig, String username, String password) {
         Log bambooBuildInfoLog = new BuildInfoLog(log, buildLogger);
-        ArtifactoryBuildInfoClient client = new ArtifactoryBuildInfoClient(serverConfig.getUrl(), username, password, bambooBuildInfoLog);
+        ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
+        clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(username).setPassword(password).setLog(bambooBuildInfoLog);
         String artifactsRootDirectory = deploymentTaskContext.getRootDirectory().getAbsolutePath();
         try {
             initFileSpec(deploymentTaskContext);
             SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
-            specsHelper.uploadArtifactsBySpec(fileSpec, new File(artifactsRootDirectory), new HashMap<>(), client);
+            specsHelper.uploadArtifactsBySpec(fileSpec, new File(artifactsRootDirectory), new HashMap<>(), clientBuilder);
             return TaskResultBuilder.newBuilder(deploymentTaskContext).success().build();
         } catch (Exception e) {
             String message = "Exception occurred while executing deployment task";
             log.error(message, e);
             buildLogger.addErrorLogEntry(message, e);
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
-        } finally {
-            client.close();
         }
     }
 

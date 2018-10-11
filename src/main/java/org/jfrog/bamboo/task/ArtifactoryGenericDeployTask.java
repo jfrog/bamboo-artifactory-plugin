@@ -28,6 +28,7 @@ import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.builder.ModuleBuilder;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -56,6 +57,7 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
     private GenericBuildInfoHelper buildInfoHelper;
     private BuildParamsOverrideManager buildParamsOverrideManager;
     private TaskContext taskContext;
+    private ArtifactoryBuildInfoClient client;
 
     public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -104,7 +106,7 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
         }
         String username = getUsername(genericContext, serverConfigManager, serverConfig);
         Build build = getBuild(genericContext, taskContext, username);
-        ArtifactoryBuildInfoClient client = getClient(genericContext, taskContext, username, serverConfigManager, serverConfig);
+        ArtifactoryBuildInfoClientBuilder clientBuilder = getClientBuilder(genericContext, taskContext, username, serverConfigManager, serverConfig);
         try {
             File sourceCodeDirectory = getWorkingDirectory(taskContext);
             if (sourceCodeDirectory == null) {
@@ -113,12 +115,12 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
             }
             if (genericContext.isUseFileSpecs()) {
                 initFileSpec(taskContext);
-                deployByFileSpec(sourceCodeDirectory, taskContext, build, client, fileSpec);
+                deployByFileSpec(sourceCodeDirectory, taskContext, build, clientBuilder, fileSpec);
             } else {
-                deployByLegacyPattern(sourceCodeDirectory, taskContext, build, client, genericContext);
+                deployByLegacyPattern(sourceCodeDirectory, taskContext, build, getClient(clientBuilder), genericContext);
             }
             if (genericContext.isPublishBuildInfo()) {
-                publishBuildInfo(taskContext, client, build);
+                publishBuildInfo(taskContext, getClient(clientBuilder), build);
             }
         } catch (Exception e) {
             String message = "Exception occurred while executing task";
@@ -126,13 +128,22 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
             log.error(message, e);
             return TaskResultBuilder.newBuilder(taskContext).failedWithError().build();
         } finally {
-            client.close();
+            if (this.client != null) {
+                this.client.close();
+            }
         }
         Map<String, String> customBuildData = result.getCustomBuildData();
         if (genericContext.isPublishBuildInfo() && !customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
             customBuildData.put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
         }
         return TaskResultBuilder.newBuilder(taskContext).success().build();
+    }
+
+    private ArtifactoryBuildInfoClient getClient(ArtifactoryBuildInfoClientBuilder clientBuilder) {
+        if (this.client == null) {
+            this.client = clientBuilder.build();
+        }
+        return this.client;
     }
 
     @Override
@@ -181,13 +192,13 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
         }
     }
 
-    private void deployByFileSpec(File sourceCodeDirectory, TaskContext taskContext, Build build, ArtifactoryBuildInfoClient client, String spec) throws IOException, NoSuchAlgorithmException {
+    private void deployByFileSpec(File sourceCodeDirectory, TaskContext taskContext, Build build, ArtifactoryBuildInfoClientBuilder clientBuilder, String spec) throws IOException, NoSuchAlgorithmException {
         SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(ArtifactoryGenericDeployTask.log, taskContext.getBuildLogger()));
         Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
         buildInfoHelper.addCommonProperties(buildProperties);
         List<Artifact> artifacts;
         try {
-            artifacts = specsHelper.uploadArtifactsBySpec(spec, sourceCodeDirectory, buildProperties, client);
+            artifacts = specsHelper.uploadArtifactsBySpec(spec, sourceCodeDirectory, buildProperties, clientBuilder);
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -226,10 +237,12 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
         return password;
     }
 
-    private ArtifactoryBuildInfoClient getClient(GenericContext context, TaskContext taskContext, String username, ServerConfigManager serverConfigManager, ServerConfig serverConfig) {
+    private ArtifactoryBuildInfoClientBuilder getClientBuilder(GenericContext context, TaskContext taskContext, String username, ServerConfigManager serverConfigManager, ServerConfig serverConfig) {
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(ArtifactoryGenericDeployTask.log, taskContext.getBuildLogger());
-        return new ArtifactoryBuildInfoClient(serverUrl, username, getPassword(context, serverConfigManager, serverConfig), bambooBuildInfoLog);
+        ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
+        clientBuilder.setArtifactoryUrl(serverUrl).setUsername(username).setPassword(getPassword(context, serverConfigManager, serverConfig)).setLog(bambooBuildInfoLog);
+        return clientBuilder;
     }
 
     private Build getBuild(GenericContext context, TaskContext taskContext, String username) {
