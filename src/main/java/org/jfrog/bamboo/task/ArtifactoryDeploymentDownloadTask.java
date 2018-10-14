@@ -1,18 +1,15 @@
-package org.jfrog.bamboo.deployment;
+package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.deployments.execution.DeploymentTaskContext;
 import com.atlassian.bamboo.deployments.execution.DeploymentTaskType;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.variable.CustomVariableContext;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
@@ -25,26 +22,19 @@ import static org.jfrog.bamboo.util.TaskUtils.getArtifactoryDependenciesClient;
  *
  * @author Yahav Itzhak
  */
-public class ArtifactoryDeploymentDownloadTask implements DeploymentTaskType {
+public class ArtifactoryDeploymentDownloadTask extends AbstractSpecTask implements DeploymentTaskType {
     private static final Logger log = Logger.getLogger(ArtifactoryDeploymentDownloadTask.class);
-    private BuildParamsOverrideManager buildParamsOverrideManager;
-
-    public ArtifactoryDeploymentDownloadTask(CustomVariableContext customVariableContext) {
-        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-    }
 
     @NotNull
     public TaskResult execute(@NotNull DeploymentTaskContext deploymentTaskContext) {
         BuildLogger logger = deploymentTaskContext.getBuildLogger();
         GenericContext genericContext = new GenericContext(deploymentTaskContext.getConfigurationMap());
+        BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext, buildParamsOverrideManager, log);
         try {
-            org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
-            String spec = genericContext.isFileSpecInJobConfiguration() ? genericContext.getJobConfigurationSpec() : TaskUtils.getSpecFromFile(deploymentTaskContext.getWorkingDirectory(), genericContext.getFilePathSpec());
-            if (StringUtils.isNotBlank(spec)) {
-                SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
-                specsHelper.downloadArtifactsBySpec(spec, client, deploymentTaskContext.getWorkingDirectory().getCanonicalPath());
-            }
+            initFileSpec(deploymentTaskContext);
+            SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(log, logger));
+            specsHelper.downloadArtifactsBySpec(fileSpec, client, deploymentTaskContext.getWorkingDirectory().getCanonicalPath());
         } catch (IOException e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);

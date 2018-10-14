@@ -334,7 +334,7 @@
 
     <!--Deployment-->
     <taskType key="ArtifactoryDeploymentDownloadTask" name="Artifactory Download"
-              class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentDownloadTask">
+              class="org.jfrog.bamboo.task.ArtifactoryDeploymentDownloadTask">
         <description>Artifactory Download Task</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
@@ -347,9 +347,9 @@
     </taskType>
 
     <taskType key="artifactoryDeploymentTask" name="Artifactory Deployment"
-              class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentTask">
+              class="org.jfrog.bamboo.task.ArtifactoryDeploymentUploadTask">
         <description>Artifactory Deployment Task</description>
-        <configuration class="org.jfrog.bamboo.deployment.ArtifactoryDeploymentConfiguration"/>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryDeploymentUploadConfiguration"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/deployment/editArtifactoryDeploymentAction.ftl"/>
