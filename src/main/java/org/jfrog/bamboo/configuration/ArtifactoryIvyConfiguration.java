@@ -18,6 +18,7 @@ import java.util.Set;
  * @author Tomer Cohen
  */
 public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguration {
+    public static final String KEY = "artifactoryIvyBuilder";
     protected static final String DEFAULT_TEST_REPORTS_XML = "**/test-reports/*.xml";
     private static final Set<String> FIELDS_TO_COPY = IvyBuildContext.getFieldsToCopy();
 
@@ -27,7 +28,7 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
 
     @Override
     protected String getKey() {
-        return "artifactoryIvyBuilder";
+        return KEY;
     }
 
     @Override
