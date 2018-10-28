@@ -147,9 +147,9 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
             clientConf.publisher.addMatrixParam("vcs.revision", vcsRevision);
         }
 
-        String vcsUrl = VcsHelper.getVcsUrl(context);
-        if (StringUtils.isNotBlank(vcsUrl)) {
-            clientConf.info.setVcsUrl(vcsUrl);
+        String[] vcsUrls = VcsHelper.getVcsUrls(context);
+        if (vcsUrls.length > 0) {
+            clientConf.info.setVcsUrl(vcsUrls[0]);
         }
 
         String buildTimeStampVal = context.getBuildResult().getCustomBuildData().get("buildTimeStamp");
