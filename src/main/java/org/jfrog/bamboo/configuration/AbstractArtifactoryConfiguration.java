@@ -162,8 +162,8 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     private void validateDeployableRepoKey(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
-        // Do not validate the deployment repository field in "Generic Deploy" tasks, since it is
-        // optional, deprecated and can be left blank.
+        // For "Generic Deploy" tasks, skip the deployment repository field validation.
+        // This is because this field is optional.
         if (!ArtifactoryGenericBuildConfiguration.KEY.equals(getKey())) {
             if (StringUtils.isNotBlank(getDeployableRepoKey())) {
                 String deployerRepoKey = "builder." + getKey() + "." + getDeployableRepoKey();
