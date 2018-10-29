@@ -19,6 +19,7 @@ import java.util.Set;
  * @author Tomer Cohen
  */
 public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfiguration {
+    public static final String KEY = "artifactoryMaven3Builder";
     private static final Set<String> FIELDS_TO_COPY = Maven3BuildContext.getFieldsToCopy();
     private static final String DEFAULT_TEST_RESULTS_FILE_PATTERN = "**/target/surefire-reports/*.xml";
 
@@ -100,7 +101,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
 
     @Override
     protected String getKey() {
-        return "artifactoryMaven3Builder";
+        return KEY;
     }
 
     @Override

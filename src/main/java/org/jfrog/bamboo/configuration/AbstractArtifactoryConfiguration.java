@@ -138,12 +138,9 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
             errorCollection.addError(serverKey,
                     "Could not find Artifactory server configuration by the ID " + configuredServerId);
         }
-        if (StringUtils.isNotBlank(getDeployableRepoKey())) {
-            String deployerRepoKey = "builder." + getKey() + "." + getDeployableRepoKey();
-            if (StringUtils.isBlank(params.getString(deployerRepoKey))) {
-                errorCollection.addError(deployerRepoKey, "Please choose a repository to deploy to.");
-            }
-        }
+
+        validateDeployableRepoKey(params, errorCollection);
+
         String runLicensesKey = "builder." + getKey() + "." + AbstractBuildContext.RUN_LICENSE_CHECKS;
         String runLicenseChecksValue = params.getString(runLicensesKey);
         if (StringUtils.isNotBlank(runLicenseChecksValue) && Boolean.valueOf(runLicenseChecksValue)) {
@@ -159,6 +156,19 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
                                 .addError(violationsKey, "'" + recipientToken + "' is not a valid e-mail address.");
                         break;
                     }
+                }
+            }
+        }
+    }
+
+    private void validateDeployableRepoKey(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        // For "Generic Deploy" tasks, skip the deployment repository field validation.
+        // This is because this field is optional.
+        if (!ArtifactoryGenericBuildConfiguration.KEY.equals(getKey())) {
+            if (StringUtils.isNotBlank(getDeployableRepoKey())) {
+                String deployerRepoKey = "builder." + getKey() + "." + getDeployableRepoKey();
+                if (StringUtils.isBlank(params.getString(deployerRepoKey))) {
+                    errorCollection.addError(deployerRepoKey, "Please choose a repository to deploy to.");
                 }
             }
         }

@@ -14,6 +14,7 @@ import java.util.Set;
  */
 public class ArtifactoryXrayScanConfiguration extends AbstractArtifactoryConfiguration {
 
+    public static final String KEY = "artifactoryXrayScanBuilder";
     private static final Set<String> FIELDS_TO_COPY = XrayScanContext.getFieldsToCopy();
 
     @Override
@@ -35,7 +36,7 @@ public class ArtifactoryXrayScanConfiguration extends AbstractArtifactoryConfigu
 
     @Override
     protected String getKey() {
-        return "artifactoryXrayScanBuilder";
+        return KEY;
     }
 
     @Override

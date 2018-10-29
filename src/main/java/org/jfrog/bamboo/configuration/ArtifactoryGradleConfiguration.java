@@ -18,10 +18,9 @@ import java.util.Set;
  * @author Tomer Cohen
  */
 public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfiguration {
+    public static final String KEY = "artifactoryGradleBuilder";
     protected static final String DEFAULT_TEST_REPORTS_XML = "**/build/test-results/*.xml";
-
     private static final Set<String> FIELDS_TO_COPY = GradleBuildContext.getFieldsToCopy();
-
     public ArtifactoryGradleConfiguration() {
         super(GradleBuildContext.PREFIX);
     }
@@ -90,7 +89,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
 
     @Override
     protected String getKey() {
-        return "artifactoryGradleBuilder";
+        return KEY;
     }
 
     @Override

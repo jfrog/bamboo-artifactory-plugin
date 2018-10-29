@@ -92,10 +92,8 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
             vcsRevision = "";
         }
 
-        String vcsUrl = VcsHelper.getVcsUrl(context);
-        if (StringUtils.isBlank(vcsUrl)) {
-            vcsUrl = "";
-        }
+        String[] vcsUrls = VcsHelper.getVcsUrls(context);
+        String vcsUrl = vcsUrls.length > 0 ? vcsUrls[0] : "";
 
         buildInfoHelper = new GenericBuildInfoHelper(env, vcsRevision, vcsUrl);
         buildInfoHelper.init(buildParamsOverrideManager, context);

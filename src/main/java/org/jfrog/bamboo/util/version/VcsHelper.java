@@ -5,7 +5,9 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Noam Y. Tenne
@@ -39,9 +41,9 @@ public abstract class VcsHelper {
     }
 
     @Nullable
-    public static String getVcsUrl(BuildContext buildContext) {
+    public static String[] getVcsUrls(BuildContext buildContext) {
         int repoSize = buildContext.getRelevantRepositoryIds().size();
-        StringBuilder sb = new StringBuilder();
+        List<String> urls = new ArrayList<>();
         for (int i = 1; i <= repoSize; i++) {
             String vcsUrl = buildContext.getCurrentResult().getCustomBuildData().get("planRepository." + i + ".repositoryUrl");
             /*for Perforce*/
@@ -55,13 +57,9 @@ public abstract class VcsHelper {
                         buildContext.getCurrentResult().getCustomBuildData().get("planRepository." + i + ".port");
             }
             if (StringUtils.isNotBlank(vcsUrl)) {
-                if (i != 1) {
-                    sb.append(";").append(vcsUrl);
-                } else {
-                    sb.append(vcsUrl);
-                }
+                urls.add(vcsUrl);
             }
         }
-        return sb.toString();
+        return urls.toArray(new String[0]);
     }
 }

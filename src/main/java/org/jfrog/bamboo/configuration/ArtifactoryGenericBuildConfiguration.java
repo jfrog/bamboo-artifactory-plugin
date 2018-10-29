@@ -18,6 +18,7 @@ import java.util.Set;
  * @author Tomer Cohen
  */
 public class ArtifactoryGenericBuildConfiguration extends AbstractArtifactoryConfiguration {
+    public static final String KEY = "artifactoryGenericBuilder";
     private static final Set<String> FIELDS_TO_COPY = GenericContext.getFieldsToCopy();
 
     @Override
@@ -56,7 +57,7 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractArtifactoryCon
 
     @Override
     protected String getKey() {
-        return "artifactoryGenericBuilder";
+        return KEY;
     }
 
     @Override
