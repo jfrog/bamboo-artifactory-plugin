@@ -5,6 +5,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.version.VcsHelper;
 
 import java.io.File;
@@ -44,12 +45,31 @@ public abstract class AbstractVcsManager implements VcsManager {
     @Nullable
     protected Map<String, String> getTaskConfiguration() {
         List<TaskDefinition> tasks = this.getContext().getBuildDefinition().getTaskDefinitions();
-        for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i) != null &&
-                    tasks.get(i).getPluginKey().contains("bamboo-artifactory-plugin")) {
-                return tasks.get(i).getConfiguration();
+        for (int i = 0; i < tasks.size(); i++)
+        {
+            final TaskDefinition definition = tasks.get(i);
+            if (definition != null && definition.getPluginKey().contains("bamboo-artifactory-plugin") && isTaskHasVcsConfiguration(definition)) {
+                return definition.getConfiguration();
             }
         }
         return null;
+    }
+
+    /**
+     * checks if task definition has VCS configurations by checking config keys with prefix AbstractBuildContext.VCS_PREFIX
+     *
+     * @param taskDefinition task definition. not null
+     * @return true, if definition contains vcs config
+     */
+    private boolean isTaskHasVcsConfiguration(TaskDefinition taskDefinition) {
+        final Map<String, String> configuration = taskDefinition.getConfiguration();
+
+        for (String key : configuration.keySet()) {
+            if (key.startsWith(AbstractBuildContext.VCS_PREFIX)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
