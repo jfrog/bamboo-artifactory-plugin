@@ -4,14 +4,13 @@ import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.task.TaskDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.task.ArtifactoryGenericDeployTask;
 import org.jfrog.bamboo.task.ArtifactoryGradleTask;
 import org.jfrog.bamboo.task.ArtifactoryIvyTask;
 import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
 
 import java.util.List;
-
-import static org.jfrog.bamboo.context.AbstractBuildContext.ENABLE_RELEASE_MANAGEMENT;
 
 /**
  * Utility class to help find tasks of a certain type.
@@ -82,9 +81,13 @@ public abstract class TaskDefinitionHelper {
     @Nullable
     public static TaskDefinition findReleaseTaskDefinition(List<? extends TaskDefinition> taskDefinitions) {
         if (taskDefinitions != null) {
-            for (TaskDefinition definition : taskDefinitions) {
-                if ("true".equals(definition.getConfiguration().get(ENABLE_RELEASE_MANAGEMENT))) {
-                    return definition;
+            for (TaskDefinition taskDefinition : taskDefinitions) {
+                if (taskDefinition.isEnabled()) {
+                    AbstractBuildContext config = AbstractBuildContext.createContextFromMap(taskDefinition.getConfiguration());
+                    // Check the release management is enabled
+                    if ((config != null) && config.releaseManagementContext.isReleaseMgmtEnabled()) {
+                        return taskDefinition;
+                    }
                 }
             }
         }
