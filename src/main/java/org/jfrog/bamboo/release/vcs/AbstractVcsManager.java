@@ -5,7 +5,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 
 import java.io.File;
@@ -47,12 +47,8 @@ public abstract class AbstractVcsManager implements VcsManager {
         List<TaskDefinition> tasks = this.getContext().getBuildDefinition().getTaskDefinitions();
         for (TaskDefinition taskDefinition : tasks) {
             // Check that task definition enabled.
-            if (taskDefinition.isEnabled()) {
-                AbstractBuildContext config = AbstractBuildContext.createContextFromMap(taskDefinition.getConfiguration());
-                // Check the release management is enabled
-                if ((config != null) && config.releaseManagementContext.isReleaseMgmtEnabled()) {
-                    return taskDefinition.getConfiguration();
-                }
+            if (taskDefinition.isEnabled() && TaskDefinitionHelper.isReleaseMgmtEnabled(taskDefinition)) {
+                return taskDefinition.getConfiguration();
             }
         }
         return null;

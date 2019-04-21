@@ -82,16 +82,24 @@ public abstract class TaskDefinitionHelper {
     public static TaskDefinition findReleaseTaskDefinition(List<? extends TaskDefinition> taskDefinitions) {
         if (taskDefinitions != null) {
             for (TaskDefinition taskDefinition : taskDefinitions) {
-                if (taskDefinition.isEnabled()) {
-                    AbstractBuildContext config = AbstractBuildContext.createContextFromMap(taskDefinition.getConfiguration());
-                    // Check the release management is enabled
-                    if ((config != null) && config.releaseManagementContext.isReleaseMgmtEnabled()) {
-                        return taskDefinition;
-                    }
+                if (taskDefinition.isEnabled() && isReleaseMgmtEnabled(taskDefinition)) {
+                   return taskDefinition;
                 }
             }
         }
         return null;
+    }
+
+    /**
+     * @return true if Release management is enabled, false otherwise.
+     */
+    public static boolean isReleaseMgmtEnabled(TaskDefinition taskDefinition) {
+        AbstractBuildContext config = AbstractBuildContext.createContextFromMap(taskDefinition.getConfiguration());
+        // Check if release management is enabled
+        if ((config != null) && config.releaseManagementContext.isReleaseMgmtEnabled()) {
+            return true;
+        }
+        return false;
     }
 
     /**
