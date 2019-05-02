@@ -66,7 +66,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private String builderContextPrefix;
     private String capabilityPrefix;
     private static final Logger log = Logger.getLogger(AbstractArtifactoryConfiguration.class);
-    protected TaskConfiguratorHelperImpl taskConfiguratorHelper;
+    protected TaskConfiguratorHelperImpl taskConfiguratorHelper = new TaskConfiguratorHelperImpl();
 
     protected AbstractArtifactoryConfiguration() {
         this(null, null);
@@ -84,7 +84,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         }
         this.builderContextPrefix = builderContextPrefix;
         this.capabilityPrefix = capabilityPrefix;
-        this.taskConfiguratorHelper = new TaskConfiguratorHelperImpl();
     }
 
     public String getTestDirectory(AbstractBuildContext buildContext) {
