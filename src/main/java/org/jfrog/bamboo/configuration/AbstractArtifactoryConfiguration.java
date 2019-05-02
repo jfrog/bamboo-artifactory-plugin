@@ -26,6 +26,7 @@ import org.jfrog.bamboo.release.vcs.VcsTypes;
 import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.configuration.util.TaskConfiguratorHelperImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,6 +66,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private String builderContextPrefix;
     private String capabilityPrefix;
     private static final Logger log = Logger.getLogger(AbstractArtifactoryConfiguration.class);
+    protected TaskConfiguratorHelperImpl taskConfiguratorHelper = new TaskConfiguratorHelperImpl();
 
     protected AbstractArtifactoryConfiguration() {
         this(null, null);
