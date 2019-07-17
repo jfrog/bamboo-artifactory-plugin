@@ -5,15 +5,12 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.process.ExternalProcessBuilder;
 import com.atlassian.bamboo.process.ProcessService;
 import com.atlassian.bamboo.task.*;
-import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -26,7 +23,6 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.*;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
-import org.jfrog.build.api.BuildInfoFields;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,20 +36,16 @@ import java.util.*;
 public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     public static final String TASK_NAME = "maven3Task";
     private static final Logger log = Logger.getLogger(ArtifactoryMaven3Task.class);
-    private final ProcessService processService;
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
     private BuilderDependencyHelper dependencyHelper;
     private String mavenDependenciesDir;
-    private String buildInfoPropertiesFile;
-    private boolean activateBuildInfoRecording;
 
     public ArtifactoryMaven3Task(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
                                  TestCollationService testCollationService) {
 
-        super(testCollationService, environmentVariableAccessor);
-        this.processService = processService;
+        super(testCollationService, environmentVariableAccessor, processService);
         this.environmentVariableAccessor = environmentVariableAccessor;
         this.capabilityContext = capabilityContext;
         dependencyHelper = new BuilderDependencyHelper("artifactoryMaven3Builder");
@@ -94,18 +86,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             shouldCaptureBuildInfo = mavenBuildContext.shouldCaptureBuildInfo(taskContext);
             ArtifactoryBuildInfoDataHelper mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
                     mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
-            try {
-                if (shouldCaptureBuildInfo) {
-                    String buildInfoJsonPath = mavenDataHelper.createBuildInfoJSonFileAndGetItsPath();
-                    environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, buildInfoJsonPath);
-                }
-                buildInfoPropertiesFile = mavenDataHelper.createBuildInfoPropsFileAndGetItsPath();
-            } catch (IOException e) {
-                throw new TaskException("Failed to create Build Info properties file.", e);
-            }
-            if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
-                activateBuildInfoRecording = true;
-            }
+            createBuildInfoFiles(shouldCaptureBuildInfo, mavenDataHelper);
             mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext, taskContext);
         }
         String subDirectory = mavenBuildContext.getWorkingSubDirectory();
@@ -133,25 +114,12 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         log.debug("Running maven command: " + command.toString());
         command.addAll(systemProps);
 
-        ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
+        ExternalProcess process = getExternalProcess(taskContext, rootDirectory, command, environmentVariables);
 
         try {
-            ExternalProcess process = processService.createExternalProcess(taskContext, processBuilder);
-            process.execute();
-
-            if (process.getHandler() != null && !process.getHandler().succeeded()) {
-                String externalProcessOutput = getErrorMessage(process);
-                logger.addBuildLogEntry(externalProcessOutput);
-                log.debug("Process command error: " + externalProcessOutput);
-            }
+            executeExternalProcess(logger, process, log);
             if (shouldCaptureBuildInfo) {
-                String generatedJson = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
-                try {
-                    BuildInfoHelper.addBuildInfoFromFileToContext(taskContext, generatedJson, json);
-                } catch (IOException ioe) {
-                    throw new TaskException("Failed to add Build Info to context.", ioe);
-                }
+                addBuildInfo(taskContext, json);
             }
 
             return collectTestResults(mavenBuildContext, taskContext, process);
@@ -186,13 +154,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     }
 
     private Maven3BuildContext createBuildContext(TaskContext context) {
-        Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(context.getConfigurationMap());
-        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
-        if (parentBuildContext != null) {
-            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
-            combinedMap.putAll(customBuildData);
-        }
+        Map<String, String> combinedMap = getCombinedConfiguration(context);
         return new Maven3BuildContext(combinedMap);
     }
 

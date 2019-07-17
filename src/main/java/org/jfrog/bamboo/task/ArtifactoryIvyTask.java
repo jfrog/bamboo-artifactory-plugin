@@ -51,20 +51,16 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
     public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "ant.bat" : "ant";
     private static final Logger log = Logger.getLogger(ArtifactoryIvyTask.class);
     private static final String IVY_KEY = "system.builder.ivy.";
-    private final ProcessService processService;
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
     private BuilderDependencyHelper dependencyHelper;
     private String ivyDependenciesDir = "";
     private String buildInfoPropertiesFile = "";
-    private boolean activateBuildInfoRecording;
-
 
     public ArtifactoryIvyTask(final ProcessService processService,
                               final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
                               TestCollationService testCollationService) {
-        super(testCollationService, environmentVariableAccessor);
-        this.processService = processService;
+        super(testCollationService, environmentVariableAccessor, processService);
         this.environmentVariableAccessor = environmentVariableAccessor;
         this.capabilityContext = capabilityContext;
         dependencyHelper = new BuilderDependencyHelper("artifactoryIvyBuilder");
@@ -116,18 +112,7 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         ArtifactoryBuildInfoDataHelper ivyDataHelper =
                 new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
         if (StringUtils.isNotBlank(ivyDependenciesDir)) {
-            try {
-                if (shouldCaptureBuildInfo) {
-                    String buildInfoJsonPath = ivyDataHelper.createBuildInfoJSonFileAndGetItsPath();
-                    environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, buildInfoJsonPath);
-                }
-                buildInfoPropertiesFile = ivyDataHelper.createBuildInfoPropsFileAndGetItsPath();
-            } catch (IOException e) {
-                throw new TaskException("Failed to create Build Info properties file.", e);
-            }
-            if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
-                activateBuildInfoRecording = true;
-            }
+            createBuildInfoFiles(shouldCaptureBuildInfo, ivyDataHelper);
         }
         List<String> command = Lists.newArrayList(executable);
         if (activateBuildInfoRecording) {
@@ -165,24 +150,12 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, ivyBuildContext, capabilityContext);
         environment.put("JAVA_HOME", jdkPath);
 
-        ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command)
-                        .env(environment);
+        ExternalProcess process = getExternalProcess(context, rootDirectory, command, environment);
+
         try {
-            ExternalProcess process = processService.createExternalProcess(context, processBuilder);
-            process.execute();
-            if (process.getHandler() != null && !process.getHandler().succeeded()) {
-                String externalProcessOutput = getErrorMessage(process);
-                logger.addBuildLogEntry(externalProcessOutput);
-                log.debug("Process command error: " + externalProcessOutput);
-            }
+            executeExternalProcess(logger, process, log);
             if (shouldCaptureBuildInfo) {
-                String generatedJson = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
-                try {
-                    BuildInfoHelper.addBuildInfoFromFileToContext(context, generatedJson, json);
-                } catch (IOException ioe) {
-                    throw new TaskException("Failed to add Build Info to context.", ioe);
-                }
+                addBuildInfo(context, json);
             }
             return TaskResultBuilder.newBuilder(context)
                     .checkReturnCode(process).build();

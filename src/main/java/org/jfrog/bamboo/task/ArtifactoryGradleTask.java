@@ -7,20 +7,17 @@ import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.process.ExternalProcessBuilder;
 import com.atlassian.bamboo.process.ProcessService;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -63,7 +60,6 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     public static final String EXECUTABLE_WRAPPER_NAME = SystemUtils.IS_OS_WINDOWS ? "./gradlew.bat" : "./gradlew";
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
-    private final ProcessService processService;
     private final CapabilityContext capabilityContext;
     private BuilderDependencyHelper dependencyHelper;
     private String gradleDependenciesDir = null;
@@ -72,8 +68,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     public ArtifactoryGradleTask(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
                                  TestCollationService testCollationService) {
-        super(testCollationService, environmentVariableAccessor);
-        this.processService = processService;
+        super(testCollationService, environmentVariableAccessor, processService);
         this.capabilityContext = capabilityContext;
         dependencyHelper = new BuilderDependencyHelper("artifactoryGradleBuilder");
         ContainerManager.autowireComponent(dependencyHelper);
@@ -148,25 +143,12 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         environmentVariables.put("JAVA_HOME", jdkPath);
 
         addPasswordsSystemProps(command, gradleBuildContext, context);
-        ExternalProcessBuilder processBuilder =
-                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
+        ExternalProcess process = getExternalProcess(context, rootDirectory, command, environmentVariables);
+
         try {
-            ExternalProcess process = processService.createExternalProcess(context, processBuilder);
-            process.execute();
-
-            if (process.getHandler() != null && !process.getHandler().succeeded()) {
-                String externalProcessOutput = getErrorMessage(process);
-                logger.addBuildLogEntry(externalProcessOutput);
-                log.debug("Process command error: " + externalProcessOutput);
-            }
-
+            executeExternalProcess(logger, process, log);
             if (shouldCaptureBuildInfo) {
-                String generatedJson = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
-                try {
-                    BuildInfoHelper.addBuildInfoFromFileToContext(context, generatedJson, json);
-                } catch (IOException ioe) {
-                    throw new TaskException("Failed to add Build Info to context.", ioe);
-                }
+                addBuildInfo(context, json);
             }
 
             return collectTestResults(gradleBuildContext, context, process);
@@ -176,13 +158,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     }
 
     private GradleBuildContext createBuildContext(TaskContext context) {
-        Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(context.getConfigurationMap());
-        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
-        if (parentBuildContext != null) {
-            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
-            combinedMap.putAll(customBuildData);
-        }
+        Map<String, String> combinedMap = getCombinedConfiguration(context);
         return new GradleBuildContext(combinedMap);
     }
 
