@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
+import org.jfrog.build.api.BuildInfoFields;
 
 import java.io.File;
 import java.io.FileInputStream;

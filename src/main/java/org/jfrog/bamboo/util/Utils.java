@@ -3,9 +3,16 @@ package org.jfrog.bamboo.util;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.plugin.Plugin;
+import com.atlassian.plugin.PluginAccessor;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
+import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
+import org.jfrog.bamboo.context.ArtifactoryContextInterface;
 import org.jfrog.bamboo.release.provider.TokenDataProvider;
+import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 
 import java.util.Map;
 import java.util.Properties;
@@ -57,5 +64,31 @@ public class Utils {
             }
         }
         return null;
+    }
+
+    public static String getUsername(ArtifactoryContextInterface context, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
+        String username = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(context.getUsername()),
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
+        if (StringUtils.isBlank(username)) {
+            username = serverConfigManager.substituteVariables(serverConfig.getUsername());
+        }
+        return username;
+    }
+
+    public static String getPassword(ArtifactoryContextInterface context, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
+        String password = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(context.getPassword()),
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
+        if (StringUtils.isBlank(password)) {
+            password = serverConfigManager.substituteVariables(serverConfig.getPassword());
+        }
+        return password;
+    }
+
+    public static String getArtifactoryVersion(PluginAccessor pluginAccessor) {
+        Plugin plugin = pluginAccessor.getPlugin(ConstantValues.ARTIFACTORY_PLUGIN_KEY);
+        if (plugin != null) {
+            return plugin.getPluginInformation().getVersion();
+        }
+        return StringUtils.EMPTY;
     }
 }

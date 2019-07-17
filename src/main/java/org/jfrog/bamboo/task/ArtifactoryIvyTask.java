@@ -32,6 +32,8 @@ import org.jfrog.bamboo.util.IvyDataHelper;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
+import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.build.api.BuildInfoFields;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,10 +75,12 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
     @NotNull
     public TaskResult execute(@NotNull TaskContext context) throws TaskException {
         BuildLogger logger = getBuildLogger(context);
-        String artifactoryPluginVersion = getArtifactoryVersion();
+        String artifactoryPluginVersion = Utils.getArtifactoryVersion(pluginAccessor);
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
+        String json = BuildInfoHelper.removeBuildInfoFromContext(context);
+
         Map<String, String> combinedMap = Maps.newHashMap();
         combinedMap.putAll(context.getConfigurationMap());
         combinedMap.putAll(context.getBuildContext().getBuildDefinition().getCustomConfiguration());
@@ -100,6 +104,8 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
             logger.addErrorLogEntry(message);
             log.error(message);
         }
+        boolean shouldCaptureBuildInfo = ivyBuildContext.shouldCaptureBuildInfo(context);
+
         String executable = getExecutable(ivyBuildContext);
         if (StringUtils.isBlank(executable)) {
             log.error(logger.addErrorLogEntry("Cannot find ivy executable"));
@@ -111,6 +117,10 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
                 new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
         if (StringUtils.isNotBlank(ivyDependenciesDir)) {
             try {
+                if (shouldCaptureBuildInfo) {
+                    String buildInfoJsonPath = ivyDataHelper.createBuildInfoJSonFileAndGetItsPath();
+                    environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, buildInfoJsonPath);
+                }
                 buildInfoPropertiesFile = ivyDataHelper.createBuildInfoPropsFileAndGetItsPath();
             } catch (IOException e) {
                 throw new TaskException("Failed to create Build Info properties file.", e);
@@ -165,6 +175,14 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
                 String externalProcessOutput = getErrorMessage(process);
                 logger.addBuildLogEntry(externalProcessOutput);
                 log.debug("Process command error: " + externalProcessOutput);
+            }
+            if (shouldCaptureBuildInfo) {
+                String generatedJson = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
+                try {
+                    BuildInfoHelper.addBuildInfoFromFileToContext(context, generatedJson, json);
+                } catch (IOException ioe) {
+                    throw new TaskException("Failed to add Build Info to context.", ioe);
+                }
             }
             return TaskResultBuilder.newBuilder(context)
                     .checkReturnCode(process).build();

@@ -36,6 +36,9 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.jfrog.bamboo.context.AbstractBuildContext.NEW_TASK_CREATED;
+import static org.jfrog.bamboo.context.AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM;
+
 /**
  * Base class for all {@link com.atlassian.bamboo.task.TaskConfigurator}s that are used by the plugin. It sets the
  * {@link ServerConfigManager} to be used for populating the Artifactory relevant fields. It also serves as a common
@@ -101,6 +104,13 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         super.populateContextForEdit(context, taskDefinition);
         serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
+        if (Boolean.valueOf(taskDefinition.getConfiguration().get(NEW_TASK_CREATED))) {
+            context.put(PUBLISH_BUILD_INFO_PARAM, false);
+            context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, true);
+        } else {
+            context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, false);
+            context.put(PUBLISH_BUILD_INFO_PARAM, true);
+        }
     }
 
     @Override
@@ -108,6 +118,9 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         super.populateContextForCreate(context);
         serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
+        context.put(NEW_TASK_CREATED, true);
+        context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, true);
+        context.put(PUBLISH_BUILD_INFO_PARAM, false);
     }
 
     @NotNull
@@ -205,7 +218,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private void populateContextForAllOperations(@NotNull Map<String, Object> context) {
         context.put("uiConfigBean", uiConfigSupport);
         context.put("testDirectoryTypes", TEST_RESULTS_FILE_PATTERN_TYPES);
-        context.put(AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM, "true");
         context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
         context.put(SIGN_METHOD_MAP_KEY, SIGN_METHOD_MAP);
         context.put("useSpecsOptions", USE_SPECS_OPTIONS);

@@ -58,7 +58,7 @@ public class ServerConfigManager implements Serializable {
     private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations.v2";
     private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<>();
     private BintrayConfig bintrayConfig;
-    private  BandanaManager bandanaManager = null;
+    private BandanaManager bandanaManager = null;
     private AtomicLong nextAvailableId = new AtomicLong(0);
     private CustomVariableContext customVariableContext;
 
@@ -151,7 +151,7 @@ public class ServerConfigManager implements Serializable {
         Iterator keysIterator = bandanaManager.getKeys(PlanAwareBandanaContext.GLOBAL_CONTEXT).iterator();
         boolean isMissedMigration = false;
         while (keysIterator.hasNext()) {
-            String key = (String)keysIterator.next();
+            String key = (String) keysIterator.next();
             // If the new key exists no migration needed.
             if (key.equals(ARTIFACTORY_CONFIG_KEY) || key.equals(BINTRAY_CONFIG_KEY)) {
                 return false;
@@ -165,7 +165,7 @@ public class ServerConfigManager implements Serializable {
     }
 
     private void setBintrayConfigurations(BandanaManager bandanaManager)
-            throws IOException,  InstantiationException, IllegalAccessException {
+            throws IOException, InstantiationException, IllegalAccessException {
         String existingBintrayConfig = (String) bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY);
         if (existingBintrayConfig != null && !"".equals(existingBintrayConfig)) {
             BintrayConfig tempBintrayConfig = getObjectFromStringXml(existingBintrayConfig, BintrayConfig.class);
@@ -176,7 +176,7 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-        private void setArtifactoryServers(BandanaManager bandanaManager)
+    private void setArtifactoryServers(BandanaManager bandanaManager)
             throws IOException, InstantiationException, IllegalAccessException {
 
         String existingArtifactoryConfig = (String) bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY);
@@ -360,8 +360,8 @@ public class ServerConfigManager implements Serializable {
 
     public class BandanaContext extends PlanAwareBandanaContext{
 
-        public BandanaContext(@Nullable BambooBandanaContext parentContext, long planId, @Nullable String pluginKey) {
-            super(parentContext, planId, pluginKey);
+        public BandanaContext(@Nullable BambooBandanaContext parentContext, long planId, long chanId, @Nullable String pluginKey) {
+            super(parentContext, planId, chanId, pluginKey);
         }
     }
 
@@ -394,7 +394,7 @@ public class ServerConfigManager implements Serializable {
         return object;
     }
 
-    private List<String> findAllObjects(Class providedClass, String scannedString){
+    private List<String> findAllObjects(Class providedClass, String scannedString) {
         List<String> foundStrings = Lists.newArrayList();
         String foundString = findFirstObject(providedClass.getSimpleName(), scannedString, false);
         while (!"".equals(foundString)) {

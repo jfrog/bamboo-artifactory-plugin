@@ -35,6 +35,7 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
@@ -106,6 +107,25 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
                     "collection is disabled.", e);
             throw e;
         }
+    }
+
+    public String createBuildInfoJSonFileAndGetItsPath() throws IOException {
+        if (serverConfig == null) {
+            return null;
+        }
+        try {
+            File buildInfoJsonTempFile = File.createTempFile(BuildInfoFields.GENERATED_BUILD_INFO, ".json");
+            clientConf.info.setGeneratedBuildInfoFilePath(buildInfoJsonTempFile.getAbsolutePath());
+            return buildInfoJsonTempFile.getCanonicalPath();
+        } catch (IOException e) {
+            log.error("Error occurred while writing build info properties to a temp file. Build info " +
+                    "collection is disabled.", e);
+            throw e;
+        }
+    }
+
+    public void setPublishBuildInfo(boolean publishBuildInfo) {
+        clientConf.publisher.setPublishBuildInfo(publishBuildInfo);
     }
 
     @NotNull
@@ -275,7 +295,11 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         clientConf.publisher.setIncludePatterns(buildContext.getIncludePattern());
         clientConf.publisher.setExcludePatterns(buildContext.getExcludePattern());
         clientConf.publisher.setFilterExcludedArtifactsFromBuild(buildContext.isFilterExcludedArtifactsFromBuild());
-        clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
+        if (!buildContext.isCaptureBuildInfo()) {
+            clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
+        } else {
+            clientConf.publisher.setPublishBuildInfo(false);
+        }
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
         clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());

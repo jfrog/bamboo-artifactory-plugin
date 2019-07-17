@@ -1,13 +1,17 @@
 package org.jfrog.bamboo.context;
 
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskDefinition;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.bintray.PushToBintrayContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.util.BeanUtilsHelper;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.build.api.BlackDuckProperties;
 import org.jfrog.build.api.BlackDuckPropertiesFields;
 
@@ -33,6 +37,7 @@ public abstract class AbstractBuildContext {
     public static final String DEPLOYER_PASSWORD_PARAM = "deployerPassword";
     public static final String USE_ARTIFACTORY_GRADLE_PLUGIN = "useArtifactoryGradlePlugin";
     public static final String PUBLISH_BUILD_INFO_PARAM = "publishBuildInfo";
+    public static final String CAPTURE_BUILD_INFO = "captureBuildInfo";
     public static final String INCLUDE_ENV_VARS_PARAM = "includeEnvVars";
     public static final String ENV_VARS_INCLUDE_PATTERNS = "envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "envVarsExcludePatterns";
@@ -45,7 +50,7 @@ public abstract class AbstractBuildContext {
     public static final String TEST_RESULT_DIRECTORY = "testResultsDirectory";
     public static final String TEST_DIRECTORY_OPTION = "testDirectoryOption";
     public static final String ENVIRONMENT_VARIABLES = "environmentVariables";
-
+    public static final String NEW_TASK_CREATED = "newTask";
     public static final String PUBLISH_ARTIFACTS_PARAM = "publishArtifacts";
     public static final String PUBLISH_MAVEN_DESCRIPTORS_PARAM = "publishMavenDescriptors";
     public static final String PUBLISH_IVY_DESCRIPTORS_PARAM = "publishIvyDescriptors";
@@ -222,6 +227,10 @@ public abstract class AbstractBuildContext {
         return Boolean.parseBoolean(env.get(PUBLISH_BUILD_INFO_PARAM));
     }
 
+    public boolean isCaptureBuildInfo() {
+        return Boolean.parseBoolean(env.get(CAPTURE_BUILD_INFO));
+    }
+
     public boolean isIncludeEnvVars() {
         return Boolean.parseBoolean(env.get(INCLUDE_ENV_VARS_PARAM));
     }
@@ -314,6 +323,10 @@ public abstract class AbstractBuildContext {
         env.put(PUBLISH_ARTIFACTS_PARAM, "false");
         env.put(ENABLE_RELEASE_MANAGEMENT, "false");
         env.put(ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_TO_EXCLUDE);
+    }
+
+    public void resetPublishBuildInfo() {
+        env.put(PUBLISH_BUILD_INFO_PARAM, "false");
     }
 
     public void resetResolverContextToDefault() {
@@ -440,4 +453,20 @@ public abstract class AbstractBuildContext {
         return tokens;
     }
 
+    public boolean shouldCaptureBuildInfo(@NotNull TaskContext taskContext) {
+        boolean shouldCaptureBuildInfo = false;
+        if (isCaptureBuildInfo()) {
+            shouldCaptureBuildInfo = true;
+        } else {
+            if (isPublishBuildInfo()) {
+                // First check if there is a publish build info task. if there is then use aggregation
+                List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
+                if (TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions)) {
+                    shouldCaptureBuildInfo = true;
+                    resetPublishBuildInfo();
+                }
+            }
+        }
+        return shouldCaptureBuildInfo;
+    }
 }

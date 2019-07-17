@@ -197,14 +197,6 @@ public abstract class ArtifactoryTaskType implements TaskType {
         return message.toString();
     }
 
-    public String getArtifactoryVersion(){
-        Plugin plugin = pluginAccessor.getPlugin(ConstantValues.ARTIFACTORY_PLUGIN_KEY);
-        if (plugin != null) {
-            return plugin.getPluginInformation().getVersion();
-        }
-        return StringUtils.EMPTY;
-    }
-
     private boolean shouldOverrideJdk() {
         return Boolean.valueOf(buildParamsOverrideManager.getOverrideValue(SHOULD_OVERRIDE_JDK_KEY));
 

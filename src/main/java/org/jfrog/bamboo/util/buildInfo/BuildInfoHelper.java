@@ -1,6 +1,8 @@
-package org.jfrog.bamboo.util.generic;
+package org.jfrog.bamboo.util.buildInfo;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
+import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.util.BuildUtils;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
@@ -9,49 +11,60 @@ import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.GenericContext;
+import org.jfrog.bamboo.context.ArtifactoryContextInterface;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.Utils;
+import org.jfrog.bamboo.util.generic.GenericData;
+import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.*;
 import org.jfrog.build.api.builder.ArtifactBuilder;
 import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
-import org.jfrog.build.api.util.FileChecksumCalculator;
+import org.jfrog.build.api.dependency.BuildDependency;
+import org.jfrog.build.extractor.BuildInfoExtractorUtils;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
 import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
 import org.jfrog.build.extractor.clientConfiguration.PatternMatcher;
-import org.jfrog.build.extractor.clientConfiguration.util.PublishedItemsHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
-import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author Tomer Cohen
  */
-public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
-    private static final Logger log = Logger.getLogger(GenericBuildInfoHelper.class);
+public class BuildInfoHelper extends BaseBuildInfoHelper {
+    private static final Logger log = Logger.getLogger(BuildInfoHelper.class);
     private final Map<String, String> env;
     private final String vcsRevision;
     private final String vcsUrl;
+    private String username;
+    private String password;
+    private String url;
 
-    public GenericBuildInfoHelper(Map<String, String> env, String vcsRevision, String vcsUrl) {
+    public BuildInfoHelper(Map<String, String> env, String vcsRevision, String vcsUrl) {
         this.env = env;
         this.vcsRevision = vcsRevision;
         this.vcsUrl = vcsUrl;
     }
 
-    public Build extractBuildInfo(BuildContext buildContext, BuildLogger buildLogger, GenericContext context, String username) {
+    public Build extractBuildInfo(BuildContext buildContext, BuildLogger buildLogger, ArtifactoryContextInterface context) {
         String url = determineBambooBaseUrl();
         StringBuilder summaryUrl = new StringBuilder(url);
         if (!url.endsWith("/")) {
@@ -105,7 +118,15 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return builder.build();
     }
 
-    private List<Artifact> convertDeployDetailsToArtifacts(Set<DeployDetails> details) {
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public List<Artifact> convertDeployDetailsToArtifacts(Set<DeployDetails> details) {
         List<Artifact> result = Lists.newArrayList();
         for (DeployDetails detail : details) {
             String ext = FilenameUtils.getExtension(detail.getFile().getName());
@@ -133,23 +154,6 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
         return principal;
     }
 
-    public Set<DeployDetails> createDeployDetailsAndAddToBuildInfo(Build build, Multimap<String, File> filesMap, BuildContext buildContext,
-                                                                   GenericContext genericContext)
-            throws IOException, NoSuchAlgorithmException {
-        Set<DeployDetails> details = Sets.newHashSet();
-        Map<String, String> dynamicPropertyMap = getDynamicPropertyMap(build);
-        String repoKey = overrideParam(genericContext.getRepoKey(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
-        for (Map.Entry<String, File> entry : filesMap.entries()) {
-            details.addAll(buildDeployDetailsFromFileSet(entry, repoKey, dynamicPropertyMap));
-        }
-        List<Artifact> artifacts = convertDeployDetailsToArtifacts(details);
-        ModuleBuilder moduleBuilder =
-                new ModuleBuilder().id(buildContext.getPlanName() + ":" + buildContext.getBuildNumber())
-                        .artifacts(artifacts);
-        build.setModules(Lists.newArrayList(moduleBuilder.build()));
-        return details;
-    }
-
     public Map<String, String> getDynamicPropertyMap(Build build) {
         Map<String, String> filteredPropertyMap = new HashMap<>();
         if (build.getProperties() != null) {
@@ -157,30 +161,17 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
                 String key = entry.getKey().toString();
                 if (StringUtils.startsWith(key, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX)) {
                     filteredPropertyMap.put(
-                        StringUtils.removeStart(key, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX),
-                        (String) entry.getValue());
+                            StringUtils.removeStart(key, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX),
+                            (String) entry.getValue());
                 }
             }
         }
         return filteredPropertyMap;
     }
 
-    private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry, String targetRepository,
-                                                             Map<String, String> propertyMap) throws IOException,
-            NoSuchAlgorithmException {
-        Set<DeployDetails> result = Sets.newHashSet();
-        String targetPath = fileEntry.getKey();
-        File artifactFile = fileEntry.getValue();
-        String path = PublishedItemsHelper.calculateTargetPath(targetPath, artifactFile);
-        path = StringUtils.replace(path, "//", "/");
-
-        Map<String, String> checksums = FileChecksumCalculator.calculateChecksums(artifactFile, "SHA1", "MD5");
-        DeployDetails.Builder deployDetails = new DeployDetails.Builder().file(artifactFile).md5(checksums.get("MD5"))
-                .sha1(checksums.get("SHA1")).targetRepository(targetRepository).artifactPath(path);
-        addCommonProperties(propertyMap);
-        deployDetails.addProperties(propertyMap);
-        result.add(deployDetails.build());
-        return result;
+    public Build getBuild(ArtifactoryContextInterface context, TaskContext taskContext) {
+        BuildContext buildContext = taskContext.getBuildContext();
+        return extractBuildInfo(buildContext, taskContext.getBuildLogger(), context);
     }
 
     public void addCommonProperties(Map<String, String> propertyMap) {
@@ -220,5 +211,99 @@ public class GenericBuildInfoHelper extends BaseBuildInfoHelper {
                 propertyMap.put(BuildInfoFields.BUILD_PARENT_NUMBER, triggeringBuildNumber);
             }
         }
+    }
+
+    private static Module createModule(TaskContext taskContext, List<Artifact> artifacts, List<Dependency> dependencies, Map<String, String> properties) throws IOException {
+        ModuleBuilder moduleBuilder =
+                new ModuleBuilder().id(taskContext.getBuildContext().getPlanName() + ":" + taskContext.getBuildContext().getBuildNumber())
+                        .artifacts(artifacts).dependencies(dependencies);
+        Module module = moduleBuilder.build();
+        return module;
+    }
+
+    public static void addBuildInfoFromFileToContext(TaskContext taskContext, String generatedBuildInfo, String previousJson) throws IOException {
+        if (StringUtils.isNotBlank(previousJson)) {
+            addBuildInfoToContext(taskContext, previousJson);
+        }
+        StringBuilder contentBuilder = new StringBuilder();
+        Path generatedBuildInfoPath = Paths.get(generatedBuildInfo);
+        try (Stream<String> stream = Files.lines(generatedBuildInfoPath,StandardCharsets.UTF_8))
+        {
+            stream.forEach(s -> contentBuilder.append(s).append("\n"));
+        }
+        String buildInfoJson = contentBuilder.toString();
+        generatedBuildInfoPath.toFile().delete();
+        Build build = BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoJson);
+        addBuildToContext(taskContext, build);
+    }
+
+    public static void addBuildToContext(TaskContext taskContext, Build build) throws IOException {
+        GenericData gd = new GenericData();
+        String contextJson = getBuildInfoFromContext(taskContext);
+        if (!org.apache.commons.lang3.StringUtils.isBlank(contextJson)) {
+            gd = BuildInfoExtractorUtils.jsonStringToGeneric(contextJson, GenericData.class);
+        }
+        gd.addBuild(build);
+        contextJson = BuildInfoExtractorUtils.buildInfoToJsonString(gd);
+
+        addBuildInfoToContext(taskContext, contextJson);
+    }
+
+    public static void addBuildInfoToContext(TaskContext taskContext, String json) {
+        taskContext.getBuildContext().getParentBuildContext().getBuildResult().
+                getCustomBuildData().put("genericJson", json);
+    }
+
+    public static String getBuildInfoFromContext(TaskContext taskContext) {
+        return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
+                getCustomBuildData().get("genericJson");
+    }
+
+    public static String removeBuildInfoFromContext(TaskContext taskContext) {
+        return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
+                getCustomBuildData().remove("genericJson");
+    }
+
+    public ArtifactoryBuildInfoClientBuilder getClientBuilder(BuildLogger buildLogger, Logger logger) {
+        String serverUrl = serverConfigManager.substituteVariables(url);
+        org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(logger, buildLogger);
+        ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
+        clientBuilder.setArtifactoryUrl(serverUrl).setUsername(username).setPassword(password).setLog(bambooBuildInfoLog);
+        return clientBuilder;
+    }
+
+    public static BuildInfoHelper createBuildInfoHelper(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, long selectedServerId, ArtifactoryContextInterface context, BuildParamsOverrideManager buildParamsOverrideManager) {
+        Map<String, String> env = Maps.newHashMap();
+        env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
+        env.putAll(environmentVariableAccessor.getEnvironment());
+        String vcsRevision = VcsHelper.getRevisionKey(buildContext);
+        if (StringUtils.isBlank(vcsRevision)) {
+            vcsRevision = "";
+        }
+
+        String[] vcsUrls = VcsHelper.getVcsUrls(buildContext);
+        String vcsUrl = vcsUrls.length > 0 ? vcsUrls[0] : "";
+        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
+        ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        if (serverConfig == null) {
+            throw new IllegalArgumentException("Could not find Artifactpry server. Please check the Artifactory server in the task configuration.");
+        }
+
+        BuildInfoHelper buildInfoHelper = new BuildInfoHelper(env, vcsRevision, vcsUrl);
+        buildInfoHelper.init(buildParamsOverrideManager, buildContext);
+
+        String username = Utils.getUsername(context, serverConfigManager, serverConfig, buildInfoHelper);
+        buildInfoHelper.setUsername(username);
+        String password = Utils.getPassword(context, serverConfigManager, serverConfig, buildInfoHelper);
+        buildInfoHelper.setPassword(password);
+        buildInfoHelper.url = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        return buildInfoHelper;
+    }
+
+    public Build addBuildInfoParams(TaskContext taskContext, Build build, Map<String, String> buildProperties, List<Artifact> artifacts, List<Dependency> dependencies, List<BuildDependency> buildDependencies) throws IOException {
+        Module module = BuildInfoHelper.createModule(taskContext, artifacts, dependencies, buildProperties);
+        build.setBuildDependencies(buildDependencies);
+        build.setModules(Lists.newArrayList(module));
+        return build;
     }
 }

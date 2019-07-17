@@ -49,32 +49,27 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
 [@ww.checkbox labelKey='artifactory.task.gradle.useArtifactoryGradlePlugin' name='builder.artifactoryGradleBuilder.useArtifactoryGradlePlugin' toggle='true'/]
 
-[@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
+    [@ww.checkbox name='newTask' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
 
-[@ui.bambooSection dependsOn='publishBuildInfo' showOn=true]
-    [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='includeEnvVars' toggle='true' /]
-
-    [@ui.bambooSection dependsOn='includeEnvVars' showOn=true]
-        [@ww.textfield labelKey='artifactory.task.envVarsIncludePatterns' name='envVarsIncludePatterns'/]
-        [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='envVarsExcludePatterns'/]
+    [@ui.bambooSection dependsOn='newTask' showOn=true]
+        [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
+            [#include 'editEnvVarsSnippet.ftl'/]
+            [#include 'editGradleSnippet.ftl'/]
+        [#--blackduck integration--]
+            [#include 'editBlackDuckBuilderSnippet.ftl'/]
+        [/@ui.bambooSection]
     [/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='newTask' showOn=false]
+        [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='publishBuildInfo' id="publishBuildInfoSet" showOn=true]
+            [#include 'editEnvVarsSnippet.ftl'/]
+            [#include 'editGradleSnippet.ftl'/]
+        [#--blackduck integration--]
+            [#include 'editBlackDuckBuilderSnippet.ftl'/]
+        [/@ui.bambooSection]
 
-    [@ww.checkbox labelKey='artifactory.task.runLicenseChecks' name='runLicenseChecks' toggle='true'/]
-
-    [@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
-        [@ww.textfield labelKey='artifactory.task.licenseViolationRecipients' name='builder.artifactoryGradleBuilder.licenseViolationRecipients'/]
-
-        [@ww.textfield labelKey='artifactory.task.limitChecksToScopes' name='builder.artifactoryGradleBuilder.limitChecksToScopes'/]
-
-        [@ww.checkbox labelKey='artifactory.task.includePublishedArtifacts' name='builder.artifactoryGradleBuilder.includePublishedArtifacts' toggle='true'/]
-
-        [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryGradleBuilder.disableAutoLicenseDiscovery' toggle='true'/]
     [/@ui.bambooSection]
-
-[#--blackduck integration--]
-    [#include 'editBlackDuckBuilderSnippet.ftl'/]
-
-[/@ui.bambooSection]
 
 [@ww.checkbox labelKey='artifactory.task.gradle.publishArtifacts' name='publishArtifacts' toggle='true'/]
 
@@ -252,4 +247,14 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
     errorDiv.innerHTML = '';
 
     displayGradleArtifactoryConfigs(${selectedServerId});
+    displayRequiredFieldset();
+    function displayRequiredFieldset() {
+        if (document.getElementsByName("newTask").length >0 && document.getElementsByName("newTask")[0].checked) {
+            // This is a new task, need to remove all fieldset that depends on old task.
+            document.getElementById("publishBuildInfoSet").remove();
+        } else {
+            // This is an old task. Remove all fieldset that depends on the new task.
+            document.getElementById("captureBuildInfoSet").remove();
+        }
+    }
 </script>

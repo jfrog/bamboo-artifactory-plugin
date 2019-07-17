@@ -29,7 +29,6 @@ list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink re
     [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='artifactory.task.maven.resolutionRepo' list=dummyList
     listKey='repoKey' listValue='repoKey' toggle='true' /]
 
-
 [@ww.textfield labelKey='artifactory.task.maven.resolverUsername' name='builder.artifactoryMaven3Builder.resolverUsername'/]
 
 [@ww.password labelKey='artifactory.task.maven.resolverPassword' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true' /]
@@ -60,35 +59,27 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
     [@ww.textfield labelKey='artifactory.task.deployExcludePatterns' name='builder.artifactoryMaven3Builder.deployExcludePatterns' /]
     [@ww.checkbox labelKey='artifactory.task.filterExcludedArtifactsFromBuild' name='builder.artifactoryMaven3Builder.filterExcludedArtifactsFromBuild' toggle="true"/]
 [/@ui.bambooSection]
+    [@ww.checkbox name='newTask' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
 
-[@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
-
-[@ui.bambooSection dependsOn='publishBuildInfo' showOn=true]
-    [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='includeEnvVars' toggle='true' /]
-
-    [@ui.bambooSection dependsOn='includeEnvVars' showOn=true]
-        [@ww.textfield labelKey='artifactory.task.envVarsIncludePatterns' name='envVarsIncludePatterns'/]
-        [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='envVarsExcludePatterns'/]
+    [@ui.bambooSection dependsOn='newTask' showOn=true]
+    [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
+            [#include 'editEnvVarsSnippet.ftl'/]
+            [#include 'editMaven3Snippet.ftl'/]
+        [#--blackduck integration--]
+            [#include 'editBlackDuckBuilderSnippet.ftl'/]
+        [/@ui.bambooSection]
     [/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='newTask' showOn=false]
+        [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='publishBuildInfo' id="publishBuildInfoSet" showOn=true]
+            [#include 'editEnvVarsSnippet.ftl'/]
+            [#include 'editMaven3Snippet.ftl'/]
+        [#--blackduck integration--]
+            [#include 'editBlackDuckBuilderSnippet.ftl'/]
+        [/@ui.bambooSection]
 
-    [@ww.checkbox labelKey='artifactory.task.maven.recordAllDependencies' name='recordAllDependencies' toggle='true' /]
-    [@ww.checkbox labelKey='artifactory.task.runLicenseChecks' name='runLicenseChecks' toggle='true'/]
-
-    [@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
-        [@ww.textfield labelKey='artifactory.task.licenseViolationRecipients' name='builder.artifactoryMaven3Builder.licenseViolationRecipients' /]
-
-        [@ww.textfield labelKey='artifactory.task.limitChecksToScopes' name='builder.artifactoryMaven3Builder.limitChecksToScopes' /]
-
-        [@ww.checkbox labelKey='artifactory.task.includePublishedArtifacts' name='builder.artifactoryMaven3Builder.includePublishedArtifacts' toggle='true'/]
-
-        [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryMaven3Builder.disableAutoLicenseDiscovery' toggle='true'/]
     [/@ui.bambooSection]
-
-    [#--blackduck integration--]
-    [#include 'editBlackDuckBuilderSnippet.ftl'/]
-
-[/@ui.bambooSection]
-
 [@ww.checkbox labelKey='artifactory.task.release.enableReleaseManagement' name='enableReleaseManagement' toggle='true'/]
 
 [@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
@@ -263,5 +254,15 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
     errorDiv.style.display = 'none';
     displayMaven3ArtifactoryConfigs(${selectedServerId});
     displayResolutionMaven3ArtifactoryConfigs(${selectedResolutionArtifactoryServerId});
+    displayRequiredFieldset();
+    function displayRequiredFieldset() {
+        if (document.getElementsByName("newTask").length >0 && document.getElementsByName("newTask")[0].checked) {
+            // This is a new task, need to remove all fieldset that depends on old task.
+            document.getElementById("publishBuildInfoSet").remove();
+        } else {
+            // This is an old task. Remove all fieldset that depends on the new task.
+            document.getElementById("captureBuildInfoSet").remove();
+        }
+    }
 
 </script>

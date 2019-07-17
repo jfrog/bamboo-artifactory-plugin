@@ -29,26 +29,19 @@
             [@ww.textarea name='artifactory.generic.deployPattern' labelKey='artifactory.task.generic.deployPattern' rows='10' cols='80' cssClass="long-field"/]
     [/@ui.bambooSection]
 
-    [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true' /]
-
-    [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' showOn=true]
-
-        [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='artifactory.generic.includeEnvVars' toggle='true'/]
-
-        [@ui.bambooSection dependsOn='artifactory.generic.includeEnvVars' showOn=true]
-            [@ww.textfield labelKey='artifactory.task.envVarsIncludePatterns' name='artifactory.generic.envVarsIncludePatterns' /]
-            [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='artifactory.generic.envVarsExcludePatterns' /]
+    [@ww.checkbox name='newTask' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
+    [@ui.bambooSection dependsOn='newTask' showOn=true]
+        [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
+            [#include 'editEnvSnippet.ftl'/]
+            [#include 'editBintraySnippet.ftl'/]
         [/@ui.bambooSection]
-
-        [@ww.checkbox labelKey="Bintray configuration (deprecated)" name="bintrayConfiguration" toggle='true'/]
-        [@ui.bambooSection dependsOn="bintrayConfiguration"  showOn=true]
-            [@ww.textfield name="bintray.subject" labelKey="artifactory.task.pushToBintray.subject"/]
-            [@ww.textfield name="bintray.repository" labelKey="artifactory.task.pushToBintray.repository"/]
-            [@ww.textfield name="bintray.packageName" labelKey="artifactory.task.pushToBintray.packageName"/]
-            [@ww.textfield name="bintray.licenses" labelKey="artifactory.task.pushToBintray.licenses"/]
-            [@ww.textfield name="bintray.vcsUrl" labelKey="artifactory.task.pushToBintray.vcsUrl"/]
-            [@ww.select name="bintray.signMethod" label="Sign method" list=signMethods listKey='key' listValue='value'/]
-            [@ww.textfield name="bintray.gpgPassphrase" labelKey= "GPG Passphrase"/]
+    [/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='newTask' showOn=false]
+        [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' id="publishBuildInfoSet"  showOn=true]
+            [#include 'editEnvSnippet.ftl'/]
+            [#include 'editBintraySnippet.ftl'/]
         [/@ui.bambooSection]
 
     [/@ui.bambooSection]
@@ -73,4 +66,14 @@
 
     clearError();
     arrangeRadioButtons();
+    displayRequiredFieldset();
+    function displayRequiredFieldset() {
+        if (document.getElementsByName("newTask").length >0 && document.getElementsByName("newTask")[0].checked) {
+            // This is a new task, need to remove all fieldset that depends on old task.
+            document.getElementById("publishBuildInfoSet").remove();
+        } else {
+            // This is an old task. Remove all fieldset that depends on the new task.
+            document.getElementById("captureBuildInfoSet").remove();
+        }
+    }
 </script>

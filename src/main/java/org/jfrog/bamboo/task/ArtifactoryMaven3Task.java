@@ -7,10 +7,7 @@ import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ExternalProcessBuilder;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
@@ -27,17 +24,13 @@ import org.jfrog.bamboo.builder.ArtifactoryBuildInfoDataHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.MavenDataHelper;
-import org.jfrog.bamboo.util.PluginProperties;
-import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.Utils;
+import org.jfrog.bamboo.util.*;
+import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.build.api.BuildInfoFields;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Invocation of the Maven 3 task
@@ -58,6 +51,7 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     public ArtifactoryMaven3Task(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
                                  TestCollationService testCollationService) {
+
         super(testCollationService, environmentVariableAccessor);
         this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -70,11 +64,12 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     @NotNull
     public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
         BuildLogger logger = getBuildLogger(taskContext);
-        String artifactoryPluginVersion = getArtifactoryVersion();
+        String artifactoryPluginVersion = Utils.getArtifactoryVersion(pluginAccessor);
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
 
+        String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
         Maven3BuildContext mavenBuildContext = createBuildContext(taskContext);
         initEnvironmentVariables(mavenBuildContext);
 
@@ -94,10 +89,16 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
                     "Build Info support is disabled.", e);
         }
         List<String> systemProps = new ArrayList<>();
+        boolean shouldCaptureBuildInfo = false;
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
+            shouldCaptureBuildInfo = mavenBuildContext.shouldCaptureBuildInfo(taskContext);
             ArtifactoryBuildInfoDataHelper mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
                     mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
             try {
+                if (shouldCaptureBuildInfo) {
+                    String buildInfoJsonPath = mavenDataHelper.createBuildInfoJSonFileAndGetItsPath();
+                    environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, buildInfoJsonPath);
+                }
                 buildInfoPropertiesFile = mavenDataHelper.createBuildInfoPropsFileAndGetItsPath();
             } catch (IOException e) {
                 throw new TaskException("Failed to create Build Info properties file.", e);
@@ -143,6 +144,14 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
                 String externalProcessOutput = getErrorMessage(process);
                 logger.addBuildLogEntry(externalProcessOutput);
                 log.debug("Process command error: " + externalProcessOutput);
+            }
+            if (shouldCaptureBuildInfo) {
+                String generatedJson = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
+                try {
+                    BuildInfoHelper.addBuildInfoFromFileToContext(taskContext, generatedJson, json);
+                } catch (IOException ioe) {
+                    throw new TaskException("Failed to add Build Info to context.", ioe);
+                }
             }
 
             return collectTestResults(mavenBuildContext, taskContext, process);

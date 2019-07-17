@@ -56,11 +56,11 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
 
     @SuppressWarnings({"UnusedDeclaration"})
     private static final Logger log = Logger.getLogger(GradleInitScriptHelper.class);
-
+    private File buildInfoTempFile;
     public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir,
                                                                     GradleBuildContext buildContext, BuildLogger logger,
                                                                     String scriptTemplate, Map<String, String>taskEnv,
-                                                                    Map<String, String> generalEnv, String artifactoryPluginVersion) {
+                                                                    Map<String, String> generalEnv, String artifactoryPluginVersion, boolean shouldCaptureBuildInfo) {
 
         long selectedServerId = buildContext.getArtifactoryServerId();
         if (selectedServerId == -1) {
@@ -88,6 +88,10 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             IncludeExcludePatterns patterns = new IncludeExcludePatterns(
                     buildContext.getEnvVarsIncludePatterns(),
                     buildContext.getEnvVarsExcludePatterns());
+            if (shouldCaptureBuildInfo) {
+                buildInfoTempFile = File.createTempFile(BuildInfoFields.GENERATED_BUILD_INFO, ".json");
+                configuration.info.setGeneratedBuildInfoFilePath(buildInfoTempFile.getAbsolutePath());
+            }
             configuration.info.addBuildVariables(filteredBuildVarDifferences, patterns);
             configuration.setPropertiesFile(buildProps.getAbsolutePath());
             configuration.persistToPropertiesFile();
@@ -108,6 +112,10 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
                     "Build-info task will not be added.", e);
         }
         return null;
+    }
+
+    public File getBuildInfoTempFilePath() {
+        return buildInfoTempFile;
     }
 
     private ArtifactoryClientConfiguration createClientConfiguration(GradleBuildContext buildContext,
@@ -267,6 +275,11 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             }
         }
         clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
+        if (!buildContext.isCaptureBuildInfo()) {
+            clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
+        } else {
+            clientConf.publisher.setPublishBuildInfo(false);
+        }
         clientConf.publisher.setIvy(buildContext.isPublishIvyDescriptors());
         clientConf.publisher.setMaven(buildContext.isPublishMavenDescriptors());
         String artifactSpecs = buildContext.getArtifactSpecs();
