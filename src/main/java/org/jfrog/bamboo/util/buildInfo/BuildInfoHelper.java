@@ -14,11 +14,12 @@ import com.google.common.collect.Maps;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.ArtifactoryContextInterface;
+import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
@@ -58,13 +59,13 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     private String password;
     private String url;
 
-    public BuildInfoHelper(Map<String, String> env, String vcsRevision, String vcsUrl) {
+    private BuildInfoHelper(Map<String, String> env, String vcsRevision, String vcsUrl) {
         this.env = env;
         this.vcsRevision = vcsRevision;
         this.vcsUrl = vcsUrl;
     }
 
-    public Build extractBuildInfo(BuildContext buildContext, BuildLogger buildLogger, ArtifactoryContextInterface context) {
+    private BuildInfoBuilder extractBuilder(BuildContext buildContext, BuildLogger buildLogger) {
         String url = determineBambooBaseUrl();
         StringBuilder summaryUrl = new StringBuilder(url);
         if (!url.endsWith("/")) {
@@ -98,24 +99,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
             principal = "auto";
         }
         builder.principal(principal);
-        if (context.isIncludeEnvVars()) {
-            Map<String, String> props = Maps.newHashMap(TaskUtils.getEscapedEnvMap(env));
-            props.putAll(getBuildInfoConfigPropertiesFileParams(props.get(BuildInfoConfigProperties.PROP_PROPS_FILE)));
-            IncludeExcludePatterns patterns = new IncludeExcludePatterns(context.getEnvVarsIncludePatterns(),
-                    context.getEnvVarsExcludePatterns());
-            for (Map.Entry<String, String> prop : props.entrySet()) {
-                String varKey = prop.getKey();
-                if (PatternMatcher.pathConflicts(varKey, patterns)) {
-                    continue;
-                }
-                // Global/task variables which starts with "artifactory.deploy" and "buildInfo.property" must preserve their prefix.
-                if (!StringUtils.startsWith(varKey, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX) && !StringUtils.startsWith(varKey, BuildInfoProperties.BUILD_INFO_PROP_PREFIX)) {
-                    varKey = BuildInfoProperties.BUILD_INFO_ENVIRONMENT_PREFIX + varKey;
-                }
-                builder.addProperty(varKey, prop.getValue());
-            }
-        }
-        return builder.build();
+        return builder;
     }
 
     public void setUsername(String username) {
@@ -169,9 +153,39 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return filteredPropertyMap;
     }
 
-    public Build getBuild(ArtifactoryContextInterface context, TaskContext taskContext) {
+    public BuildInfoBuilder getBuilder(TaskContext taskContext) {
         BuildContext buildContext = taskContext.getBuildContext();
-        return extractBuildInfo(buildContext, taskContext.getBuildLogger(), context);
+        return extractBuilder(buildContext, taskContext.getBuildLogger());
+    }
+
+    @NotNull
+    public Build getBuild(@NotNull TaskContext taskContext, GenericContext genericContext) {
+        BuildInfoBuilder builder = getBuilder(taskContext);
+        builder = addEnvVarsToBuildInfo(genericContext, builder);
+        Build build = builder.build();
+        build.setBuildAgent(new BuildAgent("Generic"));
+        return build;
+    }
+
+    public BuildInfoBuilder addEnvVarsToBuildInfo(GenericContext genericContext, BuildInfoBuilder builder) {
+        if (genericContext.isIncludeEnvVars()) {
+            Map<String, String> props = Maps.newHashMap(TaskUtils.getEscapedEnvMap(env));
+            props.putAll(getBuildInfoConfigPropertiesFileParams(props.get(BuildInfoConfigProperties.PROP_PROPS_FILE)));
+            IncludeExcludePatterns patterns = new IncludeExcludePatterns(genericContext.getEnvVarsIncludePatterns(),
+                    genericContext.getEnvVarsExcludePatterns());
+            for (Map.Entry<String, String> prop : props.entrySet()) {
+                String varKey = prop.getKey();
+                if (PatternMatcher.pathConflicts(varKey, patterns)) {
+                    continue;
+                }
+                // Global/task variables which starts with "artifactory.deploy" and "buildInfo.property" must preserve their prefix.
+                if (!StringUtils.startsWith(varKey, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX) && !StringUtils.startsWith(varKey, BuildInfoProperties.BUILD_INFO_PROP_PREFIX)) {
+                    varKey = BuildInfoProperties.BUILD_INFO_ENVIRONMENT_PREFIX + varKey;
+                }
+                builder.addProperty(varKey, prop.getValue());
+            }
+        }
+        return builder;
     }
 
     public void addCommonProperties(Map<String, String> propertyMap) {
@@ -272,7 +286,8 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return clientBuilder;
     }
 
-    public static BuildInfoHelper createBuildInfoHelper(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, long selectedServerId, ArtifactoryContextInterface context, BuildParamsOverrideManager buildParamsOverrideManager) {
+    public static BuildInfoHelper createBuildInfoHelper(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
+                                                        long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
         Map<String, String> env = Maps.newHashMap();
         env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
         env.putAll(environmentVariableAccessor.getEnvironment());
@@ -292,9 +307,9 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         BuildInfoHelper buildInfoHelper = new BuildInfoHelper(env, vcsRevision, vcsUrl);
         buildInfoHelper.init(buildParamsOverrideManager, buildContext);
 
-        String username = Utils.getUsername(context, serverConfigManager, serverConfig, buildInfoHelper);
+        username = Utils.getUsername(username, serverConfigManager, serverConfig, buildInfoHelper);
         buildInfoHelper.setUsername(username);
-        String password = Utils.getPassword(context, serverConfigManager, serverConfig, buildInfoHelper);
+        password = Utils.getPassword(password, serverConfigManager, serverConfig, buildInfoHelper);
         buildInfoHelper.setPassword(password);
         buildInfoHelper.url = serverConfigManager.substituteVariables(serverConfig.getUrl());
         return buildInfoHelper;

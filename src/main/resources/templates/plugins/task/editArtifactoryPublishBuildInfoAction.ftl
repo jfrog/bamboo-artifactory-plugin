@@ -3,14 +3,14 @@
 
 [@ui.bambooSection titleKey='artifactory.task.publishBuildInfo.title']
 
-    [@ww.select name='artifactory.artifactoryPublishBuildInfo.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
+    [@ww.select name='artifactory.task.publishBuildInfo.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' emptyOption=true toggle='true'/]
 
 <div id="xrayScanConfigDiv">
 
-    [@ww.textfield name='artifactory.artifactoryPublishBuildInfo.username' labelKey='artifactory.task.artifactoryPublishBuildInfo.username'/]
+    [@ww.textfield name='artifactory.task.publishBuildInfo.username' labelKey='artifactory.task.publishBuildInfo.header.username'/]
 
-    [@ww.password name='artifactory.publishbuildinfo.password' labelKey='artifactory.task.publishbuildinfo.password' showPassword='true'/]
+    [@ww.password name='artifactory.task.publishBuildInfo.password' labelKey='artifactory.task.publishbuildinfo.header.password' showPassword='true'/]
 
 [#--The Dummy password is a workaround for the autofill (Chrome)--]
     [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]

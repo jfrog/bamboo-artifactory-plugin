@@ -9,11 +9,11 @@ import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
 /**
  * @author Alexei Vainshtein
  */
-public class PublishBuildInfoContext implements ArtifactoryContextInterface {
+public class PublishBuildInfoContext {
 
-    public static final String SERVER_ID_PARAM = "artifactory.artifactoryPublishBuildInfo.artifactoryServerId";
-    public static final String USERNAME = "artifactory.artifactoryPublishBuildInfo.username";
-    public static final String PASSWORD = "artifactory.artifactoryPublishBuildInfo.password";
+    public static final String SERVER_ID_PARAM = "artifactory.task.publishBuildInfo.artifactoryServerId";
+    public static final String USERNAME = "artifactory.task.publishBuildInfo.username";
+    public static final String PASSWORD = "artifactory.task.publishBuildInfo.password";
 
     private final Map<String, String> env;
 
@@ -35,30 +35,5 @@ public class PublishBuildInfoContext implements ArtifactoryContextInterface {
 
     public long getArtifactoryServerId() {
         return Long.parseLong(env.get(SERVER_ID_PARAM));
-    }
-
-    @Override
-    public boolean isIncludeEnvVars() {
-        return false;
-    }
-
-    @Override
-    public String getRepoKey() {
-        return null;
-    }
-
-    @Override
-    public String getEnvVarsExcludePatterns() {
-        return null;
-    }
-
-    @Override
-    public String getEnvVarsIncludePatterns() {
-        return null;
-    }
-
-    @Override
-    public boolean isCaptureBuildInfo() {
-        return Boolean.parseBoolean(env.get(CAPTURE_BUILD_INFO));
     }
 }

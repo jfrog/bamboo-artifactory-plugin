@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.ArtifactoryContextInterface;
 import org.jfrog.bamboo.release.provider.TokenDataProvider;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 
@@ -66,8 +65,8 @@ public class Utils {
         return null;
     }
 
-    public static String getUsername(ArtifactoryContextInterface context, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
-        String username = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(context.getUsername()),
+    public static String getUsername(String username, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
+        username = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(username),
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
         if (StringUtils.isBlank(username)) {
             username = serverConfigManager.substituteVariables(serverConfig.getUsername());
@@ -75,8 +74,8 @@ public class Utils {
         return username;
     }
 
-    public static String getPassword(ArtifactoryContextInterface context, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
-        String password = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(context.getPassword()),
+    public static String getPassword(String password, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
+        password = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(password),
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
         if (StringUtils.isBlank(password)) {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());

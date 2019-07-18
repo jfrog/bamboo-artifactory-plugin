@@ -17,7 +17,6 @@ import org.jfrog.bamboo.util.Utils;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
 import org.jfrog.build.api.Build;
-import org.jfrog.build.api.BuildAgent;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
@@ -58,7 +57,7 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
         BuildContext context = taskContext.getBuildContext();
         String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
         GenericContext genericContext = new GenericContext(taskContext.getConfigurationMap());
-        BuildInfoHelper buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, context, environmentVariableAccessor, genericContext.getSelectedServerId(), genericContext, buildParamsOverrideManager);
+        BuildInfoHelper buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, context, environmentVariableAccessor, genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
         ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext, buildParamsOverrideManager, log);
         try {
             org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
@@ -77,8 +76,7 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
             }
 
             if (genericContext.isCaptureBuildInfo()) {
-                Build build = buildInfoHelper.getBuild(genericContext, taskContext);
-                build.setBuildAgent(new BuildAgent("Generic"));
+                Build build = buildInfoHelper.getBuild(taskContext, genericContext);
                 Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
                 build = buildInfoHelper.addBuildInfoParams(taskContext, build, buildProperties, Lists.newArrayList(), dependencies, buildDependencies);
                 if (StringUtils.isNotBlank(json)) {

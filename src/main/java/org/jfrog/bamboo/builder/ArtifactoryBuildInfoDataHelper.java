@@ -118,8 +118,7 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
             clientConf.info.setGeneratedBuildInfoFilePath(buildInfoJsonTempFile.getAbsolutePath());
             return buildInfoJsonTempFile.getCanonicalPath();
         } catch (IOException e) {
-            log.error("Error occurred while writing build info properties to a temp file. Build info " +
-                    "collection is disabled.", e);
+            log.error("Error occurred while creating temp build info JSON file.", e);
             throw e;
         }
     }

@@ -50,8 +50,8 @@ public class ArtifactoryPublishBuildInfoTask implements TaskType {
         String json = BuildInfoHelper.getBuildInfoFromContext(taskContext);
         BuildInfoHelper.removeBuildInfoFromContext(taskContext);
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        BuildInfoHelper buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, taskContext.getBuildContext(), environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext, buildParamsOverrideManager);
-        Build build = buildInfoHelper.getBuild(publishBuildInfoContext, taskContext);
+        BuildInfoHelper buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, taskContext.getBuildContext(), environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(), publishBuildInfoContext.getPassword(), buildParamsOverrideManager);
+        Build build = buildInfoHelper.getBuilder(taskContext).build();
         try {
             if (StringUtils.isNotBlank(json)) {
                 GenericData genericData = BuildInfoExtractorUtils.jsonStringToGeneric(json, GenericData.class);

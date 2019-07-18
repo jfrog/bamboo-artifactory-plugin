@@ -49,9 +49,9 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
 [@ww.checkbox labelKey='artifactory.task.gradle.useArtifactoryGradlePlugin' name='builder.artifactoryGradleBuilder.useArtifactoryGradlePlugin' toggle='true'/]
 
-    [@ww.checkbox name='newTask' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
+    [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
 
-    [@ui.bambooSection dependsOn='newTask' showOn=true]
+    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
         [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
         [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
             [#include 'editEnvVarsSnippet.ftl'/]
@@ -60,7 +60,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
             [#include 'editBlackDuckBuilderSnippet.ftl'/]
         [/@ui.bambooSection]
     [/@ui.bambooSection]
-    [@ui.bambooSection dependsOn='newTask' showOn=false]
+    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
         [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
         [@ui.bambooSection dependsOn='publishBuildInfo' id="publishBuildInfoSet" showOn=true]
             [#include 'editEnvVarsSnippet.ftl'/]
@@ -249,7 +249,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
     displayGradleArtifactoryConfigs(${selectedServerId});
     displayRequiredFieldset();
     function displayRequiredFieldset() {
-        if (document.getElementsByName("newTask").length >0 && document.getElementsByName("newTask")[0].checked) {
+        if (document.getElementsByName("buildInfoAggregation").length > 0 && document.getElementsByName("buildInfoAggregation")[0].checked) {
             // This is a new task, need to remove all fieldset that depends on old task.
             document.getElementById("publishBuildInfoSet").remove();
         } else {

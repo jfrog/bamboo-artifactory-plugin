@@ -50,7 +50,7 @@ public abstract class AbstractBuildContext {
     public static final String TEST_RESULT_DIRECTORY = "testResultsDirectory";
     public static final String TEST_DIRECTORY_OPTION = "testDirectoryOption";
     public static final String ENVIRONMENT_VARIABLES = "environmentVariables";
-    public static final String NEW_TASK_CREATED = "newTask";
+    public static final String BUILD_INFO_AGGREGATION = "buildInfoAggregation";
     public static final String PUBLISH_ARTIFACTS_PARAM = "publishArtifacts";
     public static final String PUBLISH_MAVEN_DESCRIPTORS_PARAM = "publishMavenDescriptors";
     public static final String PUBLISH_IVY_DESCRIPTORS_PARAM = "publishIvyDescriptors";
@@ -296,7 +296,7 @@ public abstract class AbstractBuildContext {
     }
 
     public boolean isFilterExcludedArtifactsFromBuild() {
-        return  Boolean.parseBoolean(env.get(prefix + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM));
+        return Boolean.parseBoolean(env.get(prefix + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM));
     }
 
     public String getResolutionRepo() {
@@ -454,19 +454,17 @@ public abstract class AbstractBuildContext {
     }
 
     public boolean shouldCaptureBuildInfo(@NotNull TaskContext taskContext) {
-        boolean shouldCaptureBuildInfo = false;
         if (isCaptureBuildInfo()) {
-            shouldCaptureBuildInfo = true;
-        } else {
-            if (isPublishBuildInfo()) {
-                // First check if there is a publish build info task. if there is then use aggregation
-                List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
-                if (TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions)) {
-                    shouldCaptureBuildInfo = true;
-                    resetPublishBuildInfo();
-                }
+            return true;
+        }
+        if (isPublishBuildInfo()) {
+            // First check if there is a publish build info task. if there is then use aggregation
+            List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
+            if (TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions)) {
+                resetPublishBuildInfo();
+                return true;
             }
         }
-        return shouldCaptureBuildInfo;
+        return false;
     }
 }

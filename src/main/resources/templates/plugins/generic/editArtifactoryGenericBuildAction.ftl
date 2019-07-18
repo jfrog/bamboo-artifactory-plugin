@@ -29,15 +29,15 @@
             [@ww.textarea name='artifactory.generic.deployPattern' labelKey='artifactory.task.generic.deployPattern' rows='10' cols='80' cssClass="long-field"/]
     [/@ui.bambooSection]
 
-    [@ww.checkbox name='newTask' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
-    [@ui.bambooSection dependsOn='newTask' showOn=true]
+    [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
+    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
         [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
         [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
             [#include 'editEnvSnippet.ftl'/]
             [#include 'editBintraySnippet.ftl'/]
         [/@ui.bambooSection]
     [/@ui.bambooSection]
-    [@ui.bambooSection dependsOn='newTask' showOn=false]
+    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
         [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true'/]
         [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' id="publishBuildInfoSet"  showOn=true]
             [#include 'editEnvSnippet.ftl'/]
@@ -68,7 +68,7 @@
     arrangeRadioButtons();
     displayRequiredFieldset();
     function displayRequiredFieldset() {
-        if (document.getElementsByName("newTask").length >0 && document.getElementsByName("newTask")[0].checked) {
+        if (document.getElementsByName("buildInfoAggregation").length > 0 && document.getElementsByName("buildInfoAggregation")[0].checked) {
             // This is a new task, need to remove all fieldset that depends on old task.
             document.getElementById("publishBuildInfoSet").remove();
         } else {

@@ -19,9 +19,7 @@ import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.Utils;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
-import org.jfrog.build.api.Artifact;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.BuildAgent;
+import org.jfrog.build.api.*;
 import org.jfrog.build.api.util.FileChecksumCalculator;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
@@ -80,9 +78,8 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
 
         String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
         GenericContext genericContext = new GenericContext(taskContext.getConfigurationMap());
-        buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, context, environmentVariableAccessor, genericContext.getSelectedServerId(), genericContext, buildParamsOverrideManager);
-        Build build = buildInfoHelper.getBuild(genericContext, taskContext);
-        build.setBuildAgent(new BuildAgent("Generic"));
+        buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, context, environmentVariableAccessor, genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
+        Build build = buildInfoHelper.getBuild(taskContext, genericContext);
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
         try {
             File sourceCodeDirectory = getWorkingDirectory(taskContext);

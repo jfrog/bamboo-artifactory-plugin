@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
-import static org.jfrog.bamboo.context.AbstractBuildContext.NEW_TASK_CREATED;
+import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
 
 /**
  * @author Tomer Cohen
  */
-public class GenericContext implements ArtifactoryContextInterface {
+public class GenericContext {
     public static final String PREFIX = "builder.artifactoryGenericBuilder.";
     public static final String SERVER_ID_PARAM = AbstractBuildContext.SERVER_ID_PARAM;
     public static final String REPO_KEY = "builder.artifactoryGenericBuilder.deployableRepo";
@@ -46,7 +46,7 @@ public class GenericContext implements ArtifactoryContextInterface {
     }
 
     public static Set<String> getFieldsToCopy() {
-        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, NEW_TASK_CREATED, CAPTURE_BUILD_INFO,
+        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS, ENABLE_BINTRAY_CONFIGURATION,
                 USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE);
         fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
@@ -76,17 +76,14 @@ public class GenericContext implements ArtifactoryContextInterface {
         return key;
     }
 
-    @Override
     public String getUsername() {
         return env.get(USERNAME);
     }
 
-    @Override
     public String getPassword() {
         return env.get(PASSWORD);
     }
 
-    @Override
     public long getArtifactoryServerId() {
         return 0;
     }
@@ -127,7 +124,6 @@ public class GenericContext implements ArtifactoryContextInterface {
         return env.get(ENV_VARS_INCLUDE_PATTERNS);
     }
 
-    @Override
     public boolean isCaptureBuildInfo() {
         return Boolean.parseBoolean(env.get(CAPTURE_BUILD_INFO));
     }
