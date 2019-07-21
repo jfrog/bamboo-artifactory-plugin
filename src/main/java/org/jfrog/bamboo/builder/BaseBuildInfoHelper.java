@@ -133,7 +133,7 @@ public abstract class BaseBuildInfoHelper {
      * @param propFilePath Path to buildInfoConfig.propertiesFile
      * @return Map of the parameters
      */
-    protected Map<String, String> getBuildInfoConfigPropertiesFileParams(String propFilePath) {
+    public Map<String, String> getBuildInfoConfigPropertiesFileParams(String propFilePath) {
         Map<String, String> variablesToReturn = Maps.newHashMap();
         if (StringUtils.isNotBlank(propFilePath)) {
             File propFile = new File(propFilePath);

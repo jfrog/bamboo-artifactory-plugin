@@ -36,6 +36,9 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
+import static org.jfrog.bamboo.context.AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM;
+
 /**
  * Base class for all {@link com.atlassian.bamboo.task.TaskConfigurator}s that are used by the plugin. It sets the
  * {@link ServerConfigManager} to be used for populating the Artifactory relevant fields. It also serves as a common
@@ -72,10 +75,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         this(null, null);
     }
 
-    protected AbstractArtifactoryConfiguration(String builderContextPrefix) {
-        this(builderContextPrefix, null);
-    }
-
     protected AbstractArtifactoryConfiguration(String builderContextPrefix, @Nullable String capabilityPrefix) {
         serverConfigManager = ServerConfigManager.getInstance();
         if (administrationConfiguration == null) {
@@ -101,6 +100,18 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         super.populateContextForEdit(context, taskDefinition);
         serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
+        // Build-Info aggregation is supported since version 2.7.0 of the plugin,
+        // This means that for tasks which were created before this version,
+        // publish build-info is done directly by the task and not by the
+        // Artifactory Build Info Publish' task, introduced in version 2.7.0.
+        // The following code takes care of backward compatibility, for tasks which were created before 2.7.0.
+        if (Boolean.valueOf(taskDefinition.getConfiguration().get(BUILD_INFO_AGGREGATION))) {
+            context.put(PUBLISH_BUILD_INFO_PARAM, false);
+            context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, true);
+        } else {
+            context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, false);
+            context.put(PUBLISH_BUILD_INFO_PARAM, true);
+        }
     }
 
     @Override
@@ -108,6 +119,9 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         super.populateContextForCreate(context);
         serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
+        context.put(BUILD_INFO_AGGREGATION, true);
+        context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, true);
+        context.put(PUBLISH_BUILD_INFO_PARAM, false);
     }
 
     @NotNull
@@ -205,7 +219,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private void populateContextForAllOperations(@NotNull Map<String, Object> context) {
         context.put("uiConfigBean", uiConfigSupport);
         context.put("testDirectoryTypes", TEST_RESULTS_FILE_PATTERN_TYPES);
-        context.put(AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM, "true");
         context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
         context.put(SIGN_METHOD_MAP_KEY, SIGN_METHOD_MAP);
         context.put("useSpecsOptions", USE_SPECS_OPTIONS);
@@ -328,7 +341,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      * @param buildContext The build context which holds the environment for the configuration.
      */
     protected void resetResolverConfigIfNeeded(AbstractBuildContext buildContext) {
-        long serverId = buildContext.getArtifactoryServerId();;
+        long serverId = buildContext.getArtifactoryServerId();
         if (serverId == -1) {
             buildContext.resetResolverContextToDefault();
         }

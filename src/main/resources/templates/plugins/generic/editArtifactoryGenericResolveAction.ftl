@@ -23,6 +23,13 @@
         [@ui.bambooSection dependsOn='artifactory.generic.useSpecsChoice' showOn='legacyPatterns']
         [@ww.textarea name='artifactory.generic.resolvePattern' labelKey='artifactory.task.generic.resolvePattern' rows='10' cols='80' cssClass="long-field" /]
     [/@ui.bambooSection]
+    [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
+    [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
+
+    [@ui.bambooSection dependsOn='captureBuildInfo' showOn=true]
+        [#include 'editEnvSnippet.ftl'/]
+    [/@ui.bambooSection]
+
 </div>
 [/@ui.bambooSection]
 

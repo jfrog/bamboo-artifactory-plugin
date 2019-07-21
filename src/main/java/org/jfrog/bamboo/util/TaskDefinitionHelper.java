@@ -5,10 +5,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.task.ArtifactoryGenericDeployTask;
-import org.jfrog.bamboo.task.ArtifactoryGradleTask;
-import org.jfrog.bamboo.task.ArtifactoryIvyTask;
-import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
+import org.jfrog.bamboo.task.*;
 
 import java.util.List;
 
@@ -34,7 +31,8 @@ public abstract class TaskDefinitionHelper {
         if (taskDefinitions == null || taskDefinitions.isEmpty()) {
             return null;
         }
-        TaskDefinition definition = findMavenDefinition(taskDefinitions);
+
+         TaskDefinition definition = findMavenDefinition(taskDefinitions);
         if (definition == null) {
             definition = findGradleDefinition(taskDefinitions);
         }
@@ -115,6 +113,21 @@ public abstract class TaskDefinitionHelper {
             }
         }
         return null;
+    }
+
+    /**
+     * @return True if a Publish Build Info task exists in the plan. Otherwise, false.
+     */
+    @Nullable
+    public static boolean isBuildPublishTaskExists(List<? extends TaskDefinition> taskDefinitions) {
+        if (taskDefinitions != null) {
+            for (TaskDefinition definition : taskDefinitions) {
+                if (definition.isEnabled() && StringUtils.endsWith(definition.getPluginKey(), ArtifactoryPublishBuildInfoTask.TASK_NAME)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

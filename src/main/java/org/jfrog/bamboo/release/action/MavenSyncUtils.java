@@ -44,8 +44,7 @@ public class MavenSyncUtils {
             return false;
         }
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
-        ArtifactoryBuildInfoClient client = TaskUtils.createClient(serverConfigManager, serverConfig, context, log);
-        try {
+        try (ArtifactoryBuildInfoClient client = TaskUtils.createClient(serverConfigManager, serverConfig, context, log)) {
             Map<String, List<Map>> userPluginInfo = client.getUserPluginInfo();
             if (!userPluginInfo.containsKey("promotions")) {
                 log.debug("No special promotion modes enabled: no 'execute' user plugins could be found.");
