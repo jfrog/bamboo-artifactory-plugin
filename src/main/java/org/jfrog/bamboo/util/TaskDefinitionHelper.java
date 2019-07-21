@@ -114,8 +114,9 @@ public abstract class TaskDefinitionHelper {
         }
         return null;
     }
+
     /**
-     * @return Publish build info task if found, null if not.
+     * @return True if a Publish Build Info task exists in the plan. Otherwise, false.
      */
     @Nullable
     public static boolean isBuildPublishTaskExists(List<? extends TaskDefinition> taskDefinitions) {

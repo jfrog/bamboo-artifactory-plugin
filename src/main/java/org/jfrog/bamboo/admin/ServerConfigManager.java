@@ -269,8 +269,9 @@ public class ServerConfigManager implements Serializable {
             }
 
             return Lists.newArrayList();
+        } finally {
+            client.close();
         }
-
     }
 
     /**
@@ -322,6 +323,8 @@ public class ServerConfigManager implements Serializable {
                 log.error("Error while sending error to response", e);
             }
             return Lists.newArrayList();
+        } finally {
+            client.close();
         }
     }
 

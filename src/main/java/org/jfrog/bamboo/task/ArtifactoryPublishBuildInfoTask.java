@@ -52,15 +52,14 @@ public class ArtifactoryPublishBuildInfoTask implements TaskType {
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         BuildInfoHelper buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, taskContext.getBuildContext(), environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(), publishBuildInfoContext.getPassword(), buildParamsOverrideManager);
         Build build = buildInfoHelper.getBuilder(taskContext).build();
-        try {
+        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
+        try (ArtifactoryBuildInfoClient client = clientBuilder.build()){
             if (StringUtils.isNotBlank(json)) {
                 GenericData genericData = BuildInfoExtractorUtils.jsonStringToGeneric(json, GenericData.class);
                 for (Build buildFromContext : genericData.getBuilds()) {
                     build.append(buildFromContext);
                 }
             }
-            ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
-            ArtifactoryBuildInfoClient client = clientBuilder.build();
             client.sendBuildInfo(build);
             taskContext.getBuildContext().getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, client.getArtifactoryUrl());
         } catch (IOException e) {
