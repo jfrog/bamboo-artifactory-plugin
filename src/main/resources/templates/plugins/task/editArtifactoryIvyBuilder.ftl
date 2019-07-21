@@ -45,33 +45,29 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
     [/@ui.bambooSection]
 [/@ui.bambooSection]
 
-[@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
+    [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
 
-[@ui.bambooSection dependsOn='publishBuildInfo' showOn=true]
-    [@ww.checkbox labelKey='artifactory.task.includeEnvVars' name='includeEnvVars' toggle='true'/]
+    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
+        [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
+            [#include 'editEnvVarsSnippet.ftl'/]
+            [#include 'editIvySnippet.ftl'/]
+        [#--blackduck integration--]
+            [#include 'editBlackDuckBuilderSnippet.ftl'/]
+        [/@ui.bambooSection]
+    [/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
+        [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='publishBuildInfo' id="publishBuildInfoSet" showOn=true]
+            [#include 'editEnvVarsSnippet.ftl'/]
+            [#include 'editIvySnippet.ftl'/]
+        [#--blackduck integration--]
+            [#include 'editBlackDuckBuilderSnippet.ftl'/]
+        [/@ui.bambooSection]
 
-    [@ui.bambooSection dependsOn='includeEnvVars' showOn=true]
-        [@ww.textfield labelKey='artifactory.task.envVarsIncludePatterns' name='envVarsIncludePatterns' /]
-        [@ww.textfield labelKey='artifactory.task.envVarsExcludePatterns' name='envVarsExcludePatterns' /]
     [/@ui.bambooSection]
 
-    [@ww.checkbox labelKey='artifactory.task.runLicenseChecks' name='runLicenseChecks' toggle='true'/]
-
-    [@ui.bambooSection dependsOn='runLicenseChecks' showOn=true]
-        [@ww.textfield labelKey='artifactory.task.licenseViolationRecipients' name='builder.artifactoryIvyBuilder.licenseViolationRecipients'/]
-
-        [@ww.textfield labelKey='artifactory.task.limitChecksToScopes' name='builder.artifactoryIvyBuilder.limitChecksToScopes'/]
-
-        [@ww.checkbox labelKey='artifactory.task.includePublishedArtifacts' name='builder.artifactoryIvyBuilder.includePublishedArtifacts' toggle='true'/]
-
-        [@ww.checkbox labelKey='artifactory.task.disableAutoLicenseDiscovery' name='builder.artifactoryIvyBuilder.disableAutoLicenseDiscovery' toggle='true'/]
-    [/@ui.bambooSection]
-
-    [#--blackduck integration--]
-    [#include 'editBlackDuckBuilderSnippet.ftl'/]
-[/@ui.bambooSection]
-
-[@ww.checkbox labelKey="Bintray configuration (Deprecated)" name="bintrayConfiguration" toggle='true'/]
+    [@ww.checkbox labelKey="Bintray configuration (Deprecated)" name="bintrayConfiguration" toggle='true'/]
 
 [@ui.bambooSection dependsOn="bintrayConfiguration"  showOn=true]
     [@ww.textfield name="bintray.subject" labelKey="artifactory.task.pushToBintray.subject"/]
@@ -170,4 +166,14 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
     errorDiv.innerHTML = '';
     errorDiv.style.display = 'none';
     displayIvyArtifactoryConfigs(${selectedServerId});
+    displayRequiredFieldset();
+    function displayRequiredFieldset() {
+        if (document.getElementsByName("buildInfoAggregation").length > 0 && document.getElementsByName("buildInfoAggregation")[0].checked) {
+            // This is a new task, need to remove all fieldset that depends on old task.
+            document.getElementById("publishBuildInfoSet").remove();
+        } else {
+            // This is an old task. Remove all fieldset that depends on the new task.
+            document.getElementById("captureBuildInfoSet").remove();
+        }
+    }
 </script>

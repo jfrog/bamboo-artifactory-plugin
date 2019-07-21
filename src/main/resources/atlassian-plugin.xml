@@ -163,6 +163,20 @@
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
+    <!-- Publish Build info task -->
+    <taskType key="artifactoryPublishBuildInfoTask" name="Artifactory Publish Build Info"
+              class="org.jfrog.bamboo.task.ArtifactoryPublishBuildInfoTask">
+        <description>Artifactory Publish Build Info Task</description>
+        <category name="deployment"/>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryPublishBuildInfoConfiguration"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/task/editArtifactoryPublishBuildInfoAction.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/task/viewArtifactoryPublishBuildInfoAction.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
     <!-- Maven 3 task -->
     <taskType key="maven3Task" name="Artifactory Maven 3"
                 class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">

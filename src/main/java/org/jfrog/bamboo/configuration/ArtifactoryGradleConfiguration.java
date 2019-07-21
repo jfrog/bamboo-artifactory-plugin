@@ -3,6 +3,7 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +23,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     protected static final String DEFAULT_TEST_REPORTS_XML = "**/build/test-results/*.xml";
     private static final Set<String> FIELDS_TO_COPY = GradleBuildContext.getFieldsToCopy();
     public ArtifactoryGradleConfiguration() {
-        super(GradleBuildContext.PREFIX);
+        super(GradleBuildContext.PREFIX, CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".gradle");
     }
 
     @Override

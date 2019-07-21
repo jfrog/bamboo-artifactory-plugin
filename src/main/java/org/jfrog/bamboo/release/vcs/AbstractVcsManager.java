@@ -5,6 +5,7 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 
 import java.io.File;
@@ -44,10 +45,10 @@ public abstract class AbstractVcsManager implements VcsManager {
     @Nullable
     protected Map<String, String> getTaskConfiguration() {
         List<TaskDefinition> tasks = this.getContext().getBuildDefinition().getTaskDefinitions();
-        for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i) != null &&
-                    tasks.get(i).getPluginKey().contains("bamboo-artifactory-plugin")) {
-                return tasks.get(i).getConfiguration();
+        for (TaskDefinition taskDefinition : tasks) {
+            // Check that task definition enabled.
+            if (taskDefinition.isEnabled() && TaskDefinitionHelper.isReleaseMgmtEnabled(taskDefinition)) {
+                return taskDefinition.getConfiguration();
             }
         }
         return null;

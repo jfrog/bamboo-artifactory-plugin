@@ -1,10 +1,10 @@
 package org.jfrog.bamboo.util.generic;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.jfrog.build.api.Dependency;
-import org.jfrog.build.api.dependency.BuildDependency;
+import org.jfrog.build.api.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.jfrog.build.api.BuildBean.ROOT;
@@ -19,24 +19,21 @@ import static org.jfrog.build.api.BuildBean.ROOT;
 @XStreamAlias(ROOT)
 public class GenericData implements Serializable {
 
-    @XStreamAlias("buildDependencies")
-    private List<BuildDependency> buildDependencies;
-    @XStreamAlias("dependencies")
-    private List<Dependency> dependencies;
+    @XStreamAlias("build")
+    private List<Build> builds;
 
-    public List<BuildDependency> getBuildDependencies() {
-        return buildDependencies;
+    public List<Build> getBuilds() {
+        return builds;
     }
 
-    public void setBuildDependencies(List<BuildDependency> buildDependencies) {
-        this.buildDependencies = buildDependencies;
+    public void setBuilds(List<Build> builds) {
+        this.builds = builds;
     }
 
-    public List<Dependency> getDependencies() {
-        return dependencies;
-    }
-
-    public void setDependencies(List<Dependency> dependencies) {
-        this.dependencies = dependencies;
+    public void addBuild(Build build) {
+        if (this.builds == null) {
+            this.builds = new ArrayList<>();
+        }
+        this.builds.add(build);
     }
 }

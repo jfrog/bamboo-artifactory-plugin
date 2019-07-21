@@ -9,6 +9,9 @@ import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
 import java.util.Map;
 import java.util.Set;
 
+import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
+import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
+
 /**
  * @author Tomer Cohen
  */
@@ -43,7 +46,7 @@ public class GenericContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION,
+        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS, ENABLE_BINTRAY_CONFIGURATION,
                 USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE);
         fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
@@ -81,6 +84,10 @@ public class GenericContext {
         return env.get(PASSWORD);
     }
 
+    public long getArtifactoryServerId() {
+        return 0;
+    }
+
     public String getDeployPattern() {
         return env.get(DEPLOY_PATTERN);
     }
@@ -115,6 +122,10 @@ public class GenericContext {
 
     public String getEnvVarsIncludePatterns() {
         return env.get(ENV_VARS_INCLUDE_PATTERNS);
+    }
+
+    public boolean isCaptureBuildInfo() {
+        return Boolean.parseBoolean(env.get(CAPTURE_BUILD_INFO));
     }
 
     public String getEnvVarsExcludePatterns() {

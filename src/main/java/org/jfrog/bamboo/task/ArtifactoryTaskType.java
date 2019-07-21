@@ -3,26 +3,30 @@ package org.jfrog.bamboo.task;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.task.TaskType;
+import com.atlassian.bamboo.process.ExternalProcessBuilder;
+import com.atlassian.bamboo.process.ProcessService;
+import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.bamboo.variable.CustomVariableContext;
-import com.atlassian.plugin.Plugin;
 import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.*;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.builder.ArtifactoryBuildInfoDataHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.util.ConstantValues;
+import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.build.api.BuildInfoFields;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.SHOULD_OVERRIDE_JDK_KEY;
@@ -43,11 +47,15 @@ public abstract class ArtifactoryTaskType implements TaskType {
     private final TestCollationService testCollationService;
     protected BuildParamsOverrideManager buildParamsOverrideManager;
     protected CustomVariableContext customVariableContext;
+    private final ProcessService processService;
+    String buildInfoPropertiesFile;
+    boolean activateBuildInfoRecording;
 
     protected ArtifactoryTaskType(TestCollationService testCollationService,
-        EnvironmentVariableAccessor environmentVariableAccessor) {
+                                  EnvironmentVariableAccessor environmentVariableAccessor, ProcessService processService) {
         ContainerManager.autowireComponent(this);
         this.testCollationService = testCollationService;
+        this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
     }
@@ -197,16 +205,60 @@ public abstract class ArtifactoryTaskType implements TaskType {
         return message.toString();
     }
 
-    public String getArtifactoryVersion(){
-        Plugin plugin = pluginAccessor.getPlugin(ConstantValues.ARTIFACTORY_PLUGIN_KEY);
-        if (plugin != null) {
-            return plugin.getPluginInformation().getVersion();
-        }
-        return StringUtils.EMPTY;
-    }
-
     private boolean shouldOverrideJdk() {
         return Boolean.valueOf(buildParamsOverrideManager.getOverrideValue(SHOULD_OVERRIDE_JDK_KEY));
 
+    }
+
+    @NotNull
+    ExternalProcess getExternalProcess(@NotNull TaskContext taskContext, File rootDirectory, List<String> command, Map<String, String> environmentVariables) {
+        com.atlassian.bamboo.process.ExternalProcessBuilder processBuilder =
+                new ExternalProcessBuilder().workingDirectory(rootDirectory).command(command).env(environmentVariables);
+        return processService.createExternalProcess(taskContext, processBuilder);
+    }
+
+    void executeExternalProcess(BuildLogger logger, ExternalProcess process, Logger log) {
+        process.execute();
+        if (process.getHandler() != null && !process.getHandler().succeeded()) {
+            String externalProcessOutput = getErrorMessage(process);
+            logger.addBuildLogEntry(externalProcessOutput);
+            log.debug("Process command error: " + externalProcessOutput);
+        }
+    }
+
+    void addBuildInfo(@NotNull TaskContext taskContext, String json) throws TaskException {
+        String generatedJson = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
+        try {
+            BuildInfoHelper.addBuildInfoFromFileToContext(taskContext, generatedJson, json);
+        } catch (IOException ioe) {
+            throw new TaskException("Failed to add Build Info to context.", ioe);
+        }
+    }
+
+    @NotNull
+    Map<String, String> getCombinedConfiguration(TaskContext context) {
+        Map<String, String> combinedMap = Maps.newHashMap();
+        combinedMap.putAll(context.getConfigurationMap());
+        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
+        if (parentBuildContext != null) {
+            Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
+            combinedMap.putAll(customBuildData);
+        }
+        return combinedMap;
+    }
+
+    void createBuildInfoFiles(boolean shouldCaptureBuildInfo, ArtifactoryBuildInfoDataHelper mavenDataHelper) throws TaskException {
+        try {
+            if (shouldCaptureBuildInfo) {
+                String buildInfoJsonPath = mavenDataHelper.createBuildInfoJSonFileAndGetItsPath();
+                environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, buildInfoJsonPath);
+            }
+            buildInfoPropertiesFile = mavenDataHelper.createBuildInfoPropsFileAndGetItsPath();
+        } catch (IOException e) {
+            throw new TaskException("Failed to create Build Info properties file.", e);
+        }
+        if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
+            activateBuildInfoRecording = true;
+        }
     }
 }
