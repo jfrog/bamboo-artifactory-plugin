@@ -1,7 +1,7 @@
 package org.jfrog.bamboo.util.version;
 
-import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanKeys;
+import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.storage.StorageLocationService;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
@@ -42,7 +42,7 @@ public class MavenVersionHelper extends VersionHelper {
     }
 
     @Override
-    public List<ModuleVersionHolder> filterPropertiesForRelease(Plan plan, int latestBuildNumberWithBi)
+    public List<ModuleVersionHolder> filterPropertiesForRelease(ImmutablePlan plan, int latestBuildNumberWithBi)
             throws RepositoryException, IOException {
         List<ModuleVersionHolder> result = Lists.newArrayList();
         final StorageLocationService storageLocationService = (StorageLocationService) ContainerManager.getComponent("storageLocationService");
