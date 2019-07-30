@@ -53,7 +53,7 @@ public class ReleasePromotionActionCondition extends AbstractPlanPermissionCondi
     }
 
     /**
-     * Extract plan of the master branch
+     * Extract the plan of the master branch
      *
      * @param planKey The plan key in form of <PROJECT>-<BRANCH#>-<JOB>
      * @return plan of the master branch
@@ -65,13 +65,11 @@ public class ReleasePromotionActionCondition extends AbstractPlanPermissionCondi
             return null;
         }
 
-        // Get plain of the branch plan
         Plan chainKeyPlan = planManager.getPlanByKey(chainKey);
         if (!(chainKeyPlan instanceof ChainBranch)) {
             return null;
         }
 
-        // Get master of the branch plan
         Plan master = (Plan) chainKeyPlan.getMaster();
         if (master == null) {
             return null;
