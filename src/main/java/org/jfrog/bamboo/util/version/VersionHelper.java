@@ -1,6 +1,6 @@
 package org.jfrog.bamboo.util.version;
 
-import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -28,14 +28,14 @@ public abstract class VersionHelper {
     /**
      * Filter the version properties in preparation for release.
      */
-    public abstract List<ModuleVersionHolder> filterPropertiesForRelease(Plan plan, int latestBuildNumberWithBi)
+    public abstract List<ModuleVersionHolder> filterPropertiesForRelease(ImmutablePlan plan, int latestBuildNumberWithBi)
             throws RepositoryException, IOException;
 
     /**
      * Add version fields to the build's configuration
      */
     public abstract void addVersionFieldsToConfiguration(Map parameters, Map<String, String> configuration,
-            String versionConfiguration, Map<String, String> taskConfiguration);
+                                                         String versionConfiguration, Map<String, String> taskConfiguration);
 
     public String calculateReleaseVersion(String fromVersion) {
         return fromVersion.replace("-SNAPSHOT", "");

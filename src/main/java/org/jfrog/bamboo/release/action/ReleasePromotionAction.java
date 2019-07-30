@@ -1,12 +1,11 @@
 package org.jfrog.bamboo.release.action;
 
-import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.builder.BuildState;
-import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plan.cache.ImmutableChain;
+import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
@@ -128,7 +127,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
                             VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
                     if (versionHelper != null) {
                         int latestBuildNumberWithBuildInfo = findLatestBuildNumberWithBuildInfo();
-                        setVersions(versionHelper.filterPropertiesForRelease(getMutablePlan(), latestBuildNumberWithBuildInfo));
+                        setVersions(versionHelper.filterPropertiesForRelease(getImmutablePlan(), latestBuildNumberWithBuildInfo));
                     }
                 }
             }
@@ -141,7 +140,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     private int findLatestBuildNumberWithBuildInfo() {
-        List <ResultsSummary> summaries = resultsSummaryManager.getLastNResultsSummaries(getMutablePlan(), 100);
+        List<ResultsSummary> summaries = resultsSummaryManager.getLastNResultsSummaries(getImmutablePlan(), 100);
         for (ResultsSummary summary : summaries) {
             if (summary.getBuildState().equals(BuildState.SUCCESS)) {
                 boolean biActive = Boolean.parseBoolean(
@@ -217,13 +216,13 @@ public class ReleasePromotionAction extends ViewBuildResults {
      * @return {@code success} if the manual execution finished successfully.
      */
     public String doReleaseBuild() throws RepositoryException, IOException {
-        List<TaskDefinition> taskDefinitions = getMutablePlan().getBuildDefinition().getTaskDefinitions();
+        List<TaskDefinition> taskDefinitions = getImmutablePlan().getBuildDefinition().getTaskDefinitions();
         if (taskDefinitions.isEmpty()) {
             log.warn("No task definitions defined, cannot execute release build");
             return ERROR;
         }
         User user = getUser();
-        PlanKey planKey = getMutablePlan().getPlanKey();
+        PlanKey planKey = getImmutablePlan().getPlanKey();
         if (user == null || planKey == null) {
             return ERROR;
         }
@@ -240,7 +239,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         configuration.put(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT, getTagComment());
         configuration.put(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH, getReleaseBranch());
         Parameter useReleaseBranchParam = ((Parameter) parameters.get("useReleaseBranch"));
-        boolean useReleaseBranch =  useReleaseBranchParam != null && Boolean.parseBoolean(useReleaseBranchParam.getValue());
+        boolean useReleaseBranch = useReleaseBranchParam != null && Boolean.parseBoolean(useReleaseBranchParam.getValue());
         configuration.put(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH, String.valueOf(useReleaseBranch));
         Parameter createVcsTagParam = ((Parameter) parameters.get("createVcsTag"));
         boolean createVcsTag = createVcsTagParam != null && Boolean.parseBoolean(createVcsTagParam.getValue());
@@ -257,7 +256,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         helper.addVersionFieldsToConfiguration(parameters, configuration, getModuleVersionConfiguration(),
                 definition.getConfiguration());
 
-        final ImmutableChain chain = cachedPlanManager.getPlanByKey(getPlanJob().getParent().getPlanKey(), ImmutableChain.class);
+        final ImmutableChain chain = cachedPlanManager.getPlanByKey(PlanKeys.getChainKeyFromJobKey(getPlanJob().getPlanKey()), ImmutableChain.class);
         planExecutionManager.startManualExecution(chain, user, configuration, Maps.newHashMap());
         return SUCCESS;
     }
@@ -280,8 +279,8 @@ public class ReleasePromotionAction extends ViewBuildResults {
     /**
      * @return Gets the current job.
      */
-    private Job getPlanJob() {
-        return (Job) getMutablePlan();
+    private ImmutablePlan getPlanJob() {
+        return getImmutablePlan();
     }
 
     public String getModuleVersionConfiguration() {
@@ -455,7 +454,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
      */
 
     public boolean isReleaseBuild() {
-        Plan plan = getMutablePlan();
+        ImmutablePlan plan = getImmutablePlan();
         TaskDefinition mavenOrGradleDefinition =
                 TaskDefinitionHelper.findMavenOrGradleDefinition(plan.getBuildDefinition().getTaskDefinitions());
         if (mavenOrGradleDefinition == null) {
@@ -477,11 +476,11 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     private TaskDefinition getReleaseTaskDefinition() {
-        Job job = getPlanJob();
-        if (job == null) {
+        ImmutablePlan plan = getPlanJob();
+        if (plan == null) {
             return null;
         }
-        List<TaskDefinition> taskDefinitions = job.getBuildDefinition().getTaskDefinitions();
+        List<TaskDefinition> taskDefinitions = plan.getBuildDefinition().getTaskDefinitions();
         return TaskDefinitionHelper.findReleaseTaskDefinition(taskDefinitions);
     }
 
@@ -494,7 +493,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         if (number != null && getBuildNumber() == null) {
             setBuildNumber(number);
         }
-        if (getMutablePlan() == null) {
+        if (getImmutablePlan() == null) {
             return INPUT;
         }
         if (!isPermittedToPromote()) {
@@ -502,7 +501,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
             return ERROR;
         }
         ServerConfigManager component = ServerConfigManager.getInstance();
-        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getMutablePlan());
+        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getImmutablePlan());
         if (definition == null) {
             return ERROR;
         }
@@ -551,7 +550,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     public Map<String, String> getSupportedPromotionModes() {
         Map<String, String> promotionModes = Maps.newHashMap();
         promotionModes.put(PROMOTION_NORMAL_MODE, "Normal");
-        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getMutablePlan());
+        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getImmutablePlan());
         if (MavenSyncUtils.isPushToNexusEnabled(serverConfigManager, definition, getSelectedServerId(definition))) {
             promotionModes.put(PROMOTION_PUSH_TO_NEXUS_MODE, "Promote to Bintray and Central");
         }
@@ -563,7 +562,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     public List<String> getPromotionRepos() {
-        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getMutablePlan());
+        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getImmutablePlan());
         if (definition == null) {
             return Lists.newArrayList();
         }
