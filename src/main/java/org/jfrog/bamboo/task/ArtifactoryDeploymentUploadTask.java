@@ -37,7 +37,7 @@ public class ArtifactoryDeploymentUploadTask extends AbstractSpecTask implements
         buildLogger = deploymentTaskContext.getBuildLogger();
         ServerConfig serverConfig = getServerConfig(deploymentTaskContext);
         if (serverConfig == null) {
-            buildLogger.addErrorLogEntry("Could not find Artifactpry server. Please check the Artifactory server in the task configuration.");
+            buildLogger.addErrorLogEntry("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
         }
         // Get the deployer credentials configured in the task configuration
