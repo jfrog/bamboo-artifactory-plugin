@@ -301,7 +301,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
         if (serverConfig == null) {
-            throw new IllegalArgumentException("Could not find Artifactpry server. Please check the Artifactory server in the task configuration.");
+            throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
         }
 
         BuildInfoHelper buildInfoHelper = new BuildInfoHelper(env, vcsRevision, vcsUrl);
