@@ -40,6 +40,8 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
 [@ww.select name='builder.artifactoryGradleBuilder.publishingRepo' labelKey='artifactory.task.gradle.publishingRepo' list=dummyList
 listKey='repoKey' listValue='repoKey' toggle='true'/]
+<div id="variableAsUserNotificationDiv" class="aui-message aui-message-warning warning shadowed"
+     style="display: none; width: 80%; font-size: 80%" />
 
 [@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername'/]
 
@@ -139,6 +141,19 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
         var credentialsPassword = configDiv.getElementsByTagName('input')[3].value;
+        
+        var variableExpression = RegExp('\\$\\{bamboo\\..*}');
+        
+        if(variableExpression.test(credentialsUserName) || variableExpression.test(credentialsPassword)){
+			credentialsUserName = "";
+			credentialsPassword = "";
+			
+			var variableMessage = 'The users repositories cannot be loaded when using a variable as username or password. Using globally available repositories instead';
+        	var notificationDiv = document.getElementById('variableAsUserNotificationDiv');
+        	
+        	notificationDiv.innerHTML += variableMessage;
+        	notificationDiv.style.display = '';
+        }
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';

@@ -28,6 +28,8 @@ list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink re
 <div id="maven3ArtifactoryResolutionConfigDiv">
     [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='artifactory.task.maven.resolutionRepo' list=dummyList
     listKey='repoKey' listValue='repoKey' toggle='true' /]
+    <div id="variableAsUserResolutionNotificationDiv" class="aui-message aui-message-warning warning shadowed"
+     style="display: none; width: 80%; font-size: 80%" />
 
 [@ww.textfield labelKey='artifactory.task.maven.resolverUsername' name='builder.artifactoryMaven3Builder.resolverUsername'/]
 
@@ -45,6 +47,8 @@ listKey='id' listValue='url' onchange='javascript: displayMaven3ArtifactoryConfi
 <div id="maven3ArtifactoryConfigDiv">
 [@ww.select name='builder.artifactoryMaven3Builder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList
 listKey='repoKey' listValue='repoKey' toggle='true' /]
+<div id="variableAsUserDeploymentNotificationDiv" class="aui-message aui-message-warning warning shadowed"
+     style="display: none; width: 80%; font-size: 80%" />
 
 [@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryMaven3Builder.deployerUsername' /]
 
@@ -124,7 +128,20 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
         var configDiv = document.getElementById('maven3ArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
         var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
-
+        
+        var variableExpression = RegExp('\\$\\{bamboo\\..*}');
+        
+        if(variableExpression.test(credentialsUserName) || variableExpression.test(credentialsPassword)){
+			credentialsUserName = "";
+			credentialsPassword = "";   
+			
+			var variableMessage = 'The users repositories cannot be loaded when using a variable as username or password. Using globally available repositories instead';
+        	var deploymentNotificationDiv = document.getElementById('variableAsUserDeploymentNotificationDiv');
+        	
+        	deploymentNotificationDiv.innerHTML += variableMessage;
+        	deploymentNotificationDiv.style.display = '';
+        }
+        
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -146,6 +163,19 @@ listKey='repoKey' listValue='repoKey' toggle='true' /]
         var configDiv = document.getElementById('maven3ArtifactoryResolutionConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
         var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
+        
+        var variableExpression = RegExp('\\$\\{bamboo\\..*}');
+        
+        if(variableExpression.test(credentialsUserName) || variableExpression.test(credentialsPassword)){
+			credentialsUserName = "";
+			credentialsPassword = "";   
+			
+			var variableMessage = 'The users repositories cannot be loaded when using a variable as username or password. Using globally available repositories instead';
+        	var resolutionNotificationDiv = document.getElementById('variableAsUserResolutionNotificationDiv');
+        	
+        	resolutionNotificationDiv.innerHTML += variableMessage;
+        	resolutionNotificationDiv.style.display = '';
+        }
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';

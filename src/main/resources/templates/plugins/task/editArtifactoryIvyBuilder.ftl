@@ -24,6 +24,8 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
 
 <div id="ivyArtifactoryConfigDiv">
 [@ww.select name='builder.artifactoryIvyBuilder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
+<div id="variableAsUserNotificationDiv" class="aui-message aui-message-warning warning shadowed"
+     style="display: none; width: 80%; font-size: 80%" />
 
 [@ww.textfield labelKey='artifactory.task.maven.deployerUsername' name='builder.artifactoryIvyBuilder.deployerUsername' /]
 
@@ -101,6 +103,19 @@ listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(
         var configDiv = document.getElementById('ivyArtifactoryConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
         var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
+        
+        var variableExpression = RegExp('\\$\\{bamboo\\..*}');
+        
+        if(variableExpression.test(credentialsUserName) || variableExpression.test(credentialsPassword)){
+			credentialsUserName = "";
+			credentialsPassword = "";   
+			
+			var variableMessage = 'The users repositories cannot be loaded when using a variable as username or password. Using globally available repositories instead';
+        	var notificationDiv = document.getElementById('variableAsUserNotificationDiv');
+        	
+        	notificationDiv.innerHtml += variableMessage;
+        	notificationDiv.style.display = '';
+        }
 
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
