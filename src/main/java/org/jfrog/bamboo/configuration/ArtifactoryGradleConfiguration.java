@@ -44,6 +44,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         context.put("builder.artifactoryGradleBuilder.gitReleaseBranch", "REL-BRANCH-");
         context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
+        context.put("publishForkCount", "8");
     }
 
     @Override
@@ -70,6 +71,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         }
         context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
+        context.put("publishForkCount", buildContext.getPublishForkCount());
     }
 
     @NotNull
