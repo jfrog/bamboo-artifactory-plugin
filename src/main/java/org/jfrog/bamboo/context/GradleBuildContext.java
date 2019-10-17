@@ -19,6 +19,7 @@ public class GradleBuildContext extends AbstractBuildContext {
     public static final String BUILD_FILE_PARAM = "buildFile";
     public static final String USE_GRADLE_WRAPPER_PARAM = "useGradleWrapper";
     public static final String GRADLE_WRAPPER_LOCATION_PARAM = "gradleWrapperLocation";
+    public static final String PUBLISH_FORK_COUNT_PARAM = "publishForkCount";
 
     public GradleBuildContext(Map<String, String> env) {
         super(PREFIX, env);
@@ -60,6 +61,10 @@ public class GradleBuildContext extends AbstractBuildContext {
         return env.get(PREFIX + GRADLE_WRAPPER_LOCATION_PARAM);
     }
 
+    public int getPublishForkCount() {
+        return Integer.parseInt(env.get(PREFIX + PUBLISH_FORK_COUNT_PARAM));
+    }
+
     public static GradleBuildContext createGradleContextFromMap(Map<String, Object> map) {
         Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
             @Override
@@ -86,7 +91,7 @@ public class GradleBuildContext extends AbstractBuildContext {
                 RUN_LICENSE_CHECKS, PREFIX + LICENSE_VIOLATION_RECIPIENTS,
                 PREFIX + LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES, PREFIX + ENVIRONMENT_VARIABLES,
                 PREFIX + INCLUDE_PUBLISHED_ARTIFACTS, PREFIX + DISABLE_AUTOMATIC_LICENSE_DISCOVERY,
-                PUBLISH_ARTIFACTS_PARAM, PREFIX + PUBLISH_MAVEN_DESCRIPTORS_PARAM,
+                PUBLISH_ARTIFACTS_PARAM, PREFIX + PUBLISH_FORK_COUNT_PARAM, PREFIX + PUBLISH_MAVEN_DESCRIPTORS_PARAM,
                 PREFIX + PUBLISH_IVY_DESCRIPTORS_PARAM, USE_M2_COMPATIBLE_PATTERNS_PARAM,
                 PREFIX + IVY_PATTERN_PARAM, PREFIX + JDK, PREFIX + ARTIFACT_PATTERN_PARAM,
                 PREFIX + PUBLISH_INCLUDE_PATTERNS_PARAM, PREFIX + PUBLISH_EXCLUDE_PATTERNS_PARAM,

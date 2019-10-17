@@ -32,6 +32,7 @@
 
 [@ww.label labelKey='Publish Artifacts To Artifactory' name='builder.artifactoryGradleBuilder.publishArtifacts'/]
 [#if isPublishArtifacts]
+    [@ww.label labelKey='Publish fork count' name='builder.artifactoryGradleBuilder.publishForkCount'/]
     [@ww.label labelKey='Publish Maven Descriptors' name='builder.artifactoryGradleBuilder.publishMavenDescriptors'/]
     [@ww.label labelKey='Publish Ivy Descriptors' name='builder.artifactoryGradleBuilder.publishIvyDescriptors'/]
     [@ww.label labelKey='Use Maven 2 Compatible Patterns' name='builder.artifactoryGradleBuilder.useM2CompatiblePatterns'/]
