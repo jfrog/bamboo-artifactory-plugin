@@ -75,7 +75,7 @@ listKey='repoKey' listValue='repoKey' toggle='true'/]
 
 [@ui.bambooSection dependsOn='publishArtifacts' showOn=true]
 
-    [@ww.textfield labelKey='artifactory.task.gradle.publishForkCount' name='builder.artifactoryGradleBuilder.publishForkCount' value='${publishForkCount}'/]
+    [@ww.select labelKey="artifactory.task.gradle.publishForkCount" name="builder.artifactoryGradleBuilder.publishForkCount" list="builder.artifactoryGradleBuilder.publishForkCountList" value='builder.artifactoryGradleBuilder.publishForkCount'/]
 
     [@ww.checkbox labelKey='artifactory.task.gradle.publishMavenDescriptors' name='builder.artifactoryGradleBuilder.publishMavenDescriptors' toggle='true'/]
 

@@ -61,8 +61,8 @@ public class GradleBuildContext extends AbstractBuildContext {
         return env.get(PREFIX + GRADLE_WRAPPER_LOCATION_PARAM);
     }
 
-    public String getPublishForkCount() {
-        return env.get(PREFIX + PUBLISH_FORK_COUNT);
+    public int getPublishForkCount() {
+        return Integer.parseInt(env.get(PREFIX + PUBLISH_FORK_COUNT));
     }
 
     public static GradleBuildContext createGradleContextFromMap(Map<String, Object> map) {
