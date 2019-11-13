@@ -24,15 +24,6 @@
 [@ww.label labelKey='Ivy Pattern' name='builder.artifactoryIvyBuilder.ivyPattern'/]
 [@ww.label labelKey='Artifact Pattern' name='builder.artifactoryIvyBuilder.artifactPattern'/]
 [/#if]
-[@ww.label labelKey='Run License Checks (Requires Pro)' name='builder.artifactoryIvyBuilder.runLicenseChecks'/]
-[#if isRunLicenseChecks]
-[@ww.label labelKey='Send License Violation Notifications To'
-name='builder.artifactoryIvyBuilder.licenseViolationRecipients' hideOnNull='true' /]
-[@ww.label labelKey='Limit Checks To The Following Scopes'
-name='builder.artifactoryIvyBuilder.limitChecksToScopes' hideOnNull='true' /]
-[@ww.label labelKey='Include Published Artifacts' name='builder.artifactoryIvyBuilder.includePublishedArtifacts'/]
-[@ww.label labelKey='Disable Automatic License Discovery' name='builder.artifactoryIvyBuilder.disableAutoLicenseDiscovery'/]
-[/#if]
 </div>
 
 [#if hasTests]

@@ -156,25 +156,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         }
 
         validateDeployableRepoKey(params, errorCollection);
-
-        String runLicensesKey = "builder." + getKey() + "." + AbstractBuildContext.RUN_LICENSE_CHECKS;
-        String runLicenseChecksValue = params.getString(runLicensesKey);
-        if (StringUtils.isNotBlank(runLicenseChecksValue) && Boolean.valueOf(runLicenseChecksValue)) {
-            String violationsKey = "builder." + getKey() + "." + AbstractBuildContext.LICENSE_VIOLATION_RECIPIENTS;
-            String recipients = params.getString(violationsKey);
-            if (StringUtils.isNotBlank(recipients)) {
-                String[] recipientTokens = StringUtils.split(recipients, ' ');
-                for (String recipientToken : recipientTokens) {
-                    if (StringUtils.isNotBlank(recipientToken) &&
-                            (!recipientToken.contains("@")) || recipientToken.startsWith("@") ||
-                            recipientToken.endsWith("@")) {
-                        errorCollection
-                                .addError(violationsKey, "'" + recipientToken + "' is not a valid e-mail address.");
-                        break;
-                    }
-                }
-            }
-        }
     }
 
     private void validateDeployableRepoKey(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {

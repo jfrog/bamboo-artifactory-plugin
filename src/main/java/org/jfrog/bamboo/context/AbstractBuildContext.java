@@ -9,17 +9,12 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
-import org.jfrog.bamboo.util.BeanUtilsHelper;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
-import org.jfrog.build.api.BlackDuckProperties;
-import org.jfrog.build.api.BlackDuckPropertiesFields;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-
-import static org.jfrog.build.api.BlackDuckPropertiesFields.*;
 
 /**
  * Container object for common build environment properties that is based on the configuration's namespace. Each context
@@ -40,11 +35,6 @@ public abstract class AbstractBuildContext {
     public static final String INCLUDE_ENV_VARS_PARAM = "includeEnvVars";
     public static final String ENV_VARS_INCLUDE_PATTERNS = "envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "envVarsExcludePatterns";
-    public static final String RUN_LICENSE_CHECKS = "runLicenseChecks";
-    public static final String LICENSE_VIOLATION_RECIPIENTS = "licenseViolationRecipients";
-    public static final String LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES = "limitChecksToScopes";
-    public static final String INCLUDE_PUBLISHED_ARTIFACTS = "includePublishedArtifacts";
-    public static final String DISABLE_AUTOMATIC_LICENSE_DISCOVERY = "disableAutoLicenseDiscovery";
     public static final String TEST_CHECKED = "testChecked";
     public static final String TEST_RESULT_DIRECTORY = "testResultsDirectory";
     public static final String TEST_DIRECTORY_OPTION = "testDirectoryOption";
@@ -86,20 +76,16 @@ public abstract class AbstractBuildContext {
     public static final String PERFORCE_DEPOT = "p4.depot";
     public static final String PERFORCE_USERNAME = "p4.username";
     public static final String PERFORCE_PASSWORD = "p4.password";
-    public static final String BLACKDUCK_PREFIX = "artifactory.common.blackduck.";
     public static final String VCS_PREFIX = "artifactory.vcs.";
     public static final String ENV_VARS_TO_EXCLUDE = "*password*,*secret*,*security*,*key*";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
-    public final BlackDuckProperties blackDuckProperties;
     private final String prefix;
     protected final Map<String, String> env;
 
     public AbstractBuildContext(String prefix, Map<String, String> env) {
         this.prefix = prefix;
         this.env = env;
-        BeanUtilsHelper.populateWithPrefix(blackDuckProperties = new BlackDuckProperties(), env,
-                AbstractBuildContext.BLACKDUCK_PREFIX);
     }
 
     public static AbstractBuildContext createContextFromMap(Map<String, String> map) {
@@ -137,18 +123,6 @@ public abstract class AbstractBuildContext {
             }
         }
         return result;
-    }
-
-    public static List<String> getBlackDuckFieldsToCopy() {
-        return Arrays.asList(
-                BLACKDUCK_PREFIX + RUN_CHECKS,
-                BLACKDUCK_PREFIX + APP_NAME,
-                BLACKDUCK_PREFIX + APP_VERSION,
-                BLACKDUCK_PREFIX + REPORT_RECIPIENTS,
-                BLACKDUCK_PREFIX + SCOPES,
-                BLACKDUCK_PREFIX + BlackDuckPropertiesFields.INCLUDE_PUBLISHED_ARTIFACTS,
-                BLACKDUCK_PREFIX + AutoCreateMissingComponentRequests,
-                BLACKDUCK_PREFIX + AutoDiscardStaleComponentRequests);
     }
 
     public static List<String> getVcsFieldsToCopy() {
@@ -240,26 +214,6 @@ public abstract class AbstractBuildContext {
         return env.get(ENV_VARS_EXCLUDE_PATTERNS);
     }
 
-    public boolean isRunLicenseChecks() {
-        return Boolean.parseBoolean(env.get(RUN_LICENSE_CHECKS));
-    }
-
-    public String getLicenseViolationRecipients() {
-        return env.get(prefix + LICENSE_VIOLATION_RECIPIENTS);
-    }
-
-    public String getScopes() {
-        return env.get(prefix + LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES);
-    }
-
-    public boolean isIncludePublishedArtifacts() {
-        return Boolean.parseBoolean(env.get(prefix + INCLUDE_PUBLISHED_ARTIFACTS));
-    }
-
-    public boolean isDisableAutomaticLicenseDiscovery() {
-        return Boolean.parseBoolean(env.get(prefix + DISABLE_AUTOMATIC_LICENSE_DISCOVERY));
-    }
-
     public boolean isPublishArtifacts() {
         return Boolean.parseBoolean(env.get(PUBLISH_ARTIFACTS_PARAM));
     }
@@ -312,10 +266,6 @@ public abstract class AbstractBuildContext {
         env.put(USE_M2_COMPATIBLE_PATTERNS_PARAM, "true");
         env.put(prefix + IVY_PATTERN_PARAM, "");
         env.put(prefix + ARTIFACT_PATTERN_PARAM, "");
-        env.put(RUN_LICENSE_CHECKS, "false");
-        env.put(prefix + LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES, "");
-        env.put(prefix + INCLUDE_PUBLISHED_ARTIFACTS, "false");
-        env.put(prefix + DISABLE_AUTOMATIC_LICENSE_DISCOVERY, "false");
         env.put(prefix + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM, "false");
         env.put(PUBLISH_ARTIFACTS_PARAM, "false");
         env.put(ENABLE_RELEASE_MANAGEMENT, "false");

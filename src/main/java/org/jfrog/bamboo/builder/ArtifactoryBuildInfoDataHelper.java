@@ -199,20 +199,8 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         clientConf.info.setPrincipal(principal);
         clientConf.info.setAgentName("Bamboo");
         clientConf.info.setAgentVersion(BuildUtils.getVersionAndBuild());
-        clientConf.info.licenseControl.setRunChecks(buildContext.isRunLicenseChecks());
-        clientConf.info.licenseControl.setViolationRecipients(buildContext.getLicenseViolationRecipients());
-        clientConf.info.licenseControl.setScopes(buildContext.getScopes());
-        clientConf.info.licenseControl.setIncludePublishedArtifacts(buildContext.isIncludePublishedArtifacts());
-        clientConf.info.licenseControl.setAutoDiscover(!buildContext.isDisableAutomaticLicenseDiscovery());
         clientConf.info.setReleaseEnabled(buildContext.releaseManagementContext.isActivateReleaseManagement());
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
-
-        // Blackduck integration
-        try {
-            BeanUtils.copyProperties(clientConf.info.blackDuckProperties, buildContext.blackDuckProperties);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not integrate black duck properties", e);
-        }
 
         setClientData(buildContext, clientConf, serverConfig, environment);
         setPublisherData(buildContext, clientConf, serverConfig, environment);

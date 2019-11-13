@@ -168,18 +168,6 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
 
         clientConf.info.setAgentName("Bamboo");
         clientConf.info.setAgentVersion(BuildUtils.getVersionAndBuild());
-        clientConf.info.licenseControl.setRunChecks(buildContext.isRunLicenseChecks());
-        clientConf.info.licenseControl.setViolationRecipients(buildContext.getLicenseViolationRecipients());
-        clientConf.info.licenseControl.setScopes(buildContext.getScopes());
-        clientConf.info.licenseControl.setIncludePublishedArtifacts(buildContext.isIncludePublishedArtifacts());
-        clientConf.info.licenseControl.setAutoDiscover(!buildContext.isDisableAutomaticLicenseDiscovery());
-
-        //blackduck integration
-        try {
-            BeanUtils.copyProperties(clientConf.info.blackDuckProperties, buildContext.blackDuckProperties);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not integrate black duck properties", e);
-        }
 
         clientConf.info.setReleaseEnabled(buildContext.releaseManagementContext.isActivateReleaseManagement());
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
