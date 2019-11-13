@@ -55,9 +55,7 @@ public class ServerConfigManager implements Serializable {
     private transient Logger log = Logger.getLogger(ServerConfigManager.class);
 
     private static final String ARTIFACTORY_CONFIG_KEY = "org.jfrog.bamboo.server.configurations.v2";
-    private static final String BINTRAY_CONFIG_KEY = "org.jfrog.bamboo.bintray.configurations.v2";
     private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<>();
-    private BintrayConfig bintrayConfig;
     private BandanaManager bandanaManager = null;
     private AtomicLong nextAvailableId = new AtomicLong(0);
     private CustomVariableContext customVariableContext;
@@ -124,15 +122,6 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    public void updateBintrayConfiguration(BintrayConfig bintrayConfig) {
-        this.bintrayConfig = bintrayConfig;
-        try {
-            persistBintray();
-        } catch (IllegalAccessException | UnsupportedEncodingException e) {
-            log.error("Could not update Bintray configuration.", e);
-        }
-    }
-
     public void setBandanaManager(BandanaManager bandanaManager) {
         this.bandanaManager = bandanaManager;
         try {
@@ -140,20 +129,16 @@ public class ServerConfigManager implements Serializable {
         } catch (InstantiationException | IllegalAccessException | IOException e) {
             log.error("Could not load Artifactory configuration.", e);
         }
-        try {
-            setBintrayConfigurations(bandanaManager);
-        } catch (InstantiationException | IllegalAccessException | IOException e) {
-            log.error("Could not load Bintray configuration.", e);
-        }
     }
 
+    // todo what migration?
     public boolean isMissedMigration() {
         Iterator keysIterator = bandanaManager.getKeys(PlanAwareBandanaContext.GLOBAL_CONTEXT).iterator();
         boolean isMissedMigration = false;
         while (keysIterator.hasNext()) {
             String key = (String) keysIterator.next();
-            // If the new key exists no migration needed.
-            if (key.equals(ARTIFACTORY_CONFIG_KEY) || key.equals(BINTRAY_CONFIG_KEY)) {
+            // If the new key exists no migration needed. // todo careful not to force migration here
+            if (key.equals(ARTIFACTORY_CONFIG_KEY)) {
                 return false;
             }
             // isMissedMigration will be true only if already found a key from the old plugin
@@ -162,18 +147,6 @@ public class ServerConfigManager implements Serializable {
             }
         }
         return isMissedMigration;
-    }
-
-    private void setBintrayConfigurations(BandanaManager bandanaManager)
-            throws IOException, InstantiationException, IllegalAccessException {
-        String existingBintrayConfig = (String) bandanaManager.getValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY);
-        if (existingBintrayConfig != null && !"".equals(existingBintrayConfig)) {
-            BintrayConfig tempBintrayConfig = getObjectFromStringXml(existingBintrayConfig, BintrayConfig.class);
-            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            String json = ow.writeValueAsString(tempBintrayConfig);
-            tempBintrayConfig = new ObjectMapper().readValue(json, BintrayConfig.class);
-            bintrayConfig = decryptExistingBintrayConfig(tempBintrayConfig);
-        }
     }
 
     private void setArtifactoryServers(BandanaManager bandanaManager)
@@ -197,24 +170,6 @@ public class ServerConfigManager implements Serializable {
                         EncryptionHelper.decrypt(tempServerConfig.getPassword()), tempServerConfig.getTimeout()));
             }
         }
-    }
-
-
-    private BintrayConfig decryptExistingBintrayConfig(BintrayConfig bintrayConfig) {
-        String bintrayApi = bintrayConfig.getBintrayApiKey();
-        String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
-        bintrayApi = TaskUtils.decryptIfNeeded(bintrayApi);
-        sonatypeOssPassword = TaskUtils.decryptIfNeeded(sonatypeOssPassword);
-        return new BintrayConfig(bintrayConfig.getBintrayUsername(), bintrayApi,
-                bintrayConfig.getSonatypeOssUsername(), sonatypeOssPassword);
-    }
-
-    public void setBintrayConfig(BintrayConfig bintrayConfig) {
-        this.bintrayConfig = bintrayConfig;
-    }
-
-    public BintrayConfig getBintrayConfig() {
-        return bintrayConfig;
     }
 
     public List<String> getDeployableRepos(long serverId) {
@@ -337,24 +292,6 @@ public class ServerConfigManager implements Serializable {
         }
         String serverConfigsString = toXMLString(serverConfigs);
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigsString);
-    }
-
-    private synchronized void persistBintray() throws IllegalAccessException, UnsupportedEncodingException {
-        if (bintrayConfig != null) {
-            String stringbintrayConfig = toXMLString(createEncryptedBintrayConfig(bintrayConfig));
-            bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, BINTRAY_CONFIG_KEY, stringbintrayConfig);
-        }
-    }
-
-    private BintrayConfig createEncryptedBintrayConfig(BintrayConfig bintrayConfig) {
-        BintrayConfig encConfig = new BintrayConfig();
-        String apiKey = EncryptionHelper.encrypt(bintrayConfig.getBintrayApiKey());
-        String sonatypeOssPassword = bintrayConfig.getSonatypeOssPassword();
-        encConfig.setBintrayApiKey(apiKey);
-        encConfig.setSonatypeOssPassword(EncryptionHelper.encrypt(sonatypeOssPassword));
-        encConfig.setBintrayUsername(bintrayConfig.getBintrayUsername());
-        encConfig.setSonatypeOssUsername(bintrayConfig.getSonatypeOssUsername());
-        return encConfig;
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {

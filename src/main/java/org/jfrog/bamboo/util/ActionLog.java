@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 import java.util.List;
 
 /**
- * For Actions like promote and Push to Bintray where we have no BuildLog available
+ * For Promotion where we have no BuildLog available
  * This will handle all logs to screen
  *
  * @author Aviad Shikloshi

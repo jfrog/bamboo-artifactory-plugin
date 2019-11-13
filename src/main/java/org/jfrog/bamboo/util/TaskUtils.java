@@ -10,14 +10,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.admin.BintrayConfig;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
@@ -165,22 +160,6 @@ public class TaskUtils {
         return TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
     }
 
-    /**
-     * Get Server config object for specific build
-     *
-     * @param plan server config for this plan
-     * @return ServerConfig object with Artifactory details
-     */
-    public static ServerConfig getArtifactoryServerConfig(ImmutablePlan plan) {
-        TaskDefinition mavenOrGradleTaskDefinition = TaskDefinitionHelper.getPushToBintrayEnabledTaskDefinition(plan);
-        String serverIdStr = TaskUtils.getSelectedServerId(mavenOrGradleTaskDefinition);
-        if (StringUtils.isNotEmpty(serverIdStr)) {
-            long serverId = Long.parseLong(serverIdStr);
-            return ServerConfigManager.getInstance().getServerConfigById(serverId);
-        }
-        throw new IllegalStateException("Error while trying to create ArtifactoryBuildInfoClient");
-    }
-
     public static ArtifactoryBuildInfoClient createClient(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
                                                           AbstractBuildContext context, Logger log) {
         String serverUrl = substituteVariables(serverConfigManager, serverConfig.getUrl());
@@ -204,20 +183,6 @@ public class TaskUtils {
     }
 
     /**
-     * Test connection with Bintray
-     *
-     * @return Http status code from Bintray
-     */
-    public static int testBintrayConnection(String bintrayUrl, String bintrayUser, String bintrayApiKey) throws IOException {
-        HttpClient client = new DefaultHttpClient();
-        String testUrl = bintrayUrl + "users/" + bintrayUser;
-        HttpGet testConnectionRequest = new HttpGet(testUrl);
-        testConnectionRequest.setHeader(HttpUtils.createAuthorizationHeader(bintrayUser, bintrayApiKey));
-        HttpResponse response = client.execute(testConnectionRequest);
-        return response.getStatusLine().getStatusCode();
-    }
-
-    /**
      * Substitute (replace) Bamboo variable names with their defined values
      */
     private static String substituteVariables(ServerConfigManager serverConfigManager, String s) {
@@ -231,19 +196,6 @@ public class TaskUtils {
             // Ignore. The field may not be encrypted.
         }
         return s;
-    }
-
-    public static BintrayConfig getBintrayConfig() {
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
-        return serverConfigManager.getBintrayConfig();
-    }
-
-    public static String getBintrayUrl() {
-        String bintrayUrl = System.getenv("BAMBOO_BINTRAY_URL");
-        if (org.apache.commons.lang3.StringUtils.isEmpty(bintrayUrl)) {
-            bintrayUrl = ConstantValues.BINTRAY_URL;
-        }
-        return bintrayUrl;
     }
 
     public static String getSpecFromFile(File sourceCodeDirectory, String specFilePath) throws IOException {

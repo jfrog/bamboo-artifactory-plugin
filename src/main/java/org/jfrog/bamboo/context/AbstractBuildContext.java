@@ -8,7 +8,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.bintray.PushToBintrayContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.util.BeanUtilsHelper;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
@@ -66,7 +65,6 @@ public abstract class AbstractBuildContext {
     public static final String JDK = "buildJdk";
     public static final String EXECUTABLE = "executable";
     public static final String BASE_URL = "baseUrl";
-    public static final String ENABLE_BINTRAY_CONFIGURATION = "bintrayConfiguration";
 
     // release management props.
     public static final String ENABLE_RELEASE_MANAGEMENT = "enableReleaseManagement";
@@ -93,7 +91,6 @@ public abstract class AbstractBuildContext {
     public static final String ENV_VARS_TO_EXCLUDE = "*password*,*secret*,*security*,*key*";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
-    public final PushToBintrayContext pushToBintrayContext = new PushToBintrayContext();
     public final BlackDuckProperties blackDuckProperties;
     private final String prefix;
     protected final Map<String, String> env;

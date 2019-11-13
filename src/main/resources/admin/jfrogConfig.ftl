@@ -18,33 +18,15 @@
 [/#if]
 </div>
 
-[@dj.tabContainer headingKeys=["artifactory.server.tab.title", "bintray.config.tab.title"] selectedTab='${"artifactory.server.tab.title"}']
+[@dj.tabContainer headingKeys=["artifactory.server.tab.title"] selectedTab='${"artifactory.server.tab.title"}']
     [@dj.contentPane labelKey="artifactory.server.tab.title"]
         [@manageServersTab/]
     [/@dj.contentPane]
-    [@dj.contentPane labelKey="bintray.config.tab.title"]
-        [@managebintrayTab/]
-    [/@dj.contentPane]
 [/@dj.tabContainer]
-
-<script type="text/javascript">
-    AJS.$(function ()
-    {
-        var str = window.location.pathname+window.location.search;
-        if (str.includes("/admin/saveBintrayConf.action")) {
-            document.getElementById("aui-uid-1").click()
-        }
-    });
-</script>
 </body>
 </html>
 
 
 [#macro manageServersTab]
     [@ww.action name="existingArtifactoryServer" executeResult="true"/]
-[/#macro]
-
-
-[#macro managebintrayTab]
-    [@ww.action name="configureBintray" executeResult="true"/]
 [/#macro]

@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.bintray.PushToBintrayContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -138,12 +137,11 @@ public class Maven3BuildContext extends AbstractBuildContext {
                 PREFIX + EXCLUDE_PATTERN, PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM,
                 PREFIX + GOALS, PREFIX + ADDITIONAL_MAVEN_PARAMS, PREFIX + JDK,
                 PREFIX + MAVEN_OPTS, PREFIX + EXECUTABLE, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
-                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT, ENABLE_BINTRAY_CONFIGURATION,
+                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS, RESOLVE_FROM_ARTIFACTORY
                 , PREFIX + RESOLUTION_SERVER_ID, PREFIX + RESOLVER_USER_NAME, PREFIX + RESOLVER_PASSWORD);
         fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
-        fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }
