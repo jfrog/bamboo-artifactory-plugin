@@ -8,8 +8,8 @@ import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
 import java.util.Map;
 import java.util.Set;
 
-import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
 import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
+import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
 
 /**
  * @author Tomer Cohen

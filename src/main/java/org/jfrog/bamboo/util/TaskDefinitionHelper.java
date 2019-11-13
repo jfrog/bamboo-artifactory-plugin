@@ -4,7 +4,9 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.task.*;
+import org.jfrog.bamboo.task.ArtifactoryGradleTask;
+import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
+import org.jfrog.bamboo.task.ArtifactoryPublishBuildInfoTask;
 
 import java.util.List;
 

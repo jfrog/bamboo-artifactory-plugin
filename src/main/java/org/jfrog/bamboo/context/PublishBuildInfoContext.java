@@ -1,10 +1,9 @@
 package org.jfrog.bamboo.context;
 
 import com.google.common.collect.Sets;
-import java.util.Set;
-import java.util.Map;
 
-import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Alexei Vainshtein

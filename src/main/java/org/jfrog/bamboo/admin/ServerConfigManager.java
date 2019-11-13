@@ -16,7 +16,8 @@
 
 package org.jfrog.bamboo.admin;
 
-import com.atlassian.bamboo.bandana.*;
+import com.atlassian.bamboo.bandana.BambooBandanaContext;
+import com.atlassian.bamboo.bandana.PlanAwareBandanaContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bandana.BandanaManager;
 import com.atlassian.spring.container.ContainerManager;

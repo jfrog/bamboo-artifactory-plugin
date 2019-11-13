@@ -1,12 +1,6 @@
 package org.jfrog.bamboo.promotion;
 
-import com.atlassian.bamboo.plan.PlanIdentifier;
-import com.atlassian.bamboo.variable.VariableDefinition;
-import com.atlassian.bamboo.variable.VariableDefinitionManager;
-import com.google.common.collect.Maps;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -21,16 +15,13 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.jfrog.bamboo.release.action.ReleasePromotionAction;
 import org.jfrog.bamboo.util.ActionLog;
-import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.builder.PromotionBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
 
-import static org.jfrog.bamboo.release.action.ReleasePromotionAction.*;
+import static org.jfrog.bamboo.release.action.ReleasePromotionAction.promotionContext;
 
 /**
  * Executes the promotion process

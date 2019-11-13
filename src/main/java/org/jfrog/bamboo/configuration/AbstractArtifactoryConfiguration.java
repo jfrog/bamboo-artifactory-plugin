@@ -20,13 +20,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.configuration.util.TaskConfiguratorHelperImpl;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.release.vcs.VcsTypes;
 import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.configuration.util.TaskConfiguratorHelperImpl;
 
 import java.io.File;
 import java.io.IOException;

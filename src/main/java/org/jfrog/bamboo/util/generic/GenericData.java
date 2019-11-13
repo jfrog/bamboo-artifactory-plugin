@@ -1,7 +1,7 @@
 package org.jfrog.bamboo.util.generic;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.jfrog.build.api.*;
+import org.jfrog.build.api.Build;
 
 import java.io.Serializable;
 import java.util.ArrayList;
