@@ -20,6 +20,7 @@ import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenc
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -126,7 +127,7 @@ public class TaskUtils {
             fis = new FileInputStream(specFile);
             byte[] data = new byte[(int) specFile.length()];
             fis.read(data);
-            return new String(data, "UTF-8");
+            return new String(data, StandardCharsets.UTF_8);
         } finally {
             IOUtils.closeQuietly(fis);
         }

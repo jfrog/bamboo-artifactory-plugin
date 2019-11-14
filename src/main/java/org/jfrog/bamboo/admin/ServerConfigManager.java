@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
@@ -389,7 +390,7 @@ public class ServerConfigManager implements Serializable {
     private void appendAttribute(StringBuilder stringBuilder, String field, String value) throws UnsupportedEncodingException {
         openTag(stringBuilder, field);
         // Encoding the value to Base64 to prevent saving special chars like % to the database
-        stringBuilder.append(Base64.getEncoder().encodeToString(value.getBytes("utf-8")));
+        stringBuilder.append(Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8)));
         closeTag(stringBuilder, field);
     }
 

@@ -95,10 +95,7 @@ public abstract class TaskDefinitionHelper {
     public static boolean isReleaseMgmtEnabled(TaskDefinition taskDefinition) {
         AbstractBuildContext config = AbstractBuildContext.createContextFromMap(taskDefinition.getConfiguration());
         // Check if release management is enabled
-        if ((config != null) && config.releaseManagementContext.isReleaseMgmtEnabled()) {
-            return true;
-        }
-        return false;
+        return (config != null) && config.releaseManagementContext.isReleaseMgmtEnabled();
     }
 
     /**

@@ -20,6 +20,8 @@ import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
+import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Maps;
 import org.apache.commons.httpclient.HttpClient;
@@ -221,5 +223,22 @@ public abstract class BaseBuildInfoHelper {
     public String overrideParam(String originalValue, String overrideKey) {
         String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);
         return overriddenValue.isEmpty() ? originalValue : overriddenValue;
+    }
+
+    protected String getTriggeringUserNameRecursively(BuildContext context) {
+        String principal = null;
+        TriggerReason triggerReason = context.getTriggerReason();
+        if (triggerReason instanceof ManualBuildTriggerReason) {
+            principal = ((ManualBuildTriggerReason) triggerReason).getUserName();
+
+            if (StringUtils.isBlank(principal)) {
+
+                BuildContext parentContext = context.getParentBuildContext();
+                if (parentContext != null) {
+                    principal = getTriggeringUserNameRecursively(parentContext);
+                }
+            }
+        }
+        return principal;
     }
 }
