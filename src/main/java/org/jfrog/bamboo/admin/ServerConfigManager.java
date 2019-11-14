@@ -132,13 +132,12 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
-    // todo what migration?
     public boolean isMissedMigration() {
         Iterator keysIterator = bandanaManager.getKeys(PlanAwareBandanaContext.GLOBAL_CONTEXT).iterator();
         boolean isMissedMigration = false;
         while (keysIterator.hasNext()) {
             String key = (String) keysIterator.next();
-            // If the new key exists no migration needed. // todo careful not to force migration here
+            // If the new key exists no migration needed.
             if (key.equals(ARTIFACTORY_CONFIG_KEY)) {
                 return false;
             }

@@ -545,7 +545,6 @@ public class ReleasePromotionAction extends ViewBuildResults {
         this.promotionMode = promotionMode;
     }
 
-    // todo delete?
     public Map<String, String> getSupportedPromotionModes() {
         Map<String, String> promotionModes = Maps.newHashMap();
         promotionModes.put(PROMOTION_NORMAL_MODE, "Normal");

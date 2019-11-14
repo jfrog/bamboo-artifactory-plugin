@@ -32,11 +32,6 @@ public class ActionLog {
         return logEntries;
     }
 
-
-    public void clearLog(){
-        this.logEntries.clear();
-    }
-
     public void logError(String message, Exception e) {
         if (e != null) {
             message += " " + e.getMessage() + " <br>";
