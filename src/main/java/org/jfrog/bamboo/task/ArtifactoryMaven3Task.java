@@ -91,10 +91,10 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         }
         List<String> systemProps = new ArrayList<>();
         boolean shouldCaptureBuildInfo = false;
+        ArtifactoryBuildInfoDataHelper mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
+                mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
             shouldCaptureBuildInfo = mavenBuildContext.shouldCaptureBuildInfo(taskContext);
-            ArtifactoryBuildInfoDataHelper mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
-                    mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
             createBuildInfoFiles(shouldCaptureBuildInfo, mavenDataHelper);
             mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext, taskContext);
         }
@@ -122,6 +122,9 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
 
         log.debug("Running maven command: " + command.toString());
         command.addAll(systemProps);
+
+        // Report usage.
+        reportTaskUsage("rt_maven", mavenBuildContext, mavenDataHelper, logger, log);
 
         ExternalProcess process = getExternalProcess(taskContext, rootDirectory, command, environmentVariables);
 

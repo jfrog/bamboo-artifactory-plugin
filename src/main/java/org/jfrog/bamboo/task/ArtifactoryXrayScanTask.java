@@ -3,6 +3,7 @@ package org.jfrog.bamboo.task;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.plugin.PluginAccessor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +11,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.XrayScanContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.client.artifactoryXrayResponse.ArtifactoryXrayResponse;
 import org.jfrog.build.client.artifactoryXrayResponse.Summary;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryXrayClient;
@@ -22,6 +24,12 @@ import java.io.IOException;
 public class ArtifactoryXrayScanTask implements TaskType
 {
     private static final Logger log = Logger.getLogger(ArtifactoryXrayScanTask.class);
+    private PluginAccessor pluginAccessor;
+
+    @SuppressWarnings("unused")
+    public void setPluginAccessor(PluginAccessor pluginAccessor){
+        this.pluginAccessor = pluginAccessor;
+    }
 
     @NotNull
     @Override
@@ -33,6 +41,7 @@ public class ArtifactoryXrayScanTask implements TaskType
         ArtifactoryXrayClient client = createArtifactoryXrayClient(xrayContext, logger);
 
         try {
+            TaskUtils.ReportTaskUsageToArtifactory(client, "rt_build_scan", pluginAccessor, logger);
             ArtifactoryXrayResponse buildScanResult = doXrayScan(taskContext, client);
 
             String scanMessage;

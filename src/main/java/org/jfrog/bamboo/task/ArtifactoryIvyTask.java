@@ -148,6 +148,9 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, ivyBuildContext, capabilityContext);
         environment.put("JAVA_HOME", jdkPath);
 
+        // Report usage.
+        reportTaskUsage("rt_ivy", ivyBuildContext, ivyDataHelper, logger, log);
+
         ExternalProcess process = getExternalProcess(context, rootDirectory, command, environment);
 
         try {

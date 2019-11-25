@@ -123,7 +123,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         }
 
         boolean shouldCaptureBuildInfo = gradleBuildContext.shouldCaptureBuildInfo(context);
-        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(context, gradleBuildContext, artifactoryPluginVersion, shouldCaptureBuildInfo);
+        GradleInitScriptHelper initScriptHelper = new GradleInitScriptHelper();
+        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(initScriptHelper, context, gradleBuildContext, artifactoryPluginVersion, shouldCaptureBuildInfo);
         if (pathHolder != null) {
             if (!gradleBuildContext.useArtifactoryGradlePlugin()) {
                 command.add("-I");
@@ -143,6 +144,10 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         environmentVariables.put("JAVA_HOME", jdkPath);
 
         addPasswordsSystemProps(command, gradleBuildContext, context);
+
+        // Report usage.
+        reportTaskUsage("rt_gradle", gradleBuildContext, initScriptHelper, logger, log);
+
         ExternalProcess process = getExternalProcess(context, rootDirectory, command, environmentVariables);
 
         try {
@@ -162,7 +167,7 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         return new GradleBuildContext(combinedMap);
     }
 
-    private ConfigurationPathHolder getGradleInitScriptFile(TaskContext taskContext, GradleBuildContext buildContext,
+    private ConfigurationPathHolder getGradleInitScriptFile(GradleInitScriptHelper initScriptHelper, TaskContext taskContext, GradleBuildContext buildContext,
                                                             String artifactoryPluginVersion, boolean shouldCaptureBuildInfo) {
         File gradleJarFile = new File(gradleDependenciesDir, PluginProperties
                 .getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
@@ -189,7 +194,6 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             }
 
             String scriptTemplate = IOUtils.toString(initScriptStream);
-            GradleInitScriptHelper initScriptHelper = new GradleInitScriptHelper();
             initScriptHelper.init(buildParamsOverrideManager, taskContext.getBuildContext());
             initScriptHelper.setAdministrationConfiguration(administrationConfiguration);
             ConfigurationPathHolder configurationPathHolder = initScriptHelper

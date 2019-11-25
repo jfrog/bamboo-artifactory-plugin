@@ -18,11 +18,18 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.ArtifactoryBuildInfoDataHelper;
+import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.Utils;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 import org.jfrog.build.api.BuildInfoFields;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +74,7 @@ public abstract class ArtifactoryTaskType implements TaskType {
     @SuppressWarnings("unused")
     public void setPluginAccessor(PluginAccessor pluginAccessor){
         this.pluginAccessor = pluginAccessor;
-}
+    }
 
     protected void initEnvironmentVariables(AbstractBuildContext buildContext) {
         Map<String, String> env = Maps.newHashMap();
@@ -260,5 +267,17 @@ public abstract class ArtifactoryTaskType implements TaskType {
         if (StringUtils.isNotBlank(buildInfoPropertiesFile)) {
             activateBuildInfoRecording = true;
         }
+    }
+
+    void reportTaskUsage(String featureId, AbstractBuildContext context, BaseBuildInfoHelper buildInfoHelper, BuildLogger buildLogger, Logger log) {
+        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
+        long selectedServerId = context.getArtifactoryServerId();
+        ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        String url = serverConfig.getUrl();
+
+        String password = Utils.getPassword(context.getDeployerPassword(), serverConfigManager, serverConfig, buildInfoHelper);
+        String username = Utils.getUsername(context.getDeployerUsername(), serverConfigManager, serverConfig, buildInfoHelper);
+        ArtifactoryDependenciesClient client = new ArtifactoryDependenciesClient(url, username, password, new BuildInfoLog(log, buildLogger));
+        TaskUtils.ReportTaskUsageToArtifactory(client, featureId, pluginAccessor, buildLogger);
     }
 }

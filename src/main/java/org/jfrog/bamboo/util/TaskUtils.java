@@ -1,8 +1,10 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.plugin.PluginAccessor;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -16,8 +18,10 @@ import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBaseClient;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.usageReport.UsageReporter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -170,5 +174,16 @@ public class TaskUtils {
             return checkoutDir;
         }
         return taskContext.getWorkingDirectory();
+    }
+
+    public static void ReportTaskUsageToArtifactory(ArtifactoryBaseClient client, String featureId, PluginAccessor pluginAccessor, BuildLogger log) {
+        String[] featureIdArray = new String[] {featureId};
+        UsageReporter usageReporter = new UsageReporter("bamboo-artifactory-plugin/" + Utils.getArtifactoryVersion(pluginAccessor), featureIdArray);
+        try {
+            client.reportUsage(usageReporter);
+            log.addBuildLogEntry("Usage info sent successfully.");
+        } catch (Exception ex) {
+            log.addBuildLogEntry("Failed sending usage report to Artifactory.\n" + ex.toString());
+        }
     }
 }

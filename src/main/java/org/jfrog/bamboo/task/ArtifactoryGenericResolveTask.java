@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
@@ -63,6 +64,7 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
         BuildInfoHelper buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, context, environmentVariableAccessor, genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
         ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext, buildParamsOverrideManager, log);
         try {
+            TaskUtils.ReportTaskUsageToArtifactory(client, "rt_download", pluginAccessor, logger);
             org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
             List<BuildDependency> buildDependencies;
             List<Dependency> dependencies;

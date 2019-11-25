@@ -4,12 +4,14 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Build;
@@ -32,6 +34,7 @@ public class ArtifactoryPublishBuildInfoTask implements TaskType {
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private static final Logger log = Logger.getLogger(ArtifactoryPublishBuildInfoTask.class);
     protected CustomVariableContext customVariableContext;
+    private PluginAccessor pluginAccessor;
 
     public ArtifactoryPublishBuildInfoTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -40,6 +43,11 @@ public class ArtifactoryPublishBuildInfoTask implements TaskType {
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    @SuppressWarnings("unused")
+    public void setPluginAccessor(PluginAccessor pluginAccessor){
+        this.pluginAccessor = pluginAccessor;
     }
 
     @NotNull
@@ -54,6 +62,7 @@ public class ArtifactoryPublishBuildInfoTask implements TaskType {
         Build build = buildInfoHelper.getBuilder(taskContext).build();
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
         try (ArtifactoryBuildInfoClient client = clientBuilder.build()){
+            TaskUtils.ReportTaskUsageToArtifactory(client, "rt_build_publish", pluginAccessor, logger);
             if (StringUtils.isNotBlank(json)) {
                 GenericData genericData = BuildInfoExtractorUtils.jsonStringToGeneric(json, GenericData.class);
                 for (Build buildFromContext : genericData.getBuilds()) {

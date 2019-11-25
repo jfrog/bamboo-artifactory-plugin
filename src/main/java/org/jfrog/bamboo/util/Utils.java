@@ -9,9 +9,9 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.release.provider.TokenDataProvider;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 
 import java.util.Map;
 import java.util.Properties;
@@ -65,7 +65,7 @@ public class Utils {
         return null;
     }
 
-    public static String getUsername(String username, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
+    public static String getUsername(String username, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BaseBuildInfoHelper buildInfoHelper) {
         username = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(username),
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
         if (StringUtils.isBlank(username)) {
@@ -74,7 +74,7 @@ public class Utils {
         return username;
     }
 
-    public static String getPassword(String password, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
+    public static String getPassword(String password, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BaseBuildInfoHelper buildInfoHelper) {
         password = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(password),
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
         if (StringUtils.isBlank(password)) {

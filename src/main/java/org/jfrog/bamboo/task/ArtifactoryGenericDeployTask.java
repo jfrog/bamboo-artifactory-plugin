@@ -86,6 +86,7 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
         Build build = buildInfoHelper.getBuild(taskContext, genericContext);
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
         try {
+            TaskUtils.ReportTaskUsageToArtifactory(getClient(clientBuilder), "rt_upload", pluginAccessor, logger);
             File sourceCodeDirectory = getWorkingDirectory(taskContext);
             if (sourceCodeDirectory == null) {
                 log.error(logger.addErrorLogEntry("No build directory found!"));
