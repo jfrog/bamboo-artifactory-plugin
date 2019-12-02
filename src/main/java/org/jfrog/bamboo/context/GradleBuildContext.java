@@ -1,11 +1,16 @@
 package org.jfrog.bamboo.context;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Tomer Cohen
@@ -19,6 +24,7 @@ public class GradleBuildContext extends AbstractBuildContext {
     public static final String USE_GRADLE_WRAPPER_PARAM = "useGradleWrapper";
     public static final String GRADLE_WRAPPER_LOCATION_PARAM = "gradleWrapperLocation";
     public static final String PUBLISH_FORK_COUNT_PARAM = "publishForkCount";
+    private static final List<Integer> PUBLISH_FORK_COUNT_OPTIONS = ImmutableList.of(1, 2, 4, 8);
 
     public GradleBuildContext(Map<String, String> env) {
         super(PREFIX, env);
@@ -61,7 +67,8 @@ public class GradleBuildContext extends AbstractBuildContext {
     }
 
     public int getPublishForkCount() {
-        return Integer.parseInt(env.get(PREFIX + PUBLISH_FORK_COUNT_PARAM));
+        String forkCount = env.get(PREFIX + PUBLISH_FORK_COUNT_PARAM);
+        return Integer.parseInt(StringUtils.isNotBlank(forkCount) ? (forkCount) : getDefaultPublishForkCount());
     }
 
     public static GradleBuildContext createGradleContextFromMap(Map<String, Object> map) {
@@ -108,5 +115,17 @@ public class GradleBuildContext extends AbstractBuildContext {
                 PREFIX + PUBLISH_ARTIFACTS_PARAM, PREFIX + TEST_CHECKED,
                 PREFIX + TEST_DIRECTORY_OPTION, PREFIX + ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + USE_M2_COMPATIBLE_PATTERNS_PARAM);
+    }
+
+    public static List<String> getPublishForkCountList() {
+        return PUBLISH_FORK_COUNT_OPTIONS.stream()
+                .map(String::valueOf)
+                .collect(Collectors.toList());
+    }
+
+    public static String getDefaultPublishForkCount() {
+        return String.valueOf(PUBLISH_FORK_COUNT_OPTIONS.stream()
+                .mapToInt(v -> v)
+                .max().orElseThrow(NoSuchElementException::new));
     }
 }

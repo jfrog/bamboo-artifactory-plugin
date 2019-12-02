@@ -4,18 +4,14 @@ import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 
-import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Configuration for {@link org.jfrog.bamboo.task.ArtifactoryGradleTask}
@@ -27,7 +23,6 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     protected static final String DEFAULT_TEST_REPORTS_XML = "**/build/test-results/*.xml";
     private static final Set<String> FIELDS_TO_COPY = GradleBuildContext.getFieldsToCopy();
     private static final String PUBLISH_FORK_COUNT_OPTIONS_KEY = "publishForkCountList";
-    private static final List<Integer> PUBLISH_FORK_COUNT_OPTIONS = ImmutableList.of(1, 2, 4, 8);
     private static final String PUBLISH_FORK_COUNT_KEY = "publishForkCount";
 
     public ArtifactoryGradleConfiguration() {
@@ -52,8 +47,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         context.put("builder.artifactoryGradleBuilder.gitReleaseBranch", "REL-BRANCH-");
         context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
-        context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_OPTIONS_KEY, getPublishForkCountList());
-        context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_KEY, getDefaultPublishForkCount());
+        context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_OPTIONS_KEY, GradleBuildContext.getPublishForkCountList());
+        context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_KEY, GradleBuildContext.getDefaultPublishForkCount());
     }
 
     @Override
@@ -80,7 +75,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         }
         context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
-        context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_OPTIONS_KEY, getPublishForkCountList());
+        context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_OPTIONS_KEY, GradleBuildContext.getPublishForkCountList());
         context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_KEY, buildContext.getPublishForkCount());
     }
 
@@ -118,17 +113,5 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition definition) {
         return new GradleBuildContext(definition.getConfiguration()).isTestChecked();
-    }
-
-    private List<String> getPublishForkCountList() {
-        return PUBLISH_FORK_COUNT_OPTIONS.stream()
-                .map(String::valueOf)
-                .collect(Collectors.toList());
-    }
-
-    private String getDefaultPublishForkCount() {
-        return String.valueOf(PUBLISH_FORK_COUNT_OPTIONS.stream()
-                .mapToInt(v -> v)
-                .max().orElseThrow(NoSuchElementException::new));
     }
 }
