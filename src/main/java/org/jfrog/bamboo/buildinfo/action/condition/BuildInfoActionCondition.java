@@ -16,7 +16,8 @@
 
 package org.jfrog.bamboo.buildinfo.action.condition;
 
-import com.atlassian.bamboo.plan.*;
+import com.atlassian.bamboo.plan.PlanKeys;
+import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.resultsummary.ResultsSummaryManager;
 import com.atlassian.plugin.PluginParseException;

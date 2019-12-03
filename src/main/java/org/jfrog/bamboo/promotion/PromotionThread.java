@@ -1,12 +1,6 @@
 package org.jfrog.bamboo.promotion;
 
-import com.atlassian.bamboo.plan.PlanIdentifier;
-import com.atlassian.bamboo.variable.VariableDefinition;
-import com.atlassian.bamboo.variable.VariableDefinitionManager;
-import com.google.common.collect.Maps;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -21,16 +15,13 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.jfrog.bamboo.release.action.ReleasePromotionAction;
 import org.jfrog.bamboo.util.ActionLog;
-import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.builder.PromotionBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
 
-import static org.jfrog.bamboo.release.action.ReleasePromotionAction.*;
+import static org.jfrog.bamboo.release.action.ReleasePromotionAction.promotionContext;
 
 /**
  * Executes the promotion process
@@ -39,7 +30,6 @@ import static org.jfrog.bamboo.release.action.ReleasePromotionAction.*;
  */
 public class PromotionThread extends Thread {
 
-    public static final String NEXUS_PUSH_PROPERTY_PREFIX = "bintrayOsoPush.";
     transient Logger log = Logger.getLogger(PromotionThread.class);
 
     private ReleasePromotionAction action;
@@ -65,10 +55,7 @@ public class PromotionThread extends Thread {
             promotionContext.setBuildNumber(action.getBuildNumber());
             promotionContext.setDone(false);
             promotionContext.getLog().clear();
-
-            if (performPromotion() && PROMOTION_PUSH_TO_NEXUS_MODE.equals(action.getPromotionMode())) {
-                executePushToNexusPlugin();
-            }
+            performPromotion();
 
         } catch (Exception e) {
             String message = "An error occurred: " + e.getMessage();
@@ -83,53 +70,7 @@ public class PromotionThread extends Thread {
         }
     }
 
-    private boolean executePushToNexusPlugin() throws IOException {
-        releaseLog.logError("Executing 'Promotion to Bintray and Central' plugin ...");
-        VariableDefinitionManager varDefManager = action.getVariableDefinitionManager();
-        PlanIdentifier planIdentifier = action.getPlanManager().getPlanIdentifierForPermissionCheckingByKey(action.getPlanKey());
-        if (planIdentifier == null) {
-            String message = "Plugin execution failed: Couldn't find nexusPush variables.<br/>";
-            releaseLog.logError(message);
-            return false;
-        }
-
-        Map<String, String> executeRequestParams = Maps.newHashMap();
-        executeRequestParams.put(BuildInfoFields.BUILD_NAME, action.getImmutableBuild().getName());
-        executeRequestParams.put(BuildInfoFields.BUILD_NUMBER, action.getBuildNumber().toString());
-        List<VariableDefinition> planVariables = varDefManager.getPlanVariables(planIdentifier);
-        for (VariableDefinition planVariable : planVariables) {
-            String key = planVariable.getKey();
-            if (StringUtils.isNotBlank(key) && key.startsWith(NEXUS_PUSH_PROPERTY_PREFIX)) {
-                executeRequestParams.put(StringUtils.removeStart(key, NEXUS_PUSH_PROPERTY_PREFIX),
-                        planVariable.getValue());
-            }
-        }
-
-        HttpResponse nexusPushResponse = null;
-        try {
-            nexusPushResponse = client.executePromotionUserPlugin(NEXUS_PUSH_PLUGIN_NAME, action.getImmutableBuild().getName(),
-                    action.getBuildNumber().toString(), null);
-            StatusLine responseStatusLine = nexusPushResponse.getStatusLine();
-            if (HttpStatus.SC_OK == responseStatusLine.getStatusCode()) {
-                releaseLog.logMessage("Plugin successfully executed!");
-                return true;
-            } else {
-                String responseContent = entityToString(nexusPushResponse);
-                String message = "Plugin execution failed: " + responseStatusLine + "<br/>" + responseContent;
-                releaseLog.logError(message);
-                return false;
-            }
-        } finally {
-            if (nexusPushResponse != null) {
-                HttpEntity entity = nexusPushResponse.getEntity();
-                if (entity != null) {
-                    EntityUtils.consume(entity);
-                }
-            }
-        }
-    }
-
-    private boolean performPromotion() throws IOException {
+    private void performPromotion() throws IOException {
         releaseLog.logMessage("Promoting build ...");
         // do a dry run first
         PromotionBuilder promotionBuilder = new PromotionBuilder().status(action.getTarget())
@@ -148,14 +89,8 @@ public class PromotionThread extends Thread {
                 wetResponse = client.stageBuild(buildName, buildNumber, promotionBuilder.dryRun(false).build());
                 if (checkSuccess(wetResponse, false)) {
                     releaseLog.logMessage("Promotion completed successfully!");
-
-                    return true;
                 }
-
-                return false;
             }
-
-            return false;
         } finally {
             if (dryResponse != null) {
                 HttpEntity entity = dryResponse.getEntity();
@@ -210,7 +145,6 @@ public class PromotionThread extends Thread {
         }
         return true;
     }
-
 
     private JsonFactory createJsonFactory() {
         JsonFactory jsonFactory = new JsonFactory();

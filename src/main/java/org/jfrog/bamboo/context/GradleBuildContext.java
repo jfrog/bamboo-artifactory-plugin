@@ -1,12 +1,16 @@
 package org.jfrog.bamboo.context;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.jfrog.bamboo.bintray.PushToBintrayContext;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Tomer Cohen
@@ -20,6 +24,7 @@ public class GradleBuildContext extends AbstractBuildContext {
     public static final String USE_GRADLE_WRAPPER_PARAM = "useGradleWrapper";
     public static final String GRADLE_WRAPPER_LOCATION_PARAM = "gradleWrapperLocation";
     public static final String PUBLISH_FORK_COUNT_PARAM = "publishForkCount";
+    private static final List<Integer> PUBLISH_FORK_COUNT_OPTIONS = ImmutableList.of(1, 2, 4, 8);
 
     public GradleBuildContext(Map<String, String> env) {
         super(PREFIX, env);
@@ -62,7 +67,8 @@ public class GradleBuildContext extends AbstractBuildContext {
     }
 
     public int getPublishForkCount() {
-        return Integer.parseInt(env.get(PREFIX + PUBLISH_FORK_COUNT_PARAM));
+        String forkCount = env.get(PREFIX + PUBLISH_FORK_COUNT_PARAM);
+        return Integer.parseInt(StringUtils.isNotBlank(forkCount) ? (forkCount) : getDefaultPublishForkCount());
     }
 
     public static GradleBuildContext createGradleContextFromMap(Map<String, Object> map) {
@@ -88,20 +94,15 @@ public class GradleBuildContext extends AbstractBuildContext {
                 PREFIX + PUBLISHING_REPO_PARAM, PREFIX + DEPLOYER_USERNAME_PARAM, PREFIX + DEPLOYER_PASSWORD_PARAM,
                 PREFIX + USE_ARTIFACTORY_GRADLE_PLUGIN, PUBLISH_BUILD_INFO_PARAM,
                 INCLUDE_ENV_VARS_PARAM, ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_INCLUDE_PATTERNS,
-                RUN_LICENSE_CHECKS, PREFIX + LICENSE_VIOLATION_RECIPIENTS,
-                PREFIX + LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES, PREFIX + ENVIRONMENT_VARIABLES,
-                PREFIX + INCLUDE_PUBLISHED_ARTIFACTS, PREFIX + DISABLE_AUTOMATIC_LICENSE_DISCOVERY,
                 PUBLISH_ARTIFACTS_PARAM, PREFIX + PUBLISH_FORK_COUNT_PARAM, PREFIX + PUBLISH_MAVEN_DESCRIPTORS_PARAM,
                 PREFIX + PUBLISH_IVY_DESCRIPTORS_PARAM, USE_M2_COMPATIBLE_PATTERNS_PARAM,
                 PREFIX + IVY_PATTERN_PARAM, PREFIX + JDK, PREFIX + ARTIFACT_PATTERN_PARAM,
                 PREFIX + PUBLISH_INCLUDE_PATTERNS_PARAM, PREFIX + PUBLISH_EXCLUDE_PATTERNS_PARAM,
                 PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM,
                 PREFIX + ARTIFACT_SPECS_PARAM, PREFIX + EXECUTABLE, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
-                TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, ENABLE_BINTRAY_CONFIGURATION, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
+                TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
                 PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS);
-        fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
-        fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }
@@ -111,8 +112,20 @@ public class GradleBuildContext extends AbstractBuildContext {
      */
     private static Set<String> getOldCheckBoxFieldsToCopy() {
         return Sets.newHashSet(PREFIX + PUBLISH_BUILD_INFO_PARAM, PREFIX + INCLUDE_ENV_VARS_PARAM,
-                PREFIX + RUN_LICENSE_CHECKS, PREFIX + PUBLISH_ARTIFACTS_PARAM, PREFIX + TEST_CHECKED,
+                PREFIX + PUBLISH_ARTIFACTS_PARAM, PREFIX + TEST_CHECKED,
                 PREFIX + TEST_DIRECTORY_OPTION, PREFIX + ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + USE_M2_COMPATIBLE_PATTERNS_PARAM);
+    }
+
+    public static List<String> getPublishForkCountList() {
+        return PUBLISH_FORK_COUNT_OPTIONS.stream()
+                .map(String::valueOf)
+                .collect(Collectors.toList());
+    }
+
+    public static String getDefaultPublishForkCount() {
+        return String.valueOf(PUBLISH_FORK_COUNT_OPTIONS.stream()
+                .mapToInt(v -> v)
+                .max().orElseThrow(NoSuchElementException::new));
     }
 }

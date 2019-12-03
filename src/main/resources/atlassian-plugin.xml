@@ -86,20 +86,6 @@
                 <result name="error" type="redirect">/admin/jfrogConfig.action</result>
             </action>
 
-            <!-- Bintray Configurations -->
-            <action name="configureBintray" class="org.jfrog.bamboo.admin.ConfigureBintrayAction" method="browse">
-                <result name="success" type="freemarker">/admin/configureBintray.ftl</result>
-                <result name="input" type="freemarker">/admin/configureBintray.ftl</result>
-                <result name="success" type="freemarker">/admin/configureBintray.ftl</result>
-                <result name="error" type="freemarker">/admin/error.ftl</result>
-            </action>
-
-            <action name="saveBintrayConf" class="org.jfrog.bamboo.admin.ConfigureBintrayAction" method="execute">
-                <result name="input" type="freemarker">/admin/jfrogConfig.ftl</result>
-                <result name="success" type="freemarker">/admin/jfrogConfig.ftl</result>
-                <result name="error" type="freemarker">/admin/error.ftl</result>
-            </action>
-
         </package>
     </xwork>
 
@@ -116,7 +102,6 @@
     <resource type="download" name="builder/dependencies/" location="META-INF/lib/"/>
     <resource type="download" name="artifactory-icon.png" location="images/artifactory-icon.png"/>
     <resource type="download" name="artifactory-release.png" location="images/artifactory-release.png"/>
-    <resource type="download" name="bintray.png" location="images/bintray.png"/>
 
     <!-- T a s k s -->
 
@@ -260,38 +245,12 @@
         <condition class="org.jfrog.bamboo.buildinfo.action.condition.BuildInfoActionCondition"/>
     </web-item>
 
-    <web-item key="brmpTab:pushToBintray-${buildKey}-${buildNumber}" name="Push to Bintray"
-              section="results.subMenu/results" weight="140">
-        <description key="Push To Bintray">Push to Bintray</description>
-        <label key="Push to Bintray"/>
-        <link linkId="pushToBintray">/build/pushToBintray.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
-        <condition class="org.jfrog.bamboo.buildinfo.action.condition.BuildInfoActionCondition"/>
-        <condition class="org.jfrog.bamboo.release.action.condition.ReleasePromotionActionCondition"/>
-    </web-item>
-
     <xwork key="brmpAdminActions" name="Release Management Admin Actions">
         <package name="brmpResults" extends="buildView">
             <action name="releasePromotionAction" class="org.jfrog.bamboo.release.action.ReleasePromotionAction">
                 <result name="input" type="freemarker">/templates/plugins/release/releasePromotionAction.ftl</result>
                 <result name="success" type="freemarker">/templates/plugins/release/releasePromotionAction.ftl</result>
                 <result name="error" type="freemarker">/error.ftl</result>
-            </action>
-
-            <action name="pushToBintray" class="org.jfrog.bamboo.bintray.BintrayPushAction">
-                <result name="input" type="freemarker">/templates/plugins/bintray/bintrayPushAction.ftl</result>
-                <result name="success" type="freemarker">/templates/plugins/bintray/bintrayPushAction.ftl</result>
-                <result name="error" type="freemarker">/error.ftl</result>
-            </action>
-
-            <action name="getPushToBintrayLog" class="org.jfrog.bamboo.bintray.BintrayPushAction"
-                    method="getPushToBintrayLog">
-                <result name="input" type="freemarker">/templates/plugins/bintray/logBintrayPush.ftl</result>
-                <result name="success" type="freemarker">/templates/plugins/bintray/logBintrayPush.ftl</result>
-            </action>
-
-            <action name="push" class="org.jfrog.bamboo.bintray.BintrayPushAction" method="push">
-                <result name="success" type="freemarker">/templates/plugins/bintray/bintrayPushAction.ftl</result>
-                <result name="error" type="freemarker">/templates/plugins/bintray/bintrayPushAction.ftl</result>
             </action>
 
             <action name="promote" class="org.jfrog.bamboo.release.action.ReleasePromotionAction" method="promote">

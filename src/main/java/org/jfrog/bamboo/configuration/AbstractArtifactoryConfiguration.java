@@ -20,13 +20,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.configuration.util.TaskConfiguratorHelperImpl;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.release.vcs.VcsTypes;
 import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.configuration.util.TaskConfiguratorHelperImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -156,25 +156,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         }
 
         validateDeployableRepoKey(params, errorCollection);
-
-        String runLicensesKey = "builder." + getKey() + "." + AbstractBuildContext.RUN_LICENSE_CHECKS;
-        String runLicenseChecksValue = params.getString(runLicensesKey);
-        if (StringUtils.isNotBlank(runLicenseChecksValue) && Boolean.valueOf(runLicenseChecksValue)) {
-            String violationsKey = "builder." + getKey() + "." + AbstractBuildContext.LICENSE_VIOLATION_RECIPIENTS;
-            String recipients = params.getString(violationsKey);
-            if (StringUtils.isNotBlank(recipients)) {
-                String[] recipientTokens = StringUtils.split(recipients, ' ');
-                for (String recipientToken : recipientTokens) {
-                    if (StringUtils.isNotBlank(recipientToken) &&
-                            (!recipientToken.contains("@")) || recipientToken.startsWith("@") ||
-                            recipientToken.endsWith("@")) {
-                        errorCollection
-                                .addError(violationsKey, "'" + recipientToken + "' is not a valid e-mail address.");
-                        break;
-                    }
-                }
-            }
-        }
     }
 
     private void validateDeployableRepoKey(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
@@ -359,22 +340,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
 
     protected String getDefaultTestDirectory() {
         throw new UnsupportedOperationException("This method is not implemented for class " + this.getClass());
-    }
-
-    /**
-     * In version 1.8.1 the key containing the Artifactory Server ID was changed
-     * in the Generic Resolve and Deploy configurations.
-     * This method migrates to the new name.
-     */
-    protected void migrateServerKeyIfNeeded(Map<String, String> configuration) {
-        String oldServerId = configuration.get("artifactory.generic.artifactoryServerId");
-        String newServerId = configuration.get("builder.artifactoryGenericBuilder.artifactoryServerId");
-        if (StringUtils.isNotBlank(oldServerId)) {
-            configuration.put("builder.artifactoryGenericBuilder.artifactoryServerId", oldServerId);
-        }
-        if (StringUtils.isNotBlank(newServerId)) {
-            configuration.put("artifactory.generic.artifactoryServerId", newServerId);
-        }
     }
 
     protected List<NameValuePair> getGitAuthenticationTypes() {

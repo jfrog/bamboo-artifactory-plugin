@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.bintray.PushToBintrayContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -129,21 +128,16 @@ public class Maven3BuildContext extends AbstractBuildContext {
                 PREFIX + DEPLOYABLE_REPO_KEY, PREFIX + DEPLOYER_USERNAME_PARAM,
                 PREFIX + DEPLOYER_PASSWORD_PARAM, PUBLISH_BUILD_INFO_PARAM,
                 INCLUDE_ENV_VARS_PARAM, ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_INCLUDE_PATTERNS,
-                RUN_LICENSE_CHECKS, PREFIX + LICENSE_VIOLATION_RECIPIENTS,
-                PREFIX + LIMIT_CHECKS_TO_THE_FOLLOWING_SCOPES, PREFIX + ENVIRONMENT_VARIABLES,
-                PREFIX + INCLUDE_PUBLISHED_ARTIFACTS, PREFIX + DISABLE_AUTOMATIC_LICENSE_DISCOVERY,
                 PUBLISH_ARTIFACTS, RECORD_ALL_DEPENDENCIES, PREFIX + PUBLISH_MAVEN_DESCRIPTORS_PARAM, PREFIX + PROJECT_FILE,
                 PREFIX + PUBLISH_IVY_DESCRIPTORS_PARAM, USE_M2_COMPATIBLE_PATTERNS_PARAM,
                 PREFIX + IVY_PATTERN_PARAM, PREFIX + ARTIFACT_PATTERN_PARAM, PREFIX + INCLUDE_PATTERN,
                 PREFIX + EXCLUDE_PATTERN, PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM,
                 PREFIX + GOALS, PREFIX + ADDITIONAL_MAVEN_PARAMS, PREFIX + JDK,
                 PREFIX + MAVEN_OPTS, PREFIX + EXECUTABLE, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
-                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT, ENABLE_BINTRAY_CONFIGURATION,
+                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS, RESOLVE_FROM_ARTIFACTORY
                 , PREFIX + RESOLUTION_SERVER_ID, PREFIX + RESOLVER_USER_NAME, PREFIX + RESOLVER_PASSWORD);
-        fieldsToCopy.addAll(getBlackDuckFieldsToCopy());
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
-        fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }
@@ -152,7 +146,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
      * @return The deprecated checkbox fields that were used prior to the stripping of the namespace.
      */
     private static Set<String> getOldCheckBoxFieldsToCopy() {
-        return Sets.newHashSet(PREFIX + PUBLISH_BUILD_INFO_PARAM, PREFIX + RUN_LICENSE_CHECKS,
+        return Sets.newHashSet(PREFIX + PUBLISH_BUILD_INFO_PARAM,
                 PREFIX + PUBLISH_ARTIFACTS, PREFIX + TEST_CHECKED, PREFIX + TEST_DIRECTORY_OPTION,
                 PREFIX + ENABLE_RELEASE_MANAGEMENT, PREFIX + USE_M2_COMPATIBLE_PATTERNS_PARAM);
     }

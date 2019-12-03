@@ -51,10 +51,6 @@ public class PromotionContext {
         return log;
     }
 
-    public void clearLog(){
-        this.log.clearLog();
-    }
-
     public ReentrantLock getLock() {
         return lock;
     }
