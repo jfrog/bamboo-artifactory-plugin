@@ -33,7 +33,6 @@ public class AbstractGenericBuildConfiguration extends AbstractArtifactoryConfig
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
-        migrateServerKeyIfNeeded(taskDefinition.getConfiguration());
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         String envVarsExcludePatterns = (String)context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
         if (envVarsExcludePatterns == null) {

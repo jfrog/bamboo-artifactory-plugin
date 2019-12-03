@@ -232,7 +232,6 @@ public abstract class BaseBuildInfoHelper {
             principal = ((ManualBuildTriggerReason) triggerReason).getUserName();
 
             if (StringUtils.isBlank(principal)) {
-
                 BuildContext parentContext = context.getParentBuildContext();
                 if (parentContext != null) {
                     principal = getTriggeringUserNameRecursively(parentContext);

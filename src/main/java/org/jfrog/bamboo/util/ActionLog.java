@@ -7,8 +7,7 @@ import org.apache.log4j.Logger;
 import java.util.List;
 
 /**
- * For Promotion where we have no BuildLog available
- * This will handle all logs to screen
+ * For Promotion where we have no BuildLog available, this will handle all the logging to the screen
  *
  * @author Aviad Shikloshi
  */

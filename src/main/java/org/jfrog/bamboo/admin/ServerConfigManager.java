@@ -40,7 +40,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -131,23 +130,6 @@ public class ServerConfigManager implements Serializable {
         } catch (InstantiationException | IllegalAccessException | IOException e) {
             log.error("Could not load Artifactory configuration.", e);
         }
-    }
-
-    public boolean isMissedMigration() {
-        Iterator keysIterator = bandanaManager.getKeys(PlanAwareBandanaContext.GLOBAL_CONTEXT).iterator();
-        boolean isMissedMigration = false;
-        while (keysIterator.hasNext()) {
-            String key = (String) keysIterator.next();
-            // If the new key exists no migration needed.
-            if (key.equals(ARTIFACTORY_CONFIG_KEY)) {
-                return false;
-            }
-            // isMissedMigration will be true only if already found a key from the old plugin
-            if (!isMissedMigration) {
-                isMissedMigration = key.contains("org.jfrog.bamboo");
-            }
-        }
-        return isMissedMigration;
     }
 
     private void setArtifactoryServers(BandanaManager bandanaManager)

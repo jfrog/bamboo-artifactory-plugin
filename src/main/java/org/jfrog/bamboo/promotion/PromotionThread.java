@@ -89,11 +89,8 @@ public class PromotionThread extends Thread {
                 wetResponse = client.stageBuild(buildName, buildNumber, promotionBuilder.dryRun(false).build());
                 if (checkSuccess(wetResponse, false)) {
                     releaseLog.logMessage("Promotion completed successfully!");
-                    return;
                 }
-                return;
             }
-            return;
         } finally {
             if (dryResponse != null) {
                 HttpEntity entity = dryResponse.getEntity();

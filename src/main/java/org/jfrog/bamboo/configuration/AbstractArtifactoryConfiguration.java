@@ -342,22 +342,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         throw new UnsupportedOperationException("This method is not implemented for class " + this.getClass());
     }
 
-    /**
-     * In version 1.8.1 the key containing the Artifactory Server ID was changed
-     * in the Generic Resolve and Deploy configurations.
-     * This method migrates to the new name.
-     */
-    protected void migrateServerKeyIfNeeded(Map<String, String> configuration) {
-        String oldServerId = configuration.get("artifactory.generic.artifactoryServerId");
-        String newServerId = configuration.get("builder.artifactoryGenericBuilder.artifactoryServerId");
-        if (StringUtils.isNotBlank(oldServerId)) {
-            configuration.put("builder.artifactoryGenericBuilder.artifactoryServerId", oldServerId);
-        }
-        if (StringUtils.isNotBlank(newServerId)) {
-            configuration.put("artifactory.generic.artifactoryServerId", newServerId);
-        }
-    }
-
     protected List<NameValuePair> getGitAuthenticationTypes() {
         return Arrays.stream(GitAuthenticationType.values())
                 .map(Enum::name)
