@@ -29,8 +29,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.SHOULD_OVERRIDE_JDK_KEY;
 import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.OVERRIDE_JDK_ENV_VAR_KEY;
+import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.SHOULD_OVERRIDE_JDK_KEY;
 
 /**
  * Common super type for all tasks

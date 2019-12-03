@@ -3,14 +3,13 @@ package org.jfrog.bamboo.context;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.bintray.PushToBintrayContext;
 import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
 
 import java.util.Map;
 import java.util.Set;
 
-import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
 import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
+import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
 
 /**
  * @author Tomer Cohen
@@ -33,7 +32,6 @@ public class GenericContext {
     public static final String ARTIFACT_SPECS = "artifactory.generic.artifactSpecs";
     public static final String ENV_VARS_INCLUDE_PATTERNS = "artifactory.generic.envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "artifactory.generic.envVarsExcludePatterns";
-    public static final String ENABLE_BINTRAY_CONFIGURATION = "bintrayConfiguration";
     public static final String SIGN_METHOD_MAP_KEY = "signMethods";
 
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of(
@@ -46,11 +44,9 @@ public class GenericContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
-                SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS, ENABLE_BINTRAY_CONFIGURATION,
+        return Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
+                SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS,
                 USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE);
-        fieldsToCopy.addAll(PushToBintrayContext.bintrayFields);
-        return fieldsToCopy;
     }
 
     public long getSelectedServerId() {

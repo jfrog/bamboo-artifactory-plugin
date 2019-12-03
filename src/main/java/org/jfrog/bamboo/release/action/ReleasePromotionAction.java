@@ -54,8 +54,6 @@ import java.util.Map;
  */
 @RemoteAgentSupported
 public class ReleasePromotionAction extends ViewBuildResults {
-    public static final String PROMOTION_PUSH_TO_NEXUS_MODE = "pushToNexusMode";
-    public static final String NEXUS_PUSH_PLUGIN_NAME = "bintrayOsoPush";
     public static final String NEXT_INTEG_KEY = "version.nextIntegValue";
     public static final String RELEASE_VALUE_KEY = "version.releaseValue";
     public static final String CURRENT_VALUE_KEY = "version.currentValue";
@@ -550,10 +548,6 @@ public class ReleasePromotionAction extends ViewBuildResults {
     public Map<String, String> getSupportedPromotionModes() {
         Map<String, String> promotionModes = Maps.newHashMap();
         promotionModes.put(PROMOTION_NORMAL_MODE, "Normal");
-        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getImmutablePlan());
-        if (MavenSyncUtils.isPushToNexusEnabled(serverConfigManager, definition, getSelectedServerId(definition))) {
-            promotionModes.put(PROMOTION_PUSH_TO_NEXUS_MODE, "Promote to Bintray and Central");
-        }
         return promotionModes;
     }
 

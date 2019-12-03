@@ -108,8 +108,7 @@ public class DeleteTagCommand extends GitCommand<Object> {
                 try {
                     update = repo.updateRef(value.getName());
                     update.setForceUpdate(true);
-                    RefUpdate.Result delete = update.delete();
-                    return delete;
+                    return update.delete();
                 } catch (IOException e) {
                     throw new JGitInternalException(
                             JGitText.get().exceptionCaughtDuringExecutionOfTagCommand, e);

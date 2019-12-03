@@ -18,16 +18,6 @@
 [@ww.label labelKey='Capture And Publish Build Info' name='publishBuildInfo' hideOnNull='true' /]
 [#if isPublishBuildInfo]
     [@ww.label labelKey='Include Environment Variables' name='includeEnvVars' hideOnNull='true' /]
-
-    [@ww.label labelKey='Run License Checks (Requires Pro)' name='builder.artifactoryGradleBuilder.runLicenseChecks'/]
-    [#if isRunLicenseChecks]
-        [@ww.label labelKey='Send License Violation Notifications To'
-        name='builder.artifactoryGradleBuilder.licenseViolationRecipients' hideOnNull='true' /]
-        [@ww.label labelKey='Limit Checks To The Following Scopes'
-        name='builder.artifactoryGradleBuilder.limitChecksToScopes' hideOnNull='true' /]
-        [@ww.label labelKey='Include Published Artifacts' name='builder.artifactoryGradleBuilder.includePublishedArtifacts'/]
-        [@ww.label labelKey='Disable Automatic License Discovery' name='builder.artifactoryGradleBuilder.disableAutoLicenseDiscovery'/]
-    [/#if]
 [/#if]
 
 [@ww.label labelKey='Publish Artifacts To Artifactory' name='builder.artifactoryGradleBuilder.publishArtifacts'/]

@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.release.provider;
 
-import org.apache.commons.lang.StringUtils;
 import com.atlassian.bamboo.build.BuildDefinition;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
@@ -10,6 +9,7 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.AbstractBuildContext;

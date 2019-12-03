@@ -7,7 +7,6 @@ import com.atlassian.bamboo.util.BuildUtils;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
-import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -32,10 +31,10 @@ import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.api.dependency.BuildDependency;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
-import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
 import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
 import org.jfrog.build.extractor.clientConfiguration.PatternMatcher;
+import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -119,23 +118,6 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
             result.add(artifact);
         }
         return result;
-    }
-
-    private String getTriggeringUserNameRecursively(BuildContext context) {
-        String principal = null;
-        TriggerReason triggerReason = context.getTriggerReason();
-        if (triggerReason instanceof ManualBuildTriggerReason) {
-            principal = ((ManualBuildTriggerReason) triggerReason).getUserName();
-
-            if (StringUtils.isBlank(principal)) {
-
-                BuildContext parentContext = context.getParentBuildContext();
-                if (parentContext != null) {
-                    principal = getTriggeringUserNameRecursively(parentContext);
-                }
-            }
-        }
-        return principal;
     }
 
     public Map<String, String> getDynamicPropertyMap(Build build) {
@@ -231,8 +213,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         ModuleBuilder moduleBuilder =
                 new ModuleBuilder().id(taskContext.getBuildContext().getPlanName() + ":" + taskContext.getBuildContext().getBuildNumber())
                         .artifacts(artifacts).dependencies(dependencies);
-        Module module = moduleBuilder.build();
-        return module;
+        return moduleBuilder.build();
     }
 
     public static void addBuildInfoFromFileToContext(TaskContext taskContext, String generatedBuildInfo, String previousJson) throws IOException {

@@ -7,8 +7,7 @@ import org.apache.log4j.Logger;
 import java.util.List;
 
 /**
- * For Actions like promote and Push to Bintray where we have no BuildLog available
- * This will handle all logs to screen
+ * For Promotion where we have no BuildLog available, this will handle all the logging to the screen
  *
  * @author Aviad Shikloshi
  */
@@ -30,11 +29,6 @@ public class ActionLog {
     }
     public List<String> getLogEntries() {
         return logEntries;
-    }
-
-
-    public void clearLog(){
-        this.logEntries.clear();
     }
 
     public void logError(String message, Exception e) {

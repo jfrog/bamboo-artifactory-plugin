@@ -19,15 +19,6 @@
 [@ww.label labelKey='Deployment Exclude Patterns' name='builder.artifactoryMaven3Builder.deployExcludePatterns'/]
 [@ww.label labelKey='Filter excluded artifacts from build Info' name='builder.artifactoryMaven3Builder.filterExcludedArtifactsFromBuild'/]
 [/#if]
-[@ww.label labelKey='Run License Checks (Requires Pro)' name='builder.artifactoryMaven3Builder.builder.runLicenseChecks'/]
-[#if isRunLicenseChecks]
-[@ww.label labelKey='Send License Violation Notifications To'
-name='builder.artifactoryMaven3Builder.licenseViolationRecipients' hideOnNull='true' /]
-[@ww.label labelKey='Limit Checks To The Following Scopes'
-name='builder.artifactoryMaven3Builder.limitChecksToScopes' hideOnNull='true' /]
-[@ww.label labelKey='Include Published Artifacts' name='builder.artifactoryMaven3Builder.includePublishedArtifacts'/]
-[@ww.label labelKey='Disable Automatic License Discovery' name='builder.artifactoryMaven3Builder.disableAutoLicenseDiscovery'/]
-[/#if]
 </div>
 
 [#--[#if build.buildDefinition.builder.hasTests()]

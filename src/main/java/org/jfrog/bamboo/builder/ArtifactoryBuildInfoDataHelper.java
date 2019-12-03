@@ -22,10 +22,8 @@ import com.atlassian.bamboo.util.BuildUtils;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
-import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.Maps;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -199,20 +197,8 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         clientConf.info.setPrincipal(principal);
         clientConf.info.setAgentName("Bamboo");
         clientConf.info.setAgentVersion(BuildUtils.getVersionAndBuild());
-        clientConf.info.licenseControl.setRunChecks(buildContext.isRunLicenseChecks());
-        clientConf.info.licenseControl.setViolationRecipients(buildContext.getLicenseViolationRecipients());
-        clientConf.info.licenseControl.setScopes(buildContext.getScopes());
-        clientConf.info.licenseControl.setIncludePublishedArtifacts(buildContext.isIncludePublishedArtifacts());
-        clientConf.info.licenseControl.setAutoDiscover(!buildContext.isDisableAutomaticLicenseDiscovery());
         clientConf.info.setReleaseEnabled(buildContext.releaseManagementContext.isActivateReleaseManagement());
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
-
-        // Blackduck integration
-        try {
-            BeanUtils.copyProperties(clientConf.info.blackDuckProperties, buildContext.blackDuckProperties);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not integrate black duck properties", e);
-        }
 
         setClientData(buildContext, clientConf, serverConfig, environment);
         setPublisherData(buildContext, clientConf, serverConfig, environment);
@@ -225,23 +211,6 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
                 buildContext.getEnvVarsExcludePatterns());
         clientConf.info.addBuildVariables(props, patterns);
         clientConf.fillFromProperties(props, patterns);
-    }
-
-    private String getTriggeringUserNameRecursively(BuildContext context) {
-        String principal = null;
-        TriggerReason triggerReason = context.getTriggerReason();
-        if (triggerReason instanceof ManualBuildTriggerReason) {
-            principal = ((ManualBuildTriggerReason) triggerReason).getUserName();
-
-            if (StringUtils.isBlank(principal)) {
-
-                BuildContext parentContext = context.getParentBuildContext();
-                if (parentContext != null) {
-                    principal = getTriggeringUserNameRecursively(parentContext);
-                }
-            }
-        }
-        return principal;
     }
 
     /**
