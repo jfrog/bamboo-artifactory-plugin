@@ -5,20 +5,19 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.context.CollectIssuesContext;
+import org.jfrog.bamboo.context.CollectBuildIssuesContext;
+import org.jfrog.bamboo.task.ArtifactoryCollectBuildIssuesTask;
 
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Configuration for {@link org.jfrog.bamboo.task.ArtifactoryGenericResolveTask}
- *
- * @author Lior Hasson
+ * Configuration for {@link ArtifactoryCollectBuildIssuesTask}
  */
-public class ArtifactoryCollectIssuesConfiguration extends AbstractArtifactoryConfiguration {
+public class ArtifactoryCollectBuildIssuesConfiguration extends AbstractArtifactoryConfiguration {
     public static final String CFG_CONFIG_SOURCE_TASK_CONFIGURATION = "taskConfiguration";
-    private static final String KEY = "artifactoryCollectIssuesBuilder";
-    private static final Set<String> FIELDS_TO_COPY = CollectIssuesContext.getFieldsToCopy();
+    private static final String KEY = "artifactoryCollectBuildIssuesBuilder";
+    private static final Set<String> FIELDS_TO_COPY = CollectBuildIssuesContext.getFieldsToCopy();
     private static final String CFG_CONFIG_SOURCE_FILE = "file";
     private static final Map<String, String> CFG_CONFIG_SOURCE_OPTIONS = ImmutableMap.of(CFG_CONFIG_SOURCE_TASK_CONFIGURATION, "Task Configuration", CFG_CONFIG_SOURCE_FILE, "File");
 
@@ -37,7 +36,7 @@ public class ArtifactoryCollectIssuesConfiguration extends AbstractArtifactoryCo
         super.populateContextForEdit(context, taskDefinition);
         populateConfigContext(context);
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
-        context.put("selectedServerId", context.get(CollectIssuesContext.SERVER_ID_PARAM));
+        context.put("selectedServerId", context.get(CollectBuildIssuesContext.SERVER_ID_PARAM));
         context.put("serverConfigManager", serverConfigManager);
     }
 
@@ -46,7 +45,7 @@ public class ArtifactoryCollectIssuesConfiguration extends AbstractArtifactoryCo
      */
     private void populateConfigContext(@NotNull Map<String, Object> context) {
         context.put("configSourceOptions", CFG_CONFIG_SOURCE_OPTIONS);
-        context.put(CollectIssuesContext.CONFIG_SOURCE_CHOICE, CFG_CONFIG_SOURCE_TASK_CONFIGURATION);
+        context.put(CollectBuildIssuesContext.CONFIG_SOURCE_CHOICE, CFG_CONFIG_SOURCE_TASK_CONFIGURATION);
     }
 
     @Override

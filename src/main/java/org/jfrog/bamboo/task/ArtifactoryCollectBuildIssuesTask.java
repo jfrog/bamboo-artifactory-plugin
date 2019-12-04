@@ -9,7 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.CollectIssuesContext;
+import org.jfrog.bamboo.context.CollectBuildIssuesContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
@@ -24,14 +24,14 @@ import java.util.Map;
 
 import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM;
 
-public class ArtifactoryCollectIssuesTask extends AbstractSpecTask implements TaskType {
+public class ArtifactoryCollectBuildIssuesTask implements TaskType {
     private static final Logger log = Logger.getLogger(ArtifactoryPublishBuildInfoTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     protected CustomVariableContext customVariableContext;
     private TaskContext taskContext;
     private BuildInfoHelper buildInfoHelper;
 
-    public ArtifactoryCollectIssuesTask(EnvironmentVariableAccessor environmentVariableAccessor) {
+    public ArtifactoryCollectBuildIssuesTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
         ContainerManager.autowireComponent(this);
     }
@@ -47,18 +47,18 @@ public class ArtifactoryCollectIssuesTask extends AbstractSpecTask implements Ta
         BuildLogger logger = taskContext.getBuildLogger();
         String previousBiJson = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        CollectIssuesContext collectIssuesContext = new CollectIssuesContext(taskContext.getConfigurationMap());
+        CollectBuildIssuesContext collectBuildIssuesContext = new CollectBuildIssuesContext(taskContext.getConfigurationMap());
         buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, taskContext.getBuildContext(),
-                environmentVariableAccessor, collectIssuesContext.getArtifactoryServerId(), collectIssuesContext.getUsername(),
-                collectIssuesContext.getPassword(), buildParamsOverrideManager);
+                environmentVariableAccessor, collectBuildIssuesContext.getArtifactoryServerId(), collectBuildIssuesContext.getUsername(),
+                collectBuildIssuesContext.getPassword(), buildParamsOverrideManager);
 
         try {
-            File sourceCodeDirectory = getWorkingDirectory(taskContext);
-            if (sourceCodeDirectory == null) {
+            File projectRootDir = getWorkingDirectory(taskContext);
+            if (projectRootDir == null) {
                 log.error(logger.addErrorLogEntry("No build directory found!"));
                 return TaskResultBuilder.newBuilder(taskContext).success().build();
             }
-            Issues issues = collectIssues(logger, sourceCodeDirectory);
+            Issues issues = collectBuildIssues(logger, projectRootDir);
             addIssuesToBuildInfoInContext(taskContext, issues, previousBiJson);
 
         } catch (IOException | InterruptedException e) {
@@ -75,13 +75,13 @@ public class ArtifactoryCollectIssuesTask extends AbstractSpecTask implements Ta
         return TaskResultBuilder.newBuilder(taskContext).success().build();
     }
 
-    @Override
     protected File getWorkingDirectory(@NotNull CommonTaskContext context) {
         return TaskUtils.getVcsWorkingDirectory(this.taskContext);
     }
 
     /**
-     * Reads the config from the provided source
+     * Reads the issues collection config from the provided source
+     * @return the provided issues collection config
      */
     private String getIssuesCollectionConfig(@NotNull CommonTaskContext context, BuildLogger buildLogger) throws IOException {
         if (isConfigSourceTaskConfiguration(context)) {
@@ -94,29 +94,37 @@ public class ArtifactoryCollectIssuesTask extends AbstractSpecTask implements Ta
         return customVariableContext.substituteString(config);
     }
 
+    /**
+     * @return true if the issues collection config json is provided via task configuration.
+     */
     private boolean isConfigSourceTaskConfiguration(@NotNull CommonTaskContext context) {
-        return new CollectIssuesContext(context.getConfigurationMap()).isConfigSourceTaskConfiguration();
+        return new CollectBuildIssuesContext(context.getConfigurationMap()).isConfigSourceTaskConfiguration();
     }
 
+    /**
+     * When the source of the issues collection config is task configuration, the config json is provided via a text box
+     * in the task.
+     * This function retreives the config from the task's text box.
+     * @return the provided issues collection config.
+     */
     private String getTaskConfigurationConfig(@NotNull CommonTaskContext context) {
-        return new CollectIssuesContext(context.getConfigurationMap()).getTaskConfigurationConfig();
+        return new CollectBuildIssuesContext(context.getConfigurationMap()).getTaskConfigurationConfig();
     }
 
     private String getConfigFilePath(@NotNull CommonTaskContext context) {
-        return new CollectIssuesContext(context.getConfigurationMap()).getConfigFilePath();
+        return new CollectBuildIssuesContext(context.getConfigurationMap()).getConfigFilePath();
     }
 
     private String getBuildName(@NotNull TaskContext taskContext) {
         return taskContext.getBuildContext().getPlanName();
     }
 
-    private Issues collectIssues(BuildLogger logger, File sourceCodeDirectory) throws IOException, InterruptedException {
+    private Issues collectBuildIssues(BuildLogger logger, File projectRootDir) throws IOException, InterruptedException {
         org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
         String config = getIssuesCollectionConfig(taskContext, logger);
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
         String buildName = getBuildName(taskContext);
-        IssuesCollector issuesCollector = new IssuesCollector();
-        return issuesCollector.collectIssues(sourceCodeDirectory, bambooBuildInfoLog, config, clientBuilder, buildName);
+        return new IssuesCollector().collectIssues(projectRootDir, bambooBuildInfoLog, config, clientBuilder, buildName);
     }
 
     private void addIssuesToBuildInfoInContext(@NotNull TaskContext taskContext, Issues issues, String previousBiJson) throws IOException {
