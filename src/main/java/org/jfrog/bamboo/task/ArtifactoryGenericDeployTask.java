@@ -19,9 +19,9 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
 import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
-import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.util.FileChecksumCalculator;
@@ -134,11 +134,7 @@ public class ArtifactoryGenericDeployTask extends AbstractSpecTask implements Ta
 
     @Override
     protected File getWorkingDirectory(@NotNull CommonTaskContext context) {
-        File checkoutDir = VcsHelper.getCheckoutDirectory(this.taskContext.getBuildContext());
-        if (checkoutDir != null) {
-            return checkoutDir;
-        }
-        return this.taskContext.getWorkingDirectory();
+        return TaskUtils.getVcsWorkingDirectory(this.taskContext);
     }
 
     private Multimap<String, File> buildTargetPathToFiles(File directory, GenericContext context)

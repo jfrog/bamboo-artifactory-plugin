@@ -1,6 +1,7 @@
 package org.jfrog.bamboo.util;
 
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
+import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
@@ -13,6 +14,7 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
+import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
@@ -148,11 +150,25 @@ public class TaskUtils {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-        return new ArtifactoryDependenciesClient(serverUrl, username, password, new BuildInfoLog(log));
+        return new ArtifactoryDependenciesClient(serverUrl, username, password, "", new BuildInfoLog(log));
     }
 
     private static String overrideParam(String originalValue, String overrideKey, BuildParamsOverrideManager buildParamsOverrideManager) {
         String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);
         return overriddenValue.isEmpty() ? originalValue : overriddenValue;
+    }
+
+    /**
+     * Get the checkout directory if exists, or the plan's default working directory otherwise
+     *
+     * @param taskContext - the task's context
+     * @return checkout directory if exists, plan's default working directory otherwise
+     */
+    public static File getVcsWorkingDirectory(TaskContext taskContext) {
+        File checkoutDir = VcsHelper.getCheckoutDirectory(taskContext.getBuildContext());
+        if (checkoutDir != null) {
+            return checkoutDir;
+        }
+        return taskContext.getWorkingDirectory();
     }
 }

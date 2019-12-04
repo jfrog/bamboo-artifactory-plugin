@@ -134,6 +134,20 @@
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
+    <!--Collect Build Issues Task-->
+    <taskType key="artifactoryCollectBuildIssuesTask" name="Artifactory Collect Build Issues"
+              class="org.jfrog.bamboo.task.ArtifactoryCollectBuildIssuesTask">
+        <description>Artifactory Collect Build Issues Task</description>
+        <category name="deployment"/>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryCollectBuildIssuesConfiguration"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/task/editArtifactoryCollectBuildIssuesAction.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="templates/plugins/task/viewArtifactoryCollectBuildIssuesAction.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
     <!-- Xray scan task -->
     <taskType key="artifactoryXrayScanTask" name="Artifactory Xray Scan"
               class="org.jfrog.bamboo.task.ArtifactoryXrayScanTask">
