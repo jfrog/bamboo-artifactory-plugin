@@ -3,7 +3,6 @@ package org.jfrog.bamboo.task;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
-import com.atlassian.plugin.PluginAccessor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +10,8 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.XrayScanContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.ServerConfigBase;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.client.artifactoryXrayResponse.ArtifactoryXrayResponse;
 import org.jfrog.build.client.artifactoryXrayResponse.Summary;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryXrayClient;
@@ -21,27 +21,26 @@ import java.io.IOException;
 /**
  * Created by Bar Belity on 24/05/2018.
  */
-public class ArtifactoryXrayScanTask implements TaskType
+public class ArtifactoryXrayScanTask extends ArtifactoryTaskBase
 {
     private static final Logger log = Logger.getLogger(ArtifactoryXrayScanTask.class);
-    private PluginAccessor pluginAccessor;
+    private ServerConfig xrayServerConfig;
+    private XrayScanContext xrayContext;
 
-    @SuppressWarnings("unused")
-    public void setPluginAccessor(PluginAccessor pluginAccessor){
-        this.pluginAccessor = pluginAccessor;
+    @Override
+    protected boolean initTask(@NotNull TaskContext context) {
+        xrayContext = new XrayScanContext(context.getConfigurationMap());
+        setXrayServerConfigurations(xrayContext);
+        return true;
     }
 
     @NotNull
     @Override
-    public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
+    public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
         BuildLogger logger = taskContext.getBuildLogger();
-
-        XrayScanContext xrayContext = new XrayScanContext(taskContext.getConfigurationMap());
-
-        ArtifactoryXrayClient client = createArtifactoryXrayClient(xrayContext, logger);
+        ArtifactoryXrayClient client = createArtifactoryXrayClient(logger);
 
         try {
-            TaskUtils.ReportTaskUsageToArtifactory(client, "rt_build_scan", pluginAccessor, logger);
             ArtifactoryXrayResponse buildScanResult = doXrayScan(taskContext, client);
 
             String scanMessage;
@@ -65,6 +64,21 @@ public class ArtifactoryXrayScanTask implements TaskType
         } finally {
             client.close();
         }
+    }
+
+    @Override
+    protected ServerConfigBase getUsageServerConfig() {
+        return new ServerConfigBase(xrayServerConfig.getUrl(), xrayServerConfig.getUsername(), xrayServerConfig.getPassword());
+    }
+
+    @Override
+    protected String getTaskUsageName() {
+        return "rt_build_scan";
+    }
+
+    @Override
+    protected Log getLog() {
+        return new BuildInfoLog(log);
     }
 
     private String handleXrayScanResult(ArtifactoryXrayResponse buildScanResult, BuildLogger logger, XrayScanContext xrayContext) throws IOException {
@@ -95,25 +109,22 @@ public class ArtifactoryXrayScanTask implements TaskType
         return summary;
     }
 
-    private ArtifactoryXrayClient createArtifactoryXrayClient(XrayScanContext xrayContext, BuildLogger logger) {
-        ServerConfig serverConfig = getServerConfig(xrayContext);
-        // Extract parameters for Xray Client
-        String artifactoryUrl = serverConfig.getUrl();
-        String username = StringUtils.isBlank(xrayContext.getUsername()) ? serverConfig.getUsername() : xrayContext.getUsername();
-        String password = StringUtils.isBlank(xrayContext.getPassword()) ? serverConfig.getPassword() : xrayContext.getPassword();
-
-        return new ArtifactoryXrayClient(artifactoryUrl, username, password, new BuildInfoLog(log, logger));
+    private ArtifactoryXrayClient createArtifactoryXrayClient(BuildLogger logger) {
+        // Extract parameters for Xray Client.
+        return new ArtifactoryXrayClient(xrayServerConfig.getUrl(), xrayServerConfig.getUsername(), xrayServerConfig.getPassword(), new BuildInfoLog(log, logger));
     }
 
-    private ServerConfig getServerConfig(XrayScanContext xrayContext) {
+    private void setXrayServerConfigurations(XrayScanContext xrayContext) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         String serverId = xrayContext.getArtifactoryServerId();
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(Long.parseLong(serverId));
-        if (serverConfig == null) {
+        xrayServerConfig = serverConfigManager.getServerConfigById(Long.parseLong(serverId));
+        if (xrayServerConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
         }
-
-        return serverConfig;
+        String username = StringUtils.isBlank(xrayContext.getUsername()) ? xrayServerConfig.getUsername() : xrayContext.getUsername();
+        xrayServerConfig.setUsername(username);
+        String password = StringUtils.isBlank(xrayContext.getPassword()) ? xrayServerConfig.getPassword() : xrayContext.getPassword();
+        xrayServerConfig.setPassword(password);
     }
 
     private ArtifactoryXrayResponse doXrayScan(TaskContext taskContext, ArtifactoryXrayClient client) throws IOException, InterruptedException {

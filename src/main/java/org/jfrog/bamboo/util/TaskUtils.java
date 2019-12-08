@@ -1,12 +1,9 @@
 package org.jfrog.bamboo.util;
 
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskDefinition;
-import com.atlassian.plugin.PluginAccessor;
 import com.google.common.collect.Maps;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
@@ -14,21 +11,13 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBaseClient;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
-import org.jfrog.build.extractor.usageReport.UsageReporter;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -125,36 +114,42 @@ public class TaskUtils {
         return s;
     }
 
-    public static String getSpecFromFile(File sourceCodeDirectory, String specFilePath) throws IOException {
-        FileInputStream fis = null;
-        try {
-            Path path = Paths.get(specFilePath);
-            File specFile = path.isAbsolute() ? path.toFile() : Paths.get(sourceCodeDirectory.getAbsolutePath(), specFilePath).toFile();
-            fis = new FileInputStream(specFile);
-            byte[] data = new byte[(int) specFile.length()];
-            fis.read(data);
-            return new String(data, StandardCharsets.UTF_8);
-        } finally {
-            IOUtils.closeQuietly(fis);
-        }
-    }
-
-    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(GenericContext genericContext, BuildParamsOverrideManager buildParamsOverrideManager, Logger log) {
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(genericContext.getSelectedServerId());
+    public static ServerConfigBase getResolutionServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
         if (serverConfig == null) {
-            throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
+            return null;
         }
-        String username = overrideParam(serverConfigManager.substituteVariables(genericContext.getUsername()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME, buildParamsOverrideManager);
+        String username = overrideParam(serverConfigManager.substituteVariables(baseUsername), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME, buildParamsOverrideManager);
         if (StringUtils.isBlank(username)) {
             username = serverConfigManager.substituteVariables(serverConfig.getUsername());
         }
-        String password = overrideParam(serverConfigManager.substituteVariables(genericContext.getPassword()), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD, buildParamsOverrideManager);
+        String password = overrideParam(serverConfigManager.substituteVariables(basePassword), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD, buildParamsOverrideManager);
         if (StringUtils.isBlank(password)) {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-        return new ArtifactoryDependenciesClient(serverUrl, username, password, "", new BuildInfoLog(log));
+
+        return new ServerConfigBase(serverUrl, username, password);
+    }
+
+    public static ServerConfigBase getDeploymentServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
+        if (serverConfig == null) {
+            return null;
+        }
+        String username = overrideParam(serverConfigManager.substituteVariables(baseUsername), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME, buildParamsOverrideManager);
+        if (StringUtils.isBlank(username)) {
+            username = serverConfigManager.substituteVariables(serverConfig.getUsername());
+        }
+        String password = overrideParam(serverConfigManager.substituteVariables(basePassword), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD, buildParamsOverrideManager);
+        if (StringUtils.isBlank(password)) {
+            password = serverConfigManager.substituteVariables(serverConfig.getPassword());
+        }
+        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+
+        return new ServerConfigBase(serverUrl, username, password);
+    }
+
+    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfigBase serverConfig, Logger log) {
+        return new ArtifactoryDependenciesClient(serverConfig.getUrl(), serverConfig.getUsername(), serverConfig.getPassword(), new BuildInfoLog(log));
     }
 
     private static String overrideParam(String originalValue, String overrideKey, BuildParamsOverrideManager buildParamsOverrideManager) {
@@ -174,16 +169,5 @@ public class TaskUtils {
             return checkoutDir;
         }
         return taskContext.getWorkingDirectory();
-    }
-
-    public static void ReportTaskUsageToArtifactory(ArtifactoryBaseClient client, String featureId, PluginAccessor pluginAccessor, BuildLogger log) {
-        String[] featureIdArray = new String[] {featureId};
-        UsageReporter usageReporter = new UsageReporter("bamboo-artifactory-plugin/" + Utils.getArtifactoryVersion(pluginAccessor), featureIdArray);
-        try {
-            client.reportUsage(usageReporter);
-            log.addBuildLogEntry("Usage info sent successfully.");
-        } catch (Exception ex) {
-            log.addBuildLogEntry("Failed sending usage report to Artifactory.\n" + ex.toString());
-        }
     }
 }

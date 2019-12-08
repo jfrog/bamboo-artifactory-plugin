@@ -11,8 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.CollectBuildIssuesContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Issues;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
@@ -48,7 +49,7 @@ public class ArtifactoryCollectBuildIssuesTask implements TaskType {
         String previousBiJson = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         CollectBuildIssuesContext collectBuildIssuesContext = new CollectBuildIssuesContext(taskContext.getConfigurationMap());
-        buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
                 environmentVariableAccessor, collectBuildIssuesContext.getArtifactoryServerId(), collectBuildIssuesContext.getUsername(),
                 collectBuildIssuesContext.getPassword(), buildParamsOverrideManager);
 
@@ -90,7 +91,7 @@ public class ArtifactoryCollectBuildIssuesTask implements TaskType {
         }
         String configFileLocation = getConfigFilePath(context);
         buildLogger.addBuildLogEntry("Using config from file located at: " + configFileLocation);
-        String config = TaskUtils.getSpecFromFile(getWorkingDirectory(context), configFileLocation);
+        String config = FileSpecUtils.getSpecFromFile(getWorkingDirectory(context), configFileLocation);
         return customVariableContext.substituteString(config);
     }
 

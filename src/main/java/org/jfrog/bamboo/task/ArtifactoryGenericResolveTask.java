@@ -2,27 +2,26 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
+import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.task.TaskType;
 import com.atlassian.bamboo.v2.build.BuildContext;
-import com.atlassian.plugin.PluginAccessor;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.Utils;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.bamboo.util.*;
 import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
@@ -30,17 +29,19 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.jfrog.bamboo.util.TaskUtils.getArtifactoryDependenciesClient;
-
 /**
  * @author Lior Hasson
  */
-public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements TaskType {
+public class ArtifactoryGenericResolveTask extends ArtifactoryTaskBase {
 
     private static final Logger log = Logger.getLogger(ArtifactoryGenericResolveTask.class);
-    private PluginAccessor pluginAccessor;
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private BuildParamsOverrideManager buildParamsOverrideManager;
+    private CustomVariableContext customVariableContext;
+    private String fileSpec;
+    private BuildContext buildContext;
+    private GenericContext genericContext;
+    private BuildInfoHelper buildInfoHelper;
 
     public ArtifactoryGenericResolveTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -48,29 +49,31 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
     }
 
-    @SuppressWarnings("unused")
-    public void setPluginAccessor(PluginAccessor pluginAccessor) {
-        this.pluginAccessor = pluginAccessor;
+    @Override
+    protected boolean initTask(@NotNull TaskContext context) {
+        buildContext = context.getBuildContext();
+        genericContext = new GenericContext(context.getConfigurationMap());
+        buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(context, buildContext, environmentVariableAccessor,
+                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
+        return true;
     }
 
     @NotNull
     @Override
-    public TaskResult execute(@NotNull TaskContext taskContext) {
+    public TaskResult runTask(@NotNull TaskContext taskContext) {
         BuildLogger logger = taskContext.getBuildLogger();
-        logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getArtifactoryVersion(pluginAccessor));
-        BuildContext context = taskContext.getBuildContext();
+        logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getPluginVersion(pluginAccessor));
+
         String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
-        GenericContext genericContext = new GenericContext(taskContext.getConfigurationMap());
-        BuildInfoHelper buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, context, environmentVariableAccessor, genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
-        ArtifactoryDependenciesClient client = getArtifactoryDependenciesClient(genericContext, buildParamsOverrideManager, log);
+
+        ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(buildInfoHelper.getServerConfig(), log);
         try {
-            TaskUtils.ReportTaskUsageToArtifactory(client, "rt_download", pluginAccessor, logger);
             org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
             List<BuildDependency> buildDependencies;
             List<Dependency> dependencies;
             if (genericContext.isUseFileSpecs()) {
                 buildDependencies = Lists.newArrayList();
-                initFileSpec(taskContext);
+                initFileSpec(taskContext, logger);
                 SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
                 dependencies = specsHelper.downloadArtifactsBySpec(fileSpec, client, taskContext.getWorkingDirectory().getCanonicalPath());
             } else {
@@ -98,5 +101,32 @@ public class ArtifactoryGenericResolveTask extends AbstractSpecTask implements T
             client.close();
         }
         return TaskResultBuilder.newBuilder(taskContext).success().build();
+    }
+
+    @Override
+    protected ServerConfigBase getUsageServerConfig() {
+        return buildInfoHelper.getServerConfig();
+    }
+
+    @Override
+    protected String getTaskUsageName() {
+        return "rt_download";
+    }
+
+    @Override
+    protected Log getLog() {
+        return new BuildInfoLog(log);
+    }
+
+    private void initFileSpec(CommonTaskContext context, BuildLogger logger) throws IOException {
+        fileSpec = FileSpecUtils.getFileSpec(genericContext.isFileSpecInJobConfiguration(),
+                genericContext.getJobConfigurationSpec(), genericContext.getFilePathSpec(), context.getWorkingDirectory(),
+                customVariableContext, logger);
+        logger.addBuildLogEntry("Spec: " + fileSpec);
+        FileSpecUtils.validateFileSpec(fileSpec);
+    }
+
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
     }
 }

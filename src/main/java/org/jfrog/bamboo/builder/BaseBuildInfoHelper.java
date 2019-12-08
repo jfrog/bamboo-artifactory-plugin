@@ -18,6 +18,7 @@ package org.jfrog.bamboo.builder;
 
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
+import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
@@ -30,6 +31,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -239,5 +241,18 @@ public abstract class BaseBuildInfoHelper {
             }
         }
         return principal;
+    }
+
+    protected ServerConfig getConfiguredServer(TaskContext context, long selectedServerId) {
+        ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        if (serverConfig == null) {
+            String warning =
+                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
+                            ") but could not find a matching configuration. Build info collection is disabled.";
+            context.getBuildLogger().addErrorLogEntry(warning);
+            log.warn(warning);
+            return null;
+        }
+        return serverConfig;
     }
 }

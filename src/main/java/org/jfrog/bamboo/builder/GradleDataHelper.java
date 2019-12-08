@@ -16,7 +16,9 @@
 
 package org.jfrog.bamboo.builder;
 
-import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.configuration.AdministrationConfiguration;
+import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
+import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.util.BuildUtils;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
@@ -27,10 +29,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
+import org.jfrog.bamboo.util.ServerConfigBase;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
@@ -42,6 +46,7 @@ import org.joda.time.DateTime;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import static org.jfrog.bamboo.util.ConstantValues.*;
@@ -49,37 +54,45 @@ import static org.jfrog.bamboo.util.ConstantValues.*;
 /**
  * @author Noam Y. Tenne
  */
-public class GradleInitScriptHelper extends BaseBuildInfoHelper {
+public class GradleDataHelper extends BaseBuildInfoHelper {
 
     @SuppressWarnings({"UnusedDeclaration"})
-    private static final Logger log = Logger.getLogger(GradleInitScriptHelper.class);
+    private static final Logger log = Logger.getLogger(GradleDataHelper.class);
     private File buildInfoTempFile;
-    public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir,
-                                                                    GradleBuildContext buildContext, BuildLogger logger,
-                                                                    String scriptTemplate, Map<String, String>taskEnv,
-                                                                    Map<String, String> generalEnv, String artifactoryPluginVersion, boolean shouldCaptureBuildInfo) {
+    private ServerConfig serverConfig;
+    private ArtifactoryClientConfiguration configuration;
+    private String serverUrl;
+    private String deployerUsername;
+    private String deployerPassword;
+    private String resolverUsername;
+    private String resolverPassword;
+
+    public GradleDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context, GradleBuildContext buildContext, AdministrationConfiguration administrationConfiguration, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion) {
+        super.init(buildParamsOverrideManager, context.getBuildContext());
+        setAdministrationConfiguration(administrationConfiguration);
 
         long selectedServerId = buildContext.getArtifactoryServerId();
-        if (selectedServerId == -1) {
-            return null;
+        if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
+            // Initialize configurations.
+            configuration = createClientConfiguration(buildContext, serverConfig, envVarAccessor.getEnvironment(context), artifactoryPluginVersion);
         }
-        //Using "getInstance()" since the field must be transient
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
+    }
+
+    protected boolean isServerConfigured(TaskContext context, long selectedServerId) {
+        serverConfig = getConfiguredServer(context, selectedServerId);
+        return serverConfig != null;
+    }
+
+    public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir, GradleBuildContext buildContext, String scriptTemplate, Map<String, String> generalEnv, boolean shouldCaptureBuildInfo) {
         if (serverConfig == null) {
-            String warning =
-                "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
-                    ") but could not find a matching configuration. Build info collection is disabled.";
-            logger.addErrorLogEntry(warning);
-            log.warn(warning);
             return null;
         }
+
         String normalizedPath = FilenameUtils.separatorsToUnix(dependenciesDir);
         scriptTemplate = scriptTemplate.replace("${pluginLibDir}", normalizedPath);
         try {
             File buildProps = File.createTempFile("buildinfo", "properties");
-            ArtifactoryClientConfiguration configuration =
-                    createClientConfiguration(buildContext, serverConfig, taskEnv, artifactoryPluginVersion);
-            // Add Bamboo build variables
+            // Add Bamboo build variables.
             MapDifference<String, String> buildVarDifference = Maps.difference(generalEnv, System.getenv());
             Map<String, String> filteredBuildVarDifferences = buildVarDifference.entriesOnlyOnLeft();
             IncludeExcludePatterns patterns = new IncludeExcludePatterns(
@@ -91,7 +104,11 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             }
             configuration.info.addBuildVariables(filteredBuildVarDifferences, patterns);
             configuration.setPropertiesFile(buildProps.getAbsolutePath());
+
+            // Write data to buildinfo.properties.
             configuration.persistToPropertiesFile();
+
+            // Write data to init script file.
             File tempInitScript = File.createTempFile("artifactory.init.script", "gradle");
             FileUtils.writeStringToFile(tempInitScript, scriptTemplate, "utf-8");
             if (buildContext.isPublishBuildInfo()) {
@@ -206,7 +223,8 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
     private void addClientProperties(ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig,
         GradleBuildContext buildContext, Map<String, String> environment) {
 
-        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        setServerConfigurations(buildContext, serverConfig);
+
         clientConf.publisher.setContextUrl(serverUrl);
         clientConf.resolver.setContextUrl(serverUrl);
         clientConf.publisher.setRepoKey(getPublishingRepoKey(buildContext, environment));
@@ -217,14 +235,7 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
             clientConf.resolver.setRepoKey(resolutionRepo);
         }
 
-        String globalServerUsername = serverConfigManager.substituteVariables(serverConfig.getUsername());
-        clientConf.resolver.setUsername(globalServerUsername);
-
-        String deployerUsername = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerUsername())
-                , BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
-        if (StringUtils.isBlank(deployerUsername)) {
-            deployerUsername = globalServerUsername;
-        }
+        clientConf.resolver.setUsername(resolverUsername);
         if (StringUtils.isNotBlank(deployerUsername)) {
             clientConf.publisher.setUsername(deployerUsername);
         }
@@ -254,5 +265,54 @@ public class GradleInitScriptHelper extends BaseBuildInfoHelper {
         if (StringUtils.isNotBlank(artifactSpecs)) {
             clientConf.publisher.setArtifactSpecs(artifactSpecs);
         }
+    }
+
+    @NotNull
+    public void addPasswordsSystemProps(List<String> command, @NotNull TaskContext context) {
+        if (serverConfig == null) {
+            return;
+        }
+
+        ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(null);
+        command.add("-D" + clientConf.resolver.getPrefix() + "password=" + resolverPassword);
+        command.add("-D" + clientConf.publisher.getPrefix() + "password=" + deployerPassword);
+        // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
+        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", resolverPassword);
+        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.b", deployerPassword);
+    }
+
+    private void setServerConfigurations(GradleBuildContext buildContext, ServerConfig selectedServerConfig) {
+        // Set url.
+        serverUrl = serverConfigManager.substituteVariables(selectedServerConfig.getUrl());
+        // Set usernames.
+        resolverUsername = serverConfigManager.substituteVariables(selectedServerConfig.getUsername());
+        deployerUsername = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerUsername()),
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
+        if (StringUtils.isBlank(deployerUsername)) {
+            deployerUsername = resolverUsername;
+        }
+        // Set passwords.
+        resolverPassword = serverConfigManager.substituteVariables(selectedServerConfig.getPassword());
+        deployerPassword = buildParamsOverrideManager.getOverrideValue(BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
+        if (StringUtils.isBlank(deployerPassword)) {
+            deployerPassword = serverConfigManager.substituteVariables(buildContext.getDeployerPassword());
+        }
+        if (StringUtils.isBlank(deployerPassword)) {
+            deployerPassword = resolverPassword;
+        }
+    }
+
+    public ServerConfigBase getDeployServer() {
+        if (serverUrl == null) {
+            return null;
+        }
+        return new ServerConfigBase(serverUrl, deployerUsername, deployerPassword);
+    }
+
+    public ServerConfigBase getResolveServer() {
+        if (serverUrl == null) {
+            return null;
+        }
+        return new ServerConfigBase(serverUrl, resolverUsername, resolverPassword);
     }
 }
