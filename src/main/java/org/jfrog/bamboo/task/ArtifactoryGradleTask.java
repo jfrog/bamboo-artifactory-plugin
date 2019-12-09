@@ -23,6 +23,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.GradleDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -54,6 +55,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
     private final CapabilityContext capabilityContext;
+    private BuildLogger logger;
     private BuilderDependencyHelper dependencyHelper;
     private String gradleDependenciesDir = null;
     private AdministrationConfiguration administrationConfiguration;
@@ -71,19 +73,18 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     }
 
     @Override
-    protected boolean initTask(@NotNull TaskContext context) {
+    protected void initTask(@NotNull TaskContext context) {
+        logger = getBuildLogger(context);
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         gradleBuildContext = createBuildContext(context);
         initEnvironmentVariables(gradleBuildContext);
         gradleDataHelper = new GradleDataHelper(buildParamsOverrideManager, context, gradleBuildContext,
                 administrationConfiguration, environmentVariableAccessor, artifactoryPluginVersion);
-        return true;
     }
 
     @Override
     @NotNull
     public TaskResult runTask(@NotNull TaskContext context) throws TaskException {
-        BuildLogger logger = getBuildLogger(context);
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
@@ -168,13 +169,13 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     }
 
     @Override
-    protected ServerConfigBase getUsageServerConfig() {
+    protected ServerConfig getUsageServerConfig() {
         return gradleDataHelper.getDeployServer();
     }
 
     @Override
     protected String getTaskUsageName() {
-        return "rt_gradle";
+        return "gradle";
     }
 
     @Override

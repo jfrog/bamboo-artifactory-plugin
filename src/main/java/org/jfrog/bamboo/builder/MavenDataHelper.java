@@ -8,7 +8,6 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.ServerConfigBase;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.Map;
  *
  * @author Tomer Cohen
  */
-public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
+public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
     private String resolverUsername;
     private String resolverPassword;
     private String resolverUrl;
@@ -33,7 +32,7 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
             // No deployment server configured, configure resolution server if needed.
             selectedServerId = ((Maven3BuildContext) buildContext).getResolutionArtifactoryServerId();
             if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
-                setClientData(buildContext, clientConf, serverConfig, envVarAccessor.getEnvironment(context));
+                setClientData(buildContext, clientConf, selectedServerConfig, envVarAccessor.getEnvironment(context));
             }
         }
     }
@@ -95,11 +94,11 @@ public class MavenDataHelper extends ArtifactoryBuildInfoDataHelper {
         }
     }
 
-    public ServerConfigBase getResolveServer() {
+    public ServerConfig getResolveServer() {
         if (resolverUrl == null) {
             return null;
         }
-        return new ServerConfigBase(resolverUrl, resolverUsername, resolverPassword);
+        return new ServerConfig(selectedServerConfig.getId(), resolverUrl, resolverUsername, resolverPassword, selectedServerConfig.getTimeout());
     }
 }
 

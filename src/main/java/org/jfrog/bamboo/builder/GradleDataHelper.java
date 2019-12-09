@@ -34,7 +34,6 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
-import org.jfrog.bamboo.util.ServerConfigBase;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
@@ -59,7 +58,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
     @SuppressWarnings({"UnusedDeclaration"})
     private static final Logger log = Logger.getLogger(GradleDataHelper.class);
     private File buildInfoTempFile;
-    private ServerConfig serverConfig;
+    private ServerConfig selectedServerConfig;
     private ArtifactoryClientConfiguration configuration;
     private String serverUrl;
     private String deployerUsername;
@@ -74,17 +73,17 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         long selectedServerId = buildContext.getArtifactoryServerId();
         if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
             // Initialize configurations.
-            configuration = createClientConfiguration(buildContext, serverConfig, envVarAccessor.getEnvironment(context), artifactoryPluginVersion);
+            configuration = createClientConfiguration(buildContext, selectedServerConfig, envVarAccessor.getEnvironment(context), artifactoryPluginVersion);
         }
     }
 
     protected boolean isServerConfigured(TaskContext context, long selectedServerId) {
-        serverConfig = getConfiguredServer(context, selectedServerId);
-        return serverConfig != null;
+        selectedServerConfig = getConfiguredServer(context, selectedServerId);
+        return selectedServerConfig != null;
     }
 
     public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir, GradleBuildContext buildContext, String scriptTemplate, Map<String, String> generalEnv, boolean shouldCaptureBuildInfo) {
-        if (serverConfig == null) {
+        if (selectedServerConfig == null) {
             return null;
         }
 
@@ -115,7 +114,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
                 this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM,
                         "true");
                 this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
-                        serverConfig.getUrl());
+                        selectedServerConfig.getUrl());
                 this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
                         String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
             }
@@ -269,7 +268,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
 
     @NotNull
     public void addPasswordsSystemProps(List<String> command, @NotNull TaskContext context) {
-        if (serverConfig == null) {
+        if (selectedServerConfig == null) {
             return;
         }
 
@@ -302,17 +301,17 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         }
     }
 
-    public ServerConfigBase getDeployServer() {
+    public ServerConfig getDeployServer() {
         if (serverUrl == null) {
             return null;
         }
-        return new ServerConfigBase(serverUrl, deployerUsername, deployerPassword);
+        return new ServerConfig(selectedServerConfig.getId(), serverUrl, deployerUsername, deployerPassword, selectedServerConfig.getTimeout());
     }
 
-    public ServerConfigBase getResolveServer() {
+    public ServerConfig getResolveServer() {
         if (serverUrl == null) {
             return null;
         }
-        return new ServerConfigBase(serverUrl, resolverUsername, resolverPassword);
+        return new ServerConfig(selectedServerConfig.getId(), serverUrl, resolverUsername, resolverPassword, selectedServerConfig.getTimeout());
     }
 }

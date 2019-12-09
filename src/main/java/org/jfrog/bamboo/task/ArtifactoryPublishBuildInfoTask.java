@@ -8,10 +8,10 @@ import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.ServerConfigBase;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Build;
@@ -29,11 +29,12 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_SELECTED_SERVER_
 /**
  * @author Alexei Vainshtein
  */
-public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskBase {
+public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryPublishBuildInfoTask";
 
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private static final Logger log = Logger.getLogger(ArtifactoryPublishBuildInfoTask.class);
+    private BuildLogger logger;
     private CustomVariableContext customVariableContext;
     private BuildInfoHelper buildInfoHelper;
     private BuildParamsOverrideManager buildParamsOverrideManager;
@@ -48,17 +49,16 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskBase {
     }
 
     @Override
-    protected boolean initTask(@NotNull TaskContext context) {
+    protected void initTask(@NotNull TaskContext context) {
+        logger = context.getBuildLogger();
         PublishBuildInfoContext publishBuildInfoContext = new PublishBuildInfoContext(context.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(context, context.getBuildContext(), environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(), publishBuildInfoContext.getPassword(), buildParamsOverrideManager);
-        return true;
     }
 
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
-        BuildLogger logger = taskContext.getBuildLogger();
         String json = BuildInfoHelper.getBuildInfoFromContext(taskContext);
         BuildInfoHelper.removeBuildInfoFromContext(taskContext);
         Build build = buildInfoHelper.getBuilder(taskContext).build();
@@ -87,13 +87,13 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskBase {
     }
 
     @Override
-    protected ServerConfigBase getUsageServerConfig() {
+    protected ServerConfig getUsageServerConfig() {
         return buildInfoHelper.getServerConfig();
     }
 
     @Override
     protected String getTaskUsageName() {
-        return "rt_build_publish";
+        return "publish_build_info";
     }
 
     @Override

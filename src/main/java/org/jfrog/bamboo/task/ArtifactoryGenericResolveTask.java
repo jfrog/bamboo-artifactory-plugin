@@ -2,10 +2,7 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.task.CommonTaskContext;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
@@ -13,6 +10,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
@@ -32,11 +30,12 @@ import java.util.Map;
 /**
  * @author Lior Hasson
  */
-public class ArtifactoryGenericResolveTask extends ArtifactoryTaskBase {
+public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
 
     private static final Logger log = Logger.getLogger(ArtifactoryGenericResolveTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private BuildParamsOverrideManager buildParamsOverrideManager;
+    private BuildLogger logger;
     private CustomVariableContext customVariableContext;
     private String fileSpec;
     private BuildContext buildContext;
@@ -50,20 +49,18 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskBase {
     }
 
     @Override
-    protected boolean initTask(@NotNull TaskContext context) {
+    protected void initTask(@NotNull TaskContext context) {
+        logger = context.getBuildLogger();
         buildContext = context.getBuildContext();
         genericContext = new GenericContext(context.getConfigurationMap());
         buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(context, buildContext, environmentVariableAccessor,
                 genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
-        return true;
     }
 
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
-        BuildLogger logger = taskContext.getBuildLogger();
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getPluginVersion(pluginAccessor));
-
         String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
 
         ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(buildInfoHelper.getServerConfig(), log);
@@ -104,18 +101,18 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskBase {
     }
 
     @Override
-    protected ServerConfigBase getUsageServerConfig() {
+    protected ServerConfig getUsageServerConfig() {
         return buildInfoHelper.getServerConfig();
     }
 
     @Override
     protected String getTaskUsageName() {
-        return "rt_download";
+        return "generic_resolve";
     }
 
     @Override
     protected Log getLog() {
-        return new BuildInfoLog(log);
+        return new BuildInfoLog(log, logger);
     }
 
     private void initFileSpec(CommonTaskContext context, BuildLogger logger) throws IOException {

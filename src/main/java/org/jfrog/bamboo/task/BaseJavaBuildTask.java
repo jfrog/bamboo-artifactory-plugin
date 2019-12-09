@@ -17,7 +17,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.builder.ArtifactoryBuildInfoDataHelper;
+import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
@@ -36,7 +36,7 @@ import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.SHOULD_O
  *
  * @author Tomer Cohen
  */
-public abstract class BaseJavaBuildTask extends ArtifactoryTaskBase {
+public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
     protected static final String JDK_LABEL_KEY = "system.jdk.";
     public static final String JAVA_HOME = "JAVA_HOME";
 
@@ -240,7 +240,7 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskBase {
         return combinedMap;
     }
 
-    void createBuildInfoFiles(boolean shouldCaptureBuildInfo, ArtifactoryBuildInfoDataHelper dataHelper) throws TaskException {
+    void createBuildInfoFiles(boolean shouldCaptureBuildInfo, MavenAndIvyBuildInfoDataHelperBase dataHelper) throws TaskException {
         try {
             if (shouldCaptureBuildInfo) {
                 String buildInfoJsonPath = dataHelper.createBuildInfoJSonFileAndGetItsPath();

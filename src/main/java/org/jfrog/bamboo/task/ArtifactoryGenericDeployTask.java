@@ -15,6 +15,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
@@ -42,7 +43,7 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_SELECTED_SERVER_
 /**
  * @author Tomer Cohen
  */
-public class ArtifactoryGenericDeployTask extends ArtifactoryTaskBase {
+public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryGenericTask";
     private static final Logger log = Logger.getLogger(ArtifactoryGenericDeployTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
@@ -63,19 +64,18 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskBase {
     }
 
     @Override
-    public boolean initTask(TaskContext context) {
+    public void initTask(TaskContext context) {
         taskContext = context;
+        logger = taskContext.getBuildLogger();
         buildContext = taskContext.getBuildContext();
         genericContext = new GenericContext(taskContext.getConfigurationMap());
         buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, buildContext, environmentVariableAccessor,
                 genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
-        return true;
     }
 
     @Override
     @NotNull
     public TaskResult runTask(@NotNull TaskContext taskContext) {
-        logger = taskContext.getBuildLogger();
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getPluginVersion(pluginAccessor));
 
         // Check if should stop task.
@@ -130,18 +130,18 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskBase {
     }
 
     @Override
-    protected ServerConfigBase getUsageServerConfig() {
+    protected ServerConfig getUsageServerConfig() {
         return buildInfoHelper.getServerConfig();
     }
 
     @Override
     protected String getTaskUsageName() {
-        return "rt_upload";
+        return "generic_deploy";
     }
 
     @Override
     protected Log getLog() {
-        return new BuildInfoLog(log);
+        return new BuildInfoLog(log, logger);
     }
 
     private void initFileSpec(@NotNull CommonTaskContext context) throws IOException {

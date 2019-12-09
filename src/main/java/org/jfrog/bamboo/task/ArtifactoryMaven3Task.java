@@ -6,10 +6,7 @@ import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
@@ -20,6 +17,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.MavenDataHelper;
@@ -64,20 +62,18 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     }
 
     @Override
-    public boolean initTask(TaskContext taskContext) {
+    public void initTask(TaskContext taskContext) {
+        logger = getBuildLogger(taskContext);
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         mavenBuildContext = createBuildContext(taskContext);
         initEnvironmentVariables(mavenBuildContext);
         mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
                 mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
-        logger = getBuildLogger(taskContext);
-        return true;
     }
 
     @Override
     @NotNull
     public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
-        //BuildLogger logger = getBuildLogger(taskContext);
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
@@ -135,8 +131,8 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     }
 
     @Override
-    protected ServerConfigBase getUsageServerConfig() {
-        ServerConfigBase config = mavenDataHelper.getDeployServer();
+    protected ServerConfig getUsageServerConfig() {
+        ServerConfig config = mavenDataHelper.getDeployServer();
         if (config == null) {
             config = mavenDataHelper.getResolveServer();
         }
@@ -145,7 +141,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
 
     @Override
     protected String getTaskUsageName() {
-        return "rt_maven";
+        return "maven";
     }
 
     @Override

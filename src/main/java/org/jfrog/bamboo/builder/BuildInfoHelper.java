@@ -19,7 +19,6 @@ import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.ServerConfigBase;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.VcsHelper;
@@ -53,9 +52,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     private final Map<String, String> env;
     private final String vcsRevision;
     private final String vcsUrl;
-    private String username;
-    private String password;
-    private String url;
+    private ServerConfig serverConfig;
 
     private BuildInfoHelper(Map<String, String> env, String vcsRevision, String vcsUrl) {
         this.env = env;
@@ -82,7 +79,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
 
         BuildInfoBuilder builder = new BuildInfoBuilder(buildContext.getPlanName())
                 .number(String.valueOf(buildContext.getBuildNumber())).type(BuildType.GENERIC)
-                .agent(new Agent("Bamboo", BuildUtils.getVersionAndBuild())).artifactoryPrincipal(username)
+                .agent(new Agent("Bamboo", BuildUtils.getVersionAndBuild())).artifactoryPrincipal(serverConfig.getUsername())
                 .startedDate(new Date()).durationMillis(duration).url(buildUrl);
         if (StringUtils.isNotBlank(vcsRevision)) {
             builder.vcsRevision(vcsRevision);
@@ -253,7 +250,8 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     public ArtifactoryBuildInfoClientBuilder getClientBuilder(BuildLogger buildLogger, Logger logger) {
         org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(logger, buildLogger);
         ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
-        clientBuilder.setArtifactoryUrl(url).setUsername(username).setPassword(password).setLog(bambooBuildInfoLog);
+        clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
+                .setPassword(serverConfig.getPassword()).setLog(bambooBuildInfoLog);
         return clientBuilder;
     }
 
@@ -284,12 +282,8 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
         BuildInfoHelper buildInfoHelper = createBuildInfoHelperBase(taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
 
-        ServerConfigBase deployServerConfig = TaskUtils.getDeploymentServerConfig(username, password, serverConfigManager,
+        buildInfoHelper.serverConfig = TaskUtils.getDeploymentServerConfig(username, password, serverConfigManager,
                 selectedServerConfig, buildParamsOverrideManager);
-
-        buildInfoHelper.username = deployServerConfig.getUsername();
-        buildInfoHelper.password = deployServerConfig.getPassword();
-        buildInfoHelper.url = serverConfigManager.substituteVariables(deployServerConfig.getUrl());
 
         return buildInfoHelper;
     }
@@ -300,12 +294,8 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
         BuildInfoHelper buildInfoHelper = createBuildInfoHelperBase(taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
 
-        ServerConfigBase resolveServerConfig = TaskUtils.getResolutionServerConfig(username, password, serverConfigManager,
+        buildInfoHelper.serverConfig = TaskUtils.getResolutionServerConfig(username, password, serverConfigManager,
                 selectedServerConfig, buildParamsOverrideManager);
-
-        buildInfoHelper.username = resolveServerConfig.getUsername();
-        buildInfoHelper.password = resolveServerConfig.getPassword();
-        buildInfoHelper.url = serverConfigManager.substituteVariables(resolveServerConfig.getUrl());
 
         return buildInfoHelper;
     }
@@ -317,7 +307,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return build;
     }
 
-    public ServerConfigBase getServerConfig() {
-        return new ServerConfigBase(url, username, password);
+    public ServerConfig getServerConfig() {
+        return serverConfig;
     }
 }

@@ -10,7 +10,6 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.XrayScanContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.ServerConfigBase;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.client.artifactoryXrayResponse.ArtifactoryXrayResponse;
 import org.jfrog.build.client.artifactoryXrayResponse.Summary;
@@ -21,23 +20,22 @@ import java.io.IOException;
 /**
  * Created by Bar Belity on 24/05/2018.
  */
-public class ArtifactoryXrayScanTask extends ArtifactoryTaskBase
-{
+public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
     private static final Logger log = Logger.getLogger(ArtifactoryXrayScanTask.class);
     private ServerConfig xrayServerConfig;
     private XrayScanContext xrayContext;
+    private BuildLogger logger;
 
     @Override
-    protected boolean initTask(@NotNull TaskContext context) {
+    protected void initTask(@NotNull TaskContext context) {
+        logger = context.getBuildLogger();
         xrayContext = new XrayScanContext(context.getConfigurationMap());
         setXrayServerConfigurations(xrayContext);
-        return true;
     }
 
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
-        BuildLogger logger = taskContext.getBuildLogger();
         ArtifactoryXrayClient client = createArtifactoryXrayClient(logger);
 
         try {
@@ -67,18 +65,18 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskBase
     }
 
     @Override
-    protected ServerConfigBase getUsageServerConfig() {
-        return new ServerConfigBase(xrayServerConfig.getUrl(), xrayServerConfig.getUsername(), xrayServerConfig.getPassword());
+    protected ServerConfig getUsageServerConfig() {
+        return xrayServerConfig;
     }
 
     @Override
     protected String getTaskUsageName() {
-        return "rt_build_scan";
+        return "xray_scan";
     }
 
     @Override
     protected Log getLog() {
-        return new BuildInfoLog(log);
+        return new BuildInfoLog(log, logger);
     }
 
     private String handleXrayScanResult(ArtifactoryXrayResponse buildScanResult, BuildLogger logger, XrayScanContext xrayContext) throws IOException {

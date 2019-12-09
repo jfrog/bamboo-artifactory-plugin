@@ -114,7 +114,7 @@ public class TaskUtils {
         return s;
     }
 
-    public static ServerConfigBase getResolutionServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
+    public static ServerConfig getResolutionServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
         if (serverConfig == null) {
             return null;
         }
@@ -128,10 +128,10 @@ public class TaskUtils {
         }
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
 
-        return new ServerConfigBase(serverUrl, username, password);
+        return new ServerConfig(serverConfig.getId(), serverUrl, username, password, serverConfig.getTimeout());
     }
 
-    public static ServerConfigBase getDeploymentServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
+    public static ServerConfig getDeploymentServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
         if (serverConfig == null) {
             return null;
         }
@@ -145,10 +145,10 @@ public class TaskUtils {
         }
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
 
-        return new ServerConfigBase(serverUrl, username, password);
+        return new ServerConfig(serverConfig.getId(), serverUrl, username, password, serverConfig.getTimeout());
     }
 
-    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfigBase serverConfig, Logger log) {
+    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfig serverConfig, Logger log) {
         return new ArtifactoryDependenciesClient(serverConfig.getUrl(), serverConfig.getUsername(), serverConfig.getPassword(), new BuildInfoLog(log));
     }
 
