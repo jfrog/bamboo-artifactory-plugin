@@ -6,10 +6,7 @@ import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
@@ -20,15 +17,14 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.builder.ArtifactoryBuildInfoDataHelper;
+import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
+import org.jfrog.bamboo.builder.MavenDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.MavenDataHelper;
-import org.jfrog.bamboo.util.PluginProperties;
-import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.Utils;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.bamboo.util.*;
+import org.jfrog.build.api.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,13 +38,17 @@ import java.util.Map;
  *
  * @author Tomer Cohen
  */
-public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
+public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     public static final String TASK_NAME = "maven3Task";
     private static final Logger log = Logger.getLogger(ArtifactoryMaven3Task.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
     private BuilderDependencyHelper dependencyHelper;
     private String mavenDependenciesDir;
+    private BuildLogger logger;
+    private Maven3BuildContext mavenBuildContext;
+    private MavenDataHelper mavenDataHelper;
+    private String artifactoryPluginVersion;
 
     public ArtifactoryMaven3Task(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
@@ -62,17 +62,23 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
     }
 
     @Override
+    public void initTask(TaskContext taskContext) {
+        logger = getBuildLogger(taskContext);
+        artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
+        mavenBuildContext = createBuildContext(taskContext);
+        initEnvironmentVariables(mavenBuildContext);
+        mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
+                mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
+    }
+
+    @Override
     @NotNull
-    public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
-        BuildLogger logger = getBuildLogger(taskContext);
-        String artifactoryPluginVersion = Utils.getArtifactoryVersion(pluginAccessor);
+    public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
 
         String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
-        Maven3BuildContext mavenBuildContext = createBuildContext(taskContext);
-        initEnvironmentVariables(mavenBuildContext);
 
         long serverId = mavenBuildContext.getResolutionArtifactoryServerId();
         if (serverId == -1) {
@@ -89,12 +95,12 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             log.error("Error occurred while preparing Artifactory Maven Runner dependencies. " +
                     "Build Info support is disabled.", e);
         }
+
         List<String> systemProps = new ArrayList<>();
         boolean shouldCaptureBuildInfo = false;
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
             shouldCaptureBuildInfo = mavenBuildContext.shouldCaptureBuildInfo(taskContext);
-            ArtifactoryBuildInfoDataHelper mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
-                    mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
+            // Save config to buildinfo.properties.
             createBuildInfoFiles(shouldCaptureBuildInfo, mavenDataHelper);
             mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext, taskContext);
         }
@@ -103,28 +109,15 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
 
-        List<String> command = getCommand(mavenBuildContext);
+        // Create maven command.
         String mavenHome = getMavenHome(mavenBuildContext);
         if (StringUtils.isBlank(mavenHome)) {
             log.error(logger.addErrorLogEntry("Maven home is not defined!"));
             return TaskResultBuilder.newBuilder(taskContext).failed().build();
         }
-        appendClassPathArguments(command, mavenHome);
-        appendClassWorldsConfArgument(command, mavenHome);
-        appendBuildInfoPropertiesArgument(command);
-        appendMavenOpts(command, mavenBuildContext);
-        addMavenHome(command, mavenHome);
-        addMavenMultiModuleProjectPath(command, rootDirectory);
-        command.add("org.codehaus.plexus.classworlds.launcher.Launcher");
-
-        appendGoals(command, mavenBuildContext);
-        appendAdditionalMavenParameters(command, mavenBuildContext);
-
-        log.debug("Running maven command: " + command.toString());
-        command.addAll(systemProps);
+        List<String> command = buildCommand(mavenHome, rootDirectory, systemProps);
 
         ExternalProcess process = getExternalProcess(taskContext, rootDirectory, command, environmentVariables);
-
         try {
             executeExternalProcess(logger, process, log);
             if (shouldCaptureBuildInfo) {
@@ -135,6 +128,25 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         } finally {
             taskContext.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());
         }
+    }
+
+    @Override
+    protected ServerConfig getUsageServerConfig() {
+        ServerConfig config = mavenDataHelper.getDeployServer();
+        if (config == null) {
+            config = mavenDataHelper.getResolveServer();
+        }
+        return config;
+    }
+
+    @Override
+    protected String getTaskUsageName() {
+        return "maven";
+    }
+
+    @Override
+    protected Log getLog() {
+        return new BuildInfoLog(log, logger);
     }
 
     /**
@@ -160,6 +172,22 @@ public class ArtifactoryMaven3Task extends ArtifactoryTaskType {
         String binPath = binPathBuilder.toString();
         binPath = getCanonicalPath(binPath);
         return binPath;
+    }
+
+    private List<String> buildCommand(String mavenHome, File rootDirectory, List<String> systemProps) throws TaskException {
+        List<String> command = getCommand(mavenBuildContext);
+        appendClassPathArguments(command, mavenHome);
+        appendClassWorldsConfArgument(command, mavenHome);
+        appendBuildInfoPropertiesArgument(command);
+        appendMavenOpts(command, mavenBuildContext);
+        addMavenHome(command, mavenHome);
+        addMavenMultiModuleProjectPath(command, rootDirectory);
+        command.add("org.codehaus.plexus.classworlds.launcher.Launcher");
+        appendGoals(command, mavenBuildContext);
+        appendAdditionalMavenParameters(command, mavenBuildContext);
+        log.debug("Running maven command: " + command.toString());
+        command.addAll(systemProps);
+        return command;
     }
 
     private Maven3BuildContext createBuildContext(TaskContext context) {

@@ -49,34 +49,32 @@ import static org.jfrog.bamboo.util.ConstantValues.*;
 /**
  * @author Noam Y. Tenne
  */
-public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper {
+public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHelper {
 
-    private static final Logger log = Logger.getLogger(ArtifactoryBuildInfoDataHelper.class);
-
-    protected ServerConfig serverConfig;
+    private static final Logger log = Logger.getLogger(MavenAndIvyBuildInfoDataHelperBase.class);
+    protected ServerConfig selectedServerConfig;
     protected ArtifactoryClientConfiguration clientConf;
+    protected String deployerUsername;
+    protected String deployerPassword;
+    protected String deployerUrl;
 
-    public ArtifactoryBuildInfoDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
-                                          AbstractBuildContext abstractBuildContext,
-                                          EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion) {
+    public MavenAndIvyBuildInfoDataHelperBase(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
+                                              AbstractBuildContext abstractBuildContext,
+                                              EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion) {
         BuildContext buildContext = context.getBuildContext();
         super.init(buildParamsOverrideManager, buildContext);
         long selectedServerId = abstractBuildContext.getArtifactoryServerId();
         if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
-            setBuilderData(abstractBuildContext, serverConfig, clientConf, envVarAccessor.getEnvironment(context),
+            setDeployerProperties(abstractBuildContext);
+            setBuilderData(abstractBuildContext, selectedServerConfig, clientConf, envVarAccessor.getEnvironment(context),
                     envVarAccessor.getEnvironment(), artifactoryPluginVersion);
             setDataToContext(buildContext, abstractBuildContext);
         }
     }
 
     protected boolean isServerConfigured(TaskContext context, long selectedServerId) {
-        serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
-        if (serverConfig == null) {
-            String warning =
-                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
-                            ") but could not find a matching configuration. Build info collection is disabled.";
-            context.getBuildLogger().addErrorLogEntry(warning);
-            log.warn(warning);
+        selectedServerConfig = getConfiguredServer(context, selectedServerId);
+        if (selectedServerConfig == null) {
             return false;
         }
         clientConf = new ArtifactoryClientConfiguration(new NullLog());
@@ -84,7 +82,7 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
     }
 
     private void setDataToContext(BuildContext context, AbstractBuildContext buildContext) {
-        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        String serverUrl = serverConfigManager.substituteVariables(selectedServerConfig.getUrl());
         context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
         context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
         context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
@@ -92,7 +90,7 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
     }
 
     public String createBuildInfoPropsFileAndGetItsPath() throws IOException {
-        if (serverConfig == null) {
+        if (selectedServerConfig == null) {
             return null;
         }
         try {
@@ -108,7 +106,7 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
     }
 
     public String createBuildInfoJSonFileAndGetItsPath() throws IOException {
-        if (serverConfig == null) {
+        if (selectedServerConfig == null) {
             return null;
         }
         try {
@@ -121,29 +119,15 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         }
     }
 
-    public void setPublishBuildInfo(boolean publishBuildInfo) {
-        clientConf.publisher.setPublishBuildInfo(publishBuildInfo);
-    }
-
     @NotNull
     public void addPasswordsSystemProps(List<String> command, AbstractBuildContext buildContext, @NotNull TaskContext context) {
-        String password = getDeployerPassword(buildContext);
-        if (password != null) {
-            command.add("-D" + clientConf.publisher.getPrefix() + "password=" + password);
-            // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
-            context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", password);
+        if (deployerPassword == null) {
+            return;
         }
-    }
 
-    public String getDeployerPassword(AbstractBuildContext buildContext) {
-        if (serverConfig == null) {
-            return null;
-        }
-        String password = overrideParam(buildContext.getDeployerPassword(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
-        if (StringUtils.isBlank(password)) {
-            password = serverConfig.getPassword();
-        }
-        return password;
+        command.add("-D" + clientConf.publisher.getPrefix() + "password=" + deployerPassword);
+        // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
+        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", deployerPassword);
     }
 
     private void setBuilderData(AbstractBuildContext buildContext, ServerConfig serverConfig,
@@ -247,17 +231,9 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
     private void setPublisherData(AbstractBuildContext buildContext,
                                   ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment) {
 
-        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-        clientConf.publisher.setContextUrl(serverUrl);
+        clientConf.publisher.setContextUrl(deployerUrl);
         clientConf.setTimeout(serverConfig.getTimeout());
-
-        String deployerUsername = overrideParam(buildContext.getDeployerUsername(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
-        if (StringUtils.isBlank(deployerUsername)) {
-            deployerUsername = serverConfig.getUsername();
-        }
-        if (StringUtils.isNotBlank(deployerUsername)) {
-            clientConf.publisher.setUsername(deployerUsername);
-        }
+        clientConf.publisher.setUsername(deployerUsername);
         clientConf.publisher.setRepoKey(getPublishingRepoKey(buildContext, environment));
         clientConf.publisher.setPublishArtifacts(buildContext.isPublishArtifacts());
         clientConf.publisher.setIncludePatterns(buildContext.getIncludePattern());
@@ -271,5 +247,27 @@ public abstract class ArtifactoryBuildInfoDataHelper extends BaseBuildInfoHelper
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
         clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
+    }
+
+    private void setDeployerProperties(AbstractBuildContext buildContext) {
+        // Set url.
+        deployerUrl = serverConfigManager.substituteVariables(selectedServerConfig.getUrl());
+        // Set username.
+        deployerUsername = overrideParam(buildContext.getDeployerUsername(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
+        if (StringUtils.isBlank(deployerUsername)) {
+            deployerUsername = selectedServerConfig.getUsername();
+        }
+        // Set password.
+        deployerPassword = overrideParam(buildContext.getDeployerPassword(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
+        if (StringUtils.isBlank(deployerPassword)) {
+            deployerPassword = selectedServerConfig.getPassword();
+        }
+    }
+
+    public ServerConfig getDeployServer() {
+        if (deployerUrl == null) {
+            return null;
+        }
+        return new ServerConfig(selectedServerConfig.getId(), deployerUrl, deployerUsername, deployerPassword, selectedServerConfig.getTimeout());
     }
 }

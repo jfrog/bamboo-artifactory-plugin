@@ -8,11 +8,14 @@ import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Build;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -26,12 +29,15 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_SELECTED_SERVER_
 /**
  * @author Alexei Vainshtein
  */
-public class ArtifactoryPublishBuildInfoTask implements TaskType {
+public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryPublishBuildInfoTask";
 
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private static final Logger log = Logger.getLogger(ArtifactoryPublishBuildInfoTask.class);
-    protected CustomVariableContext customVariableContext;
+    private BuildLogger logger;
+    private CustomVariableContext customVariableContext;
+    private BuildInfoHelper buildInfoHelper;
+    private BuildParamsOverrideManager buildParamsOverrideManager;
 
     public ArtifactoryPublishBuildInfoTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -42,15 +48,19 @@ public class ArtifactoryPublishBuildInfoTask implements TaskType {
         this.customVariableContext = customVariableContext;
     }
 
+    @Override
+    protected void initTask(@NotNull TaskContext context) {
+        logger = context.getBuildLogger();
+        PublishBuildInfoContext publishBuildInfoContext = new PublishBuildInfoContext(context.getConfigurationMap());
+        buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
+        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(context, context.getBuildContext(), environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(), publishBuildInfoContext.getPassword(), buildParamsOverrideManager);
+    }
+
     @NotNull
     @Override
-    public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
-        BuildLogger logger = taskContext.getBuildLogger();
-        PublishBuildInfoContext publishBuildInfoContext = new PublishBuildInfoContext(taskContext.getConfigurationMap());
+    public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
         String json = BuildInfoHelper.getBuildInfoFromContext(taskContext);
         BuildInfoHelper.removeBuildInfoFromContext(taskContext);
-        BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        BuildInfoHelper buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, taskContext.getBuildContext(), environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(), publishBuildInfoContext.getPassword(), buildParamsOverrideManager);
         Build build = buildInfoHelper.getBuilder(taskContext).build();
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
         try (ArtifactoryBuildInfoClient client = clientBuilder.build()){
@@ -74,5 +84,20 @@ public class ArtifactoryPublishBuildInfoTask implements TaskType {
         }
 
         return TaskResultBuilder.newBuilder(taskContext).success().build();
+    }
+
+    @Override
+    protected ServerConfig getUsageServerConfig() {
+        return buildInfoHelper.getServerConfig();
+    }
+
+    @Override
+    protected String getTaskUsageName() {
+        return "publish_build_info";
+    }
+
+    @Override
+    protected Log getLog() {
+        return new BuildInfoLog(log);
     }
 }

@@ -7,11 +7,7 @@ import com.atlassian.plugin.Plugin;
 import com.atlassian.plugin.PluginAccessor;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.admin.ServerConfig;
-import org.jfrog.bamboo.admin.ServerConfigManager;
-import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.release.provider.TokenDataProvider;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
 
 import java.util.Map;
 import java.util.Properties;
@@ -65,25 +61,7 @@ public class Utils {
         return null;
     }
 
-    public static String getUsername(String username, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
-        username = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(username),
-                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
-        if (StringUtils.isBlank(username)) {
-            username = serverConfigManager.substituteVariables(serverConfig.getUsername());
-        }
-        return username;
-    }
-
-    public static String getPassword(String password, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildInfoHelper buildInfoHelper) {
-        password = buildInfoHelper.overrideParam(serverConfigManager.substituteVariables(password),
-                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
-        if (StringUtils.isBlank(password)) {
-            password = serverConfigManager.substituteVariables(serverConfig.getPassword());
-        }
-        return password;
-    }
-
-    public static String getArtifactoryVersion(PluginAccessor pluginAccessor) {
+    public static String getPluginVersion(PluginAccessor pluginAccessor) {
         Plugin plugin = pluginAccessor.getPlugin(ConstantValues.ARTIFACTORY_PLUGIN_KEY);
         if (plugin != null) {
             return plugin.getPluginInformation().getVersion();

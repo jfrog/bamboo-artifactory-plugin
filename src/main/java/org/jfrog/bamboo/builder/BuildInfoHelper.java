@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.util.buildInfo;
+package org.jfrog.bamboo.builder;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
@@ -16,12 +16,10 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
-import org.jfrog.bamboo.builder.BaseBuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.Utils;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.*;
@@ -54,9 +52,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     private final Map<String, String> env;
     private final String vcsRevision;
     private final String vcsUrl;
-    private String username;
-    private String password;
-    private String url;
+    private ServerConfig serverConfig;
 
     private BuildInfoHelper(Map<String, String> env, String vcsRevision, String vcsUrl) {
         this.env = env;
@@ -83,7 +79,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
 
         BuildInfoBuilder builder = new BuildInfoBuilder(buildContext.getPlanName())
                 .number(String.valueOf(buildContext.getBuildNumber())).type(BuildType.GENERIC)
-                .agent(new Agent("Bamboo", BuildUtils.getVersionAndBuild())).artifactoryPrincipal(username)
+                .agent(new Agent("Bamboo", BuildUtils.getVersionAndBuild())).artifactoryPrincipal(serverConfig.getUsername())
                 .startedDate(new Date()).durationMillis(duration).url(buildUrl);
         if (StringUtils.isNotBlank(vcsRevision)) {
             builder.vcsRevision(vcsRevision);
@@ -99,14 +95,6 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         }
         builder.principal(principal);
         return builder;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public List<Artifact> convertDeployDetailsToArtifacts(Set<DeployDetails> details) {
@@ -260,15 +248,15 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     public ArtifactoryBuildInfoClientBuilder getClientBuilder(BuildLogger buildLogger, Logger logger) {
-        String serverUrl = serverConfigManager.substituteVariables(url);
         org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(logger, buildLogger);
         ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
-        clientBuilder.setArtifactoryUrl(serverUrl).setUsername(username).setPassword(password).setLog(bambooBuildInfoLog);
+        clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
+                .setPassword(serverConfig.getPassword()).setLog(bambooBuildInfoLog);
         return clientBuilder;
     }
 
-    public static BuildInfoHelper createBuildInfoHelper(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
-                                                        long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
+    private static BuildInfoHelper createBuildInfoHelperBase(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
+                                                             BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig) {
         Map<String, String> env = Maps.newHashMap();
         env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
         env.putAll(environmentVariableAccessor.getEnvironment());
@@ -279,20 +267,36 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
 
         String[] vcsUrls = VcsHelper.getVcsUrls(buildContext);
         String vcsUrl = vcsUrls.length > 0 ? vcsUrls[0] : "";
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
         if (serverConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
         }
 
         BuildInfoHelper buildInfoHelper = new BuildInfoHelper(env, vcsRevision, vcsUrl);
         buildInfoHelper.init(buildParamsOverrideManager, buildContext);
+        return buildInfoHelper;
+    }
 
-        username = Utils.getUsername(username, serverConfigManager, serverConfig, buildInfoHelper);
-        buildInfoHelper.setUsername(username);
-        password = Utils.getPassword(password, serverConfigManager, serverConfig, buildInfoHelper);
-        buildInfoHelper.setPassword(password);
-        buildInfoHelper.url = serverConfigManager.substituteVariables(serverConfig.getUrl());
+    public static BuildInfoHelper createDeployBuildInfoHelper(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
+                                                              long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
+        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
+        ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        BuildInfoHelper buildInfoHelper = createBuildInfoHelperBase(taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
+
+        buildInfoHelper.serverConfig = TaskUtils.getDeploymentServerConfig(username, password, serverConfigManager,
+                selectedServerConfig, buildParamsOverrideManager);
+
+        return buildInfoHelper;
+    }
+
+    public static BuildInfoHelper createResolveBuildInfoHelper(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
+                                                        long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
+        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
+        ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
+        BuildInfoHelper buildInfoHelper = createBuildInfoHelperBase(taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
+
+        buildInfoHelper.serverConfig = TaskUtils.getResolutionServerConfig(username, password, serverConfigManager,
+                selectedServerConfig, buildParamsOverrideManager);
+
         return buildInfoHelper;
     }
 
@@ -301,5 +305,9 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         build.setBuildDependencies(buildDependencies);
         build.setModules(Lists.newArrayList(module));
         return build;
+    }
+
+    public ServerConfig getServerConfig() {
+        return serverConfig;
     }
 }

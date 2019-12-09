@@ -8,13 +8,16 @@ import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.CollectBuildIssuesContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Issues;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.issuesCollection.IssuesCollector;
 
@@ -24,33 +27,35 @@ import java.util.Map;
 
 import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM;
 
-public class ArtifactoryCollectBuildIssuesTask implements TaskType {
+public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
     private static final Logger log = Logger.getLogger(ArtifactoryPublishBuildInfoTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     protected CustomVariableContext customVariableContext;
     private TaskContext taskContext;
     private BuildInfoHelper buildInfoHelper;
+    private BuildLogger logger;
+    private CollectBuildIssuesContext collectBuildIssuesContext;
 
     public ArtifactoryCollectBuildIssuesTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
         ContainerManager.autowireComponent(this);
     }
 
-    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
-        this.customVariableContext = customVariableContext;
+    @Override
+    protected void initTask(@NotNull TaskContext context) {
+        taskContext = context;
+        logger = taskContext.getBuildLogger();
+        collectBuildIssuesContext = new CollectBuildIssuesContext(taskContext.getConfigurationMap());
+        BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
+        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+                environmentVariableAccessor, collectBuildIssuesContext.getArtifactoryServerId(), collectBuildIssuesContext.getUsername(),
+                collectBuildIssuesContext.getPassword(), buildParamsOverrideManager);
     }
 
     @NotNull
     @Override
-    public TaskResult execute(@NotNull TaskContext taskContext) {
-        this.taskContext = taskContext;
-        BuildLogger logger = taskContext.getBuildLogger();
+    public TaskResult runTask(@NotNull TaskContext taskContext) {
         String previousBiJson = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
-        BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        CollectBuildIssuesContext collectBuildIssuesContext = new CollectBuildIssuesContext(taskContext.getConfigurationMap());
-        buildInfoHelper = BuildInfoHelper.createBuildInfoHelper(taskContext, taskContext.getBuildContext(),
-                environmentVariableAccessor, collectBuildIssuesContext.getArtifactoryServerId(), collectBuildIssuesContext.getUsername(),
-                collectBuildIssuesContext.getPassword(), buildParamsOverrideManager);
 
         try {
             File projectRootDir = getWorkingDirectory(taskContext);
@@ -75,6 +80,21 @@ public class ArtifactoryCollectBuildIssuesTask implements TaskType {
         return TaskResultBuilder.newBuilder(taskContext).success().build();
     }
 
+    @Override
+    protected ServerConfig getUsageServerConfig() {
+        return buildInfoHelper.getServerConfig();
+    }
+
+    @Override
+    protected String getTaskUsageName() {
+        return "collect_build_issues";
+    }
+
+    @Override
+    protected Log getLog() {
+        return new BuildInfoLog(log, logger);
+    }
+
     protected File getWorkingDirectory(@NotNull CommonTaskContext context) {
         return TaskUtils.getVcsWorkingDirectory(this.taskContext);
     }
@@ -90,7 +110,7 @@ public class ArtifactoryCollectBuildIssuesTask implements TaskType {
         }
         String configFileLocation = getConfigFilePath(context);
         buildLogger.addBuildLogEntry("Using config from file located at: " + configFileLocation);
-        String config = TaskUtils.getSpecFromFile(getWorkingDirectory(context), configFileLocation);
+        String config = FileSpecUtils.getSpecFromFile(getWorkingDirectory(context), configFileLocation);
         return customVariableContext.substituteString(config);
     }
 
@@ -134,5 +154,9 @@ public class ArtifactoryCollectBuildIssuesTask implements TaskType {
             BuildInfoHelper.addBuildInfoToContext(taskContext, previousBiJson);
         }
         BuildInfoHelper.addBuildToContext(taskContext, build);
+    }
+
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
     }
 }

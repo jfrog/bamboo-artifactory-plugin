@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.task;
 
-
 import com.atlassian.bamboo.build.ErrorLogEntry;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor;
@@ -23,15 +22,15 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.builder.ArtifactoryBuildInfoDataHelper;
+import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
+import org.jfrog.bamboo.builder.IvyDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
-import org.jfrog.bamboo.util.IvyDataHelper;
-import org.jfrog.bamboo.util.PluginProperties;
-import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.Utils;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.bamboo.util.*;
+import org.jfrog.build.api.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +43,7 @@ import java.util.Map;
  *
  * @author Tomer Cohen
  */
-public class ArtifactoryIvyTask extends ArtifactoryTaskType {
+public class ArtifactoryIvyTask extends BaseJavaBuildTask {
     public static final String TASK_NAME = "artifactoryIvyTask";
     public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "ant.bat" : "ant";
     private static final Logger log = Logger.getLogger(ArtifactoryIvyTask.class);
@@ -54,6 +53,10 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
     private BuilderDependencyHelper dependencyHelper;
     private String ivyDependenciesDir = "";
     private String buildInfoPropertiesFile = "";
+    private IvyBuildContext ivyBuildContext;
+    private BuildLogger logger;
+    private MavenAndIvyBuildInfoDataHelperBase ivyDataHelper;
+    private String artifactoryPluginVersion;
 
     public ArtifactoryIvyTask(final ProcessService processService,
                               final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
@@ -66,20 +69,25 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
     }
 
     @Override
+    protected void initTask(@NotNull TaskContext context) {
+        logger = getBuildLogger(context);
+        Map<String, String> combinedMap = Maps.newHashMap();
+        combinedMap.putAll(context.getConfigurationMap());
+        combinedMap.putAll(context.getBuildContext().getBuildDefinition().getCustomConfiguration());
+        ivyBuildContext = new IvyBuildContext(combinedMap);
+        initEnvironmentVariables(ivyBuildContext);
+        artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
+        ivyDataHelper = new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
+    }
+
+    @Override
     @NotNull
-    public TaskResult execute(@NotNull TaskContext context) throws TaskException {
-        BuildLogger logger = getBuildLogger(context);
-        String artifactoryPluginVersion = Utils.getArtifactoryVersion(pluginAccessor);
+    public TaskResult runTask(@NotNull TaskContext context) throws TaskException {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
         String json = BuildInfoHelper.removeBuildInfoFromContext(context);
 
-        Map<String, String> combinedMap = Maps.newHashMap();
-        combinedMap.putAll(context.getConfigurationMap());
-        combinedMap.putAll(context.getBuildContext().getBuildDefinition().getCustomConfiguration());
-        IvyBuildContext ivyBuildContext = new IvyBuildContext(combinedMap);
-        initEnvironmentVariables(ivyBuildContext);
         File rootDirectory = context.getRootDirectory();
         long serverId = ivyBuildContext.getArtifactoryServerId();
         try {
@@ -107,9 +115,9 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         }
         Map<String, String> globalEnv = environmentVariableAccessor.getEnvironment();
         Map<String, String> environment = Maps.newHashMap(globalEnv);
-        ArtifactoryBuildInfoDataHelper ivyDataHelper =
-                new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
+
         if (StringUtils.isNotBlank(ivyDependenciesDir)) {
+            // Save data to buildinfo.properties.
             createBuildInfoFiles(shouldCaptureBuildInfo, ivyDataHelper);
         }
         List<String> command = Lists.newArrayList(executable);
@@ -160,6 +168,21 @@ public class ArtifactoryIvyTask extends ArtifactoryTaskType {
         } finally {
             context.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());
         }
+    }
+
+    @Override
+    protected ServerConfig getUsageServerConfig() {
+        return ivyDataHelper.getDeployServer();
+    }
+
+    @Override
+    protected String getTaskUsageName() {
+        return "ivy";
+    }
+
+    @Override
+    protected Log getLog() {
+        return new BuildInfoLog(log, logger);
     }
 
     /**

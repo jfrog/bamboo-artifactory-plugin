@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.task;
 
-
 import com.atlassian.bamboo.build.ErrorLogEntry;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor;
@@ -25,19 +24,14 @@ import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
-import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
-import org.jfrog.bamboo.builder.GradleInitScriptHelper;
-import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
+import org.jfrog.bamboo.builder.GradleDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
-import org.jfrog.bamboo.util.ConfigurationPathHolder;
-import org.jfrog.bamboo.util.PluginProperties;
-import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.Utils;
-import org.jfrog.bamboo.util.buildInfo.BuildInfoHelper;
+import org.jfrog.bamboo.util.*;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.build.api.BuildInfoFields;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
 
 import java.io.File;
@@ -54,16 +48,20 @@ import java.util.zip.ZipEntry;
  *
  * @author Tomer Cohen
  */
-public class ArtifactoryGradleTask extends ArtifactoryTaskType {
+public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     public static final String TASK_NAME = "artifactoryGradleTask";
     public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
     public static final String EXECUTABLE_WRAPPER_NAME = SystemUtils.IS_OS_WINDOWS ? "./gradlew.bat" : "./gradlew";
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
     private final CapabilityContext capabilityContext;
+    private BuildLogger logger;
     private BuilderDependencyHelper dependencyHelper;
     private String gradleDependenciesDir = null;
     private AdministrationConfiguration administrationConfiguration;
+    private String artifactoryPluginVersion;
+    private GradleBuildContext gradleBuildContext;
+    private GradleDataHelper gradleDataHelper;
 
     public ArtifactoryGradleTask(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
@@ -75,17 +73,22 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
     }
 
     @Override
+    protected void initTask(@NotNull TaskContext context) {
+        logger = getBuildLogger(context);
+        artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
+        gradleBuildContext = createBuildContext(context);
+        initEnvironmentVariables(gradleBuildContext);
+        gradleDataHelper = new GradleDataHelper(buildParamsOverrideManager, context, gradleBuildContext,
+                administrationConfiguration, environmentVariableAccessor, artifactoryPluginVersion);
+    }
+
+    @Override
     @NotNull
-    public TaskResult execute(@NotNull TaskContext context) throws TaskException {
-        BuildLogger logger = getBuildLogger(context);
-        String artifactoryPluginVersion = Utils.getArtifactoryVersion(pluginAccessor);
+    public TaskResult runTask(@NotNull TaskContext context) throws TaskException {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
-
         String json = BuildInfoHelper.removeBuildInfoFromContext(context);
-        GradleBuildContext gradleBuildContext = createBuildContext(context);
-        initEnvironmentVariables(gradleBuildContext);
 
         long serverId = gradleBuildContext.getArtifactoryServerId();
         File rootDirectory = context.getRootDirectory();
@@ -99,17 +102,23 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             log.error("Error occurred while preparing Artifactory Gradle Runner dependencies. " +
                     "Build Info support is disabled.", e);
         }
+
+        // Get gradle executable.
         String gradleCommandLine = getExecutable(gradleBuildContext);
         if (StringUtils.isBlank(gradleCommandLine)) {
             log.error(logger.addErrorLogEntry("Gradle executable is not defined!"));
             return TaskResultBuilder.newBuilder(context).failed().build();
         }
         List<String> command = Lists.newArrayList(gradleCommandLine);
+
+        // Add switches.
         String switches = gradleBuildContext.getSwitches();
         if (StringUtils.isNotBlank(switches)) {
             String[] switchTokens = StringUtils.split(switches, ' ');
             command.addAll(Arrays.asList(switchTokens));
         }
+
+        // Add tasks.
         String tasks = gradleBuildContext.getTasks();
         if (gradleBuildContext.releaseManagementContext.isActivateReleaseManagement()) {
             String altTasks = gradleBuildContext.releaseManagementContext.getAlternativeTasks();
@@ -122,8 +131,11 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             command.addAll(Arrays.asList(taskTokens));
         }
 
+        // Read init-script, create and write data to buildinfo.properties.
         boolean shouldCaptureBuildInfo = gradleBuildContext.shouldCaptureBuildInfo(context);
-        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(context, gradleBuildContext, artifactoryPluginVersion, shouldCaptureBuildInfo);
+        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(gradleDataHelper, gradleBuildContext, shouldCaptureBuildInfo);
+
+        // Add initscript path and artifactoryPublish task to command.
         if (pathHolder != null) {
             if (!gradleBuildContext.useArtifactoryGradlePlugin()) {
                 command.add("-I");
@@ -138,13 +150,12 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
 
-        // Override the JAVA_HOME according to the build configuration:
+        // Override the JAVA_HOME according to the build configuration.
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, gradleBuildContext, capabilityContext);
         environmentVariables.put("JAVA_HOME", jdkPath);
 
-        addPasswordsSystemProps(command, gradleBuildContext, context);
+        gradleDataHelper.addPasswordsSystemProps(command, context);
         ExternalProcess process = getExternalProcess(context, rootDirectory, command, environmentVariables);
-
         try {
             executeExternalProcess(logger, process, log);
             if (shouldCaptureBuildInfo) {
@@ -157,13 +168,27 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
         }
     }
 
+    @Override
+    protected ServerConfig getUsageServerConfig() {
+        return gradleDataHelper.getDeployServer();
+    }
+
+    @Override
+    protected String getTaskUsageName() {
+        return "gradle";
+    }
+
+    @Override
+    protected Log getLog() {
+        return new BuildInfoLog(log);
+    }
+
     private GradleBuildContext createBuildContext(TaskContext context) {
         Map<String, String> combinedMap = getCombinedConfiguration(context);
         return new GradleBuildContext(combinedMap);
     }
 
-    private ConfigurationPathHolder getGradleInitScriptFile(TaskContext taskContext, GradleBuildContext buildContext,
-                                                            String artifactoryPluginVersion, boolean shouldCaptureBuildInfo) {
+    private ConfigurationPathHolder getGradleInitScriptFile(GradleDataHelper initScriptHelper, GradleBuildContext buildContext, boolean shouldCaptureBuildInfo) {
         File gradleJarFile = new File(gradleDependenciesDir, PluginProperties
                 .getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
         if (!gradleJarFile.exists()) {
@@ -189,13 +214,9 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
             }
 
             String scriptTemplate = IOUtils.toString(initScriptStream);
-            GradleInitScriptHelper initScriptHelper = new GradleInitScriptHelper();
-            initScriptHelper.init(buildParamsOverrideManager, taskContext.getBuildContext());
-            initScriptHelper.setAdministrationConfiguration(administrationConfiguration);
             ConfigurationPathHolder configurationPathHolder = initScriptHelper
-                    .createAndGetGradleInitScriptPath(gradleDependenciesDir, buildContext, taskContext.getBuildLogger(),
-                            scriptTemplate, environmentVariableAccessor.getEnvironment(taskContext),
-                            environmentVariableAccessor.getEnvironment(), artifactoryPluginVersion, shouldCaptureBuildInfo);
+                    .createAndGetGradleInitScriptPath(gradleDependenciesDir, buildContext, scriptTemplate,
+                            environmentVariableAccessor.getEnvironment(), shouldCaptureBuildInfo);
             if (shouldCaptureBuildInfo) {
                 environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, initScriptHelper.getBuildInfoTempFilePath().getAbsolutePath());
             }
@@ -248,10 +269,8 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
      *
      * @return Path of recorder and dependency jar folder if extraction succeeded. Null if not
      */
-
     private String extractGradleDependencies(long artifactoryServerId, File rootDirectory,
                                              GradleBuildContext context) throws IOException {
-
         if (artifactoryServerId == -1) {
             return null;
         }
@@ -262,36 +281,5 @@ public class ArtifactoryGradleTask extends ArtifactoryTaskType {
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
         this.administrationConfiguration = administrationConfiguration;
-    }
-
-    @NotNull
-    private void addPasswordsSystemProps(List<String> command, GradleBuildContext gradleBuildContext, @NotNull TaskContext context) {
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
-        long selectedServerId = gradleBuildContext.getArtifactoryServerId();
-        if (selectedServerId == -1) {
-            return;
-        }
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
-        if (serverConfig == null) {
-            String warningMessage =
-                    "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
-                            ") but could not find a matching configuration. Build info collection is disabled.";
-            log.warn(warningMessage);
-            return;
-        }
-        String deployerPassword =
-                buildParamsOverrideManager.getOverrideValue(BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
-        if (StringUtils.isBlank(deployerPassword)) {
-            deployerPassword = serverConfigManager.substituteVariables(gradleBuildContext.getDeployerPassword());
-        }
-        if (StringUtils.isBlank(deployerPassword)) {
-            deployerPassword = serverConfigManager.substituteVariables(serverConfig.getPassword());
-        }
-        ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(null);
-        command.add("-D" + clientConf.resolver.getPrefix() + "password=" + serverConfig.getPassword());
-        command.add("-D" + clientConf.publisher.getPrefix() + "password=" + deployerPassword);
-        // Adding the passwords as a variable with key that contains the word "password" will mask every instance of the password in bamboo logs.
-        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", serverConfig.getPassword());
-        context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.b", deployerPassword);
     }
 }
