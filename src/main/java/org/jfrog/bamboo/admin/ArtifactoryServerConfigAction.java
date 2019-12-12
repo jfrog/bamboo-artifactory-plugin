@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.util.VersionException;
 
@@ -186,11 +187,12 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
     private void testConnection() {
         ArtifactoryBuildInfoClient testClient;
         if (StringUtils.isNotBlank(username)) {
-            testClient = new ArtifactoryBuildInfoClient(url, username, password, new BuildInfoLog(log));
+            testClient = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverId, url, username,
+                    password, timeout), new BuildInfoLog(log));
         } else {
-            testClient = new ArtifactoryBuildInfoClient(url, new BuildInfoLog(log));
+            testClient = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverId, url,
+                    StringUtils.EMPTY, StringUtils.EMPTY, timeout), new BuildInfoLog(log));
         }
-        testClient.setConnectionTimeout(timeout);
         try {
             testClient.verifyCompatibleArtifactoryVersion();
             addActionMessage("Connection successful!");

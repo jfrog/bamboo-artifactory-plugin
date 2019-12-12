@@ -8,6 +8,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.util.ProxyUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
 import java.util.List;
@@ -51,6 +52,8 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
                 clientConf.resolver.setContextUrl(resolverUrl);
                 clientConf.resolver.setRepoKey(resolutionRepo);
                 clientConf.resolver.setUsername(resolverUsername);
+                // Add proxy configurations.
+                ProxyUtils.setProxyConfigurationToArtifactoryClientConfig(resolverUrl, clientConf);
             }
         }
     }

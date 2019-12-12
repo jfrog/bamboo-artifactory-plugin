@@ -1,19 +1,17 @@
 package org.jfrog.bamboo.util;
 
-import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskDefinition;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 
@@ -59,52 +57,6 @@ public class TaskUtils {
         }
     }
 
-    /**
-     * Find maven or gradle task for a specific plan
-     *
-     * @param plan - plan configuration in which we are trying to find the maven/gradle task
-     * @return appropriate task definition or null in case no such task exist
-     */
-    public static TaskDefinition getMavenOrGradleTaskDefinition(ImmutablePlan plan) {
-        if (plan == null) {
-            return null;
-        }
-        List<TaskDefinition> definitions = plan.getBuildDefinition().getTaskDefinitions();
-        if (definitions.isEmpty()) {
-            return null;
-        }
-        return TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
-    }
-
-    public static ArtifactoryBuildInfoClient createClient(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
-                                                          AbstractBuildContext context, Logger log) {
-        String serverUrl = substituteVariables(serverConfigManager, serverConfig.getUrl());
-        String username = substituteVariables(serverConfigManager, context.getDeployerUsername());
-        if (StringUtils.isBlank(username)) {
-            username = substituteVariables(serverConfigManager, serverConfig.getUsername());
-        }
-        ArtifactoryBuildInfoClient client;
-        BuildInfoLog bambooLog = new BuildInfoLog(log);
-        if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, bambooLog);
-        } else {
-            String password = substituteVariables(serverConfigManager, context.getDeployerPassword());
-            if (StringUtils.isBlank(password)) {
-                password = substituteVariables(serverConfigManager, serverConfig.getPassword());
-            }
-            client = new ArtifactoryBuildInfoClient(serverUrl, username, password, bambooLog);
-        }
-        client.setConnectionTimeout(serverConfig.getTimeout());
-        return client;
-    }
-
-    /**
-     * Substitute (replace) Bamboo variable names with their defined values
-     */
-    private static String substituteVariables(ServerConfigManager serverConfigManager, String s) {
-        return s != null ? serverConfigManager.substituteVariables(s) : null;
-    }
-
     public static String decryptIfNeeded(String s) {
         try {
             s = EncryptionHelper.decrypt(s);
@@ -148,8 +100,36 @@ public class TaskUtils {
         return new ServerConfig(serverConfig.getId(), serverUrl, username, password, serverConfig.getTimeout());
     }
 
-    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfig serverConfig, Logger log) {
-        return new ArtifactoryDependenciesClient(serverConfig.getUrl(), serverConfig.getUsername(), serverConfig.getPassword(), new BuildInfoLog(log));
+    public static ArtifactoryDependenciesClientBuilder getArtifactoryDependenciesClientBuilder(ServerConfig serverConfig, BuildInfoLog log) {
+        ArtifactoryDependenciesClientBuilder dependenciesClientBuilder = new ArtifactoryDependenciesClientBuilder();
+        dependenciesClientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
+                .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
+        ProxyUtils.setProxyConfigurationToArtifactoryClientBuilderBase(serverConfig.getUrl(), dependenciesClientBuilder);
+        return dependenciesClientBuilder;
+    }
+
+    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfig serverConfig, BuildInfoLog log) {
+        ArtifactoryDependenciesClient dependenciesClient = new ArtifactoryDependenciesClient(serverConfig.getUrl(),
+                serverConfig.getUsername(), serverConfig.getPassword(), log);
+        dependenciesClient.setConnectionTimeout(serverConfig.getTimeout());
+        ProxyUtils.setProxyConfigurationToArtifactoryClientBase(serverConfig.getUrl(), dependenciesClient);
+        return dependenciesClient;
+    }
+
+    public static ArtifactoryBuildInfoClientBuilder getArtifactoryBuildInfoClientBuilder(ServerConfig serverConfig, BuildInfoLog log) {
+        ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
+        clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
+                .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
+        ProxyUtils.setProxyConfigurationToArtifactoryClientBuilderBase(serverConfig.getUrl(), clientBuilder);
+        return clientBuilder;
+    }
+
+    public static ArtifactoryBuildInfoClient getArtifactoryBuildInfoClient(ServerConfig serverConfig, BuildInfoLog log) {
+        ArtifactoryBuildInfoClient buildInfoClient = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
+                serverConfig.getUsername(), serverConfig.getPassword(), log);
+        buildInfoClient.setConnectionTimeout(serverConfig.getTimeout());
+        ProxyUtils.setProxyConfigurationToArtifactoryClientBase(serverConfig.getUrl(), buildInfoClient);
+        return buildInfoClient;
     }
 
     private static String overrideParam(String originalValue, String overrideKey, BuildParamsOverrideManager buildParamsOverrideManager) {

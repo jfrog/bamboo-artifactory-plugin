@@ -34,6 +34,7 @@ import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.release.vcs.VcsTypes;
 import org.jfrog.bamboo.task.ArtifactoryGradleTask;
 import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.TaskUtils;
@@ -499,7 +500,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
             return ERROR;
         }
         ServerConfigManager component = ServerConfigManager.getInstance();
-        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getImmutablePlan());
+        TaskDefinition definition = getMavenOrGradleTaskDefinition(getImmutablePlan());
         if (definition == null) {
             return ERROR;
         }
@@ -517,7 +518,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
 
         Map<String, String> taskConfiguration = definition.getConfiguration();
         AbstractBuildContext context = AbstractBuildContext.createContextFromMap(taskConfiguration);
-        ArtifactoryBuildInfoClient client = TaskUtils.createClient(serverConfigManager, serverConfig, context, log);
+        ArtifactoryBuildInfoClient client = createClientForPromotion(serverConfigManager, serverConfig, context, log);
         ResultsSummary summary = getResultsSummary();
         TriggerReason reason = summary.getTriggerReason();
         String username = "";
@@ -556,7 +557,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     public List<String> getPromotionRepos() {
-        TaskDefinition definition = TaskUtils.getMavenOrGradleTaskDefinition(getImmutablePlan());
+        TaskDefinition definition = getMavenOrGradleTaskDefinition(getImmutablePlan());
         if (definition == null) {
             return Lists.newArrayList();
         }
@@ -567,6 +568,46 @@ public class ReleasePromotionAction extends ViewBuildResults {
         }
         ServerConfigManager component = ServerConfigManager.getInstance();
         return component.getDeployableRepos(Long.parseLong(selectedServerId));
+    }
+
+    /**
+     * Find maven or gradle task for a specific plan
+     *
+     * @param plan - plan configuration in which we are trying to find the maven/gradle task
+     * @return appropriate task definition or null in case no such task exist
+     */
+    private static TaskDefinition getMavenOrGradleTaskDefinition(ImmutablePlan plan) {
+        if (plan == null) {
+            return null;
+        }
+        List<TaskDefinition> definitions = plan.getBuildDefinition().getTaskDefinitions();
+        if (definitions.isEmpty()) {
+            return null;
+        }
+        return TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
+    }
+
+    private static ArtifactoryBuildInfoClient createClientForPromotion(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
+                                                                       AbstractBuildContext context, Logger log) {
+        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+        String username = serverConfigManager.substituteVariables(context.getDeployerUsername());
+        if (StringUtils.isBlank(username)) {
+            username = serverConfigManager.substituteVariables(serverConfig.getUsername());
+        }
+        ArtifactoryBuildInfoClient client;
+        BuildInfoLog bambooLog = new BuildInfoLog(log);
+        if (StringUtils.isBlank(username)) {
+            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, StringUtils.EMPTY,
+                    StringUtils.EMPTY, serverConfig.getTimeout()), bambooLog);
+        } else {
+            String password = serverConfigManager.substituteVariables(context.getDeployerPassword());
+            if (StringUtils.isBlank(password)) {
+                password = serverConfigManager.substituteVariables(serverConfig.getPassword());
+            }
+            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, username, password,
+                    serverConfig.getTimeout()), bambooLog);
+        }
+        return client;
     }
 
     public String getSelectedServerId(TaskDefinition definition) {

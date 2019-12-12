@@ -45,7 +45,7 @@ public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTask
 
     @NotNull
     public TaskResult runTask(@NotNull DeploymentTaskContext deploymentTaskContext) throws TaskException {
-        ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(downloadServerConfig, log);
+        ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(downloadServerConfig, new BuildInfoLog(log, logger));
         try {
             initFileSpec(deploymentTaskContext, genericContext, logger);
             SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(log, logger));

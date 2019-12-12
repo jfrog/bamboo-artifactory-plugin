@@ -248,10 +248,8 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     public ArtifactoryBuildInfoClientBuilder getClientBuilder(BuildLogger buildLogger, Logger logger) {
-        org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(logger, buildLogger);
-        ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
-        clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
-                .setPassword(serverConfig.getPassword()).setLog(bambooBuildInfoLog);
+        BuildInfoLog bambooBuildInfoLog = new BuildInfoLog(logger, buildLogger);
+        ArtifactoryBuildInfoClientBuilder clientBuilder = TaskUtils.getArtifactoryBuildInfoClientBuilder(serverConfig, bambooBuildInfoLog);
         return clientBuilder;
     }
 
