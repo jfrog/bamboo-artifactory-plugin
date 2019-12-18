@@ -13,6 +13,7 @@ import org.jfrog.bamboo.configuration.ArtifactoryDeploymentUploadConfiguration;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.FileSpecUtils;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
@@ -44,11 +45,8 @@ public class ArtifactoryDeploymentUploadTask extends ArtifactoryDeploymentTaskTy
     @NotNull
     @Override
     public TaskResult runTask(@NotNull DeploymentTaskContext deploymentTaskContext) throws TaskException {
-        Log bambooBuildInfoLog = new BuildInfoLog(log, buildLogger);
-
-        ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
-        clientBuilder.setArtifactoryUrl(uploadServerConfig.getUrl()).setUsername(uploadServerConfig.getUsername())
-                .setPassword(uploadServerConfig.getPassword()).setLog(bambooBuildInfoLog);
+        BuildInfoLog bambooBuildInfoLog = new BuildInfoLog(log, buildLogger);
+        ArtifactoryBuildInfoClientBuilder clientBuilder = TaskUtils.getArtifactoryBuildInfoClientBuilder(uploadServerConfig, bambooBuildInfoLog);
         String artifactsRootDirectory = deploymentTaskContext.getRootDirectory().getAbsolutePath();
         try {
             initFileSpec(deploymentTaskContext);

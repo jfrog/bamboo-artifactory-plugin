@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.util.ProxyUtils;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
@@ -247,6 +248,9 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
         clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
+
+        // Set proxy configurations.
+        ProxyUtils.setProxyConfigurationToArtifactoryClientConfig(deployerUrl, clientConf);
     }
 
     private void setDeployerProperties(AbstractBuildContext buildContext) {

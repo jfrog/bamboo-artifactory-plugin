@@ -4,7 +4,6 @@ import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinitionContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -80,6 +79,6 @@ public class BuildParamsOverrideManager {
         if (overrideParams.containsKey(key)) {
             return this.overrideParams.get(key);
         }
-        return StringUtils.EMPTY;
+        return "";
     }
 }

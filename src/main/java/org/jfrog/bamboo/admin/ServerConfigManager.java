@@ -185,13 +185,12 @@ public class ServerConfigManager implements Serializable {
         password = substituteVariables(password);
 
         if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, new BuildInfoLog(log));
+            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl,
+                    "", "", serverConfig.getTimeout()), new BuildInfoLog(log));
         } else {
-            client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
-                    new BuildInfoLog(log));
+            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, username,
+                    password, serverConfig.getTimeout()), new BuildInfoLog(log));
         }
-
-        client.setConnectionTimeout(serverConfig.getTimeout());
 
         try {
             return client.getLocalRepositoriesKeys();
@@ -240,10 +239,11 @@ public class ServerConfigManager implements Serializable {
         }
 
         if (StringUtils.isBlank(username)) {
-            client = new ArtifactoryBuildInfoClient(serverUrl, new BuildInfoLog(log));
+            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl,
+                    "", "", serverConfig.getTimeout()), new BuildInfoLog(log));
         } else {
-            client = new ArtifactoryBuildInfoClient(serverUrl, username, password,
-                    new BuildInfoLog(log));
+            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, username,
+                    password, serverConfig.getTimeout()), new BuildInfoLog(log));
         }
 
         client.setConnectionTimeout(serverConfig.getTimeout());

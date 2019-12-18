@@ -10,6 +10,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.XrayScanContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.ProxyUtils;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.client.artifactoryXrayResponse.ArtifactoryXrayResponse;
 import org.jfrog.build.client.artifactoryXrayResponse.Summary;
@@ -109,7 +110,11 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
 
     private ArtifactoryXrayClient createArtifactoryXrayClient(BuildLogger logger) {
         // Extract parameters for Xray Client.
-        return new ArtifactoryXrayClient(xrayServerConfig.getUrl(), xrayServerConfig.getUsername(), xrayServerConfig.getPassword(), new BuildInfoLog(log, logger));
+        ArtifactoryXrayClient client =  new ArtifactoryXrayClient(xrayServerConfig.getUrl(), xrayServerConfig.getUsername(),
+                xrayServerConfig.getPassword(), new BuildInfoLog(log, logger));
+        // Add proxy Configurations.
+        ProxyUtils.setProxyConfig(xrayServerConfig.getUrl(), client);
+        return client;
     }
 
     private void setXrayServerConfigurations(XrayScanContext xrayContext) {

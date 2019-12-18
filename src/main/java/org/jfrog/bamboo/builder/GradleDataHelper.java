@@ -34,6 +34,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
+import org.jfrog.bamboo.util.ProxyUtils;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
@@ -238,6 +239,10 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         if (StringUtils.isNotBlank(deployerUsername)) {
             clientConf.publisher.setUsername(deployerUsername);
         }
+
+        // Set proxy configurations.
+        ProxyUtils.setProxyConfigurationToArtifactoryClientConfig(serverUrl, clientConf);
+
         boolean publishArtifacts = buildContext.isPublishArtifacts();
         clientConf.publisher.setPublishArtifacts(publishArtifacts);
         clientConf.publisher.setIncludePatterns(buildContext.getIncludePattern());

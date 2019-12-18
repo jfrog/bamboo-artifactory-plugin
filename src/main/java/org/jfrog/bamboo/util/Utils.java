@@ -66,6 +66,6 @@ public class Utils {
         if (plugin != null) {
             return plugin.getPluginInformation().getVersion();
         }
-        return StringUtils.EMPTY;
+        return "";
     }
 }

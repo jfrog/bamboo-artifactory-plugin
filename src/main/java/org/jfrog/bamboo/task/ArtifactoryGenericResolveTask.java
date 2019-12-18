@@ -63,7 +63,7 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getPluginVersion(pluginAccessor));
         String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
 
-        ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(buildInfoHelper.getServerConfig(), log);
+        ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
         try {
             org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
             List<BuildDependency> buildDependencies;
