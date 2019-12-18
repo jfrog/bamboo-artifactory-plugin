@@ -126,7 +126,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
 
     // shorter way of putting empty value to a key
     private void contextPutEmpty(Map<String, Object> context, String key) {
-        context.put(DEPLOYMENT_PREFIX + key, StringUtils.EMPTY);
+        context.put(DEPLOYMENT_PREFIX + key, "");
     }
 
     @NotNull

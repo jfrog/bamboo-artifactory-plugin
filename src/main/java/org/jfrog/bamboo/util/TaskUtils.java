@@ -104,7 +104,7 @@ public class TaskUtils {
         ArtifactoryDependenciesClientBuilder dependenciesClientBuilder = new ArtifactoryDependenciesClientBuilder();
         dependenciesClientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
                 .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
-        ProxyUtils.setProxyConfigurationToArtifactoryClientBuilderBase(serverConfig.getUrl(), dependenciesClientBuilder);
+        ProxyUtils.setProxyConfig(serverConfig.getUrl(), dependenciesClientBuilder);
         return dependenciesClientBuilder;
     }
 
@@ -112,7 +112,7 @@ public class TaskUtils {
         ArtifactoryDependenciesClient dependenciesClient = new ArtifactoryDependenciesClient(serverConfig.getUrl(),
                 serverConfig.getUsername(), serverConfig.getPassword(), log);
         dependenciesClient.setConnectionTimeout(serverConfig.getTimeout());
-        ProxyUtils.setProxyConfigurationToArtifactoryClientBase(serverConfig.getUrl(), dependenciesClient);
+        ProxyUtils.setProxyConfig(serverConfig.getUrl(), dependenciesClient);
         return dependenciesClient;
     }
 
@@ -120,7 +120,7 @@ public class TaskUtils {
         ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
         clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
                 .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
-        ProxyUtils.setProxyConfigurationToArtifactoryClientBuilderBase(serverConfig.getUrl(), clientBuilder);
+        ProxyUtils.setProxyConfig(serverConfig.getUrl(), clientBuilder);
         return clientBuilder;
     }
 
@@ -128,7 +128,7 @@ public class TaskUtils {
         ArtifactoryBuildInfoClient buildInfoClient = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
                 serverConfig.getUsername(), serverConfig.getPassword(), log);
         buildInfoClient.setConnectionTimeout(serverConfig.getTimeout());
-        ProxyUtils.setProxyConfigurationToArtifactoryClientBase(serverConfig.getUrl(), buildInfoClient);
+        ProxyUtils.setProxyConfig(serverConfig.getUrl(), buildInfoClient);
         return buildInfoClient;
     }
 

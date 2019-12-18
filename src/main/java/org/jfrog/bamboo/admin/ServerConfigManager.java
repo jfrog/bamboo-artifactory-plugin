@@ -186,7 +186,7 @@ public class ServerConfigManager implements Serializable {
 
         if (StringUtils.isBlank(username)) {
             client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl,
-                    StringUtils.EMPTY, StringUtils.EMPTY, serverConfig.getTimeout()), new BuildInfoLog(log));
+                    "", "", serverConfig.getTimeout()), new BuildInfoLog(log));
         } else {
             client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, username,
                     password, serverConfig.getTimeout()), new BuildInfoLog(log));
@@ -240,7 +240,7 @@ public class ServerConfigManager implements Serializable {
 
         if (StringUtils.isBlank(username)) {
             client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl,
-                    StringUtils.EMPTY, StringUtils.EMPTY, serverConfig.getTimeout()), new BuildInfoLog(log));
+                    "", "", serverConfig.getTimeout()), new BuildInfoLog(log));
         } else {
             client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, username,
                     password, serverConfig.getTimeout()), new BuildInfoLog(log));

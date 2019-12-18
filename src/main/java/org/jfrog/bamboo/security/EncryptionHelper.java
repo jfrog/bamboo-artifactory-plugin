@@ -30,7 +30,7 @@ public class EncryptionHelper {
     @NotNull
     public static String encrypt(@Nullable String stringToEncrypt) {
         if (StringUtils.isEmpty(stringToEncrypt)) {
-            return StringUtils.EMPTY;
+            return "";
         }
         try {
             final byte[] encrypted = getEncrypter().doFinal(stringToEncrypt.getBytes(StandardCharsets.UTF_8));
@@ -43,7 +43,7 @@ public class EncryptionHelper {
     @NotNull
     public static String decrypt(@Nullable String data) {
         if (StringUtils.isEmpty(data)) {
-            return StringUtils.EMPTY;
+            return "";
         }
         try {
             final byte[] encrypted = Base64.getMimeDecoder().decode(data);

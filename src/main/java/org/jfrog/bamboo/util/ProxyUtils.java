@@ -22,14 +22,14 @@ public class ProxyUtils {
     private static final String KEY_HTTP_NON_PROXY_HOSTS = "http.nonProxyHosts";
     private static final String KEY_HTTP_PROXY_PORT_DEFAULT = "80";
 
-    public static void setProxyConfigurationToArtifactoryClientBase(String artifactoryUrl, ArtifactoryBaseClient client) {
+    public static void setProxyConfig(String artifactoryUrl, ArtifactoryBaseClient client) {
         ProxyConfiguration proxyConfiguration = getProxyConfiguration(artifactoryUrl);
         if (proxyConfiguration != null) {
             client.setProxyConfiguration(proxyConfiguration);
         }
     }
 
-    public static void setProxyConfigurationToArtifactoryClientBuilderBase(String artifactoryUrl, ArtifactoryClientBuilderBase builder) {
+    public static void setProxyConfig(String artifactoryUrl, ArtifactoryClientBuilderBase builder) {
         ProxyConfiguration proxyConfiguration = getProxyConfiguration(artifactoryUrl);
         if (proxyConfiguration != null) {
             builder.setProxyConfiguration(proxyConfiguration);

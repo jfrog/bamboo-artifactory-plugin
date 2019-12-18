@@ -191,7 +191,7 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
                     password, timeout), new BuildInfoLog(log));
         } else {
             testClient = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverId, url,
-                    StringUtils.EMPTY, StringUtils.EMPTY, timeout), new BuildInfoLog(log));
+                    "", "", timeout), new BuildInfoLog(log));
         }
         try {
             testClient.verifyCompatibleArtifactoryVersion();

@@ -597,8 +597,8 @@ public class ReleasePromotionAction extends ViewBuildResults {
         ArtifactoryBuildInfoClient client;
         BuildInfoLog bambooLog = new BuildInfoLog(log);
         if (StringUtils.isBlank(username)) {
-            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, StringUtils.EMPTY,
-                    StringUtils.EMPTY, serverConfig.getTimeout()), bambooLog);
+            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, "",
+                    "", serverConfig.getTimeout()), bambooLog);
         } else {
             String password = serverConfigManager.substituteVariables(context.getDeployerPassword());
             if (StringUtils.isBlank(password)) {

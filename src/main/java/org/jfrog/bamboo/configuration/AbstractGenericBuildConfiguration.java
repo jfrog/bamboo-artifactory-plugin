@@ -3,7 +3,6 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -25,7 +24,7 @@ public class AbstractGenericBuildConfiguration extends AbstractArtifactoryConfig
         context.put("dummyList", Lists.newArrayList());
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", -1);
-        context.put("selectedRepoKey", StringUtils.EMPTY);
+        context.put("selectedRepoKey", "");
         context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
         context.put(GenericContext.SIGN_METHOD_MAP_KEY, GenericContext.SIGN_METHOD_MAP);
     }

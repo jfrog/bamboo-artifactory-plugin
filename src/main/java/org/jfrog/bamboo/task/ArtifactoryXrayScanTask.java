@@ -113,7 +113,7 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
         ArtifactoryXrayClient client =  new ArtifactoryXrayClient(xrayServerConfig.getUrl(), xrayServerConfig.getUsername(),
                 xrayServerConfig.getPassword(), new BuildInfoLog(log, logger));
         // Add proxy Configurations.
-        ProxyUtils.setProxyConfigurationToArtifactoryClientBase(xrayServerConfig.getUrl(), client);
+        ProxyUtils.setProxyConfig(xrayServerConfig.getUrl(), client);
         return client;
     }
 
