@@ -11,7 +11,7 @@ import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -20,14 +20,12 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.*;
 import org.jfrog.build.api.builder.ArtifactBuilder;
 import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.api.dependency.BuildDependency;
-import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
@@ -37,12 +35,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * @author Tomer Cohen
@@ -202,49 +195,6 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
                 new ModuleBuilder().id(taskContext.getBuildContext().getPlanName() + ":" + taskContext.getBuildContext().getBuildNumber())
                         .artifacts(artifacts).dependencies(dependencies);
         return moduleBuilder.build();
-    }
-
-    public static void addBuildInfoFromFileToContext(TaskContext taskContext, String generatedBuildInfo, String previousJson) throws IOException {
-        if (StringUtils.isNotBlank(previousJson)) {
-            addBuildInfoToContext(taskContext, previousJson);
-        }
-        StringBuilder contentBuilder = new StringBuilder();
-        Path generatedBuildInfoPath = Paths.get(generatedBuildInfo);
-        try (Stream<String> stream = Files.lines(generatedBuildInfoPath,StandardCharsets.UTF_8))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        String buildInfoJson = contentBuilder.toString();
-        generatedBuildInfoPath.toFile().delete();
-        Build build = BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoJson);
-        addBuildToContext(taskContext, build);
-    }
-
-    public static void addBuildToContext(TaskContext taskContext, Build build) throws IOException {
-        GenericData gd = new GenericData();
-        String contextJson = getBuildInfoFromContext(taskContext);
-        if (!org.apache.commons.lang3.StringUtils.isBlank(contextJson)) {
-            gd = BuildInfoExtractorUtils.jsonStringToGeneric(contextJson, GenericData.class);
-        }
-        gd.addBuild(build);
-        contextJson = BuildInfoExtractorUtils.buildInfoToJsonString(gd);
-
-        addBuildInfoToContext(taskContext, contextJson);
-    }
-
-    public static void addBuildInfoToContext(TaskContext taskContext, String json) {
-        taskContext.getBuildContext().getParentBuildContext().getBuildResult().
-                getCustomBuildData().put("genericJson", json);
-    }
-
-    public static String getBuildInfoFromContext(TaskContext taskContext) {
-        return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
-                getCustomBuildData().get("genericJson");
-    }
-
-    public static String removeBuildInfoFromContext(TaskContext taskContext) {
-        return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
-                getCustomBuildData().remove("genericJson");
     }
 
     public ArtifactoryBuildInfoClientBuilder getClientBuilder(BuildLogger buildLogger, Logger logger) {

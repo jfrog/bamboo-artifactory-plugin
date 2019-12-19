@@ -29,7 +29,6 @@ import org.jfrog.bamboo.builder.GradleDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.*;
-import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
@@ -88,7 +87,6 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
-        String json = BuildInfoHelper.removeBuildInfoFromContext(context);
 
         long serverId = gradleBuildContext.getArtifactoryServerId();
         File rootDirectory = context.getRootDirectory();
@@ -132,8 +130,8 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         }
 
         // Read init-script, create and write data to buildinfo.properties.
-        boolean shouldCaptureBuildInfo = gradleBuildContext.shouldCaptureBuildInfo(context);
-        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(gradleDataHelper, gradleBuildContext, shouldCaptureBuildInfo);
+        boolean aggregateBuildInfo = gradleBuildContext.shouldAggregateBuildInfo(context, serverId);
+        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(gradleDataHelper, gradleBuildContext, aggregateBuildInfo);
 
         // Add initscript path and artifactoryPublish task to command.
         if (pathHolder != null) {
@@ -158,8 +156,8 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         ExternalProcess process = getExternalProcess(context, rootDirectory, command, environmentVariables);
         try {
             executeExternalProcess(logger, process, log);
-            if (shouldCaptureBuildInfo) {
-                addBuildInfo(context, json);
+            if (aggregateBuildInfo) {
+                addGeneratedBuildInfoToAggregatedBuildInfo(context);
             }
 
             return collectTestResults(gradleBuildContext, context, process);
@@ -188,7 +186,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         return new GradleBuildContext(combinedMap);
     }
 
-    private ConfigurationPathHolder getGradleInitScriptFile(GradleDataHelper initScriptHelper, GradleBuildContext buildContext, boolean shouldCaptureBuildInfo) {
+    private ConfigurationPathHolder getGradleInitScriptFile(GradleDataHelper initScriptHelper, GradleBuildContext buildContext, boolean aggregateBuildInfo) {
         File gradleJarFile = new File(gradleDependenciesDir, PluginProperties
                 .getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
         if (!gradleJarFile.exists()) {
@@ -216,8 +214,8 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
             String scriptTemplate = IOUtils.toString(initScriptStream);
             ConfigurationPathHolder configurationPathHolder = initScriptHelper
                     .createAndGetGradleInitScriptPath(gradleDependenciesDir, buildContext, scriptTemplate,
-                            environmentVariableAccessor.getEnvironment(), shouldCaptureBuildInfo);
-            if (shouldCaptureBuildInfo) {
+                            environmentVariableAccessor.getEnvironment(), aggregateBuildInfo);
+            if (aggregateBuildInfo) {
                 environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, initScriptHelper.getBuildInfoTempFilePath().getAbsolutePath());
             }
             return configurationPathHolder;

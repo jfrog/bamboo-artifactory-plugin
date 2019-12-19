@@ -17,11 +17,13 @@ public class ArtifactoryGenericResolveConfiguration extends AbstractGenericBuild
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
+        populateLegacyContextForCreate(context);
     }
 
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+        populateLegacyContextForEdit(context, taskDefinition);
 
         String publishingKey = GenericContext.REPO_KEY;
         String selectedPublishingRepoKey = context.get(publishingKey) != null ? context.get(publishingKey).toString() :

@@ -2,19 +2,24 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.task.CommonTaskContext;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.bamboo.util.*;
+import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.FileSpecUtils;
+import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.Utils;
 import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Dependency;
@@ -61,7 +66,6 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getPluginVersion(pluginAccessor));
-        String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
 
         ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
         try {
@@ -84,10 +88,7 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
                 Build build = buildInfoHelper.getBuild(taskContext, genericContext);
                 Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
                 build = buildInfoHelper.addBuildInfoParams(taskContext, build, buildProperties, Lists.newArrayList(), dependencies, buildDependencies);
-                if (StringUtils.isNotBlank(json)) {
-                    BuildInfoHelper.addBuildInfoToContext(taskContext, json);
-                }
-                BuildInfoHelper.addBuildToContext(taskContext, build);
+                TaskUtils.appendBuildToBuildInfoInContext(taskContext, build);
             }
         } catch (IOException|InterruptedException e) {
             String message = "Exception occurred while executing task";

@@ -86,7 +86,6 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
             return TaskResultBuilder.newBuilder(taskContext).success().build();
         }
 
-        String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
         Build build = buildInfoHelper.getBuild(taskContext, genericContext);
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
         try {
@@ -103,10 +102,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
             }
             List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
             if (genericContext.isCaptureBuildInfo() || (genericContext.isPublishBuildInfo() && TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions))) {
-                if (StringUtils.isNotBlank(json)) {
-                    BuildInfoHelper.addBuildInfoToContext(taskContext, json);
-                }
-                BuildInfoHelper.addBuildToContext(taskContext, build);
+                TaskUtils.appendBuildToBuildInfoInContext(taskContext, build);
             } else {
                 if (genericContext.isPublishBuildInfo()) {
                     publishBuildInfo(taskContext, getClient(clientBuilder), build);

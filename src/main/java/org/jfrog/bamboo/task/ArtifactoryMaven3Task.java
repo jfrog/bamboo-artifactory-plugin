@@ -6,7 +6,10 @@ import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskException;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
@@ -18,12 +21,14 @@ import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
-import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.MavenDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.*;
+import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.util.PluginProperties;
+import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.util.Log;
 
 import java.io.File;
@@ -78,8 +83,6 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
 
-        String json = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
-
         long serverId = mavenBuildContext.getResolutionArtifactoryServerId();
         if (serverId == -1) {
             serverId = mavenBuildContext.getArtifactoryServerId();
@@ -97,11 +100,13 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         }
 
         List<String> systemProps = new ArrayList<>();
-        boolean shouldCaptureBuildInfo = false;
+        boolean aggregateBuildInfo = false;
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
-            shouldCaptureBuildInfo = mavenBuildContext.shouldCaptureBuildInfo(taskContext);
+            // Build-info collection is available only when deployment server is set.
+            aggregateBuildInfo = mavenBuildContext.shouldAggregateBuildInfo(taskContext, mavenBuildContext.getResolutionArtifactoryServerId());
+
             // Save config to buildinfo.properties.
-            createBuildInfoFiles(shouldCaptureBuildInfo, mavenDataHelper);
+            createBuildInfoFiles(aggregateBuildInfo, mavenDataHelper);
             mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext, taskContext);
         }
         String subDirectory = mavenBuildContext.getWorkingSubDirectory();
@@ -120,10 +125,9 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         ExternalProcess process = getExternalProcess(taskContext, rootDirectory, command, environmentVariables);
         try {
             executeExternalProcess(logger, process, log);
-            if (shouldCaptureBuildInfo) {
-                addBuildInfo(taskContext, json);
+            if (aggregateBuildInfo) {
+                addGeneratedBuildInfoToAggregatedBuildInfo(taskContext);
             }
-
             return collectTestResults(mavenBuildContext, taskContext, process);
         } finally {
             taskContext.getBuildContext().getBuildResult().addBuildErrors(errorLines.getErrorStringList());

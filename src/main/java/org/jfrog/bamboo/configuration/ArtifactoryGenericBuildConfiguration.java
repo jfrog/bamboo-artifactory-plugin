@@ -18,11 +18,13 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractGenericBuildCo
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
+        populateLegacyContextForCreate(context);
     }
 
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+        populateLegacyContextForEdit(context, taskDefinition);
         String selectedPublishingRepoKey = context.get(GenericContext.REPO_KEY) != null ? context.get(GenericContext.REPO_KEY).toString() : null;
         if (StringUtils.isBlank(selectedPublishingRepoKey)) {
             // Compatibility with 1.8.0

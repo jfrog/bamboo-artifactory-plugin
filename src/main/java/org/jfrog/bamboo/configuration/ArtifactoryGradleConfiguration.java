@@ -32,6 +32,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
+        populateLegacyContextForCreate(context);
         context.put("artifactoryGradleTask", this);
         context.put("builderType", this);
         context.put("builder", this);
@@ -54,6 +55,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+        populateLegacyContextForEdit(context, taskDefinition);
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
 
         context.put("selectedServerId", context.get(GradleBuildContext.PREFIX + GradleBuildContext.SERVER_ID_PARAM));

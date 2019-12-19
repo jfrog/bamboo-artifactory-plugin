@@ -44,6 +44,7 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
+        populateLegacyContextForCreate(context);
         context.put("artifactoryIvyTask", this);
         context.put("builderType", this);
         context.put("builder", this);
@@ -59,6 +60,7 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+        populateLegacyContextForEdit(context, taskDefinition);
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
 
         String publishingKey = IvyBuildContext.PREFIX + IvyBuildContext.DEPLOYABLE_REPO_KEY;

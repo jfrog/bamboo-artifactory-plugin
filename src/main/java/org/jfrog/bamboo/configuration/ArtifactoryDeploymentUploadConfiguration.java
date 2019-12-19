@@ -47,6 +47,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
+        populateLegacyContextForCreate(context);
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", -1);
         context.put(AbstractBuildContext.SERVER_ID_PARAM, -1);
@@ -59,6 +60,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+        populateLegacyContextForEdit(context, taskDefinition);
         populateContextWithConfiguration(context, taskDefinition, getFieldsToCopy());
         String selectedServerId = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM);
         String username = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + USERNAME);

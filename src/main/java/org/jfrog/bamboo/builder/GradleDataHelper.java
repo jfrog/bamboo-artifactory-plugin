@@ -83,7 +83,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         return selectedServerConfig != null;
     }
 
-    public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir, GradleBuildContext buildContext, String scriptTemplate, Map<String, String> generalEnv, boolean shouldCaptureBuildInfo) {
+    public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir, GradleBuildContext buildContext, String scriptTemplate, Map<String, String> generalEnv, boolean aggregateBuildInfo) {
         if (selectedServerConfig == null) {
             return null;
         }
@@ -98,7 +98,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
             IncludeExcludePatterns patterns = new IncludeExcludePatterns(
                     buildContext.getEnvVarsIncludePatterns(),
                     buildContext.getEnvVarsExcludePatterns());
-            if (shouldCaptureBuildInfo) {
+            if (aggregateBuildInfo) {
                 buildInfoTempFile = File.createTempFile(BuildInfoFields.GENERATED_BUILD_INFO, ".json");
                 configuration.info.setGeneratedBuildInfoFilePath(buildInfoTempFile.getAbsolutePath());
             }
@@ -257,12 +257,14 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
                 clientConf.publisher.setIvyArtifactPattern(buildContext.getArtifactPattern());
             }
         }
-        clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
-        if (!buildContext.isCaptureBuildInfo()) {
-            clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
-        } else {
+
+        // If captureBuildInfo is set, then should aggregate build-info and not publish by the build-info process.
+        if (buildContext.isCaptureBuildInfo()) {
             clientConf.publisher.setPublishBuildInfo(false);
+        } else {
+            clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
         }
+
         clientConf.publisher.setIvy(buildContext.isPublishIvyDescriptors());
         clientConf.publisher.setMaven(buildContext.isPublishMavenDescriptors());
         String artifactSpecs = buildContext.getArtifactSpecs();

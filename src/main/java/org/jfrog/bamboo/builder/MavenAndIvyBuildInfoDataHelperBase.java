@@ -240,10 +240,10 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         clientConf.publisher.setIncludePatterns(buildContext.getIncludePattern());
         clientConf.publisher.setExcludePatterns(buildContext.getExcludePattern());
         clientConf.publisher.setFilterExcludedArtifactsFromBuild(buildContext.isFilterExcludedArtifactsFromBuild());
-        if (!buildContext.isCaptureBuildInfo()) {
-            clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
-        } else {
+        if (buildContext.isCaptureBuildInfo()) {
             clientConf.publisher.setPublishBuildInfo(false);
+        } else {
+            clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
         }
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());

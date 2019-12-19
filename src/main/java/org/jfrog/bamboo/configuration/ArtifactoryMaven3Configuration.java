@@ -30,6 +30,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
+        populateLegacyContextForCreate(context);
         context.put("maven3Task", this);
         context.put("builderType", this);
         context.put("builder", this);
@@ -51,6 +52,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
+        populateLegacyContextForEdit(context, taskDefinition);
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
 
         String publishingKey = Maven3BuildContext.PREFIX + Maven3BuildContext.DEPLOYABLE_REPO_KEY;
