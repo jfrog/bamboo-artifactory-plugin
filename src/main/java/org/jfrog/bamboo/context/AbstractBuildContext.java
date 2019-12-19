@@ -194,10 +194,12 @@ public abstract class AbstractBuildContext {
         return Boolean.parseBoolean(env.get(prefix + USE_ARTIFACTORY_GRADLE_PLUGIN));
     }
 
+    // Value is used by tasks created prior to plugin version 2.7.0.
     public boolean isPublishBuildInfo() {
         return Boolean.parseBoolean(env.get(PUBLISH_BUILD_INFO_PARAM));
     }
 
+    // Value is sed by tasks created from plugin version 2.7.0.
     public boolean isCaptureBuildInfo() {
         return Boolean.parseBoolean(env.get(CAPTURE_BUILD_INFO));
     }
@@ -400,7 +402,7 @@ public abstract class AbstractBuildContext {
         return tokens;
     }
 
-    public boolean shouldCaptureBuildInfo(@NotNull TaskContext taskContext, long serverId) {
+    public boolean shouldAggregateBuildInfo(@NotNull TaskContext taskContext, long serverId) {
         if (isCaptureBuildInfo()) {
             // Value of CAPTURE_BUILD_INFO is 'true' by default.
             // In case of no server-id provided, shouldn't collect build-info even though the value remains 'true'.

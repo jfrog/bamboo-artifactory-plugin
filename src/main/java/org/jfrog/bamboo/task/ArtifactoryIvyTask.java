@@ -104,7 +104,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
             logger.addErrorLogEntry(message);
             log.error(message);
         }
-        boolean shouldCaptureBuildInfo = ivyBuildContext.shouldCaptureBuildInfo(context, serverId);
+        boolean aggregateBuildInfo = ivyBuildContext.shouldAggregateBuildInfo(context, serverId);
 
         String executable = getExecutable(ivyBuildContext);
         if (StringUtils.isBlank(executable)) {
@@ -116,7 +116,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
 
         if (StringUtils.isNotBlank(ivyDependenciesDir)) {
             // Save data to buildinfo.properties.
-            createBuildInfoFiles(shouldCaptureBuildInfo, ivyDataHelper);
+            createBuildInfoFiles(aggregateBuildInfo, ivyDataHelper);
         }
         List<String> command = Lists.newArrayList(executable);
         if (activateBuildInfoRecording) {
@@ -158,7 +158,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
 
         try {
             executeExternalProcess(logger, process, log);
-            if (shouldCaptureBuildInfo) {
+            if (aggregateBuildInfo) {
                 addGeneratedBuildInfoToAggregatedBuildInfo(context);
             }
             return TaskResultBuilder.newBuilder(context)

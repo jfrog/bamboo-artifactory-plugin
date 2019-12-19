@@ -130,8 +130,8 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         }
 
         // Read init-script, create and write data to buildinfo.properties.
-        boolean shouldCaptureBuildInfo = gradleBuildContext.shouldCaptureBuildInfo(context, serverId);
-        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(gradleDataHelper, gradleBuildContext, shouldCaptureBuildInfo);
+        boolean aggregateBuildInfo = gradleBuildContext.shouldAggregateBuildInfo(context, serverId);
+        ConfigurationPathHolder pathHolder = getGradleInitScriptFile(gradleDataHelper, gradleBuildContext, aggregateBuildInfo);
 
         // Add initscript path and artifactoryPublish task to command.
         if (pathHolder != null) {
@@ -156,7 +156,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         ExternalProcess process = getExternalProcess(context, rootDirectory, command, environmentVariables);
         try {
             executeExternalProcess(logger, process, log);
-            if (shouldCaptureBuildInfo) {
+            if (aggregateBuildInfo) {
                 addGeneratedBuildInfoToAggregatedBuildInfo(context);
             }
 
@@ -186,7 +186,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         return new GradleBuildContext(combinedMap);
     }
 
-    private ConfigurationPathHolder getGradleInitScriptFile(GradleDataHelper initScriptHelper, GradleBuildContext buildContext, boolean shouldCaptureBuildInfo) {
+    private ConfigurationPathHolder getGradleInitScriptFile(GradleDataHelper initScriptHelper, GradleBuildContext buildContext, boolean aggregateBuildInfo) {
         File gradleJarFile = new File(gradleDependenciesDir, PluginProperties
                 .getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
         if (!gradleJarFile.exists()) {
@@ -214,8 +214,8 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
             String scriptTemplate = IOUtils.toString(initScriptStream);
             ConfigurationPathHolder configurationPathHolder = initScriptHelper
                     .createAndGetGradleInitScriptPath(gradleDependenciesDir, buildContext, scriptTemplate,
-                            environmentVariableAccessor.getEnvironment(), shouldCaptureBuildInfo);
-            if (shouldCaptureBuildInfo) {
+                            environmentVariableAccessor.getEnvironment(), aggregateBuildInfo);
+            if (aggregateBuildInfo) {
                 environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, initScriptHelper.getBuildInfoTempFilePath().getAbsolutePath());
             }
             return configurationPathHolder;
