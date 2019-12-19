@@ -116,7 +116,7 @@
                   location="templates/plugins/generic/editArtifactoryGenericBuildAction.ftl"/>
         <resource type="freemarker" name="view"
                   location="templates/plugins/generic/viewArtifactoryGenericBuildAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <resource type="download" name="icon" location="images/artifactory-deploy-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -130,7 +130,7 @@
                   location="templates/plugins/generic/editArtifactoryGenericResolveAction.ftl"/>
         <resource type="freemarker" name="view"
                   location="templates/plugins/generic/viewArtifactoryGenericResolveAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <resource type="download" name="icon" location="images/artifactory-resolve-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -144,7 +144,7 @@
                   location="templates/plugins/task/editArtifactoryCollectBuildIssuesAction.ftl"/>
         <resource type="freemarker" name="view"
                   location="templates/plugins/task/viewArtifactoryCollectBuildIssuesAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <resource type="download" name="icon" location="images/artifactory-issues-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -172,7 +172,7 @@
                   location="templates/plugins/task/editArtifactoryPublishBuildInfoAction.ftl"/>
         <resource type="freemarker" name="view"
                   location="templates/plugins/task/viewArtifactoryPublishBuildInfoAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <resource type="download" name="icon" location="images/artifactory-publish-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -329,7 +329,7 @@
                   location="templates/plugins/deployment/editArtifactoryDeploymentDownloadTask.ftl"/>
         <resource type="freemarker" name="view"
                   location="templates/plugins/generic/viewArtifactoryGenericResolveAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <resource type="download" name="icon" location="images/artifactory-download-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -342,7 +342,7 @@
                   location="templates/plugins/deployment/editArtifactoryDeploymentAction.ftl"/>
         <resource type="freemarker" name="view"
                   location="templates/plugins/deployment/viewArtifactoryDeploymentAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-icon-small.png"/>
+        <resource type="download" name="icon" location="images/artifactory-deploy-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
