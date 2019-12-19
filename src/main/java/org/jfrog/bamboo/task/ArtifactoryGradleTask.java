@@ -29,7 +29,6 @@ import org.jfrog.bamboo.builder.GradleDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.*;
-import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
@@ -88,7 +87,6 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
-        String json = BuildInfoHelper.removeBuildInfoFromContext(context);
 
         long serverId = gradleBuildContext.getArtifactoryServerId();
         File rootDirectory = context.getRootDirectory();
@@ -132,7 +130,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         }
 
         // Read init-script, create and write data to buildinfo.properties.
-        boolean shouldCaptureBuildInfo = gradleBuildContext.shouldCaptureBuildInfo(context);
+        boolean shouldCaptureBuildInfo = gradleBuildContext.shouldCaptureBuildInfo(context, serverId);
         ConfigurationPathHolder pathHolder = getGradleInitScriptFile(gradleDataHelper, gradleBuildContext, shouldCaptureBuildInfo);
 
         // Add initscript path and artifactoryPublish task to command.
@@ -159,7 +157,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         try {
             executeExternalProcess(logger, process, log);
             if (shouldCaptureBuildInfo) {
-                addBuildInfo(context, json);
+                addGeneratedBuildInfoToAggregatedBuildInfo(context);
             }
 
             return collectTestResults(gradleBuildContext, context, process);

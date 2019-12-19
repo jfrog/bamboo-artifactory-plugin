@@ -5,7 +5,10 @@ import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ExternalProcessBuilder;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskException;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
@@ -20,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
-import org.jfrog.bamboo.builder.BuildInfoHelper;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.BuildInfoFields;
 
 import java.io.File;
@@ -219,12 +222,12 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
         }
     }
 
-    void addBuildInfo(@NotNull TaskContext taskContext, String json) throws TaskException {
-        String generatedJson = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
+    void addGeneratedBuildInfoToAggregatedBuildInfo(@NotNull TaskContext taskContext) throws TaskException {
+        String generatedBuildInfo = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
         try {
-            BuildInfoHelper.addBuildInfoFromFileToContext(taskContext, generatedJson, json);
-        } catch (IOException ioe) {
-            throw new TaskException("Failed to add Build Info to context.", ioe);
+            TaskUtils.addBuildInfoFromFileToContext(taskContext, generatedBuildInfo);
+        } catch (Exception ex) {
+            throw new TaskException("Failed to add Build Info to context.", ex);
         }
     }
 

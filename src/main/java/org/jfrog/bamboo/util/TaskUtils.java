@@ -2,22 +2,33 @@ package org.jfrog.bamboo.util;
 
 import com.atlassian.bamboo.task.TaskContext;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.security.EncryptionHelper;
+import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.VcsHelper;
+import org.jfrog.build.api.Build;
 import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import static org.jfrog.bamboo.util.ConstantValues.AGGREGATED_BUILD_INFO;
 
 /**
  * Utility class that serves as a helper for common operations of a task.
@@ -149,5 +160,61 @@ public class TaskUtils {
             return checkoutDir;
         }
         return taskContext.getWorkingDirectory();
+    }
+
+    /**
+     * Add build info stored in a file to the build-info stored in plan's context.
+     */
+    public static void addBuildInfoFromFileToContext(TaskContext taskContext, String buildInfoFilePath) throws IOException {
+        if (StringUtils.isBlank(buildInfoFilePath)) {
+            throw new IllegalArgumentException("Provided empty build-info file path.");
+        }
+
+        // Read build-info from file.
+        Path generatedBuildInfoPath = Paths.get(buildInfoFilePath);
+        StringBuilder contentBuilder = new StringBuilder();
+        try (Stream<String> stream = Files.lines(generatedBuildInfoPath, StandardCharsets.UTF_8))
+        {
+            stream.forEach(s -> contentBuilder.append(s).append("\n"));
+        }
+        generatedBuildInfoPath.toFile().delete();
+
+        // Create build object.
+        String buildInfoJson = contentBuilder.toString();
+        if (org.apache.commons.lang3.StringUtils.isBlank(buildInfoJson)) {
+            return;
+        }
+        Build build = BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoJson);
+
+        appendBuildToBuildInfoInContext(taskContext, build);
+    }
+
+    /**
+     * Append a 'Build' object to the build-info stored in plan's context.
+     */
+    public static void appendBuildToBuildInfoInContext(TaskContext taskContext, Build build) throws IOException {
+        GenericData gd = new GenericData();
+        String buildInfo = getAggregatedBuildInfo(taskContext);
+        if (!StringUtils.isBlank(buildInfo)) {
+            gd = BuildInfoExtractorUtils.jsonStringToGeneric(buildInfo, GenericData.class);
+        }
+        gd.addBuild(build);
+        buildInfo = BuildInfoExtractorUtils.buildInfoToJsonString(gd);
+        addAggregatedBuildInfoToContext(taskContext, buildInfo);
+    }
+
+    private static void addAggregatedBuildInfoToContext(TaskContext taskContext, String buildInfo) {
+        taskContext.getBuildContext().getParentBuildContext().getBuildResult().
+                getCustomBuildData().put(AGGREGATED_BUILD_INFO, buildInfo);
+    }
+
+    private static String getAggregatedBuildInfo(TaskContext taskContext) {
+        return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
+                getCustomBuildData().get(AGGREGATED_BUILD_INFO);
+    }
+
+    public static String getAndDeleteAggregatedBuildInfo(TaskContext taskContext) {
+        return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
+                getCustomBuildData().remove(AGGREGATED_BUILD_INFO);
     }
 }

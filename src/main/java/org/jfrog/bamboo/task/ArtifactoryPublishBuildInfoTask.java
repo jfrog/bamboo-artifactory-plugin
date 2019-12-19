@@ -13,6 +13,7 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.util.Log;
@@ -59,13 +60,12 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
-        String json = BuildInfoHelper.getBuildInfoFromContext(taskContext);
-        BuildInfoHelper.removeBuildInfoFromContext(taskContext);
+        String buildInfoJson = TaskUtils.getAndDeleteAggregatedBuildInfo(taskContext);
         Build build = buildInfoHelper.getBuilder(taskContext).build();
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
         try (ArtifactoryBuildInfoClient client = clientBuilder.build()){
-            if (StringUtils.isNotBlank(json)) {
-                GenericData genericData = BuildInfoExtractorUtils.jsonStringToGeneric(json, GenericData.class);
+            if (StringUtils.isNotBlank(buildInfoJson)) {
+                GenericData genericData = BuildInfoExtractorUtils.jsonStringToGeneric(buildInfoJson, GenericData.class);
                 for (Build buildFromContext : genericData.getBuilds()) {
                     build.append(buildFromContext);
                 }

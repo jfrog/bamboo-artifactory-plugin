@@ -100,15 +100,17 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         super.populateContextForEdit(context, taskDefinition);
         serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
-        // Build-Info aggregation is supported since version 2.7.0 of the plugin,
-        // This means that for tasks which were created before this version,
-        // publish build-info is done directly by the task and not by the
-        // Artifactory Build Info Publish' task, introduced in version 2.7.0.
-        // The following code takes care of backward compatibility, for tasks which were created before 2.7.0.
-        if (Boolean.valueOf(taskDefinition.getConfiguration().get(BUILD_INFO_AGGREGATION))) {
-            context.put(PUBLISH_BUILD_INFO_PARAM, false);
-            context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, true);
-        } else {
+    }
+
+    /**
+     * Build-Info aggregation is supported since version 2.7.0 of the plugin.
+     * This means that for tasks which were created before this version,
+     * publish build-info is done directly by the task and not by the
+     * Artifactory Build Info Publish' task, introduced in version 2.7.0.
+     * The following code takes care of backward compatibility, for tasks which were created before 2.7.0.
+     */
+    public void populateLegacyContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
+        if (!Boolean.valueOf(taskDefinition.getConfiguration().get(BUILD_INFO_AGGREGATION))) {
             context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, false);
             context.put(PUBLISH_BUILD_INFO_PARAM, true);
         }
@@ -119,6 +121,13 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         super.populateContextForCreate(context);
         serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
+    }
+
+    /**
+     * Populate new task context with values required for tasks having legacy mode (prior to 2.7.0).
+     * These values are later used to determine whether a task runs in legacy mode or not.
+     */
+    public void populateLegacyContextForCreate(@NotNull Map<String, Object> context) {
         context.put(BUILD_INFO_AGGREGATION, true);
         context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, true);
         context.put(PUBLISH_BUILD_INFO_PARAM, false);

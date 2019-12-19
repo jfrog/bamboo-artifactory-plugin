@@ -27,6 +27,7 @@ public interface ConstantValues extends Serializable {
     String BUILD_RESULT_COLLECTION_ACTIVATED_PARAM = "org.jfrog.bamboo.buildInfo.activated";
     String BUILD_RESULT_RELEASE_ACTIVATED_PARAM = "org.jfrog.bamboo.release.activated";
     String BUILD_RESULT_SELECTED_SERVER_PARAM = "org.jfrog.bamboo.buildInfo.serverUrl";
+    String AGGREGATED_BUILD_INFO = "org.jfrog.bamboo.aggregatedBuildInfoJson";
 
     String BUILD_SERVLET_CONTEXT_NAME = "artifactoryBuildServlet";
     String BUILD_SERVLET_KEY_PARAM = "buildKey";

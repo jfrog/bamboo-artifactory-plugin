@@ -24,7 +24,6 @@ import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
-import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.IvyDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -86,7 +85,6 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + artifactoryPluginVersion);
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
-        String json = BuildInfoHelper.removeBuildInfoFromContext(context);
 
         File rootDirectory = context.getRootDirectory();
         long serverId = ivyBuildContext.getArtifactoryServerId();
@@ -106,7 +104,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
             logger.addErrorLogEntry(message);
             log.error(message);
         }
-        boolean shouldCaptureBuildInfo = ivyBuildContext.shouldCaptureBuildInfo(context);
+        boolean shouldCaptureBuildInfo = ivyBuildContext.shouldCaptureBuildInfo(context, serverId);
 
         String executable = getExecutable(ivyBuildContext);
         if (StringUtils.isBlank(executable)) {
@@ -161,7 +159,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
         try {
             executeExternalProcess(logger, process, log);
             if (shouldCaptureBuildInfo) {
-                addBuildInfo(context, json);
+                addGeneratedBuildInfoToAggregatedBuildInfo(context);
             }
             return TaskResultBuilder.newBuilder(context)
                     .checkReturnCode(process).build();

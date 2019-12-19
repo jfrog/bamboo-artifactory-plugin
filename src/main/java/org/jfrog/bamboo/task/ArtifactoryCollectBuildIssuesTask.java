@@ -2,19 +2,21 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.task.CommonTaskContext;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.CollectBuildIssuesContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Issues;
 import org.jfrog.build.api.util.Log;
@@ -55,8 +57,6 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
-        String previousBiJson = BuildInfoHelper.removeBuildInfoFromContext(taskContext);
-
         try {
             File projectRootDir = getWorkingDirectory(taskContext);
             if (projectRootDir == null) {
@@ -64,8 +64,7 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
                 return TaskResultBuilder.newBuilder(taskContext).success().build();
             }
             Issues issues = collectBuildIssues(logger, projectRootDir);
-            addIssuesToBuildInfoInContext(taskContext, issues, previousBiJson);
-
+            addIssuesToBuildInfoInContext(taskContext, issues);
         } catch (IOException | InterruptedException e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);
@@ -147,13 +146,10 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
         return new IssuesCollector().collectIssues(projectRootDir, bambooBuildInfoLog, config, clientBuilder, buildName);
     }
 
-    private void addIssuesToBuildInfoInContext(@NotNull TaskContext taskContext, Issues issues, String previousBiJson) throws IOException {
+    private void addIssuesToBuildInfoInContext(@NotNull TaskContext taskContext, Issues issues) throws IOException {
         Build build = buildInfoHelper.getBuilder(taskContext).build();
         build.setIssues(issues);
-        if (StringUtils.isNotBlank(previousBiJson)) {
-            BuildInfoHelper.addBuildInfoToContext(taskContext, previousBiJson);
-        }
-        BuildInfoHelper.addBuildToContext(taskContext, build);
+        TaskUtils.appendBuildToBuildInfoInContext(taskContext, build);
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {

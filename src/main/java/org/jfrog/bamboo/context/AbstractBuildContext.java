@@ -400,12 +400,18 @@ public abstract class AbstractBuildContext {
         return tokens;
     }
 
-    public boolean shouldCaptureBuildInfo(@NotNull TaskContext taskContext) {
+    public boolean shouldCaptureBuildInfo(@NotNull TaskContext taskContext, long serverId) {
         if (isCaptureBuildInfo()) {
-            return true;
+            // Value of CAPTURE_BUILD_INFO is 'true' by default.
+            // In case of no server-id provided, shouldn't collect build-info even though the value remains 'true'.
+            if (serverId != -1) {
+                return true;
+            }
+            return false;
         }
         if (isPublishBuildInfo()) {
-            // First check if there is a publish build info task. if there is then use aggregation
+            // Task was created prior to version 2.7.0, and set to publish build-info.
+            // If the plan contains a publish build info task, disable task publishing and use build aggregation instead.
             List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
             if (TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions)) {
                 resetPublishBuildInfo();
