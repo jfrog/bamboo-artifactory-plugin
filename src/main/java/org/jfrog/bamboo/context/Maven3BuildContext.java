@@ -3,7 +3,6 @@ package org.jfrog.bamboo.context;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -24,9 +23,6 @@ public class Maven3BuildContext extends AbstractBuildContext {
     public static final String ADDITIONAL_MAVEN_PARAMS = "additionalMavenParams";
     public static final String WORKING_SUB_DIRECTORY = "workingSubDirectory";
     public static final String RESOLVE_FROM_ARTIFACTORY = "resolveFromArtifacts";
-    public static final String RESOLUTION_SERVER_ID = "resolutionArtifactoryServerId";
-    public static final String RESOLVER_USER_NAME = "resolverUsername";
-    public static final String RESOLVER_PASSWORD = "resolverPassword";
 
     public Maven3BuildContext(Map<String, String> env) {
         super(PREFIX, env);
@@ -61,23 +57,6 @@ public class Maven3BuildContext extends AbstractBuildContext {
     public boolean isResolveFromArtifactory() {
         return Boolean.parseBoolean(env.get(RESOLVE_FROM_ARTIFACTORY));
     }
-
-    public long getResolutionArtifactoryServerId() {
-        String serverId = env.get(PREFIX + RESOLUTION_SERVER_ID);
-        if (StringUtils.isBlank(serverId)) {
-            return -1;
-        }
-        return Long.parseLong(serverId);
-    }
-
-    public String getResolverUserName() {
-        return env.get(PREFIX + RESOLVER_USER_NAME);
-    }
-
-    public String getResolverPassword() {
-        return env.get(PREFIX + RESOLVER_PASSWORD);
-    }
-
 
     public String getMavenOpts() {
         return env.get(PREFIX + MAVEN_OPTS);
@@ -136,7 +115,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
                 PREFIX + MAVEN_OPTS, PREFIX + EXECUTABLE, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS, RESOLVE_FROM_ARTIFACTORY
-                , PREFIX + RESOLUTION_SERVER_ID, PREFIX + RESOLVER_USER_NAME, PREFIX + RESOLVER_PASSWORD);
+                , PREFIX + RESOLUTION_SERVER_ID_PARAM, PREFIX + RESOLVER_USERNAME_PARAM, PREFIX + RESOLVER_PASSWORD_PARAM);
         fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;

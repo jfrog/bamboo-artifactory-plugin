@@ -84,7 +84,7 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
         // Set url.
         resolverUrl = resolutionServerConfig.getUrl();
         // Set username.
-        resolverUsername = buildContext.getResolverUserName();
+        resolverUsername = buildContext.getResolverUsername();
         resolverUsername = overrideParam(resolverUsername, BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME);
         if (StringUtils.isBlank(resolverUsername)) {
             resolverUsername = resolutionServerConfig.getUsername();

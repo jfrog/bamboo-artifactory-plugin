@@ -212,6 +212,23 @@
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
+    <!--Npm task-->
+    <taskType key="artifactoryNpmTask" name="Artifactory Npm"
+              class="org.jfrog.bamboo.task.ArtifactoryNpmTask">
+        <description>Artifactory Npm task</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryNpmConfiguration"/>
+        <category name="builder"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.NpmCapabilityHelper"/>
+        <executable key="npm" pathHelpKey="builder.npm.pathHelp"/>
+        <resource type="freemarker" name="edit"
+                  location="/templates/plugins/task/editArtifactoryNpmBuilder.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="/templates/plugins/task/viewArtifactoryNpmBuilder.ftl"/>
+        <resource type="download" name="icon"
+                  location="images/artifactory-npm-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
     <!--build info-->
     <xwork key="buildInfoLinkAction" name="Artifactory Release Promotion">
         <package name="artifactoryReleasePlugin" extends="buildView">

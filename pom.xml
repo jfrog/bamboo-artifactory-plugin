@@ -38,6 +38,7 @@
         <buildinfo.maven.version>2.13.x-SNAPSHOT</buildinfo.maven.version>
         <buildinfo.gradle.version>4.11.x-SNAPSHOT</buildinfo.gradle.version>
         <buildinfo.ivy.version>2.13.x-SNAPSHOT</buildinfo.ivy.version>
+        <buildinfo.npm.version>2.13.x-SNAPSHOT</buildinfo.npm.version>
     </properties>
     
     <profiles>
@@ -153,6 +154,12 @@
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-gradle</artifactId>
             <version>${buildinfo.gradle.version}</version>
+            <classifier>uber</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-extractor-npm</artifactId>
+            <version>${buildinfo.npm.version}</version>
             <classifier>uber</classifier>
         </dependency>
         <dependency>
@@ -332,6 +339,17 @@
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
                                     <destFileName>build-info-extractor-gradle-${buildinfo.gradle.version}-uber.jar
+                                    </destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.jfrog.buildinfo</groupId>
+                                    <artifactId>build-info-extractor-npm</artifactId>
+                                    <version>${buildinfo.npm.version}</version>
+                                    <type>jar</type>
+                                    <classifier>uber</classifier>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
+                                    <destFileName>build-info-extractor-npm-${buildinfo.npm.version}-uber.jar
                                     </destFileName>
                                 </artifactItem>
                                 <artifactItem>

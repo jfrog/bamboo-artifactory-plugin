@@ -158,7 +158,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
      *
      * @return Java bin path
      */
-    public String getExecutable(AbstractBuildContext context) throws TaskException {
+    public String getJavaExecutable(AbstractBuildContext context) throws TaskException {
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, context, capabilityContext);
         StringBuilder binPathBuilder = new StringBuilder(jdkPath);
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -210,7 +210,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
 
     private List<String> getCommand(Maven3BuildContext mavenBuildContext) throws TaskException {
         List<String> command = Lists.newArrayList();
-        String executable = getExecutable(mavenBuildContext);
+        String executable = getJavaExecutable(mavenBuildContext);
         if (StringUtils.isBlank(executable)) {
             log.error("No Maven executable found");
             return command;

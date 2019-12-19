@@ -11,9 +11,7 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
-import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
@@ -24,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.GradleDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -235,31 +234,17 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         }
     }
 
-    public String getExecutable(AbstractBuildContext buildContext) throws TaskException {
+    private String getExecutable(AbstractBuildContext buildContext) throws TaskException {
+        // Return gradle wrapper if required
         if ((buildContext instanceof GradleBuildContext) && ((GradleBuildContext) buildContext).isUseGradleWrapper()) {
             String gradleWrapperLocation = ((GradleBuildContext) buildContext).getGradleWrapperLocation();
             if (StringUtils.isNotBlank(gradleWrapperLocation)) {
                 return gradleWrapperLocation;
             }
             return EXECUTABLE_WRAPPER_NAME;
-        } else {
-            ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
-            if (capabilitySet == null) {
-                return null;
-            }
-            Capability capability = capabilitySet.getCapability(GRADLE_KEY + buildContext.getExecutable());
-            if (capability == null) {
-                throw new TaskException(
-                        "Gradle capability: " + buildContext.getExecutable() + " is not defined, please check " +
-                                "job configuration");
-            }
-
-            String path = capability.getValue() + File.separator + "bin" + File.separator + EXECUTABLE_NAME;
-            if (!new File(path).exists()) {
-                throw new TaskException("Executable '" + EXECUTABLE_NAME + "'  does not exist at path '" + path + "'");
-            }
-            return path;
         }
+        // Return gradle executable
+        return TaskUtils.getExecutablePath(buildContext, capabilityContext, GRADLE_KEY, EXECUTABLE_NAME, TASK_NAME);
     }
 
     /**
