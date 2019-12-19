@@ -111,7 +111,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
             // Write data to init script file.
             File tempInitScript = File.createTempFile("artifactory.init.script", "gradle");
             FileUtils.writeStringToFile(tempInitScript, scriptTemplate, "utf-8");
-            if (buildContext.isPublishBuildInfo()) {
+            if (buildContext.isPublishBuildInfo() || buildContext.isCaptureBuildInfo()) {
                 this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM,
                         "true");
                 this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
