@@ -102,19 +102,8 @@ public class GradleBuildContext extends AbstractBuildContext {
                 PREFIX + ARTIFACT_SPECS_PARAM, PREFIX + EXECUTABLE, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
                 PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS);
-        fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
-    }
-
-    /**
-     * @return The deprecated checkbox fields that were used prior to the stripping of the namespace.
-     */
-    private static Set<String> getOldCheckBoxFieldsToCopy() {
-        return Sets.newHashSet(PREFIX + PUBLISH_BUILD_INFO_PARAM, PREFIX + INCLUDE_ENV_VARS_PARAM,
-                PREFIX + PUBLISH_ARTIFACTS_PARAM, PREFIX + TEST_CHECKED,
-                PREFIX + TEST_DIRECTORY_OPTION, PREFIX + ENABLE_RELEASE_MANAGEMENT,
-                PREFIX + USE_M2_COMPATIBLE_PATTERNS_PARAM);
     }
 
     public static List<String> getPublishForkCountList() {

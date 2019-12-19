@@ -85,7 +85,7 @@ public class IvyBuildContext extends AbstractBuildContext {
      * @return Get a set of all the fields to copy while populating the build context for an Ivy build.
      */
     public static Set<String> getFieldsToCopy() {
-        Set<String> fieldsToCopy = Sets.newHashSet(PREFIX + ANT_OPTS_PARAM, PREFIX + SERVER_ID_PARAM, PREFIX +
+        return Sets.newHashSet(PREFIX + ANT_OPTS_PARAM, PREFIX + SERVER_ID_PARAM, PREFIX +
                 RESOLUTION_REPO_PARAM, PREFIX + DEPLOYABLE_REPO_KEY, PREFIX + DEPLOYER_USERNAME_PARAM,
                 PREFIX + DEPLOYER_PASSWORD_PARAM, PUBLISH_BUILD_INFO_PARAM,
                 PUBLISH_ARTIFACTS, PREFIX + PUBLISH_MAVEN_DESCRIPTORS_PARAM, PREFIX + BUILD_FILE,
@@ -94,16 +94,5 @@ public class IvyBuildContext extends AbstractBuildContext {
                 PREFIX + ARTIFACT_PATTERN_PARAM, PREFIX + INCLUDE_PATTERN, PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 PREFIX + EXECUTABLE, PREFIX + EXCLUDE_PATTERN, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
                 TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY);
-        fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
-        return fieldsToCopy;
-    }
-
-    /**
-     * @return The deprecated checkbox fields that were used prior to the stripping of the namespace.
-     */
-    private static Set<String> getOldCheckBoxFieldsToCopy() {
-        return Sets.newHashSet(PREFIX + PUBLISH_BUILD_INFO_PARAM,
-                PREFIX + PUBLISH_ARTIFACTS, PREFIX + TEST_CHECKED, PREFIX + TEST_DIRECTORY_OPTION,
-                PREFIX + ENABLE_RELEASE_MANAGEMENT, PREFIX + USE_M2_COMPATIBLE_PATTERNS_PARAM);
     }
 }

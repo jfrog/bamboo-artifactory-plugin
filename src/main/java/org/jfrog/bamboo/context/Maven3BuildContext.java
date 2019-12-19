@@ -116,17 +116,7 @@ public class Maven3BuildContext extends AbstractBuildContext {
                 TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS, RESOLVE_FROM_ARTIFACTORY
                 , PREFIX + RESOLUTION_SERVER_ID_PARAM, PREFIX + RESOLVER_USERNAME_PARAM, PREFIX + RESOLVER_PASSWORD_PARAM);
-        fieldsToCopy.addAll(getOldCheckBoxFieldsToCopy());
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
-    }
-
-    /**
-     * @return The deprecated checkbox fields that were used prior to the stripping of the namespace.
-     */
-    private static Set<String> getOldCheckBoxFieldsToCopy() {
-        return Sets.newHashSet(PREFIX + PUBLISH_BUILD_INFO_PARAM,
-                PREFIX + PUBLISH_ARTIFACTS, PREFIX + TEST_CHECKED, PREFIX + TEST_DIRECTORY_OPTION,
-                PREFIX + ENABLE_RELEASE_MANAGEMENT, PREFIX + USE_M2_COMPATIBLE_PATTERNS_PARAM);
     }
 }
