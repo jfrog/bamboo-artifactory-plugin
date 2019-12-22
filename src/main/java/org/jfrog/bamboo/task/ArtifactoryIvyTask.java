@@ -51,7 +51,6 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
     private final CapabilityContext capabilityContext;
     private BuilderDependencyHelper dependencyHelper;
     private String ivyDependenciesDir = "";
-    private String buildInfoPropertiesFile = "";
     private IvyBuildContext ivyBuildContext;
     private BuildLogger logger;
     private MavenAndIvyBuildInfoDataHelperBase ivyDataHelper;
