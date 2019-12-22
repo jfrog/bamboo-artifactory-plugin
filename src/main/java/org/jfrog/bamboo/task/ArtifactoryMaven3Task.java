@@ -123,7 +123,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         try {
             executeExternalProcess(logger, process, log);
             if (aggregateBuildInfo) {
-                addGeneratedBuildInfoToAggregatedBuildInfo(taskContext);
+                convertGenerateBuildInfoToBuild();
             }
             return collectTestResults(mavenBuildContext, taskContext, process);
         } finally {

@@ -154,7 +154,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         try {
             executeExternalProcess(logger, process, log);
             if (aggregateBuildInfo) {
-                addGeneratedBuildInfoToAggregatedBuildInfo(context);
+                convertGenerateBuildInfoToBuild();
             }
 
             return collectTestResults(gradleBuildContext, context, process);

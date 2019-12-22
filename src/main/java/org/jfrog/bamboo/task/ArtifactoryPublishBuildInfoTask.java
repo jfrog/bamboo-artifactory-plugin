@@ -100,4 +100,9 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     protected Log getLog() {
         return new BuildInfoLog(log);
     }
+
+    @Override
+    protected boolean shouldRemoveBuildInfoFromContext() {
+        return false;
+    }
 }
