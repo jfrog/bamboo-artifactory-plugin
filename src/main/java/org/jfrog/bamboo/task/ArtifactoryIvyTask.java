@@ -74,6 +74,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
         combinedMap.putAll(context.getBuildContext().getBuildDefinition().getCustomConfiguration());
         ivyBuildContext = new IvyBuildContext(combinedMap);
         initEnvironmentVariables(ivyBuildContext);
+        aggregateBuildInfo = ivyBuildContext.shouldAggregateBuildInfo(context, ivyBuildContext.getArtifactoryServerId());
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         ivyDataHelper = new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
     }
@@ -86,9 +87,8 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
         logger.getInterceptorStack().add(errorLines);
 
         File rootDirectory = context.getRootDirectory();
-        long serverId = ivyBuildContext.getArtifactoryServerId();
         try {
-            ivyDependenciesDir = extractIvyDependencies(serverId, rootDirectory, ivyBuildContext);
+            ivyDependenciesDir = extractIvyDependencies(ivyBuildContext.getArtifactoryServerId(), rootDirectory, ivyBuildContext);
             log.info(logger.addBuildLogEntry("Ivy dependency directory found at: " + ivyDependenciesDir));
         } catch (IOException ioe) {
             ivyDependenciesDir = null;
@@ -103,7 +103,6 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
             logger.addErrorLogEntry(message);
             log.error(message);
         }
-        boolean aggregateBuildInfo = ivyBuildContext.shouldAggregateBuildInfo(context, serverId);
 
         String executable = TaskUtils.getExecutablePath(ivyBuildContext, capabilityContext, IVY_KEY, EXECUTABLE_NAME, TASK_NAME);
         if (StringUtils.isBlank(executable)) {
