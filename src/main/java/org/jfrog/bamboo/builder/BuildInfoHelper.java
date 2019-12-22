@@ -152,7 +152,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
 
     public void addEnvVarsToBuild(AbstractBuildContext abstractBuildContext, Build build) {
         // Building a new build only to collect env. The initial build details parameters set bellow will not be used.
-        BuildInfoBuilder temporaryBuilder = new BuildInfoBuilder("").number("").started("");
+        BuildInfoBuilder temporaryBuilder = new BuildInfoBuilder("tempBuildName").number("tempBuildNumber").started("tempTimeStamp");
         addEnvVarsToBuildInfoBuilder(abstractBuildContext.isIncludeEnvVars(), abstractBuildContext.getEnvVarsIncludePatterns(), abstractBuildContext.getEnvVarsExcludePatterns(), temporaryBuilder);
         build.append(temporaryBuilder.build());
     }

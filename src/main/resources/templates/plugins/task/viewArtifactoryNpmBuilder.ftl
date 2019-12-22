@@ -8,9 +8,9 @@
 [@ww.label labelKey='builder.common.env' name='environmentVariables' hideOnNull='true' /]
 
 <div id="artifactoryConfigDiv" style='display: none'>
-[@ww.label labelKey='Artifactory Server URL' name='artifactory.task.npm.artifactoryServerId' /]
+[@ww.label labelKey='Artifactory Server URL' name='artifactory.task.npm.resolutionArtifactoryServerId' /]
 [@ww.label labelKey='Npm Source Repository' name='artifactory.task.npm.resolutionRepo' hideOnNull='true' /]
-[@ww.label labelKey='Npm Target Repository' name='artifactory.task.npm.publishingRepo' hideOnNull='true' /]
+[@ww.label labelKey='Override Resolver Username' name='artifactory.task.npm.resolverUsername' hideOnNull='true' /]
 
 [@ww.label labelKey='Capture Build Info' name='captureBuildInfo' hideOnNull='true' /]
 [#if isCaptureBuildInfo]
@@ -20,7 +20,7 @@
 </div>
 
 <script>
-    var urlLabel = document.getElementById('artifactory_task_npm_artifactoryServerId');
+    var urlLabel = document.getElementById('artifactory_task_npm_resolutionArtifactoryServerId');
     if (urlLabel) {
         var serverId = urlLabel.innerHTML;
         if (-1 != serverId) {

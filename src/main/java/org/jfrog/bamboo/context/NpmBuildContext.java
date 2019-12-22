@@ -61,25 +61,4 @@ public class NpmBuildContext extends AbstractBuildContext {
     public boolean isNpmCommandInstall() {
         return (ArtifactoryNpmConfiguration.CFG_NPM_COMMAND_INSTALL.equals(env.get(COMMAND_CHOICE)));
     }
-
-    public long getRequiredArtifactoryServerId() {
-        if (isNpmCommandInstall()) {
-            return super.getResolutionArtifactoryServerId();
-        }
-        return super.getArtifactoryServerId();
-    }
-
-    public String getRequiredUsername() {
-        if (isNpmCommandInstall()) {
-            return super.getResolverUsername();
-        }
-        return super.getDeployerUsername();
-    }
-
-    public String getRequiredPassword() {
-        if (isNpmCommandInstall()) {
-            return super.getResolverPassword();
-        }
-        return super.getDeployerPassword();
-    }
 }
