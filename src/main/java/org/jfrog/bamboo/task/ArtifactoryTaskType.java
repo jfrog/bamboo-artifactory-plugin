@@ -54,7 +54,10 @@ public abstract class ArtifactoryTaskType extends ArtifactoryTaskBase implements
             if (buildFromTask != null) {
                 gd.addBuild(buildFromTask);
             }
-            String aggregatedBuildInfo = BuildInfoExtractorUtils.buildInfoToJsonString(gd);
+            String aggregatedBuildInfo = "";
+            if (gd.getBuilds() != null) {
+                aggregatedBuildInfo = BuildInfoExtractorUtils.buildInfoToJsonString(gd);
+            }
             TaskUtils.addBuildInfoToContext(context, aggregatedBuildInfo);
         } catch (IOException ex) {
             throw new TaskException("Failed to add Build Info to context.", ex);
