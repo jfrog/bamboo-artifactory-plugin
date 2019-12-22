@@ -22,7 +22,6 @@ import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
-import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.GradleDataHelper;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -76,6 +75,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         gradleBuildContext = createBuildContext(context);
         initEnvironmentVariables(gradleBuildContext);
+        aggregateBuildInfo = gradleBuildContext.shouldAggregateBuildInfo(context, gradleBuildContext.getArtifactoryServerId());
         gradleDataHelper = new GradleDataHelper(buildParamsOverrideManager, context, gradleBuildContext,
                 administrationConfiguration, environmentVariableAccessor, artifactoryPluginVersion);
     }
@@ -87,10 +87,9 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         final ErrorMemorisingInterceptor errorLines = new ErrorMemorisingInterceptor();
         logger.getInterceptorStack().add(errorLines);
 
-        long serverId = gradleBuildContext.getArtifactoryServerId();
         File rootDirectory = context.getRootDirectory();
         try {
-            gradleDependenciesDir = extractGradleDependencies(serverId, rootDirectory, gradleBuildContext);
+            gradleDependenciesDir = extractGradleDependencies(gradleBuildContext.getArtifactoryServerId(), rootDirectory, gradleBuildContext);
         } catch (IOException e) {
             gradleDependenciesDir = null;
             logger.addBuildLogEntry(new ErrorLogEntry(
@@ -129,7 +128,6 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         }
 
         // Read init-script, create and write data to buildinfo.properties.
-        boolean aggregateBuildInfo = gradleBuildContext.shouldAggregateBuildInfo(context, serverId);
         ConfigurationPathHolder pathHolder = getGradleInitScriptFile(gradleDataHelper, gradleBuildContext, aggregateBuildInfo);
 
         // Add initscript path and artifactoryPublish task to command.

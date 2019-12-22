@@ -218,7 +218,7 @@ public abstract class AbstractBuildContext {
         return Boolean.parseBoolean(env.get(PUBLISH_BUILD_INFO_PARAM));
     }
 
-    // Value is sed by tasks created from plugin version 2.7.0.
+    // Value is used by tasks created from plugin version 2.7.0.
     public boolean isCaptureBuildInfo() {
         return Boolean.parseBoolean(env.get(CAPTURE_BUILD_INFO));
     }

@@ -72,6 +72,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         mavenBuildContext = createBuildContext(taskContext);
         initEnvironmentVariables(mavenBuildContext);
+        aggregateBuildInfo = mavenBuildContext.shouldAggregateBuildInfo(taskContext, mavenBuildContext.getResolutionArtifactoryServerId());
         mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
                 mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
     }
@@ -100,11 +101,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         }
 
         List<String> systemProps = new ArrayList<>();
-        boolean aggregateBuildInfo = false;
         if (StringUtils.isNotBlank(mavenDependenciesDir)) {
-            // Build-info collection is available only when deployment server is set.
-            aggregateBuildInfo = mavenBuildContext.shouldAggregateBuildInfo(taskContext, mavenBuildContext.getResolutionArtifactoryServerId());
-
             // Save config to buildinfo.properties.
             createBuildInfoFiles(aggregateBuildInfo, mavenDataHelper);
             mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext, taskContext);
