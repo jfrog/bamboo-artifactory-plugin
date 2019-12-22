@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -65,15 +66,8 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
         this.customVariableContext = customVariableContext;
     }
 
-    protected void initEnvironmentVariables(AbstractBuildContext buildContext) {
-        Map<String, String> env = Maps.newHashMap();
-        env.putAll(environmentVariableAccessor.getEnvironment());
-        if (StringUtils.isNotBlank(buildContext.getEnvironmentVariables())) {
-            env.putAll(environmentVariableAccessor
-                    .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
-        }
-
-        environmentVariables = env;
+    void initEnvironmentVariables(AbstractBuildContext buildContext) {
+        environmentVariables = TaskUtils.getEnvironmentVariables(buildContext, environmentVariableAccessor);
     }
 
     /**

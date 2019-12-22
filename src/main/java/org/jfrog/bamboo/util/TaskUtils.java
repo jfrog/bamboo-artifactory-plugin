@@ -1,12 +1,18 @@
 package org.jfrog.bamboo.util;
 
+import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskException;
+import com.atlassian.bamboo.v2.build.agent.capability.Capability;
+import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
+import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.VcsHelper;
@@ -78,31 +84,26 @@ public class TaskUtils {
     }
 
     public static ServerConfig getResolutionServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
-        if (serverConfig == null) {
-            return null;
-        }
-        String username = overrideParam(serverConfigManager.substituteVariables(baseUsername), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME, buildParamsOverrideManager);
-        if (StringUtils.isBlank(username)) {
-            username = serverConfigManager.substituteVariables(serverConfig.getUsername());
-        }
-        String password = overrideParam(serverConfigManager.substituteVariables(basePassword), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD, buildParamsOverrideManager);
-        if (StringUtils.isBlank(password)) {
-            password = serverConfigManager.substituteVariables(serverConfig.getPassword());
-        }
-        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-
-        return new ServerConfig(serverConfig.getId(), serverUrl, username, password, serverConfig.getTimeout());
+        return getRequestedServerConfig(baseUsername, basePassword, serverConfigManager, serverConfig, buildParamsOverrideManager,
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME, BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD);
     }
 
     public static ServerConfig getDeploymentServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
+        return getRequestedServerConfig(baseUsername, basePassword, serverConfigManager, serverConfig, buildParamsOverrideManager,
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME, BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
+    }
+
+    private static ServerConfig getRequestedServerConfig(String baseUsername, String basePassword,
+                                                        ServerConfigManager serverConfigManager, ServerConfig serverConfig,
+                                                        BuildParamsOverrideManager buildParamsOverrideManager, String overrideUsernameKey, String overridePasswordKey) {
         if (serverConfig == null) {
             return null;
         }
-        String username = overrideParam(serverConfigManager.substituteVariables(baseUsername), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME, buildParamsOverrideManager);
+        String username = overrideParam(serverConfigManager.substituteVariables(baseUsername), overrideUsernameKey, buildParamsOverrideManager);
         if (StringUtils.isBlank(username)) {
             username = serverConfigManager.substituteVariables(serverConfig.getUsername());
         }
-        String password = overrideParam(serverConfigManager.substituteVariables(basePassword), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD, buildParamsOverrideManager);
+        String password = overrideParam(serverConfigManager.substituteVariables(basePassword), overridePasswordKey, buildParamsOverrideManager);
         if (StringUtils.isBlank(password)) {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
@@ -181,7 +182,7 @@ public class TaskUtils {
 
         // Create build object.
         String buildInfoJson = contentBuilder.toString();
-        if (org.apache.commons.lang3.StringUtils.isBlank(buildInfoJson)) {
+        if (StringUtils.isBlank(buildInfoJson)) {
             return;
         }
         Build build = BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoJson);
@@ -216,5 +217,52 @@ public class TaskUtils {
     public static String getAndDeleteAggregatedBuildInfo(TaskContext taskContext) {
         return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
                 getCustomBuildData().remove(AGGREGATED_BUILD_INFO);
+    }
+
+
+    /**
+     * Returns the path to the executable needed for the task.
+     * Path is built from the executable configuration and the executable name.
+     * @param buildContext - The task's corresponding BuildContext
+     * @param capabilityContext - The task's corresponding CapabilityContext
+     * @param builderKey - Builder prefix key, such as "system.builder.npm."
+     * @param executableName - Executable name in file system (os specific)
+     * @param taskName - Task's name
+     * @return Path to requested executable.
+     * @throws TaskException - If capability is not defined or doesn't exist
+     */
+    public static String getExecutablePath(AbstractBuildContext buildContext, CapabilityContext capabilityContext,
+                                           String builderKey, String executableName, String taskName) throws TaskException {
+        ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
+        if (capabilitySet == null) {
+            return null;
+        }
+        Capability capability = capabilitySet.getCapability(builderKey + buildContext.getExecutable());
+        if (capability == null || StringUtils.isEmpty(capability.getValue())) {
+            throw new TaskException(taskName + " capability: " + buildContext.getExecutable() +
+                    " is not defined, please check job configuration");
+        }
+        final String path = Paths.get(capability.getValue(), "bin", executableName).toString();
+
+        if (!new File(path).exists()) {
+            throw new TaskException("Executable '" + executableName + "'  does not exist at path '" + path + "'");
+        }
+        return path;
+    }
+
+    /**
+     * Get a map of both environments variables configured in the task configuration and the ones already set.
+     * @param buildContext - The task's corresponding BuildContext
+     * @param environmentVariableAccessor - Accessor used to get available env
+     * @return Map of all environment variables
+     */
+    public static Map<String, String> getEnvironmentVariables(AbstractBuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor) {
+        Map<String, String> env = Maps.newHashMap();
+        env.putAll(environmentVariableAccessor.getEnvironment());
+        if (StringUtils.isNotBlank(buildContext.getEnvironmentVariables())) {
+            env.putAll(environmentVariableAccessor
+                    .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
+        }
+        return env;
     }
 }

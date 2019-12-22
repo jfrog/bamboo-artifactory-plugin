@@ -9,7 +9,6 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.DependencyTriggerReason;
 import com.atlassian.bamboo.v2.build.trigger.TriggerReason;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -17,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
@@ -91,7 +91,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     public List<Artifact> convertDeployDetailsToArtifacts(Set<DeployDetails> details) {
-        List<Artifact> result = Lists.newArrayList();
+        List<Artifact> result = new ArrayList<>();
         for (DeployDetails detail : details) {
             String ext = FilenameUtils.getExtension(detail.getFile().getName());
             Artifact artifact = new ArtifactBuilder(detail.getFile().getName()).md5(detail.getMd5())
@@ -124,31 +124,37 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     @NotNull
     public Build getBuild(@NotNull TaskContext taskContext, GenericContext genericContext) {
         BuildInfoBuilder builder = getBuilder(taskContext);
-        builder = addEnvVarsToBuildInfo(genericContext, builder);
+        addEnvVarsToBuildInfoBuilder(genericContext.isIncludeEnvVars(), genericContext.getEnvVarsIncludePatterns(), genericContext.getEnvVarsExcludePatterns(), builder);
         Build build = builder.build();
         build.setBuildAgent(new BuildAgent("Generic"));
         return build;
     }
 
-    public BuildInfoBuilder addEnvVarsToBuildInfo(GenericContext genericContext, BuildInfoBuilder builder) {
-        if (genericContext.isIncludeEnvVars()) {
-            Map<String, String> props = Maps.newHashMap(TaskUtils.getEscapedEnvMap(env));
-            props.putAll(getBuildInfoConfigPropertiesFileParams(props.get(BuildInfoConfigProperties.PROP_PROPS_FILE)));
-            IncludeExcludePatterns patterns = new IncludeExcludePatterns(genericContext.getEnvVarsIncludePatterns(),
-                    genericContext.getEnvVarsExcludePatterns());
-            for (Map.Entry<String, String> prop : props.entrySet()) {
-                String varKey = prop.getKey();
-                if (PatternMatcher.pathConflicts(varKey, patterns)) {
-                    continue;
-                }
-                // Global/task variables which starts with "artifactory.deploy" and "buildInfo.property" must preserve their prefix.
-                if (!StringUtils.startsWith(varKey, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX) && !StringUtils.startsWith(varKey, BuildInfoProperties.BUILD_INFO_PROP_PREFIX)) {
-                    varKey = BuildInfoProperties.BUILD_INFO_ENVIRONMENT_PREFIX + varKey;
-                }
-                builder.addProperty(varKey, prop.getValue());
-            }
+    private void addEnvVarsToBuildInfoBuilder(boolean isIncludeEnvVars, String envVarsIncludePatterns, String envVarsExcludePatterns, BuildInfoBuilder builder) {
+        if (!isIncludeEnvVars) {
+            return;
         }
-        return builder;
+        Map<String, String> props = new HashMap<>(TaskUtils.getEscapedEnvMap(env));
+        props.putAll(getBuildInfoConfigPropertiesFileParams(props.get(BuildInfoConfigProperties.PROP_PROPS_FILE)));
+        IncludeExcludePatterns patterns = new IncludeExcludePatterns(envVarsIncludePatterns, envVarsExcludePatterns);
+        for (Map.Entry<String, String> prop : props.entrySet()) {
+            String varKey = prop.getKey();
+            if (PatternMatcher.pathConflicts(varKey, patterns)) {
+                continue;
+            }
+            // Global/task variables which starts with "artifactory.deploy" and "buildInfo.property" must preserve their prefix.
+            if (!StringUtils.startsWith(varKey, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX) && !StringUtils.startsWith(varKey, BuildInfoProperties.BUILD_INFO_PROP_PREFIX)) {
+                varKey = BuildInfoProperties.BUILD_INFO_ENVIRONMENT_PREFIX + varKey;
+            }
+            builder.addProperty(varKey, prop.getValue());
+        }
+    }
+
+    public void addEnvVarsToBuild(AbstractBuildContext abstractBuildContext, Build build) {
+        // Building a new build only to collect env. The initial build details parameters set bellow will not be used.
+        BuildInfoBuilder temporaryBuilder = new BuildInfoBuilder("").number("").started("");
+        addEnvVarsToBuildInfoBuilder(abstractBuildContext.isIncludeEnvVars(), abstractBuildContext.getEnvVarsIncludePatterns(), abstractBuildContext.getEnvVarsExcludePatterns(), temporaryBuilder);
+        build.append(temporaryBuilder.build());
     }
 
     public void addCommonProperties(Map<String, String> propertyMap) {
@@ -205,7 +211,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
 
     private static BuildInfoHelper createBuildInfoHelperBase(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
                                                              BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig) {
-        Map<String, String> env = Maps.newHashMap();
+        Map<String, String> env = new HashMap<>();
         env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
         env.putAll(environmentVariableAccessor.getEnvironment());
         String vcsRevision = VcsHelper.getRevisionKey(buildContext);

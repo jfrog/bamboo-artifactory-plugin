@@ -30,9 +30,9 @@ import java.util.Map;
 import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM;
 
 public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
-    private static final Logger log = Logger.getLogger(ArtifactoryPublishBuildInfoTask.class);
+    private static final Logger log = Logger.getLogger(ArtifactoryCollectBuildIssuesTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
-    protected CustomVariableContext customVariableContext;
+    private CustomVariableContext customVariableContext;
     private TaskContext taskContext;
     private BuildInfoHelper buildInfoHelper;
     private BuildLogger logger;

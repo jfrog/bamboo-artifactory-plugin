@@ -25,10 +25,13 @@ import java.util.NoSuchElementException;
 public abstract class AbstractBuildContext {
 
     public static final String SERVER_ID_PARAM = "artifactoryServerId";
-    public static final String RESOLUTION_REPO_PARAM = "resolutionRepo";
     public static final String PUBLISHING_REPO_PARAM = "publishingRepo";
     public static final String DEPLOYER_USERNAME_PARAM = "deployerUsername";
     public static final String DEPLOYER_PASSWORD_PARAM = "deployerPassword";
+    public static final String RESOLUTION_SERVER_ID_PARAM = "resolutionArtifactoryServerId";
+    public static final String RESOLUTION_REPO_PARAM = "resolutionRepo";
+    public static final String RESOLVER_USERNAME_PARAM = "resolverUsername";
+    public static final String RESOLVER_PASSWORD_PARAM = "resolverPassword";
     public static final String USE_ARTIFACTORY_GRADLE_PLUGIN = "useArtifactoryGradlePlugin";
     public static final String PUBLISH_BUILD_INFO_PARAM = "publishBuildInfo";
     public static final String CAPTURE_BUILD_INFO = "captureBuildInfo";
@@ -150,6 +153,14 @@ public abstract class AbstractBuildContext {
         return Long.parseLong(serverId);
     }
 
+    public long getResolutionArtifactoryServerId() {
+        String serverId = env.get(prefix + RESOLUTION_SERVER_ID_PARAM);
+        if (StringUtils.isBlank(serverId)) {
+            return -1;
+        }
+        return Long.parseLong(serverId);
+    }
+
     public String getBaseUrl() {
         return env.get(BASE_URL);
     }
@@ -184,6 +195,14 @@ public abstract class AbstractBuildContext {
 
     public String getDeployerPassword() {
         return env.get(prefix + DEPLOYER_PASSWORD_PARAM);
+    }
+
+    public String getResolverUsername() {
+        return env.get(prefix + RESOLVER_USERNAME_PARAM);
+    }
+
+    public String getResolverPassword() {
+        return env.get(prefix + RESOLVER_PASSWORD_PARAM);
     }
 
     public String getJdkLabel() {
@@ -279,6 +298,9 @@ public abstract class AbstractBuildContext {
     }
 
     public void resetResolverContextToDefault() {
+        env.put(prefix + RESOLUTION_SERVER_ID_PARAM, "-1");
+        env.put(prefix + RESOLVER_USERNAME_PARAM, "");
+        env.put(prefix + RESOLVER_PASSWORD_PARAM, "");
         env.put(prefix + RESOLUTION_REPO_PARAM, "");
     }
 
