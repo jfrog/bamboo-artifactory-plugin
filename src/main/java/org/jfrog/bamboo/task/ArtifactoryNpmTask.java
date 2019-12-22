@@ -43,7 +43,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private BuildLogger logger;
     private NpmBuildContext npmBuildContext;
     private Path packagePath;
-    private BuildInfoHelper deployerBuildInfoHelper;
+    private BuildInfoHelper buildInfoHelper;
     private BuildParamsOverrideManager buildParamsOverrideManager;
     private String executablePath;
     private Map<String, String> environmentVariables;
@@ -61,9 +61,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
         logger = taskContext.getBuildLogger();
         npmBuildContext = new NpmBuildContext(taskContext.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        deployerBuildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
-                environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(), npmBuildContext.getDeployerUsername(),
-                npmBuildContext.getDeployerPassword(), buildParamsOverrideManager);
+        initBuildInfoHelper();
         executablePath = TaskUtils.getExecutablePath(npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME);
         environmentVariables = TaskUtils.getEnvironmentVariables(npmBuildContext, environmentVariableAccessor);
         packagePath = getPackagePath();
@@ -84,7 +82,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
             if (build == null) {
                 return failRun(taskContext);
             }
-            deployerBuildInfoHelper.addEnvVarsToBuild(npmBuildContext, build);
+            buildInfoHelper.addEnvVarsToBuild(npmBuildContext, build);
 
             // Append build info and add to context
             if (npmBuildContext.isCaptureBuildInfo()) {
@@ -109,15 +107,28 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     }
 
     /**
+     * Initialise a BuildInfoHelper from the appropriate parameters (deploy / resolve)
+     */
+    private void initBuildInfoHelper() {
+        if (npmBuildContext.isNpmCommandInstall()) {
+            buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+                    environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(), npmBuildContext.getResolverUsername(),
+                    npmBuildContext.getResolverPassword(), buildParamsOverrideManager);
+        } else {
+            buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+                    environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(), npmBuildContext.getDeployerUsername(),
+                    npmBuildContext.getDeployerPassword(), buildParamsOverrideManager);
+        }
+    }
+
+
+    /**
      * Handles the execution of npm Install.
      * @return Build containing affected artifacts, null if execution failed.
      */
     private Build executeNpmInstall() {
-        BuildInfoHelper resolverBuildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(taskContext, taskContext.getBuildContext(),
-                environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(), npmBuildContext.getResolverUsername(),
-                npmBuildContext.getResolverPassword(), buildParamsOverrideManager);
-        ArtifactoryDependenciesClientBuilder clientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(resolverBuildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
-        String repo = resolverBuildInfoHelper.overrideParam(npmBuildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
+        ArtifactoryDependenciesClientBuilder clientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
+        String repo = buildInfoHelper.overrideParam(npmBuildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         return new NpmInstall(clientBuilder, repo, npmBuildContext.getArguments(),
                 executablePath, getLog(), packagePath, environmentVariables).execute();
     }
@@ -127,8 +138,8 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      * @return Build containing affected artifacts, null if execution failed.
      */
     private Build executeNpmPublish() {
-        String repo = deployerBuildInfoHelper.overrideParam(npmBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
-        return new NpmPublish(deployerBuildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), executablePath,
+        String repo = buildInfoHelper.overrideParam(npmBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
+        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), executablePath,
                 packagePath, repo, getLog(), environmentVariables).execute();
     }
 
@@ -138,7 +149,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      */
     private ArrayListMultimap<String, String> getPropertiesMap() {
         Map<String, String> propertiesMap = new HashMap<>();
-        deployerBuildInfoHelper.addCommonProperties(propertiesMap);
+        buildInfoHelper.addCommonProperties(propertiesMap);
         return ArrayListMultimap.create(Multimaps.forMap(propertiesMap));
     }
 
@@ -161,12 +172,12 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     @Override
     protected ServerConfig getUsageServerConfig() {
-        return deployerBuildInfoHelper.getServerConfig();
+        return buildInfoHelper.getServerConfig();
     }
 
     @Override
     protected String getTaskUsageName() {
-        return "collect_build_issues";
+        return "npm";
     }
 
     @Override

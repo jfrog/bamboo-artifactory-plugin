@@ -76,6 +76,14 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
         context.put(NpmBuildContext.COMMAND_CHOICE, CFG_NPM_COMMAND_INSTALL);
     }
 
+    @Override
+    protected void resetResolverConfigIfNeeded(AbstractBuildContext buildContext) {
+        long serverId = buildContext.getResolutionArtifactoryServerId();
+        if (serverId == -1) {
+            buildContext.resetResolverContextToDefault();
+        }
+    }
+
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
