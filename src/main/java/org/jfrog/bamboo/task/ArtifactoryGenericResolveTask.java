@@ -88,7 +88,7 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
                 Build build = buildInfoHelper.getBuild(taskContext, genericContext);
                 Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
                 build = buildInfoHelper.addBuildInfoParams(taskContext, build, buildProperties, Lists.newArrayList(), dependencies, buildDependencies);
-                TaskUtils.appendBuildToBuildInfoInContext(taskContext, build);
+                taskBuildInfo = build;
             }
         } catch (IOException|InterruptedException e) {
             String message = "Exception occurred while executing task";

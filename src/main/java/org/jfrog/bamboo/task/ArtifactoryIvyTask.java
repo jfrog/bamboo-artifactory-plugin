@@ -152,7 +152,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
         try {
             executeExternalProcess(logger, process, log);
             if (aggregateBuildInfo) {
-                addGeneratedBuildInfoToAggregatedBuildInfo(context);
+                convertGeneratedBuildInfoToBuild();
             }
             return TaskResultBuilder.newBuilder(context)
                     .checkReturnCode(process).build();

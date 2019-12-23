@@ -14,7 +14,6 @@ import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
-import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.BuildInfoConfigProperties;
@@ -166,7 +165,7 @@ public class TaskUtils {
     /**
      * Add build info stored in a file to the build-info stored in plan's context.
      */
-    public static void addBuildInfoFromFileToContext(TaskContext taskContext, String buildInfoFilePath) throws IOException {
+    public static Build getBuildObjectFromBuildInfoFile(String buildInfoFilePath) throws IOException {
         if (StringUtils.isBlank(buildInfoFilePath)) {
             throw new IllegalArgumentException("Provided empty build-info file path.");
         }
@@ -183,35 +182,14 @@ public class TaskUtils {
         // Create build object.
         String buildInfoJson = contentBuilder.toString();
         if (StringUtils.isBlank(buildInfoJson)) {
-            return;
+            return null;
         }
-        Build build = BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoJson);
-
-        appendBuildToBuildInfoInContext(taskContext, build);
+        return BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoJson);
     }
 
-    /**
-     * Append a 'Build' object to the build-info stored in plan's context.
-     */
-    public static void appendBuildToBuildInfoInContext(TaskContext taskContext, Build build) throws IOException {
-        GenericData gd = new GenericData();
-        String buildInfo = getAggregatedBuildInfo(taskContext);
-        if (!StringUtils.isBlank(buildInfo)) {
-            gd = BuildInfoExtractorUtils.jsonStringToGeneric(buildInfo, GenericData.class);
-        }
-        gd.addBuild(build);
-        buildInfo = BuildInfoExtractorUtils.buildInfoToJsonString(gd);
-        addAggregatedBuildInfoToContext(taskContext, buildInfo);
-    }
-
-    private static void addAggregatedBuildInfoToContext(TaskContext taskContext, String buildInfo) {
+    public static void addBuildInfoToContext(TaskContext taskContext, String buildInfo) {
         taskContext.getBuildContext().getParentBuildContext().getBuildResult().
                 getCustomBuildData().put(AGGREGATED_BUILD_INFO, buildInfo);
-    }
-
-    private static String getAggregatedBuildInfo(TaskContext taskContext) {
-        return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
-                getCustomBuildData().get(AGGREGATED_BUILD_INFO);
     }
 
     public static String getAndDeleteAggregatedBuildInfo(TaskContext taskContext) {

@@ -102,7 +102,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
             }
             List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
             if (genericContext.isCaptureBuildInfo() || (genericContext.isPublishBuildInfo() && TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions))) {
-                TaskUtils.appendBuildToBuildInfoInContext(taskContext, build);
+                taskBuildInfo = build;
             } else {
                 if (genericContext.isPublishBuildInfo()) {
                     publishBuildInfo(taskContext, getClient(clientBuilder), build);

@@ -24,7 +24,6 @@ import org.jfrog.build.extractor.npm.extractor.NpmInstall;
 import org.jfrog.build.extractor.npm.extractor.NpmPublish;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,29 +69,22 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
-        try {
-            Build build;
-            if (npmBuildContext.isNpmCommandInstall()) {
-                build = executeNpmInstall();
-            } else {
-                build = executeNpmPublish();
-            }
+        Build build;
+        if (npmBuildContext.isNpmCommandInstall()) {
+            build = executeNpmInstall();
+        } else {
+            build = executeNpmPublish();
+        }
 
-            // Fail run if no build is returned
-            if (build == null) {
-                return failRun(taskContext);
-            }
-            buildInfoHelper.addEnvVarsToBuild(npmBuildContext, build);
-
-            // Append build info and add to context
-            if (npmBuildContext.isCaptureBuildInfo()) {
-                TaskUtils.appendBuildToBuildInfoInContext(taskContext, build);
-            }
-        } catch (IOException e) {
-            String message = "Exception occurred while executing task";
-            logger.addErrorLogEntry(message, e);
-            log.error(message, e);
+        // Fail run if no build is returned
+        if (build == null) {
             return failRun(taskContext);
+        }
+
+        // Append build info and add to context
+        if (npmBuildContext.isCaptureBuildInfo()) {
+            buildInfoHelper.addEnvVarsToBuild(npmBuildContext, build);
+            taskBuildInfo = build;
         }
 
         Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
