@@ -216,10 +216,13 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
         }
     }
 
-    void convertGenerateBuildInfoToBuild() throws TaskException {
+    /**
+     * Read the generated build-info file by the build-info extractor, convert its content to a Build object.
+     */
+    void convertGeneratedBuildInfoToBuild() throws TaskException {
         String generatedBuildInfo = environmentVariables.get(BuildInfoFields.GENERATED_BUILD_INFO);
         try {
-            buildFromTask = TaskUtils.getBuildObjectFromBuildInfoFile(generatedBuildInfo);
+            taskBuildInfo = TaskUtils.getBuildObjectFromBuildInfoFile(generatedBuildInfo);
         } catch (Exception ex) {
             throw new TaskException("Failed to add Build Info to context.", ex);
         }

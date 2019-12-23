@@ -80,11 +80,11 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
         if (build == null) {
             return failRun(taskContext);
         }
-        buildInfoHelper.addEnvVarsToBuild(npmBuildContext, build);
 
         // Append build info and add to context
         if (npmBuildContext.isCaptureBuildInfo()) {
-            buildFromTask = build;
+            buildInfoHelper.addEnvVarsToBuild(npmBuildContext, build);
+            taskBuildInfo = build;
         }
 
         Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();

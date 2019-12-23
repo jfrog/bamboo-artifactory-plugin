@@ -149,7 +149,7 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
     private void addIssuesToBuildInfoInContext(@NotNull TaskContext taskContext, Issues issues) throws IOException {
         Build build = buildInfoHelper.getBuilder(taskContext).build();
         build.setIssues(issues);
-        buildFromTask = build;
+        taskBuildInfo = build;
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
