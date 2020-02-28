@@ -115,6 +115,10 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         }
         List<String> command = buildCommand(mavenHome, rootDirectory, systemProps);
 
+        // Override the JAVA_HOME according to the build configuration.
+        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, mavenBuildContext, capabilityContext);
+        environmentVariables.put("JAVA_HOME", jdkPath);
+
         ExternalProcess process = getExternalProcess(taskContext, rootDirectory, command, environmentVariables);
         try {
             executeExternalProcess(logger, process, log);
