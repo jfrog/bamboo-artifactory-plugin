@@ -175,7 +175,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
 
     @Override
     protected Log getLog() {
-        return new BuildInfoLog(log);
+        return new BuildInfoLog(log, logger);
     }
 
     private GradleBuildContext createBuildContext(TaskContext context) {
