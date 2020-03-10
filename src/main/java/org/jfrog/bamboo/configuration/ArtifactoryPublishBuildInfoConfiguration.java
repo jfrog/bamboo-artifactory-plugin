@@ -2,8 +2,11 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.utils.error.ErrorCollection;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
 
 import java.util.Map;
@@ -38,11 +41,6 @@ public class ArtifactoryPublishBuildInfoConfiguration extends AbstractArtifactor
     }
 
     @Override
-    protected String getDeployableRepoKey() {
-        return null;
-    }
-
-    @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition taskDefinition) {
         return false;
     }
@@ -55,5 +53,15 @@ public class ArtifactoryPublishBuildInfoConfiguration extends AbstractArtifactor
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
         decryptFields(configMap);
         return configMap;
+    }
+
+    @Override
+    public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        // Validate publish server.
+        String publishServerKey = PublishBuildInfoContext.SERVER_ID_PARAM;
+        if (StringUtils.isBlank(params.getString(publishServerKey))) {
+            errorCollection.addError(publishServerKey, "Please specify a Server.");
+        }
+        TaskConfigurationValidations.validateArtifactoryServer(publishServerKey, serverConfigManager, params, errorCollection);
     }
 }

@@ -49,11 +49,6 @@ public class AbstractGenericBuildConfiguration extends AbstractArtifactoryConfig
     }
 
     @Override
-    protected String getDeployableRepoKey() {
-        return null;
-    }
-
-    @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition taskDefinition) {
         return false;
     }

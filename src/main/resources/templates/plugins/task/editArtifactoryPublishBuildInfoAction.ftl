@@ -4,7 +4,7 @@
 [@ui.bambooSection titleKey='artifactory.task.publishBuildInfo.title']
 
     [@ww.select name='artifactory.task.publishBuildInfo.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
-    listKey='id' listValue='url' emptyOption=true toggle='true'/]
+    listKey='id' listValue='url' emptyOption=true toggle='true' required='true'/]
 
 <div id="xrayScanConfigDiv">
 

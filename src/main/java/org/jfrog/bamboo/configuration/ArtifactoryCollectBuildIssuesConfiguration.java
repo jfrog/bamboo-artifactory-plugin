@@ -2,9 +2,12 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.CollectBuildIssuesContext;
 import org.jfrog.bamboo.task.ArtifactoryCollectBuildIssuesTask;
 
@@ -54,11 +57,6 @@ public class ArtifactoryCollectBuildIssuesConfiguration extends AbstractArtifact
     }
 
     @Override
-    protected String getDeployableRepoKey() {
-        return null;
-    }
-
-    @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition taskDefinition) {
         return false;
     }
@@ -71,5 +69,15 @@ public class ArtifactoryCollectBuildIssuesConfiguration extends AbstractArtifact
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(configMap, params, FIELDS_TO_COPY);
         decryptFields(configMap);
         return configMap;
+    }
+
+    @Override
+    public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        // Validate publish server.
+        String serverKey = CollectBuildIssuesContext.SERVER_ID_PARAM;
+        if (StringUtils.isBlank(params.getString(serverKey))) {
+            errorCollection.addError(serverKey, "Please specify a Server.");
+        }
+        TaskConfigurationValidations.validateArtifactoryServer(serverKey, serverConfigManager, params, errorCollection);
     }
 }

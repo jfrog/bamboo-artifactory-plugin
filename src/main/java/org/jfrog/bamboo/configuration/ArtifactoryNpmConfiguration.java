@@ -3,11 +3,14 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.NpmBuildContext;
 
@@ -104,12 +107,24 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
     }
 
     @Override
-    protected String getDeployableRepoKey() {
-        return NpmBuildContext.NPM_PUBLISHING_REPO;
+    public boolean taskProducesTestResults(@NotNull TaskDefinition taskDefinition) {
+        return false;
     }
 
     @Override
-    public boolean taskProducesTestResults(@NotNull TaskDefinition taskDefinition) {
-        return false;
+    public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        String commandChoiceKey = NpmBuildContext.COMMAND_CHOICE;
+        if (CFG_NPM_COMMAND_PUBLISH.equals(params.getString(commandChoiceKey))) {
+            // Validate publish server.
+            String deploymentServerKey = NpmBuildContext.PREFIX + NpmBuildContext.SERVER_ID_PARAM;
+            String deploymentRepoKey = NpmBuildContext.PREFIX + NpmBuildContext.PUBLISHING_REPO_PARAM;
+            TaskConfigurationValidations.validateArtifactoryServerAndRepo(deploymentServerKey, deploymentRepoKey, serverConfigManager, params, errorCollection);
+        }
+
+        // Validate Executable.
+        String executableKey = NpmBuildContext.PREFIX + AbstractBuildContext.EXECUTABLE;
+        if (StringUtils.isBlank(params.getString(executableKey))) {
+            errorCollection.addError(executableKey, "Please specify an Executable.");
+        }
     }
 }

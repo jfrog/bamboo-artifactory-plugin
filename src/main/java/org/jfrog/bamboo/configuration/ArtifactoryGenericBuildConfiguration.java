@@ -38,9 +38,4 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractGenericBuildCo
     protected String getKey() {
         return KEY;
     }
-
-    @Override
-    protected String getDeployableRepoKey() {
-        return "deployableRepo";
-    }
 }
