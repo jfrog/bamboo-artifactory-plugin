@@ -1,6 +1,3 @@
-<div id="artifactory-error" class="aui-message aui-message-error error shadowed"
-     style="display: none; width: 80%; font-size: 80%"></div>
-
 [@ww.select labelKey='artifactory.task.npm.header.command.choice' name='artifactory.task.npm.command.choice' listKey='key' listValue='value' toggle='true' list=npmCommandOptions/]
 [@ui.bambooSection dependsOn='artifactory.task.npm.command.choice' showOn='install']
     [@ww.textfield labelKey='artifactory.task.npm.header.install.npmArguments' name='artifactory.task.npm.install.npmArguments'/]
@@ -11,39 +8,36 @@
 [#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='npm'/][/#assign]
 [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='artifactory.task.npm.executable'
 list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink required='true'/]
-
 [@ww.textfield labelKey='builder.common.env' name='artifactory.task.npm.environmentVariables' /]
 
-[@ui.bambooSection dependsOn='artifactory.task.npm.command.choice' showOn='install']
+[@ui.bambooSection id="resolutionSection" dependsOn='artifactory.task.npm.command.choice' showOn='install']
     [@ww.select labelKey='artifactory.task.npm.header.resolutionArtifactoryServerId' name='artifactory.task.npm.resolutionArtifactoryServerId' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayResolutionNpmArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
-
     <div id="npmArtifactoryResolvingConfigDiv">
-    [@ww.select labelKey='artifactory.task.npm.header.resolutionRepo' name='artifactory.task.npm.resolutionRepo' list=dummyList
-    listKey='repoKey' listValue='repoKey' toggle='true'/]
-
-    [@ww.textfield labelKey='artifactory.task.npm.header.resolverUsername' name='artifactory.task.npm.resolverUsername'/]
-
-    [@ww.password labelKey='artifactory.task.npm.header.resolverPassword' name='artifactory.task.npm.resolverPassword' showPassword='true'/]
-    [#--The Dummy password is a workaround for the autofill (Chrome)--]
-    [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+        [@ww.select labelKey='artifactory.task.npm.header.resolutionRepo' name='artifactory.task.npm.resolutionRepo' list=dummyList
+        listKey='repoKey' listValue='repoKey' toggle='true'/]
+        <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
+             style="display: none; width: 80%; font-size: 80%" />
+        [@ww.textfield labelKey='artifactory.task.npm.header.resolverUsername' name='artifactory.task.npm.resolverUsername' onchange='javascript: overridingCredentialsChanged("resolution")'/]
+        [@ww.password labelKey='artifactory.task.npm.header.resolverPassword' name='artifactory.task.npm.resolverPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("resolution")'/]
+        [#--The Dummy password is a workaround for the autofill (Chrome)--]
+        [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
     </div>
 [/@ui.bambooSection]
 
 
-[@ui.bambooSection dependsOn='artifactory.task.npm.command.choice' showOn='pack and publish']
+[@ui.bambooSection id="publishSection" dependsOn='artifactory.task.npm.command.choice' showOn='pack and publish']
     [@ww.select labelKey='artifactory.task.npm.header.artifactoryServerId' name='artifactory.task.npm.artifactoryServerId' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayPublishingNpmArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
-
     <div id="npmArtifactoryPublishingConfigDiv">
-    [@ww.select labelKey='artifactory.task.npm.header.publishingRepo' name='artifactory.task.npm.publishingRepo' list=dummyList
-    listKey='repoKey' listValue='repoKey' toggle='true'/]
-
-    [@ww.textfield labelKey='artifactory.task.npm.header.deployerUsername' name='artifactory.task.npm.deployerUsername'/]
-
-    [@ww.password labelKey='artifactory.task.npm.header.deployerPassword' name='artifactory.task.npm.deployerPassword' showPassword='true'/]
-    [#--The Dummy password is a workaround for the autofill (Chrome)--]
-    [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+        [@ww.select labelKey='artifactory.task.npm.header.publishingRepo' name='artifactory.task.npm.publishingRepo' list=dummyList
+        listKey='repoKey' listValue='repoKey' toggle='true'/]
+        <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
+             style="display: none; width: 80%; font-size: 80%" />
+        [@ww.textfield labelKey='artifactory.task.npm.header.deployerUsername' name='artifactory.task.npm.deployerUsername' onchange='javascript: overridingCredentialsChanged("publish")'/]
+        [@ww.password labelKey='artifactory.task.npm.header.deployerPassword' name='artifactory.task.npm.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("publish")'/]
+        [#--The Dummy password is a workaround for the autofill (Chrome)--]
+        [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
     </div>
 [/@ui.bambooSection]
 
@@ -59,7 +53,6 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
         var configDiv = document.getElementById('npmArtifactoryResolvingConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
         var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
-
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -84,24 +77,22 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
             dataType: 'json',
             cache: false,
             success: function (json) {
-                var repoSelect = document
-                    .getElementsByName('artifactory.task.npm.resolutionRepo')[0];
-                repoSelect.innerHTML = '';
+                resolveRepoSelect.innerHTML = '';
                 if (serverId >= 0) {
-
                     var selectedRepoKey = '${selectedResolutionRepoKey}';
-
                     for (var i = 0, l = json.length; i < l; i++) {
                         var deployableRepoKey = json[i];
                         var option = document.createElement('option');
                         option.innerHTML = deployableRepoKey;
                         option.value = deployableRepoKey;
-                        repoSelect.appendChild(option);
+                        resolveRepoSelect.appendChild(option);
                         if (selectedRepoKey && (deployableRepoKey == selectedRepoKey)) {
-                            repoSelect.selectedIndex = i;
+                            resolveRepoSelect.selectedIndex = i;
                         }
                     }
                 }
+                resolveErrorDiv.innerHTML = '';
+                resolveErrorDiv.style.display = 'none';
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the resolving repository list.<br>' +
@@ -114,8 +105,9 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
                         'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
                 errorMessage += "<br>";
-                errorDiv.innerHTML += errorMessage;
-                errorDiv.style.display = '';
+                resolveErrorDiv.innerHTML = errorMessage;
+                resolveErrorDiv.style.display = '';
+                resolveRepoSelect.innerHTML = '';
             }
         });
     }
@@ -124,7 +116,6 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
         var configDiv = document.getElementById('npmArtifactoryPublishingConfigDiv');
         var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
         var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
-
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
             configDiv.style.display = 'none';
         } else {
@@ -149,24 +140,22 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
             dataType: 'json',
             cache: false,
             success: function (json) {
-                var repoSelect = document
-                        .getElementsByName('artifactory.task.npm.publishingRepo')[0];
-                repoSelect.innerHTML = '';
+                publishRepoSelect.innerHTML = '';
                 if (serverId >= 0) {
-
                     var selectedRepoKey = '${selectedPublishingRepoKey}';
-
                     for (var i = 0, l = json.length; i < l; i++) {
                         var deployableRepoKey = json[i];
                         var option = document.createElement('option');
                         option.innerHTML = deployableRepoKey;
                         option.value = deployableRepoKey;
-                        repoSelect.appendChild(option);
+                        publishRepoSelect.appendChild(option);
                         if (selectedRepoKey && (deployableRepoKey == selectedRepoKey)) {
-                            repoSelect.selectedIndex = i;
+                            publishRepoSelect.selectedIndex = i;
                         }
                     }
                 }
+                publishErrorDiv.innerHTML = '';
+                publishErrorDiv.style.display = 'none';
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the publishing repository list.<br>' +
@@ -179,15 +168,35 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
                             'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
                 errorMessage += "<br>";
-                errorDiv.innerHTML += errorMessage;
-                errorDiv.style.display = '';
+                publishErrorDiv.innerHTML = errorMessage;
+                publishErrorDiv.style.display = '';
+                publishRepoSelect.innerHTML = '';
             }
         });
     }
 
+    function overridingCredentialsChanged(repositoryType) {
+        if (repositoryType === "publish") {
+            var serverIdSection = document.getElementById("publishSection");
+            var selectedServerId = serverIdSection.getElementsByTagName('select')[0].value;
+            displayPublishingNpmArtifactoryConfigs(selectedServerId);
+        } else if (repositoryType === "resolution") {
+            var serverIdSection = document.getElementById("resolutionSection");
+            var selectedServerId = serverIdSection.getElementsByTagName('select')[0].value;
+            displayResolutionNpmArtifactoryConfigs(selectedServerId);
+        }
+    }
 
-    var errorDiv = document.getElementById('artifactory-error');
-    errorDiv.innerHTML = '';
+    var resolveErrorDiv = document.getElementById('resolve-repo-error');
+    var publishErrorDiv = document.getElementById('publish-repo-error');
+    var publishRepoSelect = document.getElementsByName('artifactory.task.npm.publishingRepo')[0];
+    var resolveRepoSelect = document.getElementsByName('artifactory.task.npm.resolutionRepo')[0];
+
+    // Init error-divs.
+    publishErrorDiv.innerHTML = '';
+    publishErrorDiv.style.display = 'none';
+    resolveErrorDiv.innerHTML = '';
+    resolveErrorDiv.style.display = 'none';
 
     displayPublishingNpmArtifactoryConfigs(${selectedPublishingServerId});
     displayResolutionNpmArtifactoryConfigs(${selectedResolutionServerId});
