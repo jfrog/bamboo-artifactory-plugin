@@ -1,8 +1,10 @@
 package org.jfrog.bamboo.context;
 
+import com.atlassian.bamboo.task.TaskContext;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Set;
@@ -79,6 +81,16 @@ public class IvyBuildContext extends AbstractBuildContext {
             }
         });
         return new IvyBuildContext(transformed);
+    }
+
+    public boolean shouldAggregateBuildInfo(@NotNull TaskContext taskContext, long serverId) {
+        boolean aggregateBuildInfo = super.shouldAggregateBuildInfo(taskContext);
+        if (!aggregateBuildInfo) {
+            return false;
+        }
+        // Value of CAPTURE_BUILD_INFO is 'true' by default.
+        // In case of no server-id provided, shouldn't collect build-info even though the value remains 'true'.
+        return serverId != -1;
     }
 
     /**

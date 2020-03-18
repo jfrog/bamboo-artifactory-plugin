@@ -246,7 +246,7 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
                 String buildInfoJsonPath = dataHelper.createBuildInfoJSonFileAndGetItsPath();
                 environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, buildInfoJsonPath);
             }
-            buildInfoPropertiesFile = dataHelper.createBuildInfoPropsFileAndGetItsPath();
+            buildInfoPropertiesFile = dataHelper.createBuildInfoPropsFileAndGetItsPath(shouldCaptureBuildInfo);
         } catch (IOException e) {
             throw new TaskException("Failed to create Build Info properties file.", e);
         }

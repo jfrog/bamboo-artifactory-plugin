@@ -424,14 +424,9 @@ public abstract class AbstractBuildContext {
         return tokens;
     }
 
-    public boolean shouldAggregateBuildInfo(@NotNull TaskContext taskContext, long serverId) {
+    public boolean shouldAggregateBuildInfo(@NotNull TaskContext taskContext) {
         if (isCaptureBuildInfo()) {
-            // Value of CAPTURE_BUILD_INFO is 'true' by default.
-            // In case of no server-id provided, shouldn't collect build-info even though the value remains 'true'.
-            if (serverId != -1) {
                 return true;
-            }
-            return false;
         }
         if (isPublishBuildInfo()) {
             // Task was created prior to version 2.7.0, and set to publish build-info.

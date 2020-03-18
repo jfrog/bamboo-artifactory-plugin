@@ -76,7 +76,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
         initEnvironmentVariables(ivyBuildContext);
         aggregateBuildInfo = ivyBuildContext.shouldAggregateBuildInfo(context, ivyBuildContext.getArtifactoryServerId());
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
-        ivyDataHelper = new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
+        ivyDataHelper = new IvyDataHelper(buildParamsOverrideManager, context, ivyBuildContext, environmentVariableAccessor, artifactoryPluginVersion, aggregateBuildInfo);
     }
 
     @Override
