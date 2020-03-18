@@ -1,23 +1,39 @@
-[@ww.textfield labelKey='artifactory.task.ivy.buildFile' name='builder.artifactoryIvyBuilder.buildFile' required='true' /]
-[@ww.textfield labelKey='artifactory.task.ivy.targets' name='builder.artifactoryIvyBuilder.target' required='true'/]
+[#--Build--]
+[@ui.bambooSection titleKey='artifactory.task.buildConfigurationsTitle' collapsible=true]
+    [@ww.textfield labelKey='artifactory.task.ivy.buildFile' name='builder.artifactoryIvyBuilder.buildFile' required='true' /]
+    [@ww.textfield labelKey='artifactory.task.ivy.targets' name='builder.artifactoryIvyBuilder.target' required='true'/]
 
-<div id="buildJdkSelectionDiv">
-    [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
-    [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryIvyBuilder.buildJdk' cssClass="jdkSelectWidget"
-    list=uiConfigBean.jdkLabels required='true'
-    extraUtility=addJdkLink /]
-</div>
-<div id="buildJdkOverridenDiv">
-</div>
+    <div id="buildJdkSelectionDiv">
+        [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
+        [@ww.select labelKey='builder.common.jdk' name='builder.artifactoryIvyBuilder.buildJdk' cssClass="jdkSelectWidget"
+        list=uiConfigBean.jdkLabels required='true'
+        extraUtility=addJdkLink /]
+    </div>
+    <div id="buildJdkOverridenDiv">
+    </div>
 
-[#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='ivy'/][/#assign]
-[@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryIvyBuilder.executable'
-list=uiConfigBean.getExecutableLabels('ivy') extraUtility=addExecutableLink required='true' /]
-[@ww.textfield labelKey='builder.common.env' name='builder.artifactoryIvyBuilder.environmentVariables' /]
-[@ww.textfield labelKey='artifactory.task.ivy.antOpts' name='builder.artifactoryIvyBuilder.antOpts'/]
-[@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryIvyBuilder.workingSubDirectory' /]
+    [#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='ivy'/][/#assign]
+    [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryIvyBuilder.executable'
+    list=uiConfigBean.getExecutableLabels('ivy') extraUtility=addExecutableLink required='true' /]
+    [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryIvyBuilder.environmentVariables' /]
+    [@ww.textfield labelKey='artifactory.task.ivy.antOpts' name='builder.artifactoryIvyBuilder.antOpts'/]
+    [@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryIvyBuilder.workingSubDirectory' /]
 
-[@ui.bambooSection id="deploymentSection"]
+    [@ui.bambooSection titleKey='builder.common.tests.directory.description']
+        [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
+        [@ui.bambooSection dependsOn='testChecked' showOn=true]
+            [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
+            listKey='key' listValue='value' toggle='true'
+            list=testDirectoryTypes /]
+            [@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
+                [@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryIvyBuilder.testResultsDirectory' /]
+            [/@ui.bambooSection]
+        [/@ui.bambooSection]
+    [/@ui.bambooSection]
+[/@ui.bambooSection]
+
+[#--Deployment--]
+[@ui.bambooSection id="deploymentSection" titleKey='artifactory.task.deploymentConfigurationsTitle' collapsible=true]
     [@ww.select name='builder.artifactoryIvyBuilder.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayIvyArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
 
@@ -43,33 +59,23 @@ list=uiConfigBean.getExecutableLabels('ivy') extraUtility=addExecutableLink requ
             [/@ui.bambooSection]
         [/@ui.bambooSection]
 
-        [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
-        [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
-            [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
-            [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
-                [#include 'editEnvVarsSnippet.ftl'/]
+        [#--Build Info and Release Management--]
+        [@ui.bambooSection titleKey='artifactory.task.buildInfoTitle' collapsible=true]
+            [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
+            [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
+                [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
+                [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
+                    [#include 'editEnvVarsSnippet.ftl'/]
+                [/@ui.bambooSection]
             [/@ui.bambooSection]
-        [/@ui.bambooSection]
-        [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
-            [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
-            [@ui.bambooSection dependsOn='publishBuildInfo' id="publishBuildInfoSet" showOn=true]
-                [#include 'editEnvVarsSnippet.ftl'/]
-            [/@ui.bambooSection]
-        [/@ui.bambooSection]
-
-        [@ui.bambooSection titleKey='builder.common.tests.directory.description']
-            [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
-            [@ui.bambooSection dependsOn='testChecked' showOn=true]
-                [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption'
-                listKey='key' listValue='value' toggle='true'
-                list=testDirectoryTypes ]
-                [/@ww.radio]
-
-                [@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
-                    [@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryIvyBuilder.testResultsDirectory' /]
+            [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
+                [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
+                [@ui.bambooSection dependsOn='publishBuildInfo' id="publishBuildInfoSet" showOn=true]
+                    [#include 'editEnvVarsSnippet.ftl'/]
                 [/@ui.bambooSection]
             [/@ui.bambooSection]
         [/@ui.bambooSection]
+
     </div>
 [/@ui.bambooSection]
 

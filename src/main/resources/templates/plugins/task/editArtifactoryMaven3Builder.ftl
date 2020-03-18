@@ -1,38 +1,55 @@
-[@ww.textfield labelKey='artifactory.task.maven.projectFile' name='builder.artifactoryMaven3Builder.projectFile' /]
-[@ww.textarea labelKey='artifactory.task.maven.goals' name='builder.artifactoryMaven3Builder.goal' rows='4' required='true' /]
-[@ww.textarea labelKey='artifactory.task.maven.additionalMavenParams' name='builder.artifactoryMaven3Builder.additionalMavenParams' rows='2' required='false' /]
+[#--Build--]
+[@ui.bambooSection titleKey='artifactory.task.buildConfigurationsTitle' collapsible=true]
+    [#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='maven'/][/#assign]
+    [@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryMaven3Builder.executable' list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink required='true' /]
 
-<div id="buildJdkSelectionDiv">
-    [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
-    [@ww.select labelKey='artifactory.task.maven.buildJdk' name='builder.artifactoryMaven3Builder.buildJdk' cssClass="jdkSelectWidget"
-    list=uiConfigBean.jdkLabels required='true'
-    extraUtility=addJdkLink /]
-</div>
-<div id="buildJdkOverridenDiv">
-</div>
+    [@ww.textarea labelKey='artifactory.task.maven.goals' name='builder.artifactoryMaven3Builder.goal' rows='4' required='true' /]
+    [@ww.textarea labelKey='artifactory.task.maven.additionalMavenParams' name='builder.artifactoryMaven3Builder.additionalMavenParams' rows='2' required='false' /]
+    [@ww.textfield labelKey='artifactory.task.maven.mavenOpts' name='builder.artifactoryMaven3Builder.mavenOpts' /]
 
-[#assign addExecutableLink][@ui.displayAddExecutableInline executableKey='maven'/][/#assign]
-[@ww.select cssClass="builderSelectWidget" labelKey='executable.type' name='builder.artifactoryMaven3Builder.executable' list=uiConfigBean.getExecutableLabels('maven') extraUtility=addExecutableLink required='true' /]
-[@ww.textfield labelKey='builder.common.env' name='builder.artifactoryMaven3Builder.environmentVariables' /]
-[@ww.textfield labelKey='artifactory.task.maven.mavenOpts' name='builder.artifactoryMaven3Builder.mavenOpts' /]
-[@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryMaven3Builder.workingSubDirectory' /]
-
-[@ww.checkbox labelKey='artifactory.task.maven.resolveFromArtifacts' name='resolveFromArtifacts' toggle='true' /]
-[@ui.bambooSection id="resolutionSection" dependsOn='resolveFromArtifacts' showOn=true]
-    [@ww.select name='builder.artifactoryMaven3Builder.resolutionArtifactoryServerId' labelKey='artifactory.task.maven.resolutionArtifactoryServerUrl' list=serverConfigManager.allServerConfigs listKey='id' listValue='url' onchange='javascript: displayResolutionMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true' /]
-    <div id="maven3ArtifactoryResolutionConfigDiv">
-        [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='artifactory.task.maven.resolutionRepo' list=dummyList
-        listKey='repoKey' listValue='repoKey' toggle='true' /]
-        <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
-        [@ww.textfield labelKey='artifactory.task.maven.resolverUsername' name='builder.artifactoryMaven3Builder.resolverUsername' onchange='javascript: overridingCredentialsChanged("resolution")' /]
-        [@ww.password labelKey='artifactory.task.maven.resolverPassword' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("resolution")' /]
-        [#--The Dummy password is a workaround for the autofill (Chrome)--]
-        [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+    <div id="buildJdkSelectionDiv">
+        [#assign addJdkLink][@ui.displayAddJdkInline /][/#assign]
+        [@ww.select labelKey='artifactory.task.maven.buildJdk' name='builder.artifactoryMaven3Builder.buildJdk' cssClass="jdkSelectWidget"
+        list=uiConfigBean.jdkLabels required='true'
+        extraUtility=addJdkLink /]
     </div>
+    <div id="buildJdkOverridenDiv"/>
+
+    [@ww.textfield labelKey='builder.common.env' name='builder.artifactoryMaven3Builder.environmentVariables' /]
+    [@ww.textfield labelKey='builder.common.sub' name='builder.artifactoryMaven3Builder.workingSubDirectory' /]
+    [@ww.textfield labelKey='artifactory.task.maven.projectFile' name='builder.artifactoryMaven3Builder.projectFile' /]
+
+    [@ui.bambooSection titleKey='builder.common.tests.directory.description']
+        [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
+        [@ui.bambooSection dependsOn='testChecked' showOn=true]
+            [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption' listKey='key' listValue='value' toggle='true' list=testDirectoryTypes /]
+            [@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
+                [@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryMaven3Builder.testResultsDirectory' /]
+            [/@ui.bambooSection]
+        [/@ui.bambooSection]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 
-[@ui.bambooSection id="deploymentSection"]
+[#--Resolution--]
+[@ui.bambooSection titleKey='artifactory.task.resolutionConfigurationsTitle' collapsible=true]
+    [@ww.checkbox labelKey='artifactory.task.maven.resolveFromArtifacts' name='resolveFromArtifacts' toggle='true' /]
+    [@ui.bambooSection id="resolutionSection" dependsOn='resolveFromArtifacts' showOn=true ]
+        [@ww.select name='builder.artifactoryMaven3Builder.resolutionArtifactoryServerId' labelKey='artifactory.task.maven.resolutionArtifactoryServerUrl' list=serverConfigManager.allServerConfigs listKey='id' listValue='url' onchange='javascript: displayResolutionMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true' /]
+        <div id="maven3ArtifactoryResolutionConfigDiv">
+            [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='artifactory.task.maven.resolutionRepo' list=dummyList
+            listKey='repoKey' listValue='repoKey' toggle='true' /]
+            <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%" />
+            [@ww.textfield labelKey='artifactory.task.maven.resolverUsername' name='builder.artifactoryMaven3Builder.resolverUsername' onchange='javascript: overridingCredentialsChanged("resolution")' /]
+            [@ww.password labelKey='artifactory.task.maven.resolverPassword' name='builder.artifactoryMaven3Builder.resolverPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("resolution")' /]
+            [#--The Dummy password is a workaround for the autofill (Chrome)--]
+            [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+        </div>
+    [/@ui.bambooSection]
+[/@ui.bambooSection]
+
+[#--Deployment--]
+[@ui.bambooSection id="deploymentSection" titleKey='artifactory.task.deploymentConfigurationsTitle' collapsible=true]
     [@ww.select name='builder.artifactoryMaven3Builder.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayMaven3ArtifactoryConfigs(this.value)' emptyOption=true toggle='true' /]
     <div id="maven3ArtifactoryConfigDiv">
@@ -51,39 +68,32 @@
             [@ww.textfield labelKey='artifactory.task.deployExcludePatterns' name='builder.artifactoryMaven3Builder.deployExcludePatterns' /]
             [@ww.checkbox labelKey='artifactory.task.filterExcludedArtifactsFromBuild' name='builder.artifactoryMaven3Builder.filterExcludedArtifactsFromBuild' toggle="true"/]
         [/@ui.bambooSection]
-
-        [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
-        [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
-            [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
-            [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
-                [#include 'editEnvVarsSnippet.ftl'/]
-            [/@ui.bambooSection]
-        [/@ui.bambooSection]
-        [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
-            [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
-            [@ui.bambooSection dependsOn='publishBuildInfo' id="publishBuildInfoSet" showOn=true]
-                [#include 'editEnvVarsSnippet.ftl'/]
-            [/@ui.bambooSection]
-        [/@ui.bambooSection]
-
-        [@ww.checkbox labelKey='artifactory.task.release.enableReleaseManagement' name='enableReleaseManagement' toggle='true'/]
-        [@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
-            [@ww.textfield labelKey='artifactory.task.release.vcsTagBase' name='builder.artifactoryMaven3Builder.vcsTagBase'/]
-            [@ww.textfield labelKey='artifactory.task.release.gitReleaseBranch' name='builder.artifactoryMaven3Builder.gitReleaseBranch'/]
-            [@ww.textfield labelKey='artifactory.task.release.alternativeTasks' name='builder.artifactoryMaven3Builder.alternativeTasks'/]
-            [#include 'vcsConfiguration.ftl'/]
-        [/@ui.bambooSection]
-
-        [@ui.bambooSection titleKey='builder.common.tests.directory.description']
-            [@ww.checkbox labelKey='builder.common.tests.exists' name='testChecked' toggle='true'/]
-            [@ui.bambooSection dependsOn='testChecked' showOn=true]
-                [@ww.radio labelKey='builder.common.tests.directory' name='testDirectoryOption' listKey='key' listValue='value' toggle='true' list=testDirectoryTypes /]
-                [@ui.bambooSection dependsOn='testDirectoryOption' showOn='customTestDirectory']
-                    [@ww.textfield labelKey='builder.common.tests.directory.custom' name='builder.artifactoryMaven3Builder.testResultsDirectory' /]
-                [/@ui.bambooSection]
-            [/@ui.bambooSection]
-        [/@ui.bambooSection]
     </div>
+[/@ui.bambooSection]
+
+[#--Build Info and Release Management--]
+[@ui.bambooSection titleKey='artifactory.task.buildInfoReleaseManagementTitle' collapsible=true]
+    [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
+    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
+        [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
+            [#include 'editEnvVarsSnippet.ftl'/]
+        [/@ui.bambooSection]
+    [/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
+        [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='publishBuildInfo' toggle='true'/]
+        [@ui.bambooSection dependsOn='publishBuildInfo' id="publishBuildInfoSet" showOn=true]
+            [#include 'editEnvVarsSnippet.ftl'/]
+        [/@ui.bambooSection]
+    [/@ui.bambooSection]
+
+    [@ww.checkbox labelKey='artifactory.task.release.enableReleaseManagement' name='enableReleaseManagement' toggle='true'/]
+    [@ui.bambooSection dependsOn='enableReleaseManagement' showOn=true]
+        [@ww.textfield labelKey='artifactory.task.release.vcsTagBase' name='builder.artifactoryMaven3Builder.vcsTagBase'/]
+        [@ww.textfield labelKey='artifactory.task.release.gitReleaseBranch' name='builder.artifactoryMaven3Builder.gitReleaseBranch'/]
+        [@ww.textfield labelKey='artifactory.task.release.alternativeTasks' name='builder.artifactoryMaven3Builder.alternativeTasks'/]
+        [#include 'vcsConfiguration.ftl'/]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 
 <script>
