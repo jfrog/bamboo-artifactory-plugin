@@ -14,8 +14,8 @@ import java.util.Map;
  */
 public class IvyDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
 
-    public IvyDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context, AbstractBuildContext buildContext, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion) {
-        super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion);
+    public IvyDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context, AbstractBuildContext buildContext, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion, boolean aggregateBuildInfo) {
+        super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion, aggregateBuildInfo);
     }
 
     @Override

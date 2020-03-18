@@ -61,12 +61,19 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
 
     public MavenAndIvyBuildInfoDataHelperBase(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
                                               AbstractBuildContext abstractBuildContext,
-                                              EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion) {
+                                              EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion,
+                                              boolean aggregateBuildInfo) {
         BuildContext buildContext = context.getBuildContext();
         super.init(buildParamsOverrideManager, buildContext);
         long selectedServerId = abstractBuildContext.getArtifactoryServerId();
+        clientConf = new ArtifactoryClientConfiguration(new NullLog());
         if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
             setDeployerProperties(abstractBuildContext);
+            setBuilderData(abstractBuildContext, selectedServerConfig, clientConf, envVarAccessor.getEnvironment(context),
+                    envVarAccessor.getEnvironment(), artifactoryPluginVersion);
+            setDataToContext(buildContext, abstractBuildContext);
+        } else if (aggregateBuildInfo) {
+            // In case of no deployment configured, but build-info collection is activated.
             setBuilderData(abstractBuildContext, selectedServerConfig, clientConf, envVarAccessor.getEnvironment(context),
                     envVarAccessor.getEnvironment(), artifactoryPluginVersion);
             setDataToContext(buildContext, abstractBuildContext);
@@ -78,20 +85,21 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         if (selectedServerConfig == null) {
             return false;
         }
-        clientConf = new ArtifactoryClientConfiguration(new NullLog());
         return true;
     }
 
     private void setDataToContext(BuildContext context, AbstractBuildContext buildContext) {
-        String serverUrl = serverConfigManager.substituteVariables(selectedServerConfig.getUrl());
+        if (selectedServerConfig != null) {
+            String serverUrl = serverConfigManager.substituteVariables(selectedServerConfig.getUrl());
+            context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
+        }
         context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
-        context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
         context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
                 String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
     }
 
-    public String createBuildInfoPropsFileAndGetItsPath() throws IOException {
-        if (selectedServerConfig == null) {
+    public String createBuildInfoPropsFileAndGetItsPath(boolean shouldCaptureBuildInfo) throws IOException {
+        if (selectedServerConfig == null && !shouldCaptureBuildInfo) {
             return null;
         }
         try {
@@ -107,9 +115,6 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
     }
 
     public String createBuildInfoJSonFileAndGetItsPath() throws IOException {
-        if (selectedServerConfig == null) {
-            return null;
-        }
         try {
             File buildInfoJsonTempFile = File.createTempFile(BuildInfoFields.GENERATED_BUILD_INFO, ".json");
             clientConf.info.setGeneratedBuildInfoFilePath(buildInfoJsonTempFile.getAbsolutePath());
@@ -186,7 +191,9 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
 
         setClientData(buildContext, clientConf, serverConfig, environment);
-        setPublisherData(buildContext, clientConf, serverConfig, environment);
+        if (selectedServerConfig != null) {
+            setPublisherData(buildContext, clientConf, serverConfig, environment);
+        }
 
         Map<String, String> props = Maps.newHashMap(environment);
         props.putAll(generalEnv);
