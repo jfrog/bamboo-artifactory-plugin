@@ -95,8 +95,9 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
 
     @Override
     protected void resetResolverConfigIfNeeded(AbstractBuildContext buildContext) {
-        long serverId = ((Maven3BuildContext) buildContext).getResolutionArtifactoryServerId();
-        if (serverId == -1) {
+        long serverId = buildContext.getResolutionArtifactoryServerId();
+        boolean resolveFromArtifactory = ((Maven3BuildContext) buildContext).isResolveFromArtifactory();
+        if (serverId == -1 || !resolveFromArtifactory) {
             buildContext.resetResolverContextToDefault();
         }
     }

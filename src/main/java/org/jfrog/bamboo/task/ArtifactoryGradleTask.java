@@ -75,9 +75,9 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         gradleBuildContext = createBuildContext(context);
         initEnvironmentVariables(gradleBuildContext);
-        aggregateBuildInfo = gradleBuildContext.shouldAggregateBuildInfo(context, gradleBuildContext.getArtifactoryServerId());
+        aggregateBuildInfo = gradleBuildContext.shouldAggregateBuildInfo(context);
         gradleDataHelper = new GradleDataHelper(buildParamsOverrideManager, context, gradleBuildContext,
-                administrationConfiguration, environmentVariableAccessor, artifactoryPluginVersion);
+                administrationConfiguration, environmentVariableAccessor, artifactoryPluginVersion, aggregateBuildInfo);
     }
 
     @Override
@@ -129,15 +129,17 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
 
         // Read init-script, create and write data to buildinfo.properties.
         ConfigurationPathHolder pathHolder = getGradleInitScriptFile(gradleDataHelper, gradleBuildContext, aggregateBuildInfo);
-
-        // Add initscript path and artifactoryPublish task to command.
         if (pathHolder != null) {
+            // Add initscript path and artifactoryPublish task to command.
             if (!gradleBuildContext.useArtifactoryGradlePlugin()) {
                 command.add("-I");
                 command.add(Commandline.quoteArgument(pathHolder.getInitScriptPath()));
             }
             TaskUtils.appendBuildInfoPropertiesArgument(command, pathHolder.getClientConfPath());
             command.add(ArtifactoryTask.ARTIFACTORY_PUBLISH_TASK_NAME);
+        } else {
+            // Disable build-info aggregation.
+            aggregateBuildInfo = false;
         }
 
         String subDirectory = gradleBuildContext.getBuildScript();
@@ -187,7 +189,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         File gradleJarFile = new File(gradleDependenciesDir, PluginProperties
                 .getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
         if (!gradleJarFile.exists()) {
-            log.warn("Unable to locate the Gradle extractor. Build-info task will not be added.");
+            log.warn(logger.addBuildLogEntry("Unable to locate the Gradle extractor. Build-info task will not be added."));
             return null;
         }
 
@@ -198,13 +200,13 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
             ZipEntry initScriptEntry = gradleJar.getEntry("initscripttemplate.gradle");
 
             if (initScriptEntry == null) {
-                log.warn("Unable to locate the Gradle init script. Build-info task will not be added.");
+                log.warn(logger.addBuildLogEntry("Unable to locate the Gradle init script. Build-info task will not be added."));
                 return null;
             }
 
             initScriptStream = gradleJar.getInputStream(initScriptEntry);
             if (initScriptStream == null) {
-                log.warn("Unable to locate the gradle init script template. Build-info task will not be added.");
+                log.warn(logger.addBuildLogEntry("Unable to locate the gradle init script template. Build-info task will not be added."));
                 return null;
             }
 
@@ -217,8 +219,8 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
             }
             return configurationPathHolder;
         } catch (IOException e) {
-            log.warn("Unable to read from the Gradle extractor jar. Build-info task will not be added: " +
-                    e.getMessage());
+            log.warn(logger.addBuildLogEntry("Unable to read from the Gradle extractor jar. Build-info task will not be added: " +
+                    e.getMessage()));
             return null;
         } finally {
             IOUtils.closeQuietly(initScriptStream);
@@ -227,7 +229,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
                     gradleJar.close();
                 }
             } catch (IOException e) {
-                log.warn("Unable to close the Gradle extractor jar: " + e.getMessage());
+                log.warn(logger.addBuildLogEntry("Unable to close the Gradle extractor jar: " + e.getMessage()));
             }
         }
     }
@@ -252,7 +254,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
      */
     private String extractGradleDependencies(long artifactoryServerId, File rootDirectory,
                                              GradleBuildContext context) throws IOException {
-        if (artifactoryServerId == -1) {
+        if (artifactoryServerId == -1 && !aggregateBuildInfo) {
             return null;
         }
 

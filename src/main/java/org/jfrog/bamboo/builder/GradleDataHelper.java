@@ -67,12 +67,12 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
     private String resolverUsername;
     private String resolverPassword;
 
-    public GradleDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context, GradleBuildContext buildContext, AdministrationConfiguration administrationConfiguration, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion) {
+    public GradleDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context, GradleBuildContext buildContext, AdministrationConfiguration administrationConfiguration, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion, boolean aggregateBuildInfo) {
         super.init(buildParamsOverrideManager, context.getBuildContext());
         setAdministrationConfiguration(administrationConfiguration);
 
         long selectedServerId = buildContext.getArtifactoryServerId();
-        if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
+        if ((selectedServerId != -1 && isServerConfigured(context, selectedServerId)) || aggregateBuildInfo) {
             // Initialize configurations.
             configuration = createClientConfiguration(buildContext, selectedServerConfig, envVarAccessor.getEnvironment(context), artifactoryPluginVersion);
         }
@@ -84,7 +84,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
     }
 
     public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir, GradleBuildContext buildContext, String scriptTemplate, Map<String, String> generalEnv, boolean aggregateBuildInfo) {
-        if (selectedServerConfig == null) {
+        if (selectedServerConfig == null && !aggregateBuildInfo) {
             return null;
         }
 
@@ -114,10 +114,12 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
             if (buildContext.isPublishBuildInfo() || buildContext.isCaptureBuildInfo()) {
                 this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM,
                         "true");
-                this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
-                        selectedServerConfig.getUrl());
                 this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_RELEASE_ACTIVATED_PARAM,
                         String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
+                if (selectedServerConfig != null) {
+                    this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM,
+                            selectedServerConfig.getUrl());
+                }
             }
             return new ConfigurationPathHolder(tempInitScript.getCanonicalPath(),
                     buildProps.getCanonicalPath());
@@ -185,7 +187,18 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
 
         clientConf.info.setReleaseEnabled(buildContext.releaseManagementContext.isActivateReleaseManagement());
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
-        addClientProperties(clientConf, serverConfig, buildContext, taskEnv);
+
+        if (serverConfig != null) {
+            addClientProperties(clientConf, serverConfig, buildContext, taskEnv);
+        }
+
+        // If captureBuildInfo is set, then should aggregate build-info and not publish by the build-info process.
+        if (buildContext.isCaptureBuildInfo()) {
+            clientConf.publisher.setPublishBuildInfo(false);
+        } else {
+            clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
+        }
+
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
         clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
@@ -256,13 +269,6 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
                 clientConf.publisher.setIvyPattern(buildContext.getIvyPattern());
                 clientConf.publisher.setIvyArtifactPattern(buildContext.getArtifactPattern());
             }
-        }
-
-        // If captureBuildInfo is set, then should aggregate build-info and not publish by the build-info process.
-        if (buildContext.isCaptureBuildInfo()) {
-            clientConf.publisher.setPublishBuildInfo(false);
-        } else {
-            clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
         }
 
         clientConf.publisher.setIvy(buildContext.isPublishIvyDescriptors());

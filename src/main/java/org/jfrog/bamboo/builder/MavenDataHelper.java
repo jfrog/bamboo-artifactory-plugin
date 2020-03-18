@@ -26,12 +26,12 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
 
     public MavenDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
                            AbstractBuildContext buildContext, EnvironmentVariableAccessor envVarAccessor,
-                           String artifactoryPluginVersion) {
-        super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion);
+                           String artifactoryPluginVersion, boolean aggregateBuildInfo) {
+        super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion, aggregateBuildInfo);
         long selectedServerId = buildContext.getArtifactoryServerId();
         if (selectedServerId == -1) {
             // No deployment server configured, configure resolution server if needed.
-            selectedServerId = ((Maven3BuildContext) buildContext).getResolutionArtifactoryServerId();
+            selectedServerId = buildContext.getResolutionArtifactoryServerId();
             if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
                 setClientData(buildContext, clientConf, selectedServerConfig, envVarAccessor.getEnvironment(context));
             }

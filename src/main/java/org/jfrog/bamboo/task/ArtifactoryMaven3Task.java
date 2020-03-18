@@ -72,9 +72,9 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         mavenBuildContext = createBuildContext(taskContext);
         initEnvironmentVariables(mavenBuildContext);
-        aggregateBuildInfo = mavenBuildContext.shouldAggregateBuildInfo(taskContext, mavenBuildContext.getResolutionArtifactoryServerId());
+        aggregateBuildInfo = mavenBuildContext.shouldAggregateBuildInfo(taskContext);
         mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
-                mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion);
+                mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion, aggregateBuildInfo);
     }
 
     @Override
@@ -105,7 +105,11 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
             // Save config to buildinfo.properties.
             createBuildInfoFiles(aggregateBuildInfo, mavenDataHelper);
             mavenDataHelper.addPasswordsSystemProps(systemProps, mavenBuildContext, taskContext);
+        } else {
+            // If buildinfo.properties was not created, cannot collect build info.
+            aggregateBuildInfo = false;
         }
+
         String subDirectory = mavenBuildContext.getWorkingSubDirectory();
         if (StringUtils.isNotBlank(subDirectory)) {
             rootDirectory = new File(rootDirectory, subDirectory);
@@ -327,7 +331,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     private String extractMaven3Dependencies(File rootDir, long artifactoryServerId, Maven3BuildContext mavenBuildContext)
             throws IOException {
 
-        if (artifactoryServerId == -1) {
+        if (artifactoryServerId == -1 && !aggregateBuildInfo) {
             return null;
         }
 
