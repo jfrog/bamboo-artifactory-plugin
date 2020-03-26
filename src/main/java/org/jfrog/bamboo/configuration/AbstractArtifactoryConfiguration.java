@@ -60,7 +60,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     public static final Map USE_SPECS_OPTIONS = ImmutableMap.of(CFG_FILE_SPECS, "Specs", CFG_LEGACY_PATTERNS, "Legacy patterns (deprecated)");
     public static final String CFG_SPEC_SOURCE_FILE = "file";
     public static final String CFG_SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";
-    public static final Map<String, String> CFG_SPEC_SOURCE = ImmutableMap.of(CFG_SPEC_SOURCE_JOB_CONFIGURATION, "Job configuration", CFG_SPEC_SOURCE_FILE, "File");
+    public static final Map<String, String> CFG_SPEC_SOURCE = ImmutableMap.of(CFG_SPEC_SOURCE_JOB_CONFIGURATION, "Task configuration", CFG_SPEC_SOURCE_FILE, "File");
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of("false", "Don't Sign", "true", "Sign");
     public static final String SIGN_METHOD_MAP_KEY = "signMethods";
     protected transient ServerConfigManager serverConfigManager;
