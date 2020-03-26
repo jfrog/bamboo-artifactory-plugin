@@ -2,10 +2,13 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
 
@@ -29,11 +32,6 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
     @Override
     protected String getKey() {
         return KEY;
-    }
-
-    @Override
-    protected String getDeployableRepoKey() {
-        return IvyBuildContext.DEPLOYABLE_REPO_KEY;
     }
 
     @Override
@@ -93,5 +91,33 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
     @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition definition) {
         return new IvyBuildContext(definition.getConfiguration()).isTestChecked();
+    }
+
+    @Override
+    public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        // Validate deployment server.
+        String resolutionServerKey = IvyBuildContext.PREFIX + IvyBuildContext.SERVER_ID_PARAM;
+        String resolutionRepoKey = IvyBuildContext.PREFIX + IvyBuildContext.DEPLOYABLE_REPO_KEY;
+        TaskConfigurationValidations.validateArtifactoryServerAndRepo(resolutionServerKey, resolutionRepoKey, serverConfigManager, params, errorCollection);
+
+        // Validate Build File.
+        String buildFileKey = IvyBuildContext.PREFIX + IvyBuildContext.BUILD_FILE;
+        if (StringUtils.isBlank(params.getString(buildFileKey))) {
+            errorCollection.addError(buildFileKey, "Please specify Build File.");
+        }
+
+        // Validate Targets.
+        String targetsKey = IvyBuildContext.PREFIX + IvyBuildContext.TARGET_OPTS_PARAM;
+        if (StringUtils.isBlank(params.getString(targetsKey))) {
+            errorCollection.addError(targetsKey, "Please specify Targets.");
+        }
+
+        // Validate Build JDK.
+        String buildJdkKey = IvyBuildContext.PREFIX + AbstractBuildContext.JDK;
+        TaskConfigurationValidations.validateJdk(buildJdkKey, params, errorCollection);
+
+        // Validate Executable.
+        String executableKey = IvyBuildContext.PREFIX + AbstractBuildContext.EXECUTABLE;
+        TaskConfigurationValidations.validateExecutable(executableKey, params, errorCollection);
     }
 }

@@ -3,10 +3,13 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 
@@ -107,11 +110,6 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     }
 
     @Override
-    protected String getDeployableRepoKey() {
-        return Maven3BuildContext.DEPLOYABLE_REPO_KEY;
-    }
-
-    @Override
     protected String getDefaultTestDirectory() {
         return DEFAULT_TEST_RESULTS_FILE_PATTERN;
     }
@@ -119,5 +117,35 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition definition) {
         return new Maven3BuildContext(definition.getConfiguration()).isTestChecked();
+    }
+
+    @Override
+    public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        // Validate resolution server.
+        String resolutionServerKey = Maven3BuildContext.PREFIX + Maven3BuildContext.RESOLUTION_SERVER_ID_PARAM;
+        String resolutionRepoKey = Maven3BuildContext.PREFIX + Maven3BuildContext.RESOLUTION_REPO_PARAM;
+        TaskConfigurationValidations.validateArtifactoryServerAndRepo(resolutionServerKey, resolutionRepoKey, serverConfigManager, params, errorCollection);
+
+        // Validate deployment server.
+        String deploymentServerKey = Maven3BuildContext.PREFIX + Maven3BuildContext.SERVER_ID_PARAM;
+        String deploymentRepoKey = Maven3BuildContext.PREFIX + Maven3BuildContext.DEPLOYABLE_REPO_KEY;
+        TaskConfigurationValidations.validateArtifactoryServerAndRepo(deploymentServerKey, deploymentRepoKey, serverConfigManager, params, errorCollection);
+
+        // Validate Goals.
+        String goalsKey = Maven3BuildContext.PREFIX + Maven3BuildContext.GOALS;
+        if (StringUtils.isBlank(params.getString(goalsKey))) {
+            errorCollection.addError(goalsKey, "Please specify Goals.");
+        }
+
+        // Validate Build JDK.
+        String buildJdkKey = Maven3BuildContext.PREFIX + AbstractBuildContext.JDK;
+        TaskConfigurationValidations.validateJdk(buildJdkKey, params, errorCollection);
+
+        // Validate Executable.
+        String executableKey = Maven3BuildContext.PREFIX + AbstractBuildContext.EXECUTABLE;
+        TaskConfigurationValidations.validateExecutable(executableKey, params, errorCollection);
+
+        // Validate release management.
+        TaskConfigurationValidations.validateReleaseManagement(params, errorCollection);
     }
 }

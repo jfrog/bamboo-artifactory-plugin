@@ -3,12 +3,15 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
+import org.jfrog.bamboo.context.Maven3BuildContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -103,11 +106,6 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     }
 
     @Override
-    protected String getDeployableRepoKey() {
-        return GradleBuildContext.PUBLISHING_REPO_PARAM;
-    }
-
-    @Override
     protected String getDefaultTestDirectory() {
         return DEFAULT_TEST_REPORTS_XML;
     }
@@ -115,5 +113,29 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition definition) {
         return new GradleBuildContext(definition.getConfiguration()).isTestChecked();
+    }
+
+    @Override
+    public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        // Validate resolution server.
+        String resolutionServerKey = GradleBuildContext.PREFIX + GradleBuildContext.RESOLUTION_SERVER_ID_PARAM;
+        String resolutionRepoKey = Maven3BuildContext.PREFIX + GradleBuildContext.RESOLUTION_REPO_PARAM;
+        TaskConfigurationValidations.validateArtifactoryServerAndRepo(resolutionServerKey, resolutionRepoKey, serverConfigManager, params, errorCollection);
+
+        // Validate deployment server.
+        String deploymentServerKey = GradleBuildContext.PREFIX + GradleBuildContext.SERVER_ID_PARAM;
+        String deploymentRepoKey = GradleBuildContext.PREFIX + GradleBuildContext.PUBLISHING_REPO_PARAM;
+        TaskConfigurationValidations.validateArtifactoryServerAndRepo(deploymentServerKey, deploymentRepoKey, serverConfigManager, params, errorCollection);
+
+        // Validate Build JDK.
+        String buildJdkKey = GradleBuildContext.PREFIX + AbstractBuildContext.JDK;
+        TaskConfigurationValidations.validateJdk(buildJdkKey, params, errorCollection);
+
+        // Validate Executable.
+        String executableKey = GradleBuildContext.PREFIX + AbstractBuildContext.EXECUTABLE;
+        TaskConfigurationValidations.validateExecutable(executableKey, params, errorCollection);
+
+        // Validate release management.
+        TaskConfigurationValidations.validateReleaseManagement(params, errorCollection);
     }
 }

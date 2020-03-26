@@ -2,8 +2,10 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.utils.error.ErrorCollection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.XrayScanContext;
 
 import java.util.Map;
@@ -40,11 +42,6 @@ public class ArtifactoryXrayScanConfiguration extends AbstractArtifactoryConfigu
     }
 
     @Override
-    protected String getDeployableRepoKey() {
-        return null;
-    }
-
-    @Override
     public boolean taskProducesTestResults(@NotNull TaskDefinition taskDefinition) {
         return false;
     }
@@ -59,4 +56,9 @@ public class ArtifactoryXrayScanConfiguration extends AbstractArtifactoryConfigu
         return configMap;
     }
 
+    @Override
+    public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        // Validate scan server.
+        TaskConfigurationValidations.validateArtifactoryServerProvidedAndValid(XrayScanContext.SERVER_ID_PARAM, serverConfigManager, params, errorCollection);
+    }
 }
