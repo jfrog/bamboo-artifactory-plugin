@@ -1,13 +1,12 @@
 [#import "/lib/build.ftl" as bd]
 [@ww.head theme='ajax'/]
 [@ww.label labelKey='Executable' name='builder.artifactoryMaven3Builder.executable' /]
-[@ww.label labelKey='Project File' name='builder.artifactoryMaven3Builder.projectFile' hideOnNull='true' /]
 [@ww.label labelKey='Goals' name='builder.artifactoryMaven3Builder.goal' /]
 [@ww.label labelKey='Additional Maven Parameters' name='builder.artifactoryMaven3Builder.additionalMavenParams' hideOnNull='true'/]
-[#--[@ui.displayJdk jdkLabel=buildJdk isJdkValid=uiConfigBean.isJdkLabelValid(buildJdk) /]--]
+[@ww.label labelKey='builder.common.sub' name='builder.artifactoryMaven3Builder.workingSubDirectory' hideOnNull='true' /]
+[@ww.label labelKey='Project File' name='builder.artifactoryMaven3Builder.projectFile' hideOnNull='true' /]
 [@ww.label labelKey='builder.common.env' name='builder.artifactoryMaven3Builder.environmentVariables' hideOnNull='true'/]
 [@ww.label labelKey='Maven Opts' name='builder.artifactoryMaven3Builder.mavenOpts' hideOnNull='true'/]
-[@ww.label labelKey='builder.common.sub' name='builder.artifactoryMaven3Builder.workingSubDirectory' hideOnNull='true' /]
 
 <div id="artifactoryConfigDiv" style='display: none'>
 [@ww.label labelKey='Artifactory Server URL' name='builder.artifactoryMaven3Builder.artifactoryServerId' /]
@@ -20,10 +19,6 @@
 [@ww.label labelKey='Filter excluded artifacts from build Info' name='builder.artifactoryMaven3Builder.filterExcludedArtifactsFromBuild'/]
 [/#if]
 </div>
-
-[#--[#if build.buildDefinition.builder.hasTests()]
-[@ww.label labelKey='builder.common.tests.directory' name='builder.artifactoryMaven3Builder.testResultsDirectory' hideOnNull='true' /]
-[/#if]--]
 
 <script>
     var urlLabel = document.getElementById('builder_artifactoryMaven3Builder_artifactoryServerId');
