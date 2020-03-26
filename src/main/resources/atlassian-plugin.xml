@@ -109,7 +109,7 @@
 
     <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy"
               class="org.jfrog.bamboo.task.ArtifactoryGenericDeployTask">
-        <description>Upload build artifacts to Artifactory using FileSpecs while allowing to collect build-info.</description>
+        <description>Upload build artifacts to Artifactory using File Specs while collecting build-info.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
@@ -123,7 +123,7 @@
     <!--Generic build resolve task-->
     <taskType key="artifactoryGenericResolveTask" name="Artifactory Generic Resolve"
               class="org.jfrog.bamboo.task.ArtifactoryGenericResolveTask">
-        <description>Download artifacts from Artifactory using FileSpecs, while allowing to collect build-info.</description>
+        <description>Download artifacts from Artifactory using File Specs, while collecting build-info.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
         <resource type="freemarker" name="edit"
@@ -215,7 +215,7 @@
     <!--Npm task-->
     <taskType key="artifactoryNpmTask" name="Artifactory Npm"
               class="org.jfrog.bamboo.task.ArtifactoryNpmTask">
-        <description>Install, pack and deploy npm packages to Artifactory.</description>
+        <description>Install, pack and deploy npm packages from and to Artifactory.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryNpmConfiguration"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.NpmCapabilityHelper"/>
@@ -339,7 +339,7 @@
     <!--Deployment-->
     <taskType key="ArtifactoryDeploymentDownloadTask" name="Artifactory Download"
               class="org.jfrog.bamboo.task.ArtifactoryDeploymentDownloadTask">
-        <description>Download artifacts from Artifactory using FileSpecs.</description>
+        <description>Download artifacts from Artifactory using File Specs.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
         <resource type="freemarker" name="edit"
@@ -352,7 +352,7 @@
 
     <taskType key="artifactoryDeploymentTask" name="Artifactory Deployment"
               class="org.jfrog.bamboo.task.ArtifactoryDeploymentUploadTask">
-        <description>Upload build artifacts to Artifactory using FileSpecs.</description>
+        <description>Upload build artifacts to Artifactory using File Specs.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryDeploymentUploadConfiguration"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
