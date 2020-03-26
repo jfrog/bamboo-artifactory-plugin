@@ -98,7 +98,7 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
 
     @Override
     protected Log getLog() {
-        return new BuildInfoLog(log);
+        return new BuildInfoLog(log, logger);
     }
 
     @Override
