@@ -34,34 +34,42 @@ public class TaskConfigurationValidations {
     }
 
     /**
-     * Validate that the provided server ID is valid.
+     * Validate that an Artifactory server is provided, and that it is valid.
      */
-    public static void validateArtifactoryServer(String serverKey, ServerConfigManager serverConfigManager, @NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
-        if (!params.containsKey(serverKey)) {
+    public static void validateArtifactoryServerProvidedAndValid(String serverKey, ServerConfigManager serverConfigManager, @NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        if (StringUtils.isBlank(params.getString(serverKey))) {
+            errorCollection.addError(serverKey, "Please specify a Server.");
             return;
         }
-        long configuredServerId = getConfiguredServerId(serverKey, params);
-        if (configuredServerId == -1) {
-            return;
-        }
-        validateServerConfigExists(configuredServerId, serverKey, serverConfigManager, errorCollection);
+        validateServer(serverKey, serverConfigManager, params, errorCollection);
     }
 
     /**
      * Validate that the provided server ID and the corresponding repository are valid.
      */
     public static void validateArtifactoryServerAndRepo(String serverKey, String repositoryKey, ServerConfigManager serverConfigManager, @NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        boolean shouldCheckRepo = validateServer(serverKey, serverConfigManager, params, errorCollection);
+        if (shouldCheckRepo) {
+            // If reached here, meaning that an Artifactory server was provided,
+            // thus a repository name is also required.
+            validateRepo(repositoryKey, params, errorCollection);
+        }
+    }
+
+    /**
+     * Validate that the provided server ID is valid.
+     * Return if should continue checking repo.
+     */
+    private static boolean validateServer(String serverKey, ServerConfigManager serverConfigManager, @NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         if (!params.containsKey(serverKey)) {
-            return;
+            return false;
         }
         long configuredServerId = getConfiguredServerId(serverKey, params);
         if (configuredServerId == -1) {
-            return;
+            return false;
         }
         validateServerConfigExists(configuredServerId, serverKey, serverConfigManager, errorCollection);
-        // If reached here, meaning that an Artifactory server was provided,
-        // thus a repository name is also required.
-        validateRepo(repositoryKey, params, errorCollection);
+        return true;
     }
 
     private static void validateRepo(String repositoryKey, @NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {

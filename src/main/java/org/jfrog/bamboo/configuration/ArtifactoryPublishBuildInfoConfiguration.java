@@ -3,7 +3,6 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
@@ -58,10 +57,6 @@ public class ArtifactoryPublishBuildInfoConfiguration extends AbstractArtifactor
     @Override
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         // Validate publish server.
-        String publishServerKey = PublishBuildInfoContext.SERVER_ID_PARAM;
-        if (StringUtils.isBlank(params.getString(publishServerKey))) {
-            errorCollection.addError(publishServerKey, "Please specify a Server.");
-        }
-        TaskConfigurationValidations.validateArtifactoryServer(publishServerKey, serverConfigManager, params, errorCollection);
+        TaskConfigurationValidations.validateArtifactoryServerProvidedAndValid(PublishBuildInfoContext.SERVER_ID_PARAM, serverConfigManager, params, errorCollection);
     }
 }

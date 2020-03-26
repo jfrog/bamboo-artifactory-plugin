@@ -3,7 +3,6 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
@@ -60,10 +59,6 @@ public class ArtifactoryXrayScanConfiguration extends AbstractArtifactoryConfigu
     @Override
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         // Validate scan server.
-        String scanServerKey = XrayScanContext.SERVER_ID_PARAM;
-        if (StringUtils.isBlank(params.getString(scanServerKey))) {
-            errorCollection.addError(scanServerKey, "Please specify a Server.");
-        }
-        TaskConfigurationValidations.validateArtifactoryServer(scanServerKey, serverConfigManager, params, errorCollection);
+        TaskConfigurationValidations.validateArtifactoryServerProvidedAndValid(XrayScanContext.SERVER_ID_PARAM, serverConfigManager, params, errorCollection);
     }
 }

@@ -4,7 +4,6 @@ import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
@@ -74,10 +73,6 @@ public class ArtifactoryCollectBuildIssuesConfiguration extends AbstractArtifact
     @Override
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         // Validate publish server.
-        String serverKey = CollectBuildIssuesContext.SERVER_ID_PARAM;
-        if (StringUtils.isBlank(params.getString(serverKey))) {
-            errorCollection.addError(serverKey, "Please specify a Server.");
-        }
-        TaskConfigurationValidations.validateArtifactoryServer(serverKey, serverConfigManager, params, errorCollection);
+        TaskConfigurationValidations.validateArtifactoryServerProvidedAndValid(CollectBuildIssuesContext.SERVER_ID_PARAM, serverConfigManager, params, errorCollection);
     }
 }
