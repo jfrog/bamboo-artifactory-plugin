@@ -5,20 +5,17 @@ import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.repository.NameValuePair;
 import com.atlassian.bamboo.task.*;
-import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
 import com.atlassian.sal.api.message.I18nResolver;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.util.TaskConfiguratorHelperImpl;
 import org.jfrog.bamboo.context.AbstractBuildContext;
@@ -60,7 +57,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     public static final Map USE_SPECS_OPTIONS = ImmutableMap.of(CFG_FILE_SPECS, "Specs", CFG_LEGACY_PATTERNS, "Legacy patterns (deprecated)");
     public static final String CFG_SPEC_SOURCE_FILE = "file";
     public static final String CFG_SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";
-    public static final Map<String, String> CFG_SPEC_SOURCE = ImmutableMap.of(CFG_SPEC_SOURCE_JOB_CONFIGURATION, "Job configuration", CFG_SPEC_SOURCE_FILE, "File");
+    public static final Map<String, String> CFG_SPEC_SOURCE = ImmutableMap.of(CFG_SPEC_SOURCE_JOB_CONFIGURATION, "Task configuration", CFG_SPEC_SOURCE_FILE, "File");
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of("false", "Don't Sign", "true", "Sign");
     public static final String SIGN_METHOD_MAP_KEY = "signMethods";
     protected transient ServerConfigManager serverConfigManager;
@@ -141,43 +138,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         taskConfigMap.put("baseUrl", administrationConfiguration.getBaseUrl());
 
         return taskConfigMap;
-    }
-
-    @Override
-    public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
-        String serverKey = "builder." + getKey() + "." + AbstractBuildContext.SERVER_ID_PARAM;
-        if (!params.containsKey(serverKey)) {
-            return;
-        }
-        long configuredServerId;
-        try {
-            configuredServerId = params.getLong(serverKey, -1);
-        } catch (ConversionException ce) {
-            configuredServerId = -1;
-        }
-        if (configuredServerId == -1) {
-            return;
-        }
-        ServerConfig serverConfig = serverConfigManager.getServerConfigById(configuredServerId);
-        if (serverConfig == null) {
-            errorCollection.addError(serverKey,
-                    "Could not find Artifactory server configuration by the ID " + configuredServerId);
-        }
-
-        validateDeployableRepoKey(params, errorCollection);
-    }
-
-    private void validateDeployableRepoKey(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
-        // For "Generic Deploy" tasks, skip the deployment repository field validation.
-        // This is because this field is optional.
-        if (!ArtifactoryGenericBuildConfiguration.KEY.equals(getKey())) {
-            if (StringUtils.isNotBlank(getDeployableRepoKey())) {
-                String deployerRepoKey = "builder." + getKey() + "." + getDeployableRepoKey();
-                if (StringUtils.isBlank(params.getString(deployerRepoKey))) {
-                    errorCollection.addError(deployerRepoKey, "Please choose a repository to deploy to.");
-                }
-            }
-        }
     }
 
     @NotNull
@@ -341,11 +301,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      * @return The unique key identifier of the task configuration.
      */
     protected abstract String getKey();
-
-    /**
-     * @return The key for the deployable/publishing repo key for the environment.
-     */
-    protected abstract String getDeployableRepoKey();
 
     protected String getDefaultTestDirectory() {
         throw new UnsupportedOperationException("This method is not implemented for class " + this.getClass());

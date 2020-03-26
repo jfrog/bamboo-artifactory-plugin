@@ -1,7 +1,7 @@
 [@ui.bambooSection titleKey='artifactory.task.collectBuildIssues.title']
 
     [@ww.select name='artifactory.task.collectBuildIssues.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
-    listKey='id' listValue='url' emptyOption=true toggle='true'/]
+    listKey='id' listValue='url' emptyOption=true toggle='true' required='true'/]
 <div id="collectBuildIssuesArtifactoryConfigDiv">
 
     [@ww.textfield name='artifactory.task.collectBuildIssues.username' labelKey='artifactory.task.collectBuildIssues.header.username'/]

@@ -109,7 +109,7 @@
 
     <taskType key="artifactoryGenericTask" name="Artifactory Generic Deploy"
               class="org.jfrog.bamboo.task.ArtifactoryGenericDeployTask">
-        <description>Artifactory Generic Deploy Task</description>
+        <description>Upload build artifacts to Artifactory using File Specs while collecting build-info.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
@@ -123,7 +123,7 @@
     <!--Generic build resolve task-->
     <taskType key="artifactoryGenericResolveTask" name="Artifactory Generic Resolve"
               class="org.jfrog.bamboo.task.ArtifactoryGenericResolveTask">
-        <description>Artifactory Generic Resolve Task</description>
+        <description>Download artifacts from Artifactory using File Specs, while collecting build-info.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
         <resource type="freemarker" name="edit"
@@ -137,7 +137,7 @@
     <!--Collect Build Issues Task-->
     <taskType key="artifactoryCollectBuildIssuesTask" name="Artifactory Collect Build Issues"
               class="org.jfrog.bamboo.task.ArtifactoryCollectBuildIssuesTask">
-        <description>Artifactory Collect Build Issues Task</description>
+        <description>Collect build issues from the git commit messages of the project and add it to the build-info.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryCollectBuildIssuesConfiguration"/>
         <resource type="freemarker" name="edit"
@@ -151,7 +151,7 @@
     <!-- Xray scan task -->
     <taskType key="artifactoryXrayScanTask" name="Artifactory Xray Scan"
               class="org.jfrog.bamboo.task.ArtifactoryXrayScanTask">
-        <description>Artifactory Xray Scan Task</description>
+        <description>Scan a build with JFrog Xray. The scanned build must be published to Artifactory prior to scanning, using the 'Publish Build Info' task.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryXrayScanConfiguration"/>
         <resource type="freemarker" name="edit"
@@ -165,7 +165,7 @@
     <!-- Publish Build info task -->
     <taskType key="artifactoryPublishBuildInfoTask" name="Artifactory Publish Build Info"
               class="org.jfrog.bamboo.task.ArtifactoryPublishBuildInfoTask">
-        <description>Artifactory Publish Build Info Task</description>
+        <description>Publish the build-info collected in previous tasks to Artifactory.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryPublishBuildInfoConfiguration"/>
         <resource type="freemarker" name="edit"
@@ -179,7 +179,7 @@
     <!-- Maven 3 task -->
     <taskType key="maven3Task" name="Artifactory Maven 3"
                 class="org.jfrog.bamboo.task.ArtifactoryMaven3Task">
-        <description>Artifactory Maven 3 Task</description>
+        <description>Build with Apache Maven, while resolving dependencies and deploying artifacts from and to Artifactory.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryMaven3Configuration"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.Maven3CapabilityHelper"/>
@@ -197,7 +197,7 @@
     <!--Gradle task-->
     <taskType key="artifactoryGradleTask" name="Artifactory Gradle"
                 class="org.jfrog.bamboo.task.ArtifactoryGradleTask">
-        <description>Artifactory Gradle task</description>
+        <description>Build with Gradle, while resolving dependencies and deploying artifacts from and to Artifactory.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGradleConfiguration"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.GradleCapabilityHelper"/>
@@ -215,7 +215,7 @@
     <!--Npm task-->
     <taskType key="artifactoryNpmTask" name="Artifactory Npm"
               class="org.jfrog.bamboo.task.ArtifactoryNpmTask">
-        <description>Artifactory Npm task</description>
+        <description>Install, pack and deploy npm packages from and to Artifactory.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryNpmConfiguration"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.NpmCapabilityHelper"/>
@@ -293,7 +293,7 @@
     <!--    Ivy Task    -->
     <taskType key="artifactoryIvyTask" name="Artifactory Ivy"
               class="org.jfrog.bamboo.task.ArtifactoryIvyTask">
-        <description>Artifactory Ivy task</description>
+        <description>Build with Ivy, while resolving dependencies and deploying artifacts from and to Artifactory.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryIvyConfiguration"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.IvyCapabilityHelper"/>
@@ -339,7 +339,7 @@
     <!--Deployment-->
     <taskType key="ArtifactoryDeploymentDownloadTask" name="Artifactory Download"
               class="org.jfrog.bamboo.task.ArtifactoryDeploymentDownloadTask">
-        <description>Artifactory Download Task</description>
+        <description>Download artifacts from Artifactory using File Specs.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
         <resource type="freemarker" name="edit"
@@ -352,7 +352,7 @@
 
     <taskType key="artifactoryDeploymentTask" name="Artifactory Deployment"
               class="org.jfrog.bamboo.task.ArtifactoryDeploymentUploadTask">
-        <description>Artifactory Deployment Task</description>
+        <description>Upload build artifacts to Artifactory using File Specs.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryDeploymentUploadConfiguration"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"

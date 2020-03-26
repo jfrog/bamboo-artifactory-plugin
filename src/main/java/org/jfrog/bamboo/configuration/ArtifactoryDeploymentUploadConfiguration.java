@@ -112,11 +112,6 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     }
 
     @Override
-    protected String getDeployableRepoKey() {
-        return LEGACY_DEPLOYMENT_REPOSITORY;
-    }
-
-    @Override
     public boolean taskProducesTestResults(TaskDefinition taskDefinition) {
         return false;
     }
