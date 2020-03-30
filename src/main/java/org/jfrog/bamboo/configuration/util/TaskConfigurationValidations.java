@@ -9,6 +9,7 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.release.vcs.VcsTypes;
+import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
 
 /**
  * Created by Bar Belity on 10/03/2020.
@@ -108,8 +109,23 @@ public class TaskConfigurationValidations {
             if (!params.containsKey(gitUrlKey) || StringUtils.isBlank(params.getString(gitUrlKey))) {
                 errorCollection.addError(gitUrlKey, "Please specify Git URL.");
             }
+
+            String gitAuthenticationKey = AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_AUTHENTICATION_TYPE;
+            if (GitAuthenticationType.PASSWORD.toString().equals(params.getString(gitAuthenticationKey))) {
+                String gitUsernameKey = AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_USERNAME;
+                if (!params.containsKey(gitUsernameKey) || StringUtils.isBlank(params.getString(gitUsernameKey))) {
+                    errorCollection.addError(gitUsernameKey, "Please specify Username.");
+                }
+
+                String gitPasswordKey = AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_PASSWORD;
+                if (!params.containsKey(gitPasswordKey) || StringUtils.isBlank(params.getString(gitPasswordKey))) {
+                    errorCollection.addError(gitUsernameKey, "Please specify Password.");
+                }
+            }
+
             return;
         }
+
         if (VcsTypes.PERFORCE.toString().equals(params.getString(vcsTypeKey))) {
             String perforcePort = AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_PORT;
             if (!params.containsKey(perforcePort) || StringUtils.isBlank(params.getString(perforcePort))) {
