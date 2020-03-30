@@ -27,18 +27,18 @@
     </scm>
 
     <properties>
-        <bamboo.version>6.10.4</bamboo.version>
+        <bamboo.version>7.0.2</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
         <!-- This plugin key is to be used as a unique ID of the plugin incl.
         version and not as a key regarding the Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <buildinfo.version>2.14.0</buildinfo.version>
-        <buildinfo.maven.version>2.14.0</buildinfo.maven.version>
-        <buildinfo.gradle.version>4.12.0</buildinfo.gradle.version>
-        <buildinfo.ivy.version>2.14.0</buildinfo.ivy.version>
-        <buildinfo.npm.version>2.14.0</buildinfo.npm.version>
+        <buildinfo.version>2.17.1</buildinfo.version>
+        <buildinfo.maven.version>2.17.1</buildinfo.maven.version>
+        <buildinfo.gradle.version>4.15.1</buildinfo.gradle.version>
+        <buildinfo.ivy.version>2.17.1</buildinfo.ivy.version>
+        <buildinfo.npm.version>2.17.1</buildinfo.npm.version>
     </properties>
     
     <profiles>

@@ -121,8 +121,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private Build executeNpmInstall() {
         ArtifactoryDependenciesClientBuilder clientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
-        return new NpmInstall(clientBuilder, repo, npmBuildContext.getArguments(),
-                executablePath, getLog(), packagePath, environmentVariables).execute();
+        return new NpmInstall(clientBuilder, repo, npmBuildContext.getArguments(), getLog(), packagePath, environmentVariables, "").execute();
     }
 
     /**
@@ -131,8 +130,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      */
     private Build executeNpmPublish() {
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
-        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), executablePath,
-                packagePath, repo, getLog(), environmentVariables).execute();
+        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), packagePath, repo, getLog(), environmentVariables, "").execute();
     }
 
     /**
