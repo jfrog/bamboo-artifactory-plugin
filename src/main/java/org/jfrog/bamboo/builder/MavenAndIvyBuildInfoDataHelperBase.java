@@ -193,8 +193,11 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         setClientData(buildContext, clientConf, serverConfig, environment);
         if (selectedServerConfig != null) {
             setPublisherData(buildContext, clientConf, serverConfig, environment);
+        } else {
+            setEmptyPublisherData(clientConf);
         }
 
+        setIncludeEnvVars(buildContext, clientConf);
         Map<String, String> props = Maps.newHashMap(environment);
         props.putAll(generalEnv);
         props = TaskUtils.getEscapedEnvMap(props);
@@ -238,7 +241,6 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
 
     private void setPublisherData(AbstractBuildContext buildContext,
                                   ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment) {
-
         clientConf.publisher.setContextUrl(deployerUrl);
         clientConf.setTimeout(serverConfig.getTimeout());
         clientConf.publisher.setUsername(deployerUsername);
@@ -252,12 +254,26 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         } else {
             clientConf.publisher.setPublishBuildInfo(buildContext.isPublishBuildInfo());
         }
-        clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
-        clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
-        clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
 
         // Set proxy configurations.
         ProxyUtils.setProxyConfigurationToArtifactoryClientConfig(deployerUrl, clientConf);
+    }
+
+    /**
+     * Publisher data is required by build-info-maven-extractor.
+     * Set empty publisher data when publish repository is not configured.
+     */
+    private void setEmptyPublisherData(ArtifactoryClientConfiguration clientConf) {
+        clientConf.publisher.setContextUrl("http://empty_url");
+        clientConf.publisher.setRepoKey("empty_repo");
+        clientConf.publisher.setPublishArtifacts(false);
+        clientConf.publisher.setPublishBuildInfo(false);
+    }
+
+    private void setIncludeEnvVars(AbstractBuildContext buildContext, ArtifactoryClientConfiguration clientConf) {
+        clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
+        clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
+        clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
     }
 
     private void setDeployerProperties(AbstractBuildContext buildContext) {
