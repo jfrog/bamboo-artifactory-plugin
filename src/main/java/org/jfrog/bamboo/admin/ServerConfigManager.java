@@ -31,6 +31,7 @@ import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -123,6 +124,7 @@ public class ServerConfigManager implements Serializable {
         }
     }
 
+    @Autowired
     public void setBandanaManager(BandanaManager bandanaManager) {
         this.bandanaManager = bandanaManager;
         try {
@@ -277,6 +279,7 @@ public class ServerConfigManager implements Serializable {
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigsString);
     }
 
+    @Autowired
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
     }
