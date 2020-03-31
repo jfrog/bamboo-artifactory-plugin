@@ -9,6 +9,7 @@ import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimaps;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -44,7 +45,6 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private Path packagePath;
     private BuildInfoHelper buildInfoHelper;
     private BuildParamsOverrideManager buildParamsOverrideManager;
-    private String executablePath;
     private Map<String, String> environmentVariables;
 
 
@@ -61,8 +61,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
         npmBuildContext = new NpmBuildContext(taskContext.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         initBuildInfoHelper();
-        executablePath = TaskUtils.getExecutablePath(npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME);
-        environmentVariables = TaskUtils.getEnvironmentVariables(npmBuildContext, environmentVariableAccessor);
+        environmentVariables = getEnv();
         packagePath = getPackagePath();
     }
 
@@ -121,8 +120,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private Build executeNpmInstall() {
         ArtifactoryDependenciesClientBuilder clientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
-        return new NpmInstall(clientBuilder, repo, npmBuildContext.getArguments(),
-                executablePath, getLog(), packagePath, environmentVariables).execute();
+        return new NpmInstall(clientBuilder, repo, npmBuildContext.getArguments(), getLog(), packagePath, environmentVariables, "").execute();
     }
 
     /**
@@ -131,8 +129,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      */
     private Build executeNpmPublish() {
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
-        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), executablePath,
-                packagePath, repo, getLog(), environmentVariables).execute();
+        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), packagePath, repo, getLog(), environmentVariables, "").execute();
     }
 
     /**
@@ -160,6 +157,26 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public Map<String, String> getEnv() throws TaskException {
+        Map<String, String> env = TaskUtils.getEnvironmentVariables(npmBuildContext, environmentVariableAccessor);
+        return addExecutablePathToEnv(env);
+    }
+
+    /**
+     * Npm commands expect the npm executable to be in "PATH"
+     * */
+    public Map<String, String> addExecutablePathToEnv(Map<String, String> env) throws TaskException {
+        String executablePath = TaskUtils.getExecutablePath(npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME);
+        String path = env.get("PATH");
+        if (SystemUtils.IS_OS_WINDOWS) {
+            path = executablePath + ";" + path;
+        } else {
+            path = executablePath + ":" + path;
+        }
+        env.put("PATH", path);
+        return env;
     }
 
     @Override
