@@ -34,11 +34,11 @@
         <!-- This plugin key is to be used as a unique ID of the plugin incl.
         version and not as a key regarding the Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
-        <buildinfo.version>2.17.1</buildinfo.version>
-        <buildinfo.maven.version>2.17.1</buildinfo.maven.version>
-        <buildinfo.gradle.version>4.15.1</buildinfo.gradle.version>
-        <buildinfo.ivy.version>2.17.1</buildinfo.ivy.version>
-        <buildinfo.npm.version>2.17.1</buildinfo.npm.version>
+        <buildinfo.version>2.18.x-SNAPSHOT</buildinfo.version>
+        <buildinfo.maven.version>2.18.x-SNAPSHOT</buildinfo.maven.version>
+        <buildinfo.gradle.version>4.16.x-SNAPSHOT</buildinfo.gradle.version>
+        <buildinfo.ivy.version>2.18.x-SNAPSHOT</buildinfo.ivy.version>
+        <buildinfo.npm.version>2.18.x-SNAPSHOT</buildinfo.npm.version>
     </properties>
     
     <profiles>

@@ -71,7 +71,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         }
 
         BuildInfoBuilder builder = new BuildInfoBuilder(buildContext.getPlanName())
-                .number(String.valueOf(buildContext.getBuildNumber())).type(BuildType.GENERIC)
+                .number(String.valueOf(buildContext.getBuildNumber()))
                 .agent(new Agent("Bamboo", BuildUtils.getVersionAndBuild())).artifactoryPrincipal(serverConfig.getUsername())
                 .startedDate(new Date()).durationMillis(duration).url(buildUrl);
         if (StringUtils.isNotBlank(vcsRevision)) {
