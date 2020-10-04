@@ -205,8 +205,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
 
     public ArtifactoryBuildInfoClientBuilder getClientBuilder(BuildLogger buildLogger, Logger logger) {
         BuildInfoLog bambooBuildInfoLog = new BuildInfoLog(logger, buildLogger);
-        ArtifactoryBuildInfoClientBuilder clientBuilder = TaskUtils.getArtifactoryBuildInfoClientBuilder(serverConfig, bambooBuildInfoLog);
-        return clientBuilder;
+        return TaskUtils.getArtifactoryBuildInfoClientBuilder(serverConfig, bambooBuildInfoLog);
     }
 
     private static BuildInfoHelper createBuildInfoHelperBase(TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,

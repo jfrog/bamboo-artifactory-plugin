@@ -119,7 +119,7 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         // Validate resolution server.
         String resolutionServerKey = GradleBuildContext.PREFIX + GradleBuildContext.RESOLUTION_SERVER_ID_PARAM;
-        String resolutionRepoKey = Maven3BuildContext.PREFIX + GradleBuildContext.RESOLUTION_REPO_PARAM;
+        String resolutionRepoKey = GradleBuildContext.PREFIX + GradleBuildContext.RESOLUTION_REPO_PARAM;
         TaskConfigurationValidations.validateArtifactoryServerAndRepo(resolutionServerKey, resolutionRepoKey, serverConfigManager, params, errorCollection);
 
         // Validate deployment server.

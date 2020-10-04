@@ -17,6 +17,7 @@ import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
@@ -93,8 +94,8 @@ public class TaskUtils {
     }
 
     private static ServerConfig getRequestedServerConfig(String baseUsername, String basePassword,
-                                                        ServerConfigManager serverConfigManager, ServerConfig serverConfig,
-                                                        BuildParamsOverrideManager buildParamsOverrideManager, String overrideUsernameKey, String overridePasswordKey) {
+                                                         ServerConfigManager serverConfigManager, ServerConfig serverConfig,
+                                                         BuildParamsOverrideManager buildParamsOverrideManager, String overrideUsernameKey, String overridePasswordKey) {
         if (serverConfig == null) {
             return null;
         }
@@ -119,7 +120,7 @@ public class TaskUtils {
         return dependenciesClientBuilder;
     }
 
-    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfig serverConfig, BuildInfoLog log) {
+    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfig serverConfig, Log log) {
         ArtifactoryDependenciesClient dependenciesClient = new ArtifactoryDependenciesClient(serverConfig.getUrl(),
                 serverConfig.getUsername(), serverConfig.getPassword(), log);
         dependenciesClient.setConnectionTimeout(serverConfig.getTimeout());
@@ -127,7 +128,7 @@ public class TaskUtils {
         return dependenciesClient;
     }
 
-    public static ArtifactoryBuildInfoClientBuilder getArtifactoryBuildInfoClientBuilder(ServerConfig serverConfig, BuildInfoLog log) {
+    public static ArtifactoryBuildInfoClientBuilder getArtifactoryBuildInfoClientBuilder(ServerConfig serverConfig, Log log) {
         ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
         clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
                 .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
@@ -173,8 +174,7 @@ public class TaskUtils {
         // Read build-info from file.
         Path generatedBuildInfoPath = Paths.get(buildInfoFilePath);
         StringBuilder contentBuilder = new StringBuilder();
-        try (Stream<String> stream = Files.lines(generatedBuildInfoPath, StandardCharsets.UTF_8))
-        {
+        try (Stream<String> stream = Files.lines(generatedBuildInfoPath, StandardCharsets.UTF_8)) {
             stream.forEach(s -> contentBuilder.append(s).append("\n"));
         }
         generatedBuildInfoPath.toFile().delete();
@@ -201,11 +201,12 @@ public class TaskUtils {
     /**
      * Returns the path to the executable needed for the task.
      * Path is built from the executable configuration and the executable name.
-     * @param buildContext - The task's corresponding BuildContext
+     *
+     * @param buildContext      - The task's corresponding BuildContext
      * @param capabilityContext - The task's corresponding CapabilityContext
-     * @param builderKey - Builder prefix key, such as "system.builder.npm."
-     * @param executableName - Executable name in file system (os specific)
-     * @param taskName - Task's name
+     * @param builderKey        - Builder prefix key, such as "system.builder.npm."
+     * @param executableName    - Executable name in file system (os specific)
+     * @param taskName          - Task's name
      * @return Path to requested executable.
      * @throws TaskException - If capability is not defined or doesn't exist
      */
@@ -230,7 +231,8 @@ public class TaskUtils {
 
     /**
      * Get a map of both environments variables configured in the task configuration and the ones already set.
-     * @param buildContext - The task's corresponding BuildContext
+     *
+     * @param buildContext                - The task's corresponding BuildContext
      * @param environmentVariableAccessor - Accessor used to get available env
      * @return Map of all environment variables
      */

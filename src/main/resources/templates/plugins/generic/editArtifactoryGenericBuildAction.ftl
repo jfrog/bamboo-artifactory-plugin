@@ -5,45 +5,52 @@
 
     [@ww.select name='builder.artifactoryGenericBuilder.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' emptyOption=true toggle='true'/]
-<div id="genericArtifactoryConfigDiv">
+    <div id="genericArtifactoryConfigDiv">
 
-    [@ww.textfield name='artifactory.generic.username' labelKey='artifactory.task.maven.deployerUsername'/]
-
-    [@ww.password name='artifactory.generic.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
-
-    [#--The Dummy password is a workaround for the autofill (Chrome)--]
-    [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
-
-    [@ww.radio labelKey='Upload by' name='artifactory.generic.useSpecsChoice' listKey='key' listValue='value' toggle='true' list=useSpecsOptions toggle='true'/]
-    [@ui.bambooSection dependsOn='artifactory.generic.useSpecsChoice' showOn='specs']
-        [@ww.select labelKey='artifactory.task.generic.deployPatternFileSpec' name='artifactory.generic.specSourceChoice' listKey='key' listValue='value' toggle='true' list=specSourceOptions/]
-        [@ui.bambooSection dependsOn='artifactory.generic.specSourceChoice' showOn='jobConfiguration']
-            [@ww.textarea name='artifactory.generic.jobConfiguration' labelKey='artifactory.task.generic.deployPatternFileSpec.jobConfiguration' rows='10' cols='80' cssClass="long-field" /]
+        [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [#--  No credentials overriding  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
+        [#--  Username and password  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='usernamePassword']
+            [@ww.textfield name='artifactory.generic.username' labelKey='artifactory.task.maven.resolverUsername'/]
+            [@ww.password name='artifactory.generic.password' labelKey='artifactory.task.maven.resolverPassword' showPassword='true'/]
         [/@ui.bambooSection]
-        [@ui.bambooSection dependsOn='artifactory.generic.specSourceChoice' showOn='file']
-            [@ww.textarea name='artifactory.generic.file' labelKey='artifactory.task.generic.deployPatternFileSpec.file' rows='1' cols='80' cssClass="long-field" /]
+        [#--  Use shared credentials  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='sharedCredentials']
+            [@ww.select name='deployer.sharedCredentials' labelKey='artifactory.task.generic.sharedCredentials' list=credentialsAccessor.allCredentials
+            listKey='name' listValue='name' toggle='true'/]
         [/@ui.bambooSection]
-    [/@ui.bambooSection]
-    [@ui.bambooSection dependsOn='artifactory.generic.useSpecsChoice' showOn='legacyPatterns']
+
+        [@ww.radio labelKey='Upload by' name='artifactory.generic.useSpecsChoice' listKey='key' listValue='value' toggle='true' list=useSpecsOptions toggle='true'/]
+        [@ui.bambooSection dependsOn='artifactory.generic.useSpecsChoice' showOn='specs']
+            [@ww.select labelKey='artifactory.task.generic.deployPatternFileSpec' name='artifactory.generic.specSourceChoice' listKey='key' listValue='value' toggle='true' list=specSourceOptions/]
+            [@ui.bambooSection dependsOn='artifactory.generic.specSourceChoice' showOn='jobConfiguration']
+                [@ww.textarea name='artifactory.generic.jobConfiguration' labelKey='artifactory.task.generic.deployPatternFileSpec.jobConfiguration' rows='10' cols='80' cssClass="long-field" /]
+            [/@ui.bambooSection]
+            [@ui.bambooSection dependsOn='artifactory.generic.specSourceChoice' showOn='file']
+                [@ww.textarea name='artifactory.generic.file' labelKey='artifactory.task.generic.deployPatternFileSpec.file' rows='1' cols='80' cssClass="long-field" /]
+            [/@ui.bambooSection]
+        [/@ui.bambooSection]
+        [@ui.bambooSection dependsOn='artifactory.generic.useSpecsChoice' showOn='legacyPatterns']
             [@ww.textfield name='builder.artifactoryGenericBuilder.deployableRepo' labelKey='artifactory.task.maven.targetRepo'/]
             [@ww.textarea name='artifactory.generic.deployPattern' labelKey='artifactory.task.generic.deployPattern' rows='10' cols='80' cssClass="long-field"/]
-    [/@ui.bambooSection]
-
-    [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
-    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
-        [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
-        [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
-            [#include 'editEnvSnippet.ftl'/]
-        [/@ui.bambooSection]
-    [/@ui.bambooSection]
-    [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
-        [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true'/]
-        [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' id="publishBuildInfoSet"  showOn=true]
-            [#include 'editEnvSnippet.ftl'/]
         [/@ui.bambooSection]
 
-    [/@ui.bambooSection]
-</div>
+        [@ww.checkbox name='buildInfoAggregation' toggle='true' cssStyle='visibility:hidden; position: absolute'/]
+        [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=true]
+            [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
+            [@ui.bambooSection dependsOn='captureBuildInfo' id="captureBuildInfoSet" showOn=true]
+                [#include 'editEnvSnippet.ftl'/]
+            [/@ui.bambooSection]
+        [/@ui.bambooSection]
+        [@ui.bambooSection dependsOn='buildInfoAggregation' showOn=false]
+            [@ww.checkbox labelKey='artifactory.task.publishBuildInfo' name='artifactory.generic.publishBuildInfo' toggle='true'/]
+            [@ui.bambooSection dependsOn='artifactory.generic.publishBuildInfo' id="publishBuildInfoSet"  showOn=true]
+                [#include 'editEnvSnippet.ftl'/]
+            [/@ui.bambooSection]
+
+        [/@ui.bambooSection]
+    </div>
 [/@ui.bambooSection]
 
 <script>
@@ -65,6 +72,7 @@
     clearError();
     arrangeRadioButtons();
     displayRequiredFieldset();
+
     function displayRequiredFieldset() {
         if (document.getElementsByName("buildInfoAggregation").length > 0 && document.getElementsByName("buildInfoAggregation")[0].checked) {
             // This is a new task, need to remove all fieldset that depends on old task.

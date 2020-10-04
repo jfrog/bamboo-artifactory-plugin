@@ -6,15 +6,20 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
+import org.jfrog.build.api.util.Log;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+
+import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.CVG_CRED_SHARED_CREDENTIALS;
+import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.CVG_CRED_USERNAME_PASSWORD;
+import static org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider.*;
 
 /**
  * Container object for common build environment properties that is based on the configuration's namespace. Each context
@@ -25,6 +30,10 @@ import java.util.NoSuchElementException;
 public abstract class AbstractBuildContext {
 
     public static final String SERVER_ID_PARAM = "artifactoryServerId";
+    public static final String RESOLVER_OVERRIDE_CREDENTIALS_CHOICE = "resolver.overrideCredentialsChoice";
+    public static final String DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE = "deployer.overrideCredentialsChoice";
+    public static final String RESOLVER_SHARED_CREDENTIALS = "resolver.sharedCredentials";
+    public static final String DEPLOYER_SHARED_CREDENTIALS = "deployer.sharedCredentials";
     public static final String PUBLISHING_REPO_PARAM = "publishingRepo";
     public static final String DEPLOYER_USERNAME_PARAM = "deployerUsername";
     public static final String DEPLOYER_PASSWORD_PARAM = "deployerPassword";
@@ -32,6 +41,8 @@ public abstract class AbstractBuildContext {
     public static final String RESOLUTION_REPO_PARAM = "resolutionRepo";
     public static final String RESOLVER_USERNAME_PARAM = "resolverUsername";
     public static final String RESOLVER_PASSWORD_PARAM = "resolverPassword";
+    public static final String USERNAME_PARAM = "username";
+    public static final String PASSWORD_PARAM = "password";
     public static final String USE_ARTIFACTORY_GRADLE_PLUGIN = "useArtifactoryGradlePlugin";
     public static final String PUBLISH_BUILD_INFO_PARAM = "publishBuildInfo";
     public static final String CAPTURE_BUILD_INFO = "captureBuildInfo";
@@ -187,6 +198,30 @@ public abstract class AbstractBuildContext {
 
     public String getPublishingRepo() {
         return env.get(prefix + PUBLISHING_REPO_PARAM);
+    }
+
+    public String getResolverOverrideCredentialsChoice() {
+        return env.get(RESOLVER_OVERRIDE_CREDENTIALS_CHOICE);
+    }
+
+    public String getDeployerOverrideCredentialsChoice() {
+        return env.get(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE);
+    }
+
+    public String getResolverSharedCredentials() {
+        return env.get(RESOLVER_SHARED_CREDENTIALS);
+    }
+
+    public String getDeployerSharedCredentials() {
+        return env.get(DEPLOYER_SHARED_CREDENTIALS);
+    }
+
+    public String getUsername() {
+        return env.get(prefix + USERNAME_PARAM);
+    }
+
+    public String getPassword() {
+        return env.get(prefix + PASSWORD_PARAM);
     }
 
     public String getDeployerUsername() {
@@ -426,7 +461,7 @@ public abstract class AbstractBuildContext {
 
     public boolean shouldAggregateBuildInfo(@NotNull TaskContext taskContext) {
         if (isCaptureBuildInfo()) {
-                return true;
+            return true;
         }
         if (isPublishBuildInfo()) {
             // Task was created prior to version 2.7.0, and set to publish build-info.
@@ -438,5 +473,35 @@ public abstract class AbstractBuildContext {
             }
         }
         return false;
+    }
+
+    public String getOverriddenUsername(Map<String, String> runtimeTaskContext, Log log, boolean deployer) {
+        switch (StringUtils.defaultString(deployer ? getDeployerOverrideCredentialsChoice() : getResolverOverrideCredentialsChoice())) {
+            case CVG_CRED_USERNAME_PASSWORD:
+                String username = deployer ? getDeployerUsername() : getResolverUsername();
+                log.info("Using Artifactory username '" + username + "' configured in job");
+                return username;
+            case CVG_CRED_SHARED_CREDENTIALS:
+                username = runtimeTaskContext.get(deployer ? DEPLOYER_SHARED_CREDENTIALS_USER : RESOLVER_SHARED_CREDENTIALS_USER);
+                String credentialsId = deployer ? getDeployerSharedCredentials() : getResolverSharedCredentials();
+                log.info("Using Artifactory username '" + username + "' configured in credentials ID '" + credentialsId + "'");
+                return username;
+            default:
+                return "";
+        }
+    }
+
+    public String getOverriddenPassword(Map<String, String> runtimeTaskContext, Log log, boolean deployer) {
+        switch (StringUtils.defaultString(deployer ? getDeployerOverrideCredentialsChoice() : getResolverOverrideCredentialsChoice())) {
+            case CVG_CRED_USERNAME_PASSWORD:
+                log.info("Using Artifactory password configured in job");
+                return deployer ? getDeployerPassword() : getResolverPassword();
+            case CVG_CRED_SHARED_CREDENTIALS:
+                String credentialsId = deployer ? getDeployerSharedCredentials() : getResolverSharedCredentials();
+                log.info("Using Artifactory password configured in credentials ID '" + credentialsId + "'");
+                return runtimeTaskContext.get(deployer ? DEPLOYER_SHARED_CREDENTIALS_PASSWORD : RESOLVER_SHARED_CREDENTIALS_PASSWORD);
+            default:
+                return "";
+        }
     }
 }

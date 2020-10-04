@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.context;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -59,7 +58,7 @@ public class GradleBuildContext extends AbstractBuildContext {
     }
 
     public boolean isUseGradleWrapper() {
-        return Boolean.valueOf(env.get(PREFIX + USE_GRADLE_WRAPPER_PARAM));
+        return Boolean.parseBoolean(env.get(PREFIX + USE_GRADLE_WRAPPER_PARAM));
     }
 
     public String getGradleWrapperLocation() {
@@ -72,14 +71,11 @@ public class GradleBuildContext extends AbstractBuildContext {
     }
 
     public static GradleBuildContext createGradleContextFromMap(Map<String, Object> map) {
-        Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
-            @Override
-            public String apply(Object input) {
-                if (input == null) {
-                    return "";
-                }
-                return input.toString();
+        Map<String, String> transformed = Maps.transformValues(map, input -> {
+            if (input == null) {
+                return "";
             }
+            return input.toString();
         });
         return new GradleBuildContext(transformed);
     }
@@ -102,7 +98,8 @@ public class GradleBuildContext extends AbstractBuildContext {
                 PREFIX + ARTIFACT_SPECS_PARAM, PREFIX + EXECUTABLE, TEST_CHECKED,
                 PREFIX + TEST_RESULT_DIRECTORY, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
-                PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS);
+                PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS,
+                DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, DEPLOYER_SHARED_CREDENTIALS);
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }

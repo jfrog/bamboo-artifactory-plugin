@@ -1,8 +1,6 @@
 package org.jfrog.bamboo.context;
 
 import com.atlassian.bamboo.task.TaskContext;
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,7 +60,6 @@ public class IvyBuildContext extends AbstractBuildContext {
     public void resetDeployerContextToDefault() {
         super.resetDeployerContextToDefault();
         env.put(PREFIX + DEPLOYABLE_REPO_KEY, "");
-        env.put(PREFIX + INCLUDE_PATTERN, "");
         env.put(PUBLISH_ARTIFACTS, "true");
         env.put(PREFIX + EXCLUDE_PATTERN, "");
         env.put(PREFIX + INCLUDE_PATTERN, "");
@@ -71,16 +68,6 @@ public class IvyBuildContext extends AbstractBuildContext {
     @Override
     public String getIncludePattern() {
         return env.get(PREFIX + INCLUDE_PATTERN);
-    }
-
-    public static IvyBuildContext createIvyContextFromMap(Map<String, Object> map) {
-        Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
-            @Override
-            public String apply(Object input) {
-                return input.toString();
-            }
-        });
-        return new IvyBuildContext(transformed);
     }
 
     public boolean shouldAggregateBuildInfo(@NotNull TaskContext taskContext, long serverId) {
@@ -98,7 +85,7 @@ public class IvyBuildContext extends AbstractBuildContext {
      */
     public static Set<String> getFieldsToCopy() {
         return Sets.newHashSet(PREFIX + ANT_OPTS_PARAM, PREFIX + SERVER_ID_PARAM, PREFIX +
-                RESOLUTION_REPO_PARAM, PREFIX + DEPLOYABLE_REPO_KEY, PREFIX + DEPLOYER_USERNAME_PARAM,
+                        RESOLUTION_REPO_PARAM, PREFIX + DEPLOYABLE_REPO_KEY, PREFIX + DEPLOYER_USERNAME_PARAM,
                 PREFIX + DEPLOYER_PASSWORD_PARAM, PUBLISH_BUILD_INFO_PARAM,
                 PUBLISH_ARTIFACTS, PREFIX + PUBLISH_MAVEN_DESCRIPTORS_PARAM, PREFIX + BUILD_FILE,
                 PREFIX + PUBLISH_IVY_DESCRIPTORS_PARAM, USE_M2_COMPATIBLE_PATTERNS_PARAM,
@@ -107,6 +94,7 @@ public class IvyBuildContext extends AbstractBuildContext {
                 PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 INCLUDE_ENV_VARS_PARAM, ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_INCLUDE_PATTERNS,
                 PREFIX + EXECUTABLE, PREFIX + EXCLUDE_PATTERN, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
-                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY);
+                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE,
+                DEPLOYER_SHARED_CREDENTIALS);
     }
 }

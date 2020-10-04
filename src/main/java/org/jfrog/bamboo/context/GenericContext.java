@@ -2,14 +2,17 @@ package org.jfrog.bamboo.context;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
+import org.jfrog.build.api.util.Log;
 
 import java.util.Map;
 import java.util.Set;
 
-import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
-import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
+import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.CVG_CRED_SHARED_CREDENTIALS;
+import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.CVG_CRED_USERNAME_PASSWORD;
+import static org.jfrog.bamboo.context.AbstractBuildContext.*;
+import static org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider.*;
 
 /**
  * @author Tomer Cohen
@@ -37,16 +40,18 @@ public class GenericContext {
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of(
             "false", "Don't Sign", "true", "Sign");
 
-    private final Map<String, String> env;
+    protected final Map<String, String> env;
 
     public GenericContext(Map<String, String> env) {
         this.env = env;
     }
 
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
-                SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS,
-                USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE);
+        return Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY,
+                RESOLVER_OVERRIDE_CREDENTIALS_CHOICE, DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, USERNAME, PASSWORD, RESOLVER_SHARED_CREDENTIALS,
+                DEPLOYER_SHARED_CREDENTIALS, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION,
+                CAPTURE_BUILD_INFO, SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO,
+                INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS, USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE);
     }
 
     public long getSelectedServerId() {
@@ -72,12 +77,28 @@ public class GenericContext {
         return key;
     }
 
+    public String getResolverOverrideCredentialsChoice() {
+        return env.get(RESOLVER_OVERRIDE_CREDENTIALS_CHOICE);
+    }
+
+    public String getDeployerOverrideCredentialsChoice() {
+        return env.get(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE);
+    }
+
     public String getUsername() {
         return env.get(USERNAME);
     }
 
     public String getPassword() {
         return env.get(PASSWORD);
+    }
+
+    public String getResolverSharedCredentials() {
+        return env.get(RESOLVER_SHARED_CREDENTIALS);
+    }
+
+    public String getDeployerSharedCredentials() {
+        return env.get(DEPLOYER_SHARED_CREDENTIALS);
     }
 
     public long getArtifactoryServerId() {
@@ -130,5 +151,34 @@ public class GenericContext {
 
     public String getArtifactSpecs() {
         return env.get(ARTIFACT_SPECS);
+    }
+
+    public String getOverriddenUsername(Map<String, String> runtimeTaskContext, Log log, boolean deployer) {
+        switch (StringUtils.defaultString(deployer ? getDeployerOverrideCredentialsChoice() : getResolverOverrideCredentialsChoice())) {
+            case CVG_CRED_USERNAME_PASSWORD:
+                log.info("Using Artifactory username '" + getUsername() + "' configured in job");
+                return getUsername();
+            case CVG_CRED_SHARED_CREDENTIALS:
+                String username = runtimeTaskContext.get(deployer ? DEPLOYER_SHARED_CREDENTIALS_USER : RESOLVER_SHARED_CREDENTIALS_USER);
+                String credentialsId = deployer ? getDeployerSharedCredentials() : getResolverSharedCredentials();
+                log.info("Using Artifactory username '" + username + "' configured in credentials ID '" + credentialsId + "'");
+                return username;
+            default:
+                return "";
+        }
+    }
+
+    public String getOverriddenPassword(Map<String, String> runtimeTaskContext, Log log, boolean deployer) {
+        switch (StringUtils.defaultString(deployer ? getDeployerOverrideCredentialsChoice() : getResolverOverrideCredentialsChoice())) {
+            case CVG_CRED_USERNAME_PASSWORD:
+                log.info("Using Artifactory password configured in job");
+                return getPassword();
+            case CVG_CRED_SHARED_CREDENTIALS:
+                String credentialsId = deployer ? getDeployerSharedCredentials() : getResolverSharedCredentials();
+                log.info("Using Artifactory password configured in credentials ID '" + credentialsId + "'");
+                return runtimeTaskContext.get(deployer ? DEPLOYER_SHARED_CREDENTIALS_PASSWORD : RESOLVER_SHARED_CREDENTIALS_PASSWORD);
+            default:
+                return "";
+        }
     }
 }

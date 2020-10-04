@@ -2,7 +2,6 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +9,8 @@ import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
 
 import java.util.Map;
-import java.util.Set;
+
+import static org.jfrog.bamboo.context.DeploymentUploadContext.getFieldsToCopy;
 
 /**
  * Artifactory Deployment task configuration
@@ -21,7 +21,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
 
     // Prefix for each configured field.
     public static final String DEPLOYMENT_PREFIX = "artifactory.deployment.";
-    // The configured repository. Used in the old deoployment implementation.
+    // The configured repository. Used in the old deployment implementation.
     public static final String LEGACY_DEPLOYMENT_REPOSITORY = "deploymentRepository";
     public static final String PASSWORD = "password";
     public static final String USERNAME = "username";
@@ -31,18 +31,6 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     public static final String SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";
     // Plain text field that contains a path to a spec file on the filesystem. Will be used if @SPEC_SOURCE_CHOICE is configured to "file"
     public static final String SPEC_SOURCE_FILE = "file";
-
-    private static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(
-                DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM,
-                DEPLOYMENT_PREFIX + USERNAME,
-                DEPLOYMENT_PREFIX + PASSWORD,
-                DEPLOYMENT_PREFIX + LEGACY_DEPLOYMENT_REPOSITORY,
-                DEPLOYMENT_PREFIX + SPEC_SOURCE_CHOICE,
-                DEPLOYMENT_PREFIX + SPEC_SOURCE_JOB_CONFIGURATION,
-                DEPLOYMENT_PREFIX + SPEC_SOURCE_FILE
-        );
-    }
 
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
@@ -112,13 +100,8 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     }
 
     @Override
-    public boolean taskProducesTestResults(TaskDefinition taskDefinition) {
+    public boolean taskProducesTestResults(@NotNull TaskDefinition taskDefinition) {
         return false;
-    }
-
-    // shorter way of putting key and its corresponded val in the context
-    private void contextPut(Map<String, Object> context, String key, String value) {
-        context.put(DEPLOYMENT_PREFIX + key, value);
     }
 
     // shorter way of putting empty value to a key

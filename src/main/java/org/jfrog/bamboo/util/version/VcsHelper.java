@@ -40,7 +40,6 @@ public abstract class VcsHelper {
         return null;
     }
 
-    @Nullable
     public static String[] getVcsUrls(BuildContext buildContext) {
         int repoSize = buildContext.getRelevantRepositoryIds().size();
         List<String> urls = new ArrayList<>();

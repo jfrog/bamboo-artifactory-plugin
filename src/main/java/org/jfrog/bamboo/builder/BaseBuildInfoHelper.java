@@ -53,8 +53,7 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_SERVLET_KEY_PARAM;
  * @author Noam Y. Tenne
  */
 public abstract class BaseBuildInfoHelper {
-    @SuppressWarnings({"UnusedDeclaration"})
-    private static final Logger log = Logger.getLogger(BaseBuildInfoHelper.class);
+    Logger log = Logger.getLogger(BaseBuildInfoHelper.class);
 
     protected BuildContext context;
     protected ServerConfigManager serverConfigManager;
@@ -65,12 +64,12 @@ public abstract class BaseBuildInfoHelper {
     protected BuildParamsOverrideManager buildParamsOverrideManager;
 
     public void init(BuildParamsOverrideManager buildParamsOverrideManager, BuildContext context) {
+        this.buildParamsOverrideManager = buildParamsOverrideManager;
         this.context = context;
         serverConfigManager = ServerConfigManager.getInstance();
         ContainerManager.autowireComponent(this);
         httpClient = new HttpClient();
         bambooBaseUrl = determineBambooBaseUrl();
-        this.buildParamsOverrideManager = buildParamsOverrideManager;
     }
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
@@ -92,7 +91,7 @@ public abstract class BaseBuildInfoHelper {
         try {
             Map<String, String> params = Maps.newHashMap();
             params.put(BUILD_SERVLET_KEY_PARAM, triggeringBuildKey);
-            return getStringResource(BUILD_SERVLET_CONTEXT_NAME, params);
+            return getStringResource(params);
         } catch (IOException ioe) {
             log.error("Unable to determine triggering build name.", ioe);
             return null;
@@ -109,19 +108,18 @@ public abstract class BaseBuildInfoHelper {
         // Take the publishing repo defined as a Bamboo variable or, if not defined, take the value
         // configured in the task configuration page:
         return overrideParam(
-            buildContext.getPublishingRepo(),
-            BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
+                buildContext.getPublishingRepo(),
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
     }
 
     /**
      * Returns the String value of the remote resource
      *
-     * @param servletName Name of servlet to query
-     * @param params      Parameters to pass in the request
+     * @param params Parameters to pass in the request
      * @return String value if found, Null if not
      */
-    private String getStringResource(String servletName, Map<String, String> params) throws IOException {
-        String requestUrl = prepareRequestUrl(servletName, params);
+    private String getStringResource(Map<String, String> params) throws IOException {
+        String requestUrl = prepareRequestUrl(BUILD_SERVLET_CONTEXT_NAME, params);
 
         GetMethod getMethod = new GetMethod(requestUrl);
         try {
@@ -134,6 +132,7 @@ public abstract class BaseBuildInfoHelper {
 
     /**
      * Get parameters from buildInfoConfig.propertiesFile
+     *
      * @param propFilePath Path to buildInfoConfig.propertiesFile
      * @return Map of the parameters
      */
@@ -220,7 +219,7 @@ public abstract class BaseBuildInfoHelper {
      *
      * @param originalValue Value from the task configuration.
      * @param overrideKey   Bamboo variable name.
-     * @return              The Bamboo variable if defined. If not, the configured value.
+     * @return The Bamboo variable if defined. If not, the configured value.
      */
     public String overrideParam(String originalValue, String overrideKey) {
         String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);

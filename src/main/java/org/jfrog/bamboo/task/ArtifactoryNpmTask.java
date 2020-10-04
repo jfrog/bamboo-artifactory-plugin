@@ -60,7 +60,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
         logger = taskContext.getBuildLogger();
         npmBuildContext = new NpmBuildContext(taskContext.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        initBuildInfoHelper();
+        initBuildInfoHelper(context);
         environmentVariables = getEnv();
         packagePath = getPackagePath();
     }
@@ -100,21 +100,26 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     /**
      * Initialise a BuildInfoHelper from the appropriate parameters (deploy / resolve)
      */
-    private void initBuildInfoHelper() {
+    private void initBuildInfoHelper(TaskContext context) {
+        Map<String, String> runtimeContext = context.getRuntimeTaskContext();
+        Log log = getLog();
         if (npmBuildContext.isNpmCommandInstall()) {
             buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(taskContext, taskContext.getBuildContext(),
-                    environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(), npmBuildContext.getResolverUsername(),
-                    npmBuildContext.getResolverPassword(), buildParamsOverrideManager);
+                    environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(),
+                    npmBuildContext.getOverriddenUsername(runtimeContext, log, false),
+                    npmBuildContext.getOverriddenPassword(runtimeContext, log, false), buildParamsOverrideManager);
         } else {
             buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
-                    environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(), npmBuildContext.getDeployerUsername(),
-                    npmBuildContext.getDeployerPassword(), buildParamsOverrideManager);
+                    environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(),
+                    npmBuildContext.getOverriddenUsername(runtimeContext, log, true),
+                    npmBuildContext.getOverriddenPassword(runtimeContext, log, true), buildParamsOverrideManager);
         }
     }
 
 
     /**
      * Handles the execution of npm Install.
+     *
      * @return Build containing affected artifacts, null if execution failed.
      */
     private Build executeNpmInstall() {
@@ -125,6 +130,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     /**
      * Handles the execution of npm Publish.
+     *
      * @return Build containing affected artifacts, null if execution failed.
      */
     private Build executeNpmPublish() {
@@ -134,6 +140,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     /**
      * Get a map of the artifact properties needed to be set (Build name, Build number, etc...).
+     *
      * @return Map containing all properties.
      */
     private ArrayListMultimap<String, String> getPropertiesMap() {
@@ -144,6 +151,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     /**
      * Get package path from the root directory and append subdirectory if needed.
+     *
      * @return Package path
      */
     private Path getPackagePath() {
@@ -166,7 +174,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     /**
      * Npm commands expect the npm executable to be in "PATH"
-     * */
+     */
     public Map<String, String> addExecutablePathToEnv(Map<String, String> env) throws TaskException {
         String executablePath = TaskUtils.getExecutablePath(npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME);
         String path = env.get("PATH");

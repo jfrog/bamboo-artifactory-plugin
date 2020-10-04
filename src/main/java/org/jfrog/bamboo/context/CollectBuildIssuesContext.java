@@ -6,34 +6,32 @@ import org.jfrog.bamboo.configuration.ArtifactoryCollectBuildIssuesConfiguration
 import java.util.Map;
 import java.util.Set;
 
-public class CollectBuildIssuesContext {
-    public static final String SERVER_ID_PARAM = "artifactory.task.collectBuildIssues." + AbstractBuildContext.SERVER_ID_PARAM;
-    public static final String CONFIG_SOURCE_CHOICE = "artifactory.task.collectBuildIssues.config.source";
-    private static final String USERNAME = "artifactory.task.collectBuildIssues.username";
-    private static final String PASSWORD = "artifactory.task.collectBuildIssues.password";
-    private static final String CONFIG_SOURCE_FILE = "artifactory.task.collectBuildIssues.config.source.file";
-    private static final String CONFIG_SOURCE_TASK_CONFIGURATION = "artifactory.task.collectBuildIssues.config.source.taskConfiguration";
-
-    private final Map<String, String> env;
+public class CollectBuildIssuesContext extends AbstractBuildContext {
+    private static final String PREFIX = "artifactory.task.collectBuildIssues.";
+    public static final String SERVER_ID_PARAM = PREFIX + AbstractBuildContext.SERVER_ID_PARAM;
+    public static final String CONFIG_SOURCE_CHOICE = PREFIX + "config.source";
+    private static final String USERNAME = PREFIX + "username";
+    private static final String PASSWORD = PREFIX + "password";
+    private static final String CONFIG_SOURCE_FILE = PREFIX + "config.source.file";
+    private static final String CONFIG_SOURCE_TASK_CONFIGURATION = PREFIX + "config.source.taskConfiguration";
 
     public CollectBuildIssuesContext(Map<String, String> env) {
-        this.env = env;
+        super(PREFIX, env);
     }
 
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(SERVER_ID_PARAM, USERNAME, PASSWORD,
-                CONFIG_SOURCE_CHOICE, CONFIG_SOURCE_FILE, CONFIG_SOURCE_TASK_CONFIGURATION);
+        Set<String> fieldsToCopy = GenericContext.getFieldsToCopy();
+        fieldsToCopy.addAll(Sets.newHashSet(SERVER_ID_PARAM, USERNAME, PASSWORD, CONFIG_SOURCE_CHOICE, CONFIG_SOURCE_FILE, CONFIG_SOURCE_TASK_CONFIGURATION));
+        return fieldsToCopy;
     }
 
-    public long getArtifactoryServerId() {
-        return Long.parseLong(env.get(SERVER_ID_PARAM));
-    }
-
-    public String getUsername() {
+    @Override
+    public String getDeployerUsername() {
         return env.get(USERNAME);
     }
 
-    public String getPassword() {
+    @Override
+    public String getDeployerPassword() {
         return env.get(PASSWORD);
     }
 

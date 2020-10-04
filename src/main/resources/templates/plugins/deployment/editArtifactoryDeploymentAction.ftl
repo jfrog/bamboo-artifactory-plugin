@@ -1,22 +1,31 @@
 [@ui.bambooSection titleKey='artifactory.task.deploy.title']
     [@ww.select name='artifactory.deployment.artifactoryServerId' labelKey='artifactory.task.maven.artifactoryServerUrl' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayDeployArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
-<div id="deployArtifactoryConfiguration">
-    [@ww.textfield name='artifactory.deployment.username' labelKey='artifactory.task.maven.deployerUsername'/]
+    <div id="deployArtifactoryConfiguration">
 
-    [@ww.password name='artifactory.deployment.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
-    [#--The Dummy password is a workaround for the autofill (Chrome)--]
-    [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+        [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [#--  No credentials overriding  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
+        [#--  Username and password  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='usernamePassword']
+            [@ww.textfield name='artifactory.deployment.username' labelKey='artifactory.task.maven.deployerUsername'/]
+            [@ww.password name='artifactory.deployment.password' labelKey='artifactory.task.maven.deployerPassword' showPassword='true'/]
+        [/@ui.bambooSection]
+        [#--  Use shared credentials  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='sharedCredentials']
+            [@ww.select name='deployer.sharedCredentials' labelKey='artifactory.task.generic.sharedCredentials' list=credentialsAccessor.allCredentials
+            listKey='name' listValue='name' toggle='true'/]
+        [/@ui.bambooSection]
 
-    [@ww.select labelKey='artifactory.task.generic.resolvePatternFileSpec' name='artifactory.deployment.specSourceChoice' listKey='key' listValue='value' toggle='true' list=specSourceOptions/]
-    [@ui.bambooSection dependsOn='artifactory.deployment.specSourceChoice' showOn='jobConfiguration']
-        [@ww.textarea labelKey='artifactory.task.generic.deployPatternFileSpec.jobConfiguration' name='artifactory.deployment.jobConfiguration' rows='10' cols='80' cssClass="long-field" /]
-    [/@ui.bambooSection]
-    [@ui.bambooSection dependsOn='artifactory.deployment.specSourceChoice' showOn='file']
-        [@ww.textarea labelKey='artifactory.task.generic.deployPatternFileSpec.file' name='artifactory.deployment.file'  rows='1' cols='80' cssClass="long-field" /]
-    [/@ui.bambooSection]
+        [@ww.select labelKey='artifactory.task.generic.resolvePatternFileSpec' name='artifactory.deployment.specSourceChoice' listKey='key' listValue='value' toggle='true' list=specSourceOptions/]
+        [@ui.bambooSection dependsOn='artifactory.deployment.specSourceChoice' showOn='jobConfiguration']
+            [@ww.textarea labelKey='artifactory.task.generic.deployPatternFileSpec.jobConfiguration' name='artifactory.deployment.jobConfiguration' rows='10' cols='80' cssClass="long-field" /]
+        [/@ui.bambooSection]
+        [@ui.bambooSection dependsOn='artifactory.deployment.specSourceChoice' showOn='file']
+            [@ww.textarea labelKey='artifactory.task.generic.deployPatternFileSpec.file' name='artifactory.deployment.file'  rows='1' cols='80' cssClass="long-field" /]
+        [/@ui.bambooSection]
 
-</div>
+    </div>
 [/@ui.bambooSection]
 
 <script>

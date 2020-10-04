@@ -27,18 +27,20 @@ import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.ProxyUtils;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.api.BuildInfoFields;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.api.util.NullLog;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
@@ -67,14 +69,14 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
     private String resolverUsername;
     private String resolverPassword;
 
-    public GradleDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context, GradleBuildContext buildContext, AdministrationConfiguration administrationConfiguration, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion, boolean aggregateBuildInfo) {
-        super.init(buildParamsOverrideManager, context.getBuildContext());
+    public GradleDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext taskContext, GradleBuildContext buildContext, AdministrationConfiguration administrationConfiguration, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion, boolean aggregateBuildInfo) {
+        super.init(buildParamsOverrideManager, taskContext.getBuildContext());
         setAdministrationConfiguration(administrationConfiguration);
 
         long selectedServerId = buildContext.getArtifactoryServerId();
-        if ((selectedServerId != -1 && isServerConfigured(context, selectedServerId)) || aggregateBuildInfo) {
+        if ((selectedServerId != -1 && isServerConfigured(taskContext, selectedServerId)) || aggregateBuildInfo) {
             // Initialize configurations.
-            configuration = createClientConfiguration(buildContext, selectedServerConfig, envVarAccessor.getEnvironment(context), artifactoryPluginVersion);
+            configuration = createClientConfiguration(taskContext, buildContext, selectedServerConfig, envVarAccessor.getEnvironment(taskContext), artifactoryPluginVersion);
         }
     }
 
@@ -134,7 +136,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         return buildInfoTempFile;
     }
 
-    private ArtifactoryClientConfiguration createClientConfiguration(GradleBuildContext buildContext,
+    private ArtifactoryClientConfiguration createClientConfiguration(TaskContext taskContext, GradleBuildContext buildContext,
                                                                      ServerConfig serverConfig, Map<String, String> taskEnv, String artifactoryPluginVersion) {
 
         ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(new NullLog());
@@ -189,7 +191,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         clientConf.info.setReleaseComment(buildContext.releaseManagementContext.getStagingComment());
 
         if (serverConfig != null) {
-            addClientProperties(clientConf, serverConfig, buildContext, taskEnv);
+            addClientProperties(taskContext, clientConf, serverConfig, buildContext, taskEnv);
         }
 
         // If captureBuildInfo is set, then should aggregate build-info and not publish by the build-info process.
@@ -233,10 +235,10 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         }
     }
 
-    private void addClientProperties(ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig,
-        GradleBuildContext buildContext, Map<String, String> environment) {
+    private void addClientProperties(TaskContext taskContext, ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig,
+                                     GradleBuildContext buildContext, Map<String, String> environment) {
 
-        setServerConfigurations(buildContext, serverConfig);
+        setServerConfigurations(taskContext, buildContext, serverConfig);
 
         clientConf.publisher.setContextUrl(serverUrl);
         clientConf.resolver.setContextUrl(serverUrl);
@@ -279,7 +281,6 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         }
     }
 
-    @NotNull
     public void addPasswordsSystemProps(List<String> command, @NotNull TaskContext context) {
         if (selectedServerConfig == null) {
             return;
@@ -293,25 +294,26 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.b", deployerPassword);
     }
 
-    private void setServerConfigurations(GradleBuildContext buildContext, ServerConfig selectedServerConfig) {
-        // Set url.
-        serverUrl = serverConfigManager.substituteVariables(selectedServerConfig.getUrl());
-        // Set usernames.
-        resolverUsername = serverConfigManager.substituteVariables(selectedServerConfig.getUsername());
-        deployerUsername = overrideParam(serverConfigManager.substituteVariables(buildContext.getDeployerUsername()),
-                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME);
-        if (StringUtils.isBlank(deployerUsername)) {
-            deployerUsername = resolverUsername;
-        }
-        // Set passwords.
-        resolverPassword = serverConfigManager.substituteVariables(selectedServerConfig.getPassword());
-        deployerPassword = buildParamsOverrideManager.getOverrideValue(BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
-        if (StringUtils.isBlank(deployerPassword)) {
-            deployerPassword = serverConfigManager.substituteVariables(buildContext.getDeployerPassword());
-        }
-        if (StringUtils.isBlank(deployerPassword)) {
-            deployerPassword = resolverPassword;
-        }
+    private void setServerConfigurations(TaskContext taskContext, GradleBuildContext buildContext, ServerConfig selectedServerConfig) {
+        Map<String, String> runtimeContext = taskContext.getRuntimeTaskContext();
+        Log buildInfoLog = new BuildInfoLog(log, taskContext.getBuildLogger());
+
+        // In Gradle job's UI there are only once credentials configuration - the 'deployer' credentials. Therefore we
+        // will use the deployer credentials either for resolver and deployer.
+        ServerConfig resolutionServerConfig = TaskUtils.getResolutionServerConfig(
+                buildContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
+                buildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true),
+                serverConfigManager, selectedServerConfig, buildParamsOverrideManager);
+        serverUrl = resolutionServerConfig.getUrl();
+        resolverUsername = resolutionServerConfig.getUsername();
+        resolverPassword = resolutionServerConfig.getPassword();
+
+        ServerConfig deployerServerConfig = TaskUtils.getDeploymentServerConfig(
+                buildContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
+                buildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true),
+                serverConfigManager, selectedServerConfig, buildParamsOverrideManager);
+        deployerUsername = StringUtils.defaultIfBlank(deployerServerConfig.getUsername(), resolverUsername);
+        deployerPassword = StringUtils.defaultIfBlank(deployerServerConfig.getPassword(), resolverPassword);
     }
 
     public ServerConfig getDeployServer() {

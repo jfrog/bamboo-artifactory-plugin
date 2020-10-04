@@ -51,14 +51,14 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     public static final String EXECUTABLE_WRAPPER_NAME = SystemUtils.IS_OS_WINDOWS ? "./gradlew.bat" : "./gradlew";
     private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
     private static final String GRADLE_KEY = "system.builder.gradle.";
-    private final CapabilityContext capabilityContext;
-    private BuildLogger logger;
-    private BuilderDependencyHelper dependencyHelper;
-    private String gradleDependenciesDir = null;
     private AdministrationConfiguration administrationConfiguration;
-    private String artifactoryPluginVersion;
+    private final BuilderDependencyHelper dependencyHelper;
+    private final CapabilityContext capabilityContext;
     private GradleBuildContext gradleBuildContext;
     private GradleDataHelper gradleDataHelper;
+    private String artifactoryPluginVersion;
+    private String gradleDependenciesDir;
+    private BuildLogger logger;
 
     public ArtifactoryGradleTask(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,

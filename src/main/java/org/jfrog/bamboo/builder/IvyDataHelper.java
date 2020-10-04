@@ -19,7 +19,7 @@ public class IvyDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
     }
 
     @Override
-    protected void setClientData(AbstractBuildContext builder, ArtifactoryClientConfiguration clientConf,
+    protected void setClientData(TaskContext taskContext, AbstractBuildContext builder, ArtifactoryClientConfiguration clientConf,
                                  ServerConfig serverConfig, Map<String, String> environment) {
 
         if (builder.isPublishArtifacts()) {

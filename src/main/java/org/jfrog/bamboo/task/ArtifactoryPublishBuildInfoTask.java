@@ -2,17 +2,19 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Build;
@@ -33,12 +35,11 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_SELECTED_SERVER_
 public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryPublishBuildInfoTask";
 
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
     private static final Logger log = Logger.getLogger(ArtifactoryPublishBuildInfoTask.class);
-    private BuildLogger logger;
+    private final EnvironmentVariableAccessor environmentVariableAccessor;
     private CustomVariableContext customVariableContext;
     private BuildInfoHelper buildInfoHelper;
-    private BuildParamsOverrideManager buildParamsOverrideManager;
+    private BuildLogger logger;
 
     public ArtifactoryPublishBuildInfoTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -52,18 +53,23 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     @Override
     protected void initTask(@NotNull TaskContext context) {
         logger = context.getBuildLogger();
+        Log buildInfoLog = getLog();
         PublishBuildInfoContext publishBuildInfoContext = new PublishBuildInfoContext(context.getConfigurationMap());
-        buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(context, context.getBuildContext(), environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(), publishBuildInfoContext.getPassword(), buildParamsOverrideManager);
+        BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
+        Map<String, String> runtimeContext = context.getRuntimeTaskContext();
+        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(context, context.getBuildContext(),
+                environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(),
+                publishBuildInfoContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
+                publishBuildInfoContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager);
     }
 
     @NotNull
     @Override
-    public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
+    public TaskResult runTask(@NotNull TaskContext taskContext) {
         String buildInfoJson = TaskUtils.getAndDeleteAggregatedBuildInfo(taskContext);
         Build build = buildInfoHelper.getBuilder(taskContext).build();
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
-        try (ArtifactoryBuildInfoClient client = clientBuilder.build()){
+        try (ArtifactoryBuildInfoClient client = clientBuilder.build()) {
             if (StringUtils.isNotBlank(buildInfoJson)) {
                 GenericData genericData = BuildInfoExtractorUtils.jsonStringToGeneric(buildInfoJson, GenericData.class);
                 for (Build buildFromContext : genericData.getBuilds()) {

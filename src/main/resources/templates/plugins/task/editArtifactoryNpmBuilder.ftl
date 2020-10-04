@@ -17,11 +17,20 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
         [@ww.select labelKey='artifactory.task.npm.header.resolutionRepo' name='artifactory.task.npm.resolutionRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
         <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
-        [@ww.textfield labelKey='artifactory.task.npm.header.resolverUsername' name='artifactory.task.npm.resolverUsername' onchange='javascript: overridingCredentialsChanged("resolution")'/]
-        [@ww.password labelKey='artifactory.task.npm.header.resolverPassword' name='artifactory.task.npm.resolverPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("resolution")'/]
-        [#--The Dummy password is a workaround for the autofill (Chrome)--]
-        [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+             style="display: none; width: 80%; font-size: 80%"/>
+        [@ww.select labelKey='Override credentials' name='resolver.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [#--  No credentials overriding  --]
+        [@ui.bambooSection dependsOn='resolver.overrideCredentialsChoice' showOn='noOverriding'/]
+        [#--  Username and password  --]
+        [@ui.bambooSection dependsOn='resolver.overrideCredentialsChoice' showOn='usernamePassword']
+            [@ww.textfield labelKey='artifactory.task.npm.header.resolverUsername' name='artifactory.task.npm.resolverUsername' onchange='javascript: overridingCredentialsChanged("resolution")'/]
+            [@ww.password labelKey='artifactory.task.npm.header.resolverPassword' name='artifactory.task.npm.resolverPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("resolution")'/]
+        [/@ui.bambooSection]
+        [#--  Use shared credentials  --]
+        [@ui.bambooSection dependsOn='resolver.overrideCredentialsChoice' showOn='sharedCredentials']
+            [@ww.select name='resolver.sharedCredentials' labelKey='artifactory.task.generic.sharedCredentials' list=credentialsAccessor.allCredentials
+            listKey='name' listValue='name' toggle='true'/]
+        [/@ui.bambooSection]
     </div>
 [/@ui.bambooSection]
 
@@ -33,11 +42,20 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
         [@ww.select labelKey='artifactory.task.npm.header.publishingRepo' name='artifactory.task.npm.publishingRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
         <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
-        [@ww.textfield labelKey='artifactory.task.npm.header.deployerUsername' name='artifactory.task.npm.deployerUsername' onchange='javascript: overridingCredentialsChanged("publish")'/]
-        [@ww.password labelKey='artifactory.task.npm.header.deployerPassword' name='artifactory.task.npm.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("publish")'/]
-        [#--The Dummy password is a workaround for the autofill (Chrome)--]
-        [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+             style="display: none; width: 80%; font-size: 80%"/>
+        [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [#--  No credentials overriding  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
+        [#--  Username and password  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='usernamePassword']
+            [@ww.textfield labelKey='artifactory.task.npm.header.deployerUsername' name='artifactory.task.npm.deployerUsername' onchange='javascript: overridingCredentialsChanged("publish")'/]
+            [@ww.password labelKey='artifactory.task.npm.header.deployerPassword' name='artifactory.task.npm.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("publish")'/]
+        [/@ui.bambooSection]
+        [#--  Use shared credentials  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='sharedCredentials']
+            [@ww.select name='deployer.sharedCredentials' labelKey='artifactory.task.generic.sharedCredentials' list=credentialsAccessor.allCredentials
+            listKey='name' listValue='name' toggle='true'/]
+        [/@ui.bambooSection]
     </div>
 [/@ui.bambooSection]
 
@@ -50,18 +68,18 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
 <script type="text/javascript">
 
     function displayResolutionNpmArtifactoryConfigs(serverId) {
-        var configDiv = document.getElementById('npmArtifactoryResolvingConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
-        if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
+        let configDiv = document.getElementById('npmArtifactoryResolvingConfigDiv');
+        let credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
+        let credentialsPassword = configDiv.getElementsByTagName('input')[3].value;
+        if ((serverId == null) || (serverId.length === 0) || (-1 === serverId)) {
             configDiv.style.display = 'none';
         } else {
             configDiv.style.display = 'block';
-            var urlSelect = document.getElementsByName('artifactory.task.npm.resolutionArtifactoryServerId')[0];
-            var urlOptions = urlSelect.options;
-            for (var i = 0; i < urlOptions.length; i++) {
-                var option = urlOptions[i];
-                if (option.value == '' + serverId) {
+            let urlSelect = document.getElementsByName('artifactory.task.npm.resolutionArtifactoryServerId')[0];
+            let urlOptions = urlSelect.options;
+            for (let i = 0; i < urlOptions.length; i++) {
+                let option = urlOptions[i];
+                if (option.value === '' + serverId) {
                     urlSelect.selectedIndex = i;
                     break;
                 }
@@ -79,14 +97,14 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
             success: function (json) {
                 resolveRepoSelect.innerHTML = '';
                 if (serverId >= 0) {
-                    var selectedRepoKey = '${selectedResolutionRepoKey}';
-                    for (var i = 0, l = json.length; i < l; i++) {
-                        var deployableRepoKey = json[i];
-                        var option = document.createElement('option');
+                    let selectedRepoKey = '${selectedResolutionRepoKey}';
+                    for (let i = 0, l = json.length; i < l; i++) {
+                        let deployableRepoKey = json[i];
+                        let option = document.createElement('option');
                         option.innerHTML = deployableRepoKey;
                         option.value = deployableRepoKey;
                         resolveRepoSelect.appendChild(option);
-                        if (selectedRepoKey && (deployableRepoKey == selectedRepoKey)) {
+                        if (selectedRepoKey && (deployableRepoKey === selectedRepoKey)) {
                             resolveRepoSelect.selectedIndex = i;
                         }
                     }
@@ -95,9 +113,9 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
                 resolveErrorDiv.style.display = 'none';
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                var errorMessage = 'An error has occurred while retrieving the resolving repository list.<br>' +
+                let errorMessage = 'An error has occurred while retrieving the resolving repository list.<br>' +
                     'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
-                if (XMLHttpRequest.status == 404) {
+                if (XMLHttpRequest.status === 404) {
                     errorMessage +=
                         'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
@@ -113,18 +131,18 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
     }
 
     function displayPublishingNpmArtifactoryConfigs(serverId) {
-        var configDiv = document.getElementById('npmArtifactoryPublishingConfigDiv');
-        var credentialsUserName = configDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = configDiv.getElementsByTagName('input')[2].value;
-        if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
+        let configDiv = document.getElementById('npmArtifactoryPublishingConfigDiv');
+        let credentialsUserName = configDiv.getElementsByTagName('input')[2].value;
+        let credentialsPassword = configDiv.getElementsByTagName('input')[3].value;
+        if ((serverId == null) || (serverId.length === 0) || (-1 === serverId)) {
             configDiv.style.display = 'none';
         } else {
             configDiv.style.display = 'block';
-            var urlSelect = document.getElementsByName('artifactory.task.npm.artifactoryServerId')[0];
-            var urlOptions = urlSelect.options;
-            for (var i = 0; i < urlOptions.length; i++) {
-                var option = urlOptions[i];
-                if (option.value == '' + serverId) {
+            let urlSelect = document.getElementsByName('artifactory.task.npm.artifactoryServerId')[0];
+            let urlOptions = urlSelect.options;
+            for (let i = 0; i < urlOptions.length; i++) {
+                let option = urlOptions[i];
+                if (option.value === '' + serverId) {
                     urlSelect.selectedIndex = i;
                     break;
                 }
@@ -136,16 +154,16 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
     function loadNpmPublishRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType: 'json',
             cache: false,
             success: function (json) {
                 publishRepoSelect.innerHTML = '';
                 if (serverId >= 0) {
-                    var selectedRepoKey = '${selectedPublishingRepoKey}';
-                    for (var i = 0, l = json.length; i < l; i++) {
-                        var deployableRepoKey = json[i];
-                        var option = document.createElement('option');
+                    let selectedRepoKey = '${selectedPublishingRepoKey}';
+                    for (let i = 0, l = json.length; i < l; i++) {
+                        let deployableRepoKey = json[i];
+                        let option = document.createElement('option');
                         option.innerHTML = deployableRepoKey;
                         option.value = deployableRepoKey;
                         publishRepoSelect.appendChild(option);
@@ -158,14 +176,14 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
                 publishErrorDiv.style.display = 'none';
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                var errorMessage = 'An error has occurred while retrieving the publishing repository list.<br>' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
-                if (XMLHttpRequest.status == 404) {
+                let errorMessage = 'An error has occurred while retrieving the publishing repository list.<br>' +
+                    'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
+                if (XMLHttpRequest.status === 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
+                        'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
-                            'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
+                        'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
                 errorMessage += "<br>";
                 publishErrorDiv.innerHTML = errorMessage;
@@ -177,20 +195,20 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
 
     function overridingCredentialsChanged(repositoryType) {
         if (repositoryType === "publish") {
-            var serverIdSection = document.getElementById("publishSection");
-            var selectedServerId = serverIdSection.getElementsByTagName('select')[0].value;
+            let serverIdSection = document.getElementById("publishSection");
+            let selectedServerId = serverIdSection.getElementsByTagName('select')[0].value;
             displayPublishingNpmArtifactoryConfigs(selectedServerId);
         } else if (repositoryType === "resolution") {
-            var serverIdSection = document.getElementById("resolutionSection");
-            var selectedServerId = serverIdSection.getElementsByTagName('select')[0].value;
+            let serverIdSection = document.getElementById("resolutionSection");
+            let selectedServerId = serverIdSection.getElementsByTagName('select')[0].value;
             displayResolutionNpmArtifactoryConfigs(selectedServerId);
         }
     }
 
-    var resolveErrorDiv = document.getElementById('resolve-repo-error');
-    var publishErrorDiv = document.getElementById('publish-repo-error');
-    var publishRepoSelect = document.getElementsByName('artifactory.task.npm.publishingRepo')[0];
-    var resolveRepoSelect = document.getElementsByName('artifactory.task.npm.resolutionRepo')[0];
+    let resolveErrorDiv = document.getElementById('resolve-repo-error');
+    let publishErrorDiv = document.getElementById('publish-repo-error');
+    let publishRepoSelect = document.getElementsByName('artifactory.task.npm.publishingRepo')[0];
+    let resolveRepoSelect = document.getElementsByName('artifactory.task.npm.resolutionRepo')[0];
 
     // Init error-divs.
     publishErrorDiv.innerHTML = '';

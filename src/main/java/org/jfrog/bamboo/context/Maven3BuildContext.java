@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.context;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -87,14 +86,11 @@ public class Maven3BuildContext extends AbstractBuildContext {
     }
 
     public static Maven3BuildContext createMavenContextFromMap(Map<String, Object> map) {
-        Map<String, String> transformed = Maps.transformValues(map, new Function<Object, String>() {
-            @Override
-            public String apply(Object input) {
-                if (input == null) {
-                    return "";
-                }
-                return input.toString();
+        Map<String, String> transformed = Maps.transformValues(map, input -> {
+            if (input == null) {
+                return "";
             }
+            return input.toString();
         });
         return new Maven3BuildContext(transformed);
     }
@@ -115,8 +111,9 @@ public class Maven3BuildContext extends AbstractBuildContext {
                 PREFIX + MAVEN_OPTS, PREFIX + EXECUTABLE, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
                 BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO, PREFIX + ENVIRONMENT_VARIABLES,
                 TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT,
-                PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS, RESOLVE_FROM_ARTIFACTORY
-                , PREFIX + RESOLUTION_SERVER_ID_PARAM, PREFIX + RESOLVER_USERNAME_PARAM, PREFIX + RESOLVER_PASSWORD_PARAM);
+                PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS, RESOLVE_FROM_ARTIFACTORY,
+                PREFIX + RESOLUTION_SERVER_ID_PARAM, PREFIX + RESOLVER_USERNAME_PARAM, PREFIX + RESOLVER_PASSWORD_PARAM,
+                RESOLVER_OVERRIDE_CREDENTIALS_CHOICE, DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, DEPLOYER_SHARED_CREDENTIALS, RESOLVER_SHARED_CREDENTIALS);
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }

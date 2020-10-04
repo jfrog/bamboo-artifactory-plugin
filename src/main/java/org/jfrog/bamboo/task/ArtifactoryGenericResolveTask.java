@@ -6,7 +6,6 @@ import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
@@ -39,13 +38,13 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
 
     private static final Logger log = Logger.getLogger(ArtifactoryGenericResolveTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
-    private BuildParamsOverrideManager buildParamsOverrideManager;
-    private BuildLogger logger;
+    private final BuildParamsOverrideManager buildParamsOverrideManager;
     private CustomVariableContext customVariableContext;
-    private String fileSpec;
-    private BuildContext buildContext;
-    private GenericContext genericContext;
     private BuildInfoHelper buildInfoHelper;
+    private GenericContext genericContext;
+    private BuildLogger logger;
+    private Log buildInfoLog;
+    private String fileSpec;
 
     public ArtifactoryGenericResolveTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -56,10 +55,12 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
     @Override
     protected void initTask(@NotNull TaskContext context) {
         logger = context.getBuildLogger();
-        buildContext = context.getBuildContext();
+        buildInfoLog = getLog();
         genericContext = new GenericContext(context.getConfigurationMap());
-        buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(context, buildContext, environmentVariableAccessor,
-                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
+        Map<String, String> runtimeContext = context.getRuntimeTaskContext();
+        buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(context, context.getBuildContext(), environmentVariableAccessor, genericContext.getSelectedServerId(),
+                genericContext.getOverriddenUsername(runtimeContext, buildInfoLog, false),
+                genericContext.getOverriddenPassword(runtimeContext, buildInfoLog, false), buildParamsOverrideManager);
     }
 
     @NotNull
@@ -67,19 +68,17 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
     public TaskResult runTask(@NotNull TaskContext taskContext) {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getPluginVersion(pluginAccessor));
 
-        ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
-        try {
-            org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
+        try (ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(buildInfoHelper.getServerConfig(), buildInfoLog)) {
             List<BuildDependency> buildDependencies;
             List<Dependency> dependencies;
             if (genericContext.isUseFileSpecs()) {
                 buildDependencies = Lists.newArrayList();
                 initFileSpec(taskContext, logger);
-                SpecsHelper specsHelper = new SpecsHelper(bambooBuildInfoLog);
+                SpecsHelper specsHelper = new SpecsHelper(buildInfoLog);
                 dependencies = specsHelper.downloadArtifactsBySpec(fileSpec, client, taskContext.getWorkingDirectory().getCanonicalPath());
             } else {
                 GenericArtifactsResolver resolver = new GenericArtifactsResolver(taskContext, client,
-                        genericContext.getResolvePattern(), bambooBuildInfoLog);
+                        genericContext.getResolvePattern(), buildInfoLog);
                 buildDependencies = resolver.retrieveBuildDependencies();
                 dependencies = resolver.retrievePublishedDependencies();
             }
@@ -90,13 +89,9 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
                 build = buildInfoHelper.addBuildInfoParams(taskContext, build, buildProperties, Lists.newArrayList(), dependencies, buildDependencies);
                 taskBuildInfo = build;
             }
-        } catch (IOException|InterruptedException e) {
-            String message = "Exception occurred while executing task";
-            logger.addErrorLogEntry(message, e);
-            log.error(message, e);
+        } catch (IOException | InterruptedException e) {
+            buildInfoLog.error("Exception occurred while executing task", e);
             return TaskResultBuilder.newBuilder(taskContext).failedWithError().build();
-        } finally {
-            client.close();
         }
         return TaskResultBuilder.newBuilder(taskContext).success().build();
     }

@@ -45,10 +45,20 @@
 [@ui.bambooSection id="serverSelectSection" titleKey='artifactory.task.serverSelection' collapsible=true]
     [@ww.select name='builder.artifactoryGradleBuilder.artifactoryServerId' labelKey='artifactory.task.gradle.artifactoryServerId' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayGradleArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
-    [@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername' onchange='javascript: overridingCredentialsChanged()'/]
-    [@ww.password labelKey='artifactory.task.gradle.deployerPassword' name='builder.artifactoryGradleBuilder.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged()'/]
-[#--The Dummy password is a workaround for the autofill (Chrome)--]
-    [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+
+    [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+[#--  No credentials overriding  --]
+    [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
+[#--  Username and password  --]
+    [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='usernamePassword']
+        [@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername' onchange='javascript: overridingCredentialsChanged()'/]
+        [@ww.password labelKey='artifactory.task.gradle.deployerPassword' name='builder.artifactoryGradleBuilder.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged()'/]
+    [/@ui.bambooSection]
+[#--  Use shared credentials  --]
+    [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='sharedCredentials']
+        [@ww.select name='deployer.sharedCredentials' labelKey='artifactory.task.generic.sharedCredentials' list=credentialsAccessor.allCredentials
+        listKey='name' listValue='name' toggle='true'/]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 
 <div id="gradleArtifactoryConfigDiv">
@@ -57,7 +67,7 @@
         [@ww.select name='builder.artifactoryGradleBuilder.resolutionRepo' labelKey='artifactory.task.gradle.resolutionRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
         <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
+             style="display: none; width: 80%; font-size: 80%"/>
     [/@ui.bambooSection]
 
     [#--Deployment--]
@@ -65,7 +75,7 @@
         [@ww.select name='builder.artifactoryGradleBuilder.publishingRepo' labelKey='artifactory.task.gradle.publishingRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
         <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
+             style="display: none; width: 80%; font-size: 80%"/>
         [@ww.checkbox labelKey='artifactory.task.gradle.publishArtifacts' name='publishArtifacts' toggle='true'/]
         [@ui.bambooSection dependsOn='publishArtifacts' showOn=true]
             [@ww.select labelKey="artifactory.task.gradle.publishForkCount" name="builder.artifactoryGradleBuilder.publishForkCount" list="builder.artifactoryGradleBuilder.publishForkCountList" value='builder.artifactoryGradleBuilder.publishForkCount'/]
@@ -118,20 +128,20 @@
 <script type="text/javascript">
 
     function displayGradleArtifactoryConfigs(serverId) {
-        var serverSelectDiv = document.getElementById('serverSelectSection');
-        var credentialsUserName = serverSelectDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = serverSelectDiv.getElementsByTagName('input')[2].value;
+        let serverSelectDiv = document.getElementById('serverSelectSection');
+        let credentialsUserName = serverSelectDiv.getElementsByTagName('input')[2].value;
+        let credentialsPassword = serverSelectDiv.getElementsByTagName('input')[3].value;
 
-        var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
-        if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
+        let configDiv = document.getElementById('gradleArtifactoryConfigDiv');
+        if ((serverId == null) || (serverId.length === 0) || (serverId === -1)) {
             configDiv.style.display = 'none';
         } else {
             configDiv.style.display = 'block';
-            var urlSelect = document.getElementsByName('builder.artifactoryGradleBuilder.artifactoryServerId')[0];
-            var urlOptions = urlSelect.options;
-            for (var i = 0; i < urlOptions.length; i++) {
-                var option = urlOptions[i];
-                if (option.value == '' + serverId) {
+            let urlSelect = document.getElementsByName('builder.artifactoryGradleBuilder.artifactoryServerId')[0];
+            let urlOptions = urlSelect.options;
+            for (let i = 0; i < urlOptions.length; i++) {
+                let option = urlOptions[i];
+                if (option.value === '' + serverId) {
                     urlSelect.selectedIndex = i;
                     break;
                 }
@@ -144,20 +154,20 @@
     function loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType: 'json',
             cache: false,
             success: function (json) {
                 publishRepoSelect.innerHTML = '';
                 if (serverId >= 0) {
-                    var selectedRepoKey = '${selectedPublishingRepoKey}';
-                    for (var i = 0, l = json.length; i < l; i++) {
-                        var deployableRepoKey = json[i];
-                        var option = document.createElement('option');
+                    let selectedRepoKey = '${selectedPublishingRepoKey}';
+                    for (let i = 0, l = json.length; i < l; i++) {
+                        let deployableRepoKey = json[i];
+                        let option = document.createElement('option');
                         option.innerHTML = deployableRepoKey;
                         option.value = deployableRepoKey;
                         publishRepoSelect.appendChild(option);
-                        if (selectedRepoKey && (deployableRepoKey == selectedRepoKey)) {
+                        if (selectedRepoKey && (deployableRepoKey === selectedRepoKey)) {
                             publishRepoSelect.selectedIndex = i;
                         }
                     }
@@ -167,13 +177,13 @@
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the publishing repository list.<br>' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
-                if (XMLHttpRequest.status == 404) {
+                    'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
+                if (XMLHttpRequest.status === 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
+                        'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
-                            'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
+                        'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
                 errorMessage += "<br>";
                 publishErrorDiv.innerHTML = errorMessage;
@@ -186,7 +196,7 @@
     function loadGradleResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType: 'json',
             cache: false,
             success: function (json) {
@@ -199,7 +209,7 @@
                         option.innerHTML = deployableRepoKey;
                         option.value = deployableRepoKey;
                         resolveRepoSelect.appendChild(option);
-                        if (selectedRepoKey && (deployableRepoKey == selectedRepoKey)) {
+                        if (selectedRepoKey && (deployableRepoKey === selectedRepoKey)) {
                             resolveRepoSelect.selectedIndex = i;
                         }
                     }
@@ -208,14 +218,14 @@
                 resolveErrorDiv.style.display = 'none';
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                var errorMessage = 'An error has occurred while retrieving the resolving repository list.<br>' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
-                if (XMLHttpRequest.status == 404) {
+                let errorMessage = 'An error has occurred while retrieving the resolving repository list.<br>' +
+                    'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
+                if (XMLHttpRequest.status === 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
+                        'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
-                            'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
+                        'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
                 errorMessage += "<br>";
                 resolveErrorDiv.innerHTML = errorMessage;
@@ -226,8 +236,8 @@
     }
 
     function overridingCredentialsChanged() {
-        var serverIdSection = document.getElementById("serverSelectSection");
-        var selectedServer = serverIdSection.getElementsByTagName('select')[0].value;
+        let serverIdSection = document.getElementById("serverSelectSection");
+        let selectedServer = serverIdSection.getElementsByTagName('select')[0].value;
         displayGradleArtifactoryConfigs(selectedServer);
     }
 
@@ -241,10 +251,10 @@
         }
     }
 
-    var resolveErrorDiv = document.getElementById('resolve-repo-error');
-    var publishErrorDiv = document.getElementById('publish-repo-error');
-    var publishRepoSelect = document.getElementsByName('builder.artifactoryGradleBuilder.publishingRepo')[0];
-    var resolveRepoSelect = document.getElementsByName('builder.artifactoryGradleBuilder.resolutionRepo')[0];
+    let resolveErrorDiv = document.getElementById('resolve-repo-error');
+    let publishErrorDiv = document.getElementById('publish-repo-error');
+    let publishRepoSelect = document.getElementsByName('builder.artifactoryGradleBuilder.publishingRepo')[0];
+    let resolveRepoSelect = document.getElementsByName('builder.artifactoryGradleBuilder.resolutionRepo')[0];
 
     // Init error-divs.
     publishErrorDiv.innerHTML = '';
