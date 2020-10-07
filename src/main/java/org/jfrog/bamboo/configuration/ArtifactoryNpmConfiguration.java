@@ -68,10 +68,7 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
         context.put("selectedPublishingRepoKey", selectedPublishingRepoKey);
 
         context.put("serverConfigManager", serverConfigManager);
-        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
-        if (envVarsExcludePatterns == null) {
-            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
-        }
+        AbstractArtifactoryConfiguration.populateDefaultValuesInBuildContext(context);
     }
 
     private void populateNpmCommandsContext(@NotNull Map<String, Object> context) {
@@ -126,5 +123,8 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
         if (StringUtils.isBlank(params.getString(executableKey))) {
             errorCollection.addError(executableKey, "Please specify an Executable.");
         }
+
+        // Validate build name and number.
+        TaskConfigurationValidations.validateCaptureBuildInfoParams(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.BUILD_NUMBER, NpmBuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
 }

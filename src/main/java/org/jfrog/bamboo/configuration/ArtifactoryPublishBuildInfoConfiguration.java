@@ -6,6 +6,7 @@ import com.atlassian.bamboo.utils.error.ErrorCollection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
 
 import java.util.Map;
@@ -32,6 +33,8 @@ public class ArtifactoryPublishBuildInfoConfiguration extends AbstractArtifactor
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         context.put("selectedServerId", context.get(PublishBuildInfoContext.SERVER_ID_PARAM));
         context.put("serverConfigManager", serverConfigManager);
+        // Add default values to an existing task configuration.
+        AbstractArtifactoryConfiguration.populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     @Override
@@ -58,5 +61,8 @@ public class ArtifactoryPublishBuildInfoConfiguration extends AbstractArtifactor
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         // Validate publish server.
         TaskConfigurationValidations.validateArtifactoryServerProvidedAndValid(PublishBuildInfoContext.SERVER_ID_PARAM, serverConfigManager, params, errorCollection);
+
+        // Validate build name and number.
+        TaskConfigurationValidations.validateBuildNameNumber(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.BUILD_NUMBER, params, errorCollection);
     }
 }

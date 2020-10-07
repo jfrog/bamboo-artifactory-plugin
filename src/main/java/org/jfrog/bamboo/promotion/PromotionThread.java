@@ -1,6 +1,7 @@
 package org.jfrog.bamboo.promotion;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -36,15 +37,18 @@ public class PromotionThread extends Thread {
     private ArtifactoryBuildInfoClient client;
     private String bambooUsername;
     private ActionLog releaseLog;
+    private String buildName;
+    private String buildNumber;
 
     public PromotionThread(ReleasePromotionAction action, ArtifactoryBuildInfoClient client,
-                           String bambooUsername) {
+                           String bambooUsername, String buildName, String buildNumber) {
         this.action = action;
         this.client = client;
         this.bambooUsername = bambooUsername;
         this.releaseLog = ReleasePromotionAction.promotionContext.getActionLog();
         releaseLog.setLogger(log);
-
+        this.buildName = buildName;
+        this.buildNumber = buildNumber;
     }
 
     @Override
@@ -78,8 +82,15 @@ public class PromotionThread extends Thread {
                 .dependencies(action.isIncludeDependencies()).copy(action.isUseCopy())
                 .dryRun(true);
         releaseLog.logMessage("Performing dry run promotion (no changes are made during dry run) ...");
-        String buildName = action.getImmutableBuild().getName();
-        String buildNumber = action.getBuildNumber().toString();
+
+        // Backward compatibility for non-customizable build name and number.
+        if (StringUtils.isBlank(buildName)) {
+            buildName = action.getImmutableBuild().getName();
+        }
+        if (StringUtils.isBlank(buildNumber)) {
+            buildNumber = action.getBuildNumber().toString();
+        }
+
         HttpResponse dryResponse = null;
         HttpResponse wetResponse = null;
         try {

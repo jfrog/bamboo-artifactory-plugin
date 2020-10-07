@@ -70,7 +70,9 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         buildContext = taskContext.getBuildContext();
         genericContext = new GenericContext(taskContext.getConfigurationMap());
         buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, buildContext, environmentVariableAccessor,
-                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
+                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(),
+                TaskUtils.getBuildNameFromGenericContext(buildContext, genericContext), TaskUtils.getBuildNumberFromGenericContext(buildContext, genericContext),
+                buildParamsOverrideManager);
     }
 
     @Override

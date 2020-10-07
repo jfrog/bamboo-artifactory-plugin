@@ -2,8 +2,15 @@ package org.jfrog.bamboo.buildinfo.action;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.util.ConstantValues;
+import org.jfrog.bamboo.util.PublishedBuildDetails;
+import org.jfrog.bamboo.util.PublishedBuilds;
+import org.jfrog.build.extractor.BuildInfoExtractorUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Build info action to display on successfully completed builds that were run with the build info collection activated
@@ -13,7 +20,7 @@ import org.jfrog.bamboo.util.ConstantValues;
  */
 public class BuildInfoAction extends ViewBuildResults {
     transient Logger log = Logger.getLogger(BuildInfoAction.class);
-    private String artifactoryReleaseManagementUrl = "";
+    private List<PublishedBuildDetails> publishedBuildsDetails = new ArrayList<>();
 
     @Override
     public String execute() throws Exception {
@@ -29,24 +36,47 @@ public class BuildInfoAction extends ViewBuildResults {
             return ERROR;
         }
 
-        StringBuilder builder = new StringBuilder(
-                summary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_SELECTED_SERVER_PARAM));
-        if (!builder.toString().endsWith("/")) {
-            builder.append("/");
+        String pbAsString = summary.getCustomBuildData().get(ConstantValues.PUBLISHED_BUILDS_DETAILS);
+        if (StringUtils.isNotBlank(pbAsString)) {
+            PublishedBuilds pb = BuildInfoExtractorUtils.jsonStringToGeneric(pbAsString, PublishedBuilds.class);
+            publishedBuildsDetails = pb.getBuilds();
         }
-        builder.append("webapp/builds/").append(getImmutableBuild().getName()).append("/").append(getBuildNumber());
-        artifactoryReleaseManagementUrl = builder.toString();
+
+        // Backward compatibility for non-customizable build name and number.
+        if (publishedBuildsDetails.isEmpty()) {
+            publishedBuildsDetails.add(createDefaultPublishedBuildDetails(summary));
+        }
+
+        // Create and set url for each published build.
+        for (PublishedBuildDetails publishedBuildDetails : publishedBuildsDetails) {
+            StringBuilder urlStringBuilder = new StringBuilder(publishedBuildDetails.getArtifactoryUrl());
+            if (!urlStringBuilder.toString().endsWith("/")) {
+                urlStringBuilder.append("/");
+            }
+            urlStringBuilder.append("webapp/builds/").append(publishedBuildDetails.getBuildName()).append("/").append(publishedBuildDetails.getBuildNumber());
+            publishedBuildDetails.setBuildUrl(urlStringBuilder.toString());
+        }
 
         return INPUT;
     }
 
-    public String getArtifactoryReleaseManagementUrl() {
-        return artifactoryReleaseManagementUrl;
+    /**
+     * Create published-build details based on the values used prior to allowing customizable build name and number in tasks.
+     * @param summary - Build results summary object.
+     * @return The default published-build details to show in the 'Build-Info' summary page.
+     */
+    private PublishedBuildDetails createDefaultPublishedBuildDetails(ResultsSummary summary) {
+        String artifactoryUrl = summary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_SELECTED_SERVER_PARAM);
+        String buildName = getImmutableBuild().getName();
+        String buildNumber = String.valueOf(getBuildNumber());
+        return new PublishedBuildDetails(artifactoryUrl, buildName, buildNumber);
     }
 
-    public void setArtifactoryReleaseManagementUrl(String artifactoryReleaseManagementUrl) {
-        this.artifactoryReleaseManagementUrl = artifactoryReleaseManagementUrl;
+    public List<PublishedBuildDetails> getPublishedBuildsDetails() {
+        return publishedBuildsDetails;
     }
 
-
+    public void setPublishedBuildsDetails(List<PublishedBuildDetails> publishedBuildsDetails) {
+        this.publishedBuildsDetails = publishedBuildsDetails;
+    }
 }

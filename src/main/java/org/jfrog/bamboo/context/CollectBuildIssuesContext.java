@@ -13,6 +13,8 @@ public class CollectBuildIssuesContext {
     private static final String PASSWORD = "artifactory.task.collectBuildIssues.password";
     private static final String CONFIG_SOURCE_FILE = "artifactory.task.collectBuildIssues.config.source.file";
     private static final String CONFIG_SOURCE_TASK_CONFIGURATION = "artifactory.task.collectBuildIssues.config.source.taskConfiguration";
+    public static final String BUILD_NAME = "artifactory.task.buildName";
+    public static final String BUILD_NUMBER = "artifactory.task.buildNumber";
 
     private final Map<String, String> env;
 
@@ -21,8 +23,8 @@ public class CollectBuildIssuesContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(SERVER_ID_PARAM, USERNAME, PASSWORD,
-                CONFIG_SOURCE_CHOICE, CONFIG_SOURCE_FILE, CONFIG_SOURCE_TASK_CONFIGURATION);
+        return Sets.newHashSet(SERVER_ID_PARAM, USERNAME, PASSWORD, CONFIG_SOURCE_CHOICE, CONFIG_SOURCE_FILE,
+                CONFIG_SOURCE_TASK_CONFIGURATION, BUILD_NAME, BUILD_NUMBER);
     }
 
     public long getArtifactoryServerId() {
@@ -47,5 +49,13 @@ public class CollectBuildIssuesContext {
 
     public String getTaskConfigurationConfig() {
         return env.get(CONFIG_SOURCE_TASK_CONFIGURATION);
+    }
+
+    public String getBuildName() {
+        return env.get(BUILD_NAME);
+    }
+
+    public String getBuildNumber() {
+        return env.get(BUILD_NUMBER);
     }
 }

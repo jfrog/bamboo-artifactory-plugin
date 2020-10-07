@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
+import org.jfrog.bamboo.context.AbstractBuildContext;
 import org.jfrog.bamboo.context.CollectBuildIssuesContext;
 import org.jfrog.bamboo.task.ArtifactoryCollectBuildIssuesTask;
 
@@ -40,6 +41,8 @@ public class ArtifactoryCollectBuildIssuesConfiguration extends AbstractArtifact
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         context.put("selectedServerId", context.get(CollectBuildIssuesContext.SERVER_ID_PARAM));
         context.put("serverConfigManager", serverConfigManager);
+        // Add default values to an existing task configuration.
+        AbstractArtifactoryConfiguration.populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     /**
@@ -74,5 +77,8 @@ public class ArtifactoryCollectBuildIssuesConfiguration extends AbstractArtifact
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         // Validate publish server.
         TaskConfigurationValidations.validateArtifactoryServerProvidedAndValid(CollectBuildIssuesContext.SERVER_ID_PARAM, serverConfigManager, params, errorCollection);
+
+        // Validate build name and number.
+        TaskConfigurationValidations.validateBuildNameNumber(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.BUILD_NUMBER, params, errorCollection);
     }
 }

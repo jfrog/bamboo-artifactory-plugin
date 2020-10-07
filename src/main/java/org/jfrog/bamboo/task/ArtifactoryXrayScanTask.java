@@ -1,8 +1,10 @@
 package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.task.*;
-import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskException;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +13,7 @@ import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.XrayScanContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ProxyUtils;
+import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.client.artifactoryXrayResponse.ArtifactoryXrayResponse;
 import org.jfrog.build.client.artifactoryXrayResponse.Summary;
@@ -132,11 +135,22 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
 
     private ArtifactoryXrayResponse doXrayScan(TaskContext taskContext, ArtifactoryXrayClient client) throws IOException, InterruptedException {
         // Extract build parameters
-        BuildContext buildContext = taskContext.getBuildContext();
-        String buildNumber = String.valueOf(buildContext.getBuildNumber());
-        String buildName = buildContext.getPlanName();
+        String buildNumber = getBuildNumber(taskContext);
+        String buildName = getBuildName(taskContext);
 
         // Launch Xray Scan
         return client.xrayScanBuild(buildName, buildNumber, "bamboo");
+    }
+
+    // Backward compatibility for old tasks, with empty build name.
+    private String getBuildName(TaskContext taskContext) {
+        String buildName = xrayContext.getBuildName();
+        return TaskUtils.getBuildName(taskContext.getBuildContext(), buildName);
+    }
+
+    // Backward compatibility for old tasks, with empty build number.
+    private String getBuildNumber(TaskContext taskContext) {
+        String buildNumber = xrayContext.getBuildNumber();
+        return TaskUtils.getBuildNumber(taskContext.getBuildContext(), buildNumber);
     }
 }

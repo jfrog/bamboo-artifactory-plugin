@@ -170,6 +170,8 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         context.put("uiConfigBean", uiConfigSupport);
         context.put("testDirectoryTypes", TEST_RESULTS_FILE_PATTERN_TYPES);
         context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
+        context.put(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.DEFAULT_BUILD_NAME);
+        context.put(AbstractBuildContext.BUILD_NUMBER, AbstractBuildContext.DEFAULT_BUILD_NUMBER);
         context.put(SIGN_METHOD_MAP_KEY, SIGN_METHOD_MAP);
         context.put("useSpecsOptions", USE_SPECS_OPTIONS);
         context.put(GenericContext.USE_SPECS_CHOICE, CFG_FILE_SPECS);
@@ -344,5 +346,24 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
 
     public void setI18nResolver(final I18nResolver i18nResolver) {
         this.i18nResolver = i18nResolver;
+    }
+
+    public static void populateDefaultValuesInBuildContext(@NotNull Map<String, Object> context) {
+        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
+        if (envVarsExcludePatterns == null) {
+            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
+        }
+        populateDefaultBuildNameNumberInBuildContext(context);
+    }
+
+    public static void populateDefaultBuildNameNumberInBuildContext(@NotNull Map<String, Object> context) {
+        String buildName = (String)context.get(AbstractBuildContext.BUILD_NAME);
+        if (buildName == null) {
+            context.put(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.DEFAULT_BUILD_NAME);
+        }
+        String buildNumber = (String)context.get(AbstractBuildContext.BUILD_NUMBER);
+        if (buildNumber == null) {
+            context.put(AbstractBuildContext.BUILD_NUMBER, AbstractBuildContext.DEFAULT_BUILD_NUMBER);
+        }
     }
 }

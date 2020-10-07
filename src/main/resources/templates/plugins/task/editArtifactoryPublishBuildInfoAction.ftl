@@ -15,5 +15,7 @@
 [#--The Dummy password is a workaround for the autofill (Chrome)--]
     [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 
+    [#include 'editBuildNameNumberSnippet.ftl'/]
+
 </div>
 [/@ui.bambooSection]

@@ -139,12 +139,12 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
     private void setBuilderData(AbstractBuildContext buildContext, ServerConfig serverConfig,
                                 ArtifactoryClientConfiguration clientConf, Map<String, String> environment,
                                 Map<String, String> generalEnv, String pluginVersion) {
-        String buildName = context.getPlanName();
+        String buildName = TaskUtils.getBuildNameFromAbstractBuildContext(context, buildContext);
         clientConf.info.setArtifactoryPluginVersion(pluginVersion);
         clientConf.info.setBuildName(buildName);
         clientConf.publisher.addMatrixParam("build.name", buildName);
 
-        String buildNumber = String.valueOf(context.getBuildNumber());
+        String buildNumber = TaskUtils.getBuildNumberFromAbstractBuildContext(context, buildContext);
         clientConf.info.setBuildNumber(buildNumber);
         clientConf.publisher.addMatrixParam("build.number", buildNumber);
 

@@ -35,6 +35,8 @@ public abstract class AbstractBuildContext {
     public static final String USE_ARTIFACTORY_GRADLE_PLUGIN = "useArtifactoryGradlePlugin";
     public static final String PUBLISH_BUILD_INFO_PARAM = "publishBuildInfo";
     public static final String CAPTURE_BUILD_INFO = "captureBuildInfo";
+    public static final String BUILD_NAME = "artifactory.task.buildName";
+    public static final String BUILD_NUMBER = "artifactory.task.buildNumber";
     public static final String INCLUDE_ENV_VARS_PARAM = "includeEnvVars";
     public static final String ENV_VARS_INCLUDE_PATTERNS = "envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "envVarsExcludePatterns";
@@ -59,7 +61,7 @@ public abstract class AbstractBuildContext {
     public static final String EXECUTABLE = "executable";
     public static final String BASE_URL = "baseUrl";
 
-    // release management props.
+    // Release management props.
     public static final String ENABLE_RELEASE_MANAGEMENT = "enableReleaseManagement";
     public static final String ACTIVATE_RELEASE_MANAGEMENT = "activateReleaseManagement";
     public static final String VCS_TAG_BASE = "vcsTagBase";
@@ -80,7 +82,11 @@ public abstract class AbstractBuildContext {
     public static final String PERFORCE_USERNAME = "p4.username";
     public static final String PERFORCE_PASSWORD = "p4.password";
     public static final String VCS_PREFIX = "artifactory.vcs.";
+
+    // Default values.
     public static final String ENV_VARS_TO_EXCLUDE = "*password*,*secret*,*security*,*key*";
+    public static final String DEFAULT_BUILD_NAME = "${bamboo.buildPlanName}";
+    public static final String DEFAULT_BUILD_NUMBER = "${bamboo.buildNumber}";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
     private final String prefix;
@@ -233,6 +239,14 @@ public abstract class AbstractBuildContext {
 
     public String getEnvVarsExcludePatterns() {
         return env.get(ENV_VARS_EXCLUDE_PATTERNS);
+    }
+
+    public String getBuildName() {
+        return env.get(BUILD_NAME);
+    }
+
+    public String getBuildNumber() {
+        return env.get(BUILD_NUMBER);
     }
 
     public boolean isPublishArtifacts() {

@@ -74,14 +74,11 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         GradleBuildContext buildContext = GradleBuildContext.createGradleContextFromMap(context);
         context.put("hasTests", buildContext.isTestChecked());
         context.put("serverConfigManager", serverConfigManager);
-        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
-        if (envVarsExcludePatterns == null) {
-            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
-        }
         context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
         context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_OPTIONS_KEY, GradleBuildContext.getPublishForkCountList());
         context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_KEY, buildContext.getPublishForkCount());
+        AbstractArtifactoryConfiguration.populateDefaultValuesInBuildContext(context);
     }
 
     @NotNull
@@ -137,5 +134,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
 
         // Validate release management.
         TaskConfigurationValidations.validateReleaseManagement(params, errorCollection);
+
+        // Validate build name and number.
+        TaskConfigurationValidations.validateCaptureBuildInfoParams(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.BUILD_NUMBER, GradleBuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
 }

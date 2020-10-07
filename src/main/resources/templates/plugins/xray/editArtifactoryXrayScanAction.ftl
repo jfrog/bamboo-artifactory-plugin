@@ -15,6 +15,8 @@
 [#--The Dummy password is a workaround for the autofill (Chrome)--]
     [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 
+    [#include '../task/editBuildNameNumberSnippet.ftl'/]
+
     [@ww.checkbox name='artifactory.xrayScan.failIfVulnerable' labelKey='artifactory.task.xrayScan.failIfVulnerable' toggle='true' /]
 
 </div>

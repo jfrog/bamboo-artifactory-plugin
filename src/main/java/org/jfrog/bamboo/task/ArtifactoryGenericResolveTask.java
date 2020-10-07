@@ -59,7 +59,9 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
         buildContext = context.getBuildContext();
         genericContext = new GenericContext(context.getConfigurationMap());
         buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(context, buildContext, environmentVariableAccessor,
-                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
+                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(),
+                TaskUtils.getBuildNameFromGenericContext(buildContext, genericContext),
+                TaskUtils.getBuildNumberFromGenericContext(buildContext, genericContext), buildParamsOverrideManager);
     }
 
     @NotNull

@@ -72,12 +72,9 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("selectedServerId", buildContext.getArtifactoryServerId());
         context.put("hasTests", buildContext.isTestChecked());
         context.put("serverConfigManager", serverConfigManager);
-        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
-        if (envVarsExcludePatterns == null) {
-            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
-        }
         context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
+        AbstractArtifactoryConfiguration.populateDefaultValuesInBuildContext(context);
     }
 
     @NotNull
@@ -148,5 +145,8 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
 
         // Validate release management.
         TaskConfigurationValidations.validateReleaseManagement(params, errorCollection);
+
+        // Validate build name and number.
+        TaskConfigurationValidations.validateCaptureBuildInfoParams(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.BUILD_NUMBER, Maven3BuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
 }

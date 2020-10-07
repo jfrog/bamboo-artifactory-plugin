@@ -34,12 +34,10 @@ import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.release.vcs.VcsTypes;
 import org.jfrog.bamboo.task.ArtifactoryGradleTask;
 import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
-import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.ConstantValues;
-import org.jfrog.bamboo.util.TaskDefinitionHelper;
-import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.*;
 import org.jfrog.bamboo.util.version.VersionHelper;
 import org.jfrog.build.api.release.Promotion;
+import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 
 import java.io.IOException;
@@ -525,7 +523,23 @@ public class ReleasePromotionAction extends ViewBuildResults {
         if (reason instanceof ManualBuildTriggerReason) {
             username = ((ManualBuildTriggerReason) reason).getUserName();
         }
-        new PromotionThread(this, client, username).start();
+
+        // Get custom build name and number if exists.
+        String buildName = null;
+        String buildNumber = null;
+        String pbAsString = summary.getCustomBuildData().get(ConstantValues.PUBLISHED_BUILDS_DETAILS);
+        if (StringUtils.isNotBlank(pbAsString)) {
+            // Support customizable build name and number values only when the plan publishes a single build.
+            PublishedBuilds pb = BuildInfoExtractorUtils.jsonStringToGeneric(pbAsString, PublishedBuilds.class);
+            if (pb.getBuilds().size() == 1) {
+                PublishedBuildDetails publishedBuildDetails = pb.getBuilds().get(0);
+                buildName = publishedBuildDetails.getBuildName();
+                buildNumber = publishedBuildDetails.getBuildNumber();
+            }
+        }
+
+        // Run promotion thread.
+        new PromotionThread(this, client, username, buildName, buildNumber).start();
         promoting = false;
         return SUCCESS;
     }

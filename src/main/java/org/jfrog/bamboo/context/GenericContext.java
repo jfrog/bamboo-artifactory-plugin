@@ -33,6 +33,8 @@ public class GenericContext {
     public static final String ENV_VARS_INCLUDE_PATTERNS = "artifactory.generic.envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "artifactory.generic.envVarsExcludePatterns";
     public static final String SIGN_METHOD_MAP_KEY = "signMethods";
+    public static final String BUILD_NAME = "artifactory.generic.buildName";
+    public static final String BUILD_NUMBER = "artifactory.generic.buildNumber";
 
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of(
             "false", "Don't Sign", "true", "Sign");
@@ -44,9 +46,10 @@ public class GenericContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
-                SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS,
-                USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE);
+        return Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN,
+                SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO, SPEC_SOURCE_FILE, ARTIFACT_SPECS,
+                RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS,
+                USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE, BUILD_NAME, BUILD_NUMBER);
     }
 
     public long getSelectedServerId() {
@@ -130,5 +133,13 @@ public class GenericContext {
 
     public String getArtifactSpecs() {
         return env.get(ARTIFACT_SPECS);
+    }
+
+    public String getBuildName() {
+        return env.get(BUILD_NAME);
+    }
+
+    public String getBuildNumber() {
+        return env.get(BUILD_NUMBER);
     }
 }

@@ -143,4 +143,21 @@ public class TaskConfigurationValidations {
             }
         }
     }
+
+    public static void validateCaptureBuildInfoParams(String buildNameKey, String buildNumberKey, String captureBuildInfoKey, @NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        if (!params.getBoolean(captureBuildInfoKey)) {
+            return;
+        }
+        validateBuildNameNumber(buildNameKey, buildNumberKey, params, errorCollection);
+    }
+
+    public static void validateBuildNameNumber(String buildNameKey, String buildNumberKey, @NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
+        if (StringUtils.isBlank(params.getString(buildNameKey))) {
+            errorCollection.addError(buildNameKey, "Please specify Build Name.");
+        }
+
+        if (StringUtils.isBlank(params.getString(buildNumberKey))) {
+            errorCollection.addError(buildNumberKey, "Please specify Build Number.");
+        }
+    }
 }
