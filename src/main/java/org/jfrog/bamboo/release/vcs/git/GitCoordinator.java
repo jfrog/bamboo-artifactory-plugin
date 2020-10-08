@@ -7,7 +7,7 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.vcs.AbstractVcsCoordinator;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class GitCoordinator extends AbstractVcsCoordinator {
 
     @Override
     public void prepare() throws IOException {
-        releaseBranch = configuration.get(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH);
+        releaseBranch = configuration.get(PackageManagersContext.ReleaseManagementContext.RELEASE_BRANCH);
         vcsManager = new GitManager(context, buildLogger);
         baseCommitIsh = vcsManager.getCurrentCommitHash();
         checkoutBranch = vcsManager.getCurrentBranch();
@@ -53,7 +53,7 @@ public class GitCoordinator extends AbstractVcsCoordinator {
 
     @Override
     public void beforeReleaseVersionChange() throws IOException {
-        if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH))) {
+        if (Boolean.parseBoolean(configuration.get(PackageManagersContext.ReleaseManagementContext.USE_RELEASE_BRANCH))) {
             vcsManager.checkoutBranch(releaseBranch, true);
             state.currentWorkingBranch = releaseBranch;
             state.releaseBranchCreated = true;
@@ -69,15 +69,15 @@ public class GitCoordinator extends AbstractVcsCoordinator {
         if (modifiedFilesForReleaseVersion) {
             // commit local changes
             log(String.format("Committing release version on branch '%s'", checkoutBranch));
-            String comment = configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT);
+            String comment = configuration.get(PackageManagersContext.ReleaseManagementContext.TAG_COMMENT);
             if (StringUtils.isBlank(comment)) {
                 comment = "";
             }
             vcsManager.commitWorkingCopy(comment);
         }
-        if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG))) {
-            vcsManager.createTag(configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_URL),
-                    configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT));
+        if (Boolean.parseBoolean(configuration.get(PackageManagersContext.ReleaseManagementContext.CREATE_VCS_TAG))) {
+            vcsManager.createTag(configuration.get(PackageManagersContext.ReleaseManagementContext.TAG_URL),
+                    configuration.get(PackageManagersContext.ReleaseManagementContext.TAG_COMMENT));
             state.tagCreated = true;
         }
         if (state.releaseBranchCreated) {
@@ -85,17 +85,17 @@ public class GitCoordinator extends AbstractVcsCoordinator {
             vcsManager.push(vcsManager.getRemoteUrl(), state.currentWorkingBranch);
             state.releaseBranchPushed = true;
         }
-        if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG))) {
+        if (Boolean.parseBoolean(configuration.get(PackageManagersContext.ReleaseManagementContext.CREATE_VCS_TAG))) {
             // push the tag
             vcsManager.pushTag(vcsManager.getRemoteUrl(),
-                    configuration.get(AbstractBuildContext.ReleaseManagementContext.TAG_URL));
+                    configuration.get(PackageManagersContext.ReleaseManagementContext.TAG_URL));
             state.tagPushed = true;
         }
     }
 
     @Override
     public void beforeDevelopmentVersionChange() throws IOException {
-        if (Boolean.parseBoolean(configuration.get(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH))) {
+        if (Boolean.parseBoolean(configuration.get(PackageManagersContext.ReleaseManagementContext.USE_RELEASE_BRANCH))) {
             // done working on the release branch, checkout back to master
             vcsManager.checkoutBranch(checkoutBranch, false);
             state.currentWorkingBranch = checkoutBranch;
@@ -107,7 +107,7 @@ public class GitCoordinator extends AbstractVcsCoordinator {
         super.afterDevelopmentVersionChange(modified);
         if (modified) {
             log(String.format("Committing next development version on branch '%s'", state.currentWorkingBranch));
-            String comment = configuration.get(AbstractBuildContext.ReleaseManagementContext.NEXT_DEVELOPMENT_COMMENT);
+            String comment = configuration.get(PackageManagersContext.ReleaseManagementContext.NEXT_DEVELOPMENT_COMMENT);
             if (StringUtils.isBlank(comment)) {
                 comment = "";
             }
@@ -117,7 +117,7 @@ public class GitCoordinator extends AbstractVcsCoordinator {
 
     @Override
     public void buildCompleted(BuildContext buildContext) throws IOException, InterruptedException {
-        AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
+        PackageManagersContext context = PackageManagersContext.createContextFromMap(configuration);
         CurrentBuildResult result = buildContext.getBuildResult();
         if (BuildState.SUCCESS.equals(result.getBuildState())) {
             if (modifiedFilesForDevVersion) {

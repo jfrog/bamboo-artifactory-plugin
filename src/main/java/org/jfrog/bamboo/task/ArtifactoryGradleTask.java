@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.GradleDataHelper;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.*;
 import org.jfrog.build.api.BuildInfoFields;
@@ -234,7 +234,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         }
     }
 
-    private String getExecutable(AbstractBuildContext buildContext) throws TaskException {
+    private String getExecutable(PackageManagersContext buildContext) throws TaskException {
         // Return gradle wrapper if required
         if ((buildContext instanceof GradleBuildContext) && ((GradleBuildContext) buildContext).isUseGradleWrapper()) {
             String gradleWrapperLocation = ((GradleBuildContext) buildContext).getGradleWrapperLocation();

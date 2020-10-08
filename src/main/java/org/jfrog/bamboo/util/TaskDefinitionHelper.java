@@ -3,7 +3,7 @@ package org.jfrog.bamboo.util;
 import com.atlassian.bamboo.task.TaskDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.task.ArtifactoryGradleTask;
 import org.jfrog.bamboo.task.ArtifactoryMaven3Task;
 import org.jfrog.bamboo.task.ArtifactoryPublishBuildInfoTask;
@@ -93,7 +93,7 @@ public abstract class TaskDefinitionHelper {
      * @return true if Release management is enabled, false otherwise.
      */
     public static boolean isReleaseMgmtEnabled(TaskDefinition taskDefinition) {
-        AbstractBuildContext config = AbstractBuildContext.createContextFromMap(taskDefinition.getConfiguration());
+        PackageManagersContext config = PackageManagersContext.createContextFromMap(taskDefinition.getConfiguration());
         // Check if release management is enabled
         return (config != null) && config.releaseManagementContext.isReleaseMgmtEnabled();
     }

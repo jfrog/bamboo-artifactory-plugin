@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
  *
  * @author Tomer Cohen
  */
-public abstract class AbstractBuildContext {
+public abstract class PackageManagersContext extends ArtifactoryBuildContext {
 
     public static final String SERVER_ID_PARAM = "artifactoryServerId";
     public static final String PUBLISHING_REPO_PARAM = "publishingRepo";
@@ -35,8 +35,6 @@ public abstract class AbstractBuildContext {
     public static final String USE_ARTIFACTORY_GRADLE_PLUGIN = "useArtifactoryGradlePlugin";
     public static final String PUBLISH_BUILD_INFO_PARAM = "publishBuildInfo";
     public static final String CAPTURE_BUILD_INFO = "captureBuildInfo";
-    public static final String BUILD_NAME = "artifactory.task.buildName";
-    public static final String BUILD_NUMBER = "artifactory.task.buildNumber";
     public static final String INCLUDE_ENV_VARS_PARAM = "includeEnvVars";
     public static final String ENV_VARS_INCLUDE_PATTERNS = "envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "envVarsExcludePatterns";
@@ -82,22 +80,17 @@ public abstract class AbstractBuildContext {
     public static final String PERFORCE_USERNAME = "p4.username";
     public static final String PERFORCE_PASSWORD = "p4.password";
     public static final String VCS_PREFIX = "artifactory.vcs.";
-
-    // Default values.
     public static final String ENV_VARS_TO_EXCLUDE = "*password*,*secret*,*security*,*key*";
-    public static final String DEFAULT_BUILD_NAME = "${bamboo.buildPlanName}";
-    public static final String DEFAULT_BUILD_NUMBER = "${bamboo.buildNumber}";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
     private final String prefix;
-    protected final Map<String, String> env;
 
-    public AbstractBuildContext(String prefix, Map<String, String> env) {
+    public PackageManagersContext(String prefix, Map<String, String> env) {
+        super(env);
         this.prefix = prefix;
-        this.env = env;
     }
 
-    public static AbstractBuildContext createContextFromMap(Map<String, String> map) {
+    public static PackageManagersContext createContextFromMap(Map<String, String> map) {
         if (map == null || map.isEmpty()) {
             throw new IllegalArgumentException("No empty map allowed");
         }
@@ -239,14 +232,6 @@ public abstract class AbstractBuildContext {
 
     public String getEnvVarsExcludePatterns() {
         return env.get(ENV_VARS_EXCLUDE_PATTERNS);
-    }
-
-    public String getBuildName() {
-        return env.get(BUILD_NAME);
-    }
-
-    public String getBuildNumber() {
-        return env.get(BUILD_NUMBER);
     }
 
     public boolean isPublishArtifacts() {

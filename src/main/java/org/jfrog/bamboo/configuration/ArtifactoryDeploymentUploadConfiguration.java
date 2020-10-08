@@ -6,7 +6,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
 
 import java.util.Map;
@@ -34,7 +34,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
 
     private static Set<String> getFieldsToCopy() {
         return Sets.newHashSet(
-                DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM,
+                DEPLOYMENT_PREFIX + PackageManagersContext.SERVER_ID_PARAM,
                 DEPLOYMENT_PREFIX + USERNAME,
                 DEPLOYMENT_PREFIX + PASSWORD,
                 DEPLOYMENT_PREFIX + LEGACY_DEPLOYMENT_REPOSITORY,
@@ -50,11 +50,11 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
         populateLegacyContextForCreate(context);
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", -1);
-        context.put(AbstractBuildContext.SERVER_ID_PARAM, -1);
+        context.put(PackageManagersContext.SERVER_ID_PARAM, -1);
 
         contextPutEmpty(context, USERNAME);
         contextPutEmpty(context, PASSWORD);
-        contextPutEmpty(context, AbstractBuildContext.SERVER_ID_PARAM);
+        contextPutEmpty(context, PackageManagersContext.SERVER_ID_PARAM);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
         super.populateContextForEdit(context, taskDefinition);
         populateLegacyContextForEdit(context, taskDefinition);
         populateContextWithConfiguration(context, taskDefinition, getFieldsToCopy());
-        String selectedServerId = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM);
+        String selectedServerId = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + PackageManagersContext.SERVER_ID_PARAM);
         String username = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + USERNAME);
         String password = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + PASSWORD);
 

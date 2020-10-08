@@ -11,7 +11,7 @@ import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
@@ -51,14 +51,14 @@ public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction impl
         }
         Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
         configuration.putAll(customBuildData);
-        AbstractBuildContext config = AbstractBuildContext.createContextFromMap(configuration);
+        PackageManagersContext config = PackageManagersContext.createContextFromMap(configuration);
         if ((config == null) || !config.releaseManagementContext.isActivateReleaseManagement()) {
             log.debug("[RELEASE] Release management is not active, resuming normally");
             return buildContext;
         }
 
         // Disabling ACTIVATE_RELEASE_MANAGEMENT to avoid caching this property for the next build
-        configuration.put(AbstractBuildContext.ACTIVATE_RELEASE_MANAGEMENT, "");
+        configuration.put(PackageManagersContext.ACTIVATE_RELEASE_MANAGEMENT, "");
         ReleaseProvider provider = AbstractReleaseProvider.createReleaseProvider(config, buildContext, logger,
                 customVariableContext, credentialsAccessor);
         if (provider == null) {

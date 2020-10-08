@@ -9,7 +9,8 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.ArtifactoryBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
 
 import java.util.Map;
@@ -67,7 +68,8 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         context.put("selectedRepoKey", selectedPublishingRepoKey);
         context.put("selectedServerId", context.get(IvyBuildContext.PREFIX + IvyBuildContext.SERVER_ID_PARAM));
         context.put("serverConfigManager", serverConfigManager);
-        AbstractArtifactoryConfiguration.populateDefaultValuesInBuildContext(context);
+        populateDefaultEnvVarsExcludePatternsInBuildContext(context);
+        populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     @NotNull
@@ -110,14 +112,14 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         }
 
         // Validate Build JDK.
-        String buildJdkKey = IvyBuildContext.PREFIX + AbstractBuildContext.JDK;
+        String buildJdkKey = IvyBuildContext.PREFIX + PackageManagersContext.JDK;
         TaskConfigurationValidations.validateJdk(buildJdkKey, params, errorCollection);
 
         // Validate Executable.
-        String executableKey = IvyBuildContext.PREFIX + AbstractBuildContext.EXECUTABLE;
+        String executableKey = IvyBuildContext.PREFIX + PackageManagersContext.EXECUTABLE;
         TaskConfigurationValidations.validateExecutable(executableKey, params, errorCollection);
 
         // Validate build name and number.
-        TaskConfigurationValidations.validateCaptureBuildInfoParams(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.BUILD_NUMBER, IvyBuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
+        TaskConfigurationValidations.validateCaptureBuildInfoParams(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.BUILD_NUMBER, IvyBuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
 }

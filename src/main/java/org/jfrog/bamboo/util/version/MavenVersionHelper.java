@@ -12,7 +12,7 @@ import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.struts2.dispatcher.Parameter;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.release.action.ReleasePromotionAction;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
@@ -36,7 +36,7 @@ public class MavenVersionHelper extends VersionHelper {
 
     private final CapabilityContext capabilityContext;
 
-    protected MavenVersionHelper(AbstractBuildContext context, CapabilityContext capabilityContext) {
+    protected MavenVersionHelper(PackageManagersContext context, CapabilityContext capabilityContext) {
         super(context);
         this.capabilityContext = capabilityContext;
     }

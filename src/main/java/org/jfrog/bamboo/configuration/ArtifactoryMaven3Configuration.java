@@ -10,7 +10,8 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.ArtifactoryBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 
 import java.util.Map;
@@ -74,7 +75,8 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("serverConfigManager", serverConfigManager);
         context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
-        AbstractArtifactoryConfiguration.populateDefaultValuesInBuildContext(context);
+        populateDefaultEnvVarsExcludePatternsInBuildContext(context);
+        populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     @NotNull
@@ -94,7 +96,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     }
 
     @Override
-    protected void resetResolverConfigIfNeeded(AbstractBuildContext buildContext) {
+    protected void resetResolverConfigIfNeeded(PackageManagersContext buildContext) {
         long serverId = buildContext.getResolutionArtifactoryServerId();
         boolean resolveFromArtifactory = ((Maven3BuildContext) buildContext).isResolveFromArtifactory();
         if (serverId == -1 || !resolveFromArtifactory) {
@@ -136,17 +138,17 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         }
 
         // Validate Build JDK.
-        String buildJdkKey = Maven3BuildContext.PREFIX + AbstractBuildContext.JDK;
+        String buildJdkKey = Maven3BuildContext.PREFIX + PackageManagersContext.JDK;
         TaskConfigurationValidations.validateJdk(buildJdkKey, params, errorCollection);
 
         // Validate Executable.
-        String executableKey = Maven3BuildContext.PREFIX + AbstractBuildContext.EXECUTABLE;
+        String executableKey = Maven3BuildContext.PREFIX + PackageManagersContext.EXECUTABLE;
         TaskConfigurationValidations.validateExecutable(executableKey, params, errorCollection);
 
         // Validate release management.
         TaskConfigurationValidations.validateReleaseManagement(params, errorCollection);
 
         // Validate build name and number.
-        TaskConfigurationValidations.validateCaptureBuildInfoParams(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.BUILD_NUMBER, Maven3BuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
+        TaskConfigurationValidations.validateCaptureBuildInfoParams(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.BUILD_NUMBER, Maven3BuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
 }

@@ -14,7 +14,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
@@ -56,7 +56,7 @@ public class GradlePropertiesCopier extends AbstractBuildTask implements CustomB
             return buildContext;
         }
         if (checkoutDir.exists()) {
-            GradleBuildContext gradleBuildContext = (GradleBuildContext) AbstractBuildContext.createContextFromMap(gradleDefinition.getConfiguration());
+            GradleBuildContext gradleBuildContext = (GradleBuildContext) PackageManagersContext.createContextFromMap(gradleDefinition.getConfiguration());
             String location = "";
             String directory = gradleBuildContext == null ? "" : gradleBuildContext.getBuildScript();
             if (StringUtils.isNotBlank(directory)) {

@@ -27,7 +27,7 @@
     [@ww.checkbox labelKey='artifactory.task.captureBuildInfo' name='captureBuildInfo' toggle='true'/]
 
     [@ui.bambooSection dependsOn='captureBuildInfo' showOn=true]
-        [#include 'editBuildNameNumberSnippet.ftl'/]
+        [#include '../task/editBuildNameNumberSnippet.ftl'/]
         [#include 'editEnvSnippet.ftl'/]
     [/@ui.bambooSection]
 

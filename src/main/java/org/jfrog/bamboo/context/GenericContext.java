@@ -8,15 +8,15 @@ import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
 import java.util.Map;
 import java.util.Set;
 
-import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
-import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
+import static org.jfrog.bamboo.context.PackageManagersContext.BUILD_INFO_AGGREGATION;
+import static org.jfrog.bamboo.context.PackageManagersContext.CAPTURE_BUILD_INFO;
 
 /**
  * @author Tomer Cohen
  */
-public class GenericContext {
+public class GenericContext extends ArtifactoryBuildContext {
     public static final String PREFIX = "builder.artifactoryGenericBuilder.";
-    public static final String SERVER_ID_PARAM = AbstractBuildContext.SERVER_ID_PARAM;
+    public static final String SERVER_ID_PARAM = PackageManagersContext.SERVER_ID_PARAM;
     public static final String REPO_KEY = "builder.artifactoryGenericBuilder.deployableRepo";
     public static final String REPO_RESOLVE_KEY = "artifactory.generic.resolveRepo";
     public static final String USERNAME = "artifactory.generic.username";
@@ -33,16 +33,12 @@ public class GenericContext {
     public static final String ENV_VARS_INCLUDE_PATTERNS = "artifactory.generic.envVarsIncludePatterns";
     public static final String ENV_VARS_EXCLUDE_PATTERNS = "artifactory.generic.envVarsExcludePatterns";
     public static final String SIGN_METHOD_MAP_KEY = "signMethods";
-    public static final String BUILD_NAME = "artifactory.generic.buildName";
-    public static final String BUILD_NUMBER = "artifactory.generic.buildNumber";
 
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of(
             "false", "Don't Sign", "true", "Sign");
 
-    private final Map<String, String> env;
-
     public GenericContext(Map<String, String> env) {
-        this.env = env;
+        super(env);
     }
 
     public static Set<String> getFieldsToCopy() {

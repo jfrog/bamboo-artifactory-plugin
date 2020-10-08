@@ -9,7 +9,7 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
@@ -55,7 +55,7 @@ public class ArtifactoryPreBuildAction extends AbstractBuildAction implements Cu
         }
         Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
         configuration.putAll(customBuildData);
-        AbstractBuildContext config = AbstractBuildContext.createContextFromMap(configuration);
+        PackageManagersContext config = PackageManagersContext.createContextFromMap(configuration);
         if ((config == null) || !config.releaseManagementContext.isActivateReleaseManagement() || !config.releaseManagementContext.isReleaseMgmtEnabled()) {
             log.debug("[RELEASE] Release management is not active, resuming normally");
             return buildContext;

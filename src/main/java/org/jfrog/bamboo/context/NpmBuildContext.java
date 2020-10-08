@@ -6,7 +6,7 @@ import org.jfrog.bamboo.configuration.ArtifactoryNpmConfiguration;
 import java.util.Map;
 import java.util.Set;
 
-public class NpmBuildContext extends AbstractBuildContext {
+public class NpmBuildContext extends PackageManagersContext {
     public static final String PREFIX = "artifactory.task.npm.";
     public static final String COMMAND_CHOICE = PREFIX + "command.choice";
     public static final String NPM_DEPLOYER_SERVER_ID = PREFIX + SERVER_ID_PARAM;

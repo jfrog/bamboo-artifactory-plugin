@@ -138,12 +138,12 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
                                                                      ServerConfig serverConfig, Map<String, String> taskEnv, String artifactoryPluginVersion) {
 
         ArtifactoryClientConfiguration clientConf = new ArtifactoryClientConfiguration(new NullLog());
-        String buildName = TaskUtils.getBuildNameFromAbstractBuildContext(context, buildContext);
+        String buildName = buildContext.getBuildName(context);
         clientConf.info.setBuildName(buildName);
         clientConf.info.setArtifactoryPluginVersion(artifactoryPluginVersion);
         clientConf.publisher.addMatrixParam("build.name", buildName);
 
-        String buildNumber = TaskUtils.getBuildNumberFromAbstractBuildContext(context, buildContext);
+        String buildNumber = buildContext.getBuildNumber(context);
         clientConf.info.setBuildNumber(buildNumber);
         clientConf.publisher.addMatrixParam("build.number", buildNumber);
 

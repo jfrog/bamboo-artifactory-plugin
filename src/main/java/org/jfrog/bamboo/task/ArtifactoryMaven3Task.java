@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.MavenDataHelper;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.PluginProperties;
@@ -159,7 +159,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
      *
      * @return Java bin path
      */
-    public String getJavaExecutable(AbstractBuildContext context) throws TaskException {
+    public String getJavaExecutable(PackageManagersContext context) throws TaskException {
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, context, capabilityContext);
         StringBuilder binPathBuilder = new StringBuilder(jdkPath);
         if (SystemUtils.IS_OS_WINDOWS) {

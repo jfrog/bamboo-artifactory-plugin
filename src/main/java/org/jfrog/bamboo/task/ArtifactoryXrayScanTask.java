@@ -13,7 +13,6 @@ import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.context.XrayScanContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ProxyUtils;
-import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.client.artifactoryXrayResponse.ArtifactoryXrayResponse;
 import org.jfrog.build.client.artifactoryXrayResponse.Summary;
@@ -135,22 +134,10 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
 
     private ArtifactoryXrayResponse doXrayScan(TaskContext taskContext, ArtifactoryXrayClient client) throws IOException, InterruptedException {
         // Extract build parameters
-        String buildNumber = getBuildNumber(taskContext);
-        String buildName = getBuildName(taskContext);
+        String buildName = xrayContext.getBuildName(taskContext.getBuildContext());
+        String buildNumber = xrayContext.getBuildNumber(taskContext.getBuildContext());
 
         // Launch Xray Scan
         return client.xrayScanBuild(buildName, buildNumber, "bamboo");
-    }
-
-    // Backward compatibility for old tasks, with empty build name.
-    private String getBuildName(TaskContext taskContext) {
-        String buildName = xrayContext.getBuildName();
-        return TaskUtils.getBuildName(taskContext.getBuildContext(), buildName);
-    }
-
-    // Backward compatibility for old tasks, with empty build number.
-    private String getBuildNumber(TaskContext taskContext) {
-        String buildNumber = xrayContext.getBuildNumber();
-        return TaskUtils.getBuildNumber(taskContext.getBuildContext(), buildNumber);
     }
 }

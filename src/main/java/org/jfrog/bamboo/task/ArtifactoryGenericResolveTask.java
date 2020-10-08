@@ -30,7 +30,6 @@ import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Lior Hasson
@@ -58,10 +57,10 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
         logger = context.getBuildLogger();
         buildContext = context.getBuildContext();
         genericContext = new GenericContext(context.getConfigurationMap());
-        buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(context, buildContext, environmentVariableAccessor,
+        buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(genericContext.getBuildName(buildContext),
+                genericContext.getBuildNumber(buildContext), context, buildContext, environmentVariableAccessor,
                 genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(),
-                TaskUtils.getBuildNameFromGenericContext(buildContext, genericContext),
-                TaskUtils.getBuildNumberFromGenericContext(buildContext, genericContext), buildParamsOverrideManager);
+                buildParamsOverrideManager);
     }
 
     @NotNull
@@ -88,8 +87,7 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
 
             if (genericContext.isCaptureBuildInfo()) {
                 Build build = buildInfoHelper.getBuild(taskContext, genericContext);
-                Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
-                build = buildInfoHelper.addBuildInfoParams(taskContext, build, buildProperties, Lists.newArrayList(), dependencies, buildDependencies);
+                build = buildInfoHelper.addBuildInfoParams(build, Lists.newArrayList(), dependencies, buildDependencies);
                 taskBuildInfo = build;
             }
         } catch (IOException|InterruptedException e) {

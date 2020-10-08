@@ -8,18 +8,14 @@ import java.util.Set;
 /**
  * @author Alexei Vainshtein
  */
-public class PublishBuildInfoContext {
+public class PublishBuildInfoContext extends ArtifactoryBuildContext {
 
     public static final String SERVER_ID_PARAM = "artifactory.task.publishBuildInfo.artifactoryServerId";
     public static final String USERNAME = "artifactory.task.publishBuildInfo.username";
     public static final String PASSWORD = "artifactory.task.publishBuildInfo.password";
-    public static final String BUILD_NAME = "artifactory.task.buildName";
-    public static final String BUILD_NUMBER = "artifactory.task.buildNumber";
-
-    private final Map<String, String> env;
 
     public PublishBuildInfoContext(Map<String, String> env) {
-        this.env = env;
+        super(env);
     }
 
     public static Set<String> getFieldsToCopy() {
@@ -36,13 +32,5 @@ public class PublishBuildInfoContext {
 
     public long getArtifactoryServerId() {
         return Long.parseLong(env.get(SERVER_ID_PARAM));
-    }
-
-    public String getBuildName() {
-        return env.get(BUILD_NAME);
-    }
-
-    public String getBuildNumber() {
-        return env.get(BUILD_NUMBER);
     }
 }

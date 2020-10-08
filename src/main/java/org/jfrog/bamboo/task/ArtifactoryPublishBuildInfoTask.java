@@ -63,7 +63,10 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
         PublishBuildInfoContext publishBuildInfoContext = new PublishBuildInfoContext(context.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         BuildContext buildContext = context.getBuildContext();
-        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(context, buildContext, environmentVariableAccessor, publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(), publishBuildInfoContext.getPassword(), getBuildName(buildContext, publishBuildInfoContext), getBuildNumber(buildContext, publishBuildInfoContext), buildParamsOverrideManager);
+        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(publishBuildInfoContext.getBuildName(buildContext),
+                publishBuildInfoContext.getBuildNumber(buildContext), context, buildContext, environmentVariableAccessor,
+                publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(),
+                publishBuildInfoContext.getPassword(), buildParamsOverrideManager);
     }
 
     @NotNull
@@ -81,7 +84,7 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
             client.sendBuildInfo(build);
 
             // Add build details to context.
-            addPublishedBuildDetailsToContext(client.getArtifactoryUrl(), build.getName(), build.getNumber(), taskContext, customBuildData);
+            addPublishedBuildDetailsToBuildData(client.getArtifactoryUrl(), build.getName(), build.getNumber(), taskContext, customBuildData);
         } catch (IOException e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);
@@ -96,8 +99,13 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     }
 
     /**
-     * Populate 'build' with the builds to publish in this task.
-     * The unpublished builds are inserted back into context for future use.
+     * Append the build-infos which were aggregated during the plan execution, and have the same build name and number
+     * as the executed Publish Build Info task.
+     * The unpublished builds during this task execution are inserted back into the context.
+     * @param taskContext - The task's context.
+     * @param build - Build object to publish.
+     * @param publishCandidatesJson - All build-infos collected during the build execution.
+     * @throws IOException
      */
     private void addBuildsToPublish(TaskContext taskContext, Build build, String publishCandidatesJson) throws IOException {
         // Deserialize builds string.
@@ -126,10 +134,16 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     }
 
     /**
-     * Save the published build details in a custom build data.
-     * The details are later used by the BuildInfoAction to show all published builds.
+     * Add the current published build details to the build's build-data map.
+     * These details are later used by BuildInfoAction to create the published Build Info UI in the build's summary screen.
+     * @param artifactoryUrl - Artifactory server URL.
+     * @param buildName - Published build name.
+     * @param buildNumber - Published build number.
+     * @param taskContext - The task's context.
+     * @param customBuildData - Plan's build-data object, used to store data.
+     * @throws IOException
      */
-    private void addPublishedBuildDetailsToContext(String artifactoryUrl, String buildName, String buildNumber, TaskContext taskContext, Map<String, String> customBuildData) throws IOException {
+    private void addPublishedBuildDetailsToBuildData(String artifactoryUrl, String buildName, String buildNumber, TaskContext taskContext, Map<String, String> customBuildData) throws IOException {
         // Get existing PublishedBuilds from context.
         PublishedBuilds pb = new PublishedBuilds();
         if (customBuildData.containsKey(PUBLISHED_BUILDS_DETAILS)) {
@@ -143,18 +157,6 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
         // Add published build info data to context.
         String pbAsString = BuildInfoExtractorUtils.buildInfoToJsonString(pb);
         taskContext.getBuildContext().getBuildResult().getCustomBuildData().put(PUBLISHED_BUILDS_DETAILS, pbAsString);
-    }
-
-    // Backward compatibility for old tasks, with empty build name.
-    private String getBuildName(BuildContext buildContext, PublishBuildInfoContext publishBuildInfoContext) {
-        String buildName = publishBuildInfoContext.getBuildName();
-        return TaskUtils.getBuildName(buildContext, buildName);
-    }
-
-    // Backward compatibility for old tasks, with empty build number.
-    private String getBuildNumber(BuildContext buildContext, PublishBuildInfoContext publishBuildInfoContext) {
-        String buildNumber = publishBuildInfoContext.getBuildNumber();
-        return TaskUtils.getBuildNumber(buildContext, buildNumber);
     }
 
     @Override

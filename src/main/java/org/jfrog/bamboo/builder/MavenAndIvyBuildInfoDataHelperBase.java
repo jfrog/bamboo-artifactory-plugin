@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.ProxyUtils;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
@@ -60,7 +60,7 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
     protected String deployerUrl;
 
     public MavenAndIvyBuildInfoDataHelperBase(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
-                                              AbstractBuildContext abstractBuildContext,
+                                              PackageManagersContext abstractBuildContext,
                                               EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion,
                                               boolean aggregateBuildInfo) {
         BuildContext buildContext = context.getBuildContext();
@@ -88,7 +88,7 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         return true;
     }
 
-    private void setDataToContext(BuildContext context, AbstractBuildContext buildContext) {
+    private void setDataToContext(BuildContext context, PackageManagersContext buildContext) {
         if (selectedServerConfig != null) {
             String serverUrl = serverConfigManager.substituteVariables(selectedServerConfig.getUrl());
             context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, serverUrl);
@@ -126,7 +126,7 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
     }
 
     @NotNull
-    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext buildContext, @NotNull TaskContext context) {
+    public void addPasswordsSystemProps(List<String> command, PackageManagersContext buildContext, @NotNull TaskContext context) {
         if (deployerPassword == null) {
             return;
         }
@@ -136,15 +136,15 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         context.getBuildContext().getVariableContext().addLocalVariable("artifactory.password.mask.a", deployerPassword);
     }
 
-    private void setBuilderData(AbstractBuildContext buildContext, ServerConfig serverConfig,
+    private void setBuilderData(PackageManagersContext buildContext, ServerConfig serverConfig,
                                 ArtifactoryClientConfiguration clientConf, Map<String, String> environment,
                                 Map<String, String> generalEnv, String pluginVersion) {
-        String buildName = TaskUtils.getBuildNameFromAbstractBuildContext(context, buildContext);
+        String buildName = buildContext.getBuildName(context);
         clientConf.info.setArtifactoryPluginVersion(pluginVersion);
         clientConf.info.setBuildName(buildName);
         clientConf.publisher.addMatrixParam("build.name", buildName);
 
-        String buildNumber = TaskUtils.getBuildNumberFromAbstractBuildContext(context, buildContext);
+        String buildNumber = buildContext.getBuildNumber(context);
         clientConf.info.setBuildNumber(buildNumber);
         clientConf.publisher.addMatrixParam("build.number", buildNumber);
 
@@ -236,10 +236,10 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         }
     }
 
-    abstract protected void setClientData(AbstractBuildContext buildContext,
+    abstract protected void setClientData(PackageManagersContext buildContext,
                                           ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment);
 
-    private void setPublisherData(AbstractBuildContext buildContext,
+    private void setPublisherData(PackageManagersContext buildContext,
                                   ArtifactoryClientConfiguration clientConf, ServerConfig serverConfig, Map<String, String> environment) {
         clientConf.publisher.setContextUrl(deployerUrl);
         clientConf.setTimeout(serverConfig.getTimeout());
@@ -270,13 +270,13 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         clientConf.publisher.setPublishBuildInfo(false);
     }
 
-    private void setIncludeEnvVars(AbstractBuildContext buildContext, ArtifactoryClientConfiguration clientConf) {
+    private void setIncludeEnvVars(PackageManagersContext buildContext, ArtifactoryClientConfiguration clientConf) {
         clientConf.setIncludeEnvVars(buildContext.isIncludeEnvVars());
         clientConf.setEnvVarsIncludePatterns(buildContext.getEnvVarsIncludePatterns());
         clientConf.setEnvVarsExcludePatterns(buildContext.getEnvVarsExcludePatterns());
     }
 
-    private void setDeployerProperties(AbstractBuildContext buildContext) {
+    private void setDeployerProperties(PackageManagersContext buildContext) {
         // Set url.
         deployerUrl = serverConfigManager.substituteVariables(selectedServerConfig.getUrl());
         // Set username.

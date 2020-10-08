@@ -52,12 +52,4 @@ public class PublishedBuildDetails implements Serializable {
     public void setBuildUrl(String buildUrl) {
         this.buildUrl = buildUrl;
     }
-
-    //    public String getBuildInfoUrl() {
-//        return this.artifactoryUrl + "/webapp/builds/" + this.buildName + "/" + this.buildNumber;
-//    }
-//
-//    public String getDisplayName() {
-//        return this.buildName + " / " + this.buildNumber;
-//    }
 }

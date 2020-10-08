@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * @author Tomer Cohen
  */
-public class Maven3BuildContext extends AbstractBuildContext {
+public class Maven3BuildContext extends PackageManagersContext {
     public static final String PREFIX = "builder.artifactoryMaven3Builder.";
     public static final String DEPLOYABLE_REPO_KEY = "deployableRepo";
     public static final String PUBLISH_ARTIFACTS = "deployMavenArtifacts";

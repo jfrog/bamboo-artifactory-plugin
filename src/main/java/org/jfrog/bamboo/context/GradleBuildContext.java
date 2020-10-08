@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * @author Tomer Cohen
  */
-public class GradleBuildContext extends AbstractBuildContext {
+public class GradleBuildContext extends PackageManagersContext {
     public static final String PREFIX = "builder.artifactoryGradleBuilder.";
     public static final String SWITCHES_PARAM = "switches";
     public static final String TASKS_PARAM = "tasks";

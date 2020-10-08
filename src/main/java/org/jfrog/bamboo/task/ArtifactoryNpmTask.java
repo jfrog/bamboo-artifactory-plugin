@@ -61,8 +61,8 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
         logger = taskContext.getBuildLogger();
         npmBuildContext = new NpmBuildContext(taskContext.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        buildName = TaskUtils.getBuildNameFromAbstractBuildContext(taskContext.getBuildContext(), npmBuildContext);
-        buildNumber = TaskUtils.getBuildNumberFromAbstractBuildContext(taskContext.getBuildContext(), npmBuildContext);
+        buildName = npmBuildContext.getBuildName(taskContext.getBuildContext());
+        buildNumber = npmBuildContext.getBuildNumber(taskContext.getBuildContext());
         initBuildInfoHelper();
         environmentVariables = getEnv();
         packagePath = getPackagePath();
@@ -107,13 +107,13 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      */
     private void initBuildInfoHelper() {
         if (npmBuildContext.isNpmCommandInstall()) {
-            buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+            buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(buildName, buildNumber, taskContext, taskContext.getBuildContext(),
                     environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(), npmBuildContext.getResolverUsername(),
-                    npmBuildContext.getResolverPassword(), buildName, buildNumber, buildParamsOverrideManager);
+                    npmBuildContext.getResolverPassword(), buildParamsOverrideManager);
         } else {
-            buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+            buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(buildName, buildNumber, taskContext, taskContext.getBuildContext(),
                     environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(), npmBuildContext.getDeployerUsername(),
-                    npmBuildContext.getDeployerPassword(), buildName, buildNumber, buildParamsOverrideManager);
+                    npmBuildContext.getDeployerPassword(), buildParamsOverrideManager);
         }
     }
 

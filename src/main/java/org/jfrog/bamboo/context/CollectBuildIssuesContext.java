@@ -6,20 +6,16 @@ import org.jfrog.bamboo.configuration.ArtifactoryCollectBuildIssuesConfiguration
 import java.util.Map;
 import java.util.Set;
 
-public class CollectBuildIssuesContext {
-    public static final String SERVER_ID_PARAM = "artifactory.task.collectBuildIssues." + AbstractBuildContext.SERVER_ID_PARAM;
+public class CollectBuildIssuesContext extends ArtifactoryBuildContext {
+    public static final String SERVER_ID_PARAM = "artifactory.task.collectBuildIssues." + PackageManagersContext.SERVER_ID_PARAM;
     public static final String CONFIG_SOURCE_CHOICE = "artifactory.task.collectBuildIssues.config.source";
     private static final String USERNAME = "artifactory.task.collectBuildIssues.username";
     private static final String PASSWORD = "artifactory.task.collectBuildIssues.password";
     private static final String CONFIG_SOURCE_FILE = "artifactory.task.collectBuildIssues.config.source.file";
     private static final String CONFIG_SOURCE_TASK_CONFIGURATION = "artifactory.task.collectBuildIssues.config.source.taskConfiguration";
-    public static final String BUILD_NAME = "artifactory.task.buildName";
-    public static final String BUILD_NUMBER = "artifactory.task.buildNumber";
-
-    private final Map<String, String> env;
 
     public CollectBuildIssuesContext(Map<String, String> env) {
-        this.env = env;
+        super(env);
     }
 
     public static Set<String> getFieldsToCopy() {
@@ -49,13 +45,5 @@ public class CollectBuildIssuesContext {
 
     public String getTaskConfigurationConfig() {
         return env.get(CONFIG_SOURCE_TASK_CONFIGURATION);
-    }
-
-    public String getBuildName() {
-        return env.get(BUILD_NAME);
-    }
-
-    public String getBuildNumber() {
-        return env.get(BUILD_NUMBER);
     }
 }

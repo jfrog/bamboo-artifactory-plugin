@@ -18,8 +18,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.util.TaskConfiguratorHelperImpl;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.ArtifactoryBuildContext;
 import org.jfrog.bamboo.context.GenericContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.vcs.VcsTypes;
 import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
 import org.jfrog.bamboo.security.EncryptionHelper;
@@ -33,8 +34,8 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
-import static org.jfrog.bamboo.context.AbstractBuildContext.PUBLISH_BUILD_INFO_PARAM;
+import static org.jfrog.bamboo.context.PackageManagersContext.BUILD_INFO_AGGREGATION;
+import static org.jfrog.bamboo.context.PackageManagersContext.PUBLISH_BUILD_INFO_PARAM;
 
 /**
  * Base class for all {@link com.atlassian.bamboo.task.TaskConfigurator}s that are used by the plugin. It sets the
@@ -82,7 +83,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         this.capabilityPrefix = capabilityPrefix;
     }
 
-    public String getTestDirectory(AbstractBuildContext buildContext) {
+    public String getTestDirectory(PackageManagersContext buildContext) {
         String directoryOption = buildContext.getTestDirectoryOption();
         if (CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD.equals(directoryOption)) {
             return getDefaultTestDirectory();
@@ -108,7 +109,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      */
     public void populateLegacyContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         if (!Boolean.valueOf(taskDefinition.getConfiguration().get(BUILD_INFO_AGGREGATION))) {
-            context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, false);
+            context.put(PackageManagersContext.CAPTURE_BUILD_INFO, false);
             context.put(PUBLISH_BUILD_INFO_PARAM, true);
         }
     }
@@ -126,7 +127,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      */
     public void populateLegacyContextForCreate(@NotNull Map<String, Object> context) {
         context.put(BUILD_INFO_AGGREGATION, true);
-        context.put(AbstractBuildContext.CAPTURE_BUILD_INFO, true);
+        context.put(PackageManagersContext.CAPTURE_BUILD_INFO, true);
         context.put(PUBLISH_BUILD_INFO_PARAM, false);
     }
 
@@ -149,7 +150,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
                     builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
             if (StringUtils.isNotBlank(capabilityPrefix)) {
                 taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
-                        builderContextPrefix + AbstractBuildContext.EXECUTABLE, capabilityPrefix);
+                        builderContextPrefix + PackageManagersContext.EXECUTABLE, capabilityPrefix);
             }
         }
         return requirements;
@@ -169,9 +170,9 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     private void populateContextForAllOperations(@NotNull Map<String, Object> context) {
         context.put("uiConfigBean", uiConfigSupport);
         context.put("testDirectoryTypes", TEST_RESULTS_FILE_PATTERN_TYPES);
-        context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
-        context.put(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.DEFAULT_BUILD_NAME);
-        context.put(AbstractBuildContext.BUILD_NUMBER, AbstractBuildContext.DEFAULT_BUILD_NUMBER);
+        context.put(PackageManagersContext.ENV_VARS_EXCLUDE_PATTERNS, PackageManagersContext.ENV_VARS_TO_EXCLUDE);
+        context.put(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.DEFAULT_BUILD_NAME);
+        context.put(ArtifactoryBuildContext.BUILD_NUMBER, ArtifactoryBuildContext.DEFAULT_BUILD_NUMBER);
         context.put(SIGN_METHOD_MAP_KEY, SIGN_METHOD_MAP);
         context.put("useSpecsOptions", USE_SPECS_OPTIONS);
         context.put(GenericContext.USE_SPECS_CHOICE, CFG_FILE_SPECS);
@@ -281,7 +282,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      *
      * @param buildContext The build context which holds the environment for the configuration.
      */
-    protected void resetDeployerConfigIfNeeded(AbstractBuildContext buildContext) {
+    protected void resetDeployerConfigIfNeeded(PackageManagersContext buildContext) {
         long serverId = buildContext.getArtifactoryServerId();
         if (serverId == -1) {
             buildContext.resetDeployerContextToDefault();
@@ -292,7 +293,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      * Reset the build context configuration of the resolver back to the default values if no server id was selected
      * @param buildContext The build context which holds the environment for the configuration.
      */
-    protected void resetResolverConfigIfNeeded(AbstractBuildContext buildContext) {
+    protected void resetResolverConfigIfNeeded(PackageManagersContext buildContext) {
         long serverId = buildContext.getArtifactoryServerId();
         if (serverId == -1) {
             buildContext.resetResolverContextToDefault();
@@ -324,7 +325,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
 
     protected Map<String, String> getSshFileContent(ActionParametersMap params, TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = new HashMap<>();
-        String sshFileKey = AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_SSH_KEY;
+        String sshFileKey = PackageManagersContext.VCS_PREFIX + PackageManagersContext.GIT_SSH_KEY;
         String sshFileContent = readFileByKey(params, sshFileKey);
         if (StringUtils.isNotBlank(sshFileContent)) {
             taskConfigMap.put(sshFileKey, sshFileContent);
@@ -348,22 +349,21 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         this.i18nResolver = i18nResolver;
     }
 
-    public static void populateDefaultValuesInBuildContext(@NotNull Map<String, Object> context) {
-        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
+    public static void populateDefaultEnvVarsExcludePatternsInBuildContext(@NotNull Map<String, Object> context) {
+        String envVarsExcludePatterns = (String) context.get(PackageManagersContext.ENV_VARS_EXCLUDE_PATTERNS);
         if (envVarsExcludePatterns == null) {
-            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
+            context.put(PackageManagersContext.ENV_VARS_EXCLUDE_PATTERNS, PackageManagersContext.ENV_VARS_TO_EXCLUDE);
         }
-        populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     public static void populateDefaultBuildNameNumberInBuildContext(@NotNull Map<String, Object> context) {
-        String buildName = (String)context.get(AbstractBuildContext.BUILD_NAME);
+        String buildName = (String)context.get(ArtifactoryBuildContext.BUILD_NAME);
         if (buildName == null) {
-            context.put(AbstractBuildContext.BUILD_NAME, AbstractBuildContext.DEFAULT_BUILD_NAME);
+            context.put(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.DEFAULT_BUILD_NAME);
         }
-        String buildNumber = (String)context.get(AbstractBuildContext.BUILD_NUMBER);
+        String buildNumber = (String)context.get(ArtifactoryBuildContext.BUILD_NUMBER);
         if (buildNumber == null) {
-            context.put(AbstractBuildContext.BUILD_NUMBER, AbstractBuildContext.DEFAULT_BUILD_NUMBER);
+            context.put(ArtifactoryBuildContext.BUILD_NUMBER, ArtifactoryBuildContext.DEFAULT_BUILD_NUMBER);
         }
     }
 }

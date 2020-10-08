@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.ArtifactoryDeploymentUploadConfiguration;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
@@ -115,7 +115,7 @@ public class ArtifactoryDeploymentUploadTask extends ArtifactoryDeploymentTaskTy
      */
     private ServerConfig getSelectedServerConfig(@NotNull DeploymentTaskContext deploymentTaskContext) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
-        String serverId = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentUploadConfiguration.DEPLOYMENT_PREFIX + AbstractBuildContext.SERVER_ID_PARAM);
+        String serverId = deploymentTaskContext.getConfigurationMap().get(ArtifactoryDeploymentUploadConfiguration.DEPLOYMENT_PREFIX + PackageManagersContext.SERVER_ID_PARAM);
         if (StringUtils.isBlank(serverId)) {
             // Compatibility with version 1.8.0
             serverId = deploymentTaskContext.getConfigurationMap().get("artifactoryServerId");

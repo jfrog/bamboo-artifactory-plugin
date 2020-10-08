@@ -8,7 +8,7 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.build.extractor.maven.reader.ModuleName;
@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public class MavenReleaseProvider extends AbstractReleaseProvider {
 
-    protected MavenReleaseProvider(AbstractBuildContext buildContext, BuildContext buildDefinition,
+    protected MavenReleaseProvider(PackageManagersContext buildContext, BuildContext buildDefinition,
                                    BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         super(buildContext, buildDefinition, buildLogger, customVariableContext, credentialsAccessor);
     }

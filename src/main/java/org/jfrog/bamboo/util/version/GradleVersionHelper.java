@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.dispatcher.Parameter;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.release.action.ReleasePromotionAction;
@@ -28,7 +28,7 @@ import java.util.Properties;
 public class GradleVersionHelper extends VersionHelper {
 
 
-    protected GradleVersionHelper(AbstractBuildContext context) {
+    protected GradleVersionHelper(PackageManagersContext context) {
         super(context);
     }
 

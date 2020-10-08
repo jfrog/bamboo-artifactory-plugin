@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 import org.apache.struts2.dispatcher.Parameter;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.promotion.PromotionContext;
 import org.jfrog.bamboo.promotion.PromotionThread;
@@ -118,7 +118,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         if (versions == null) {
             TaskDefinition definition = getReleaseTaskDefinition();
             if (definition != null) {
-                AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
+                PackageManagersContext context = PackageManagersContext.createContextFromMap(definition.getConfiguration());
                 if (context != null) {
                     VersionHelper versionHelper =
                             VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
@@ -190,7 +190,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
             return false;
         }
         return VcsTypes.GIT.name().equals(
-                taskDefinition.getConfiguration().get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.VCS_TYPE));
+                taskDefinition.getConfiguration().get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.VCS_TYPE));
     }
 
     public boolean isReleaseConfigured() {
@@ -199,7 +199,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
             return false;
         }
         return StringUtils.isNotBlank(
-                taskDefinition.getConfiguration().get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.VCS_TYPE));
+                taskDefinition.getConfiguration().get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.VCS_TYPE));
     }
 
     public Map<String, String> getModuleVersionTypes() {
@@ -207,7 +207,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     /**
-     * Perform a release build, sets the {@link AbstractBuildContext#ACTIVATE_RELEASE_MANAGEMENT} flag to {@code true}
+     * Perform a release build, sets the {@link PackageManagersContext#ACTIVATE_RELEASE_MANAGEMENT} flag to {@code true}
      * and executes a manual build.
      *
      * @return {@code success} if the manual execution finished successfully.
@@ -226,28 +226,28 @@ public class ReleasePromotionAction extends ViewBuildResults {
         setBuildKey(planKey.getKey());
         Map<String, String> configuration = Maps.newHashMap();
         Map parameters = ActionContext.getContext().getParameters();
-        configuration.put(AbstractBuildContext.ACTIVATE_RELEASE_MANAGEMENT, String.valueOf(true));
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.TAG_URL, getTagUrl());
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.NEXT_DEVELOPMENT_COMMENT,
+        configuration.put(PackageManagersContext.ACTIVATE_RELEASE_MANAGEMENT, String.valueOf(true));
+        configuration.put(PackageManagersContext.ReleaseManagementContext.TAG_URL, getTagUrl());
+        configuration.put(PackageManagersContext.ReleaseManagementContext.NEXT_DEVELOPMENT_COMMENT,
                 getNextDevelopmentComment());
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.STAGING_COMMENT,
+        configuration.put(PackageManagersContext.ReleaseManagementContext.STAGING_COMMENT,
                 getStagingComment());
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.REPO_KEY, getReleasePublishingRepo());
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.TAG_COMMENT, getTagComment());
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.RELEASE_BRANCH, getReleaseBranch());
+        configuration.put(PackageManagersContext.ReleaseManagementContext.REPO_KEY, getReleasePublishingRepo());
+        configuration.put(PackageManagersContext.ReleaseManagementContext.TAG_COMMENT, getTagComment());
+        configuration.put(PackageManagersContext.ReleaseManagementContext.RELEASE_BRANCH, getReleaseBranch());
         Parameter useReleaseBranchParam = ((Parameter) parameters.get("useReleaseBranch"));
         boolean useReleaseBranch = useReleaseBranchParam != null && Boolean.parseBoolean(useReleaseBranchParam.getValue());
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.USE_RELEASE_BRANCH, String.valueOf(useReleaseBranch));
+        configuration.put(PackageManagersContext.ReleaseManagementContext.USE_RELEASE_BRANCH, String.valueOf(useReleaseBranch));
         Parameter createVcsTagParam = ((Parameter) parameters.get("createVcsTag"));
         boolean createVcsTag = createVcsTagParam != null && Boolean.parseBoolean(createVcsTagParam.getValue());
-        configuration.put(AbstractBuildContext.ReleaseManagementContext.CREATE_VCS_TAG, String.valueOf(createVcsTag));
+        configuration.put(PackageManagersContext.ReleaseManagementContext.CREATE_VCS_TAG, String.valueOf(createVcsTag));
         configuration.put(ReleaseProvider.MODULE_VERSION_CONFIGURATION, getModuleVersionConfiguration());
         TaskDefinition definition = TaskDefinitionHelper.findMavenOrGradleDefinition(taskDefinitions);
         if (definition == null) {
             log.error("No Maven or Gradle task found in job");
             return ERROR;
         }
-        AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
+        PackageManagersContext context = PackageManagersContext.createContextFromMap(definition.getConfiguration());
         VersionHelper helper = VersionHelper.getHelperAccordingToType(context, getCapabilityContext());
 
         helper.addVersionFieldsToConfiguration(parameters, configuration, getModuleVersionConfiguration(),
@@ -267,7 +267,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         Map<String, String> filtered = Maps.filterKeys(configuration, new Predicate<String>() {
             @Override
             public boolean apply(String input) {
-                return StringUtils.endsWith(input, AbstractBuildContext.SERVER_ID_PARAM);
+                return StringUtils.endsWith(input, PackageManagersContext.SERVER_ID_PARAM);
             }
         });
         return filtered.values().iterator().next();
@@ -358,7 +358,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
             Map<String, String> filtered = Maps.filterKeys(configuration, new Predicate<String>() {
                 @Override
                 public boolean apply(String input) {
-                    return StringUtils.endsWith(input, AbstractBuildContext.PUBLISHING_REPO_PARAM) ||
+                    return StringUtils.endsWith(input, PackageManagersContext.PUBLISHING_REPO_PARAM) ||
                             StringUtils.endsWith(input, Maven3BuildContext.DEPLOYABLE_REPO_KEY);
                 }
             });
@@ -376,7 +376,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         if (definition == null) {
             return "";
         }
-        AbstractBuildContext context = AbstractBuildContext.createContextFromMap(definition.getConfiguration());
+        PackageManagersContext context = PackageManagersContext.createContextFromMap(definition.getConfiguration());
         if (context == null) {
             return "";
         }
@@ -398,7 +398,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
                 return "";
             }
             Map<String, String> configuration = definition.getConfiguration();
-            AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
+            PackageManagersContext context = PackageManagersContext.createContextFromMap(configuration);
             String url = context.releaseManagementContext.getGitReleaseBranch();
             List<ModuleVersionHolder> moduleVersionHolders = getVersions();
             if (moduleVersionHolders.isEmpty()) {
@@ -515,7 +515,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         }
 
         Map<String, String> taskConfiguration = definition.getConfiguration();
-        AbstractBuildContext context = AbstractBuildContext.createContextFromMap(taskConfiguration);
+        PackageManagersContext context = PackageManagersContext.createContextFromMap(taskConfiguration);
         ArtifactoryBuildInfoClient client = createClientForPromotion(serverConfigManager, serverConfig, context, log);
         ResultsSummary summary = getResultsSummary();
         TriggerReason reason = summary.getTriggerReason();
@@ -602,7 +602,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     private static ArtifactoryBuildInfoClient createClientForPromotion(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
-                                                                       AbstractBuildContext context, Logger log) {
+                                                                       PackageManagersContext context, Logger log) {
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
         String username = serverConfigManager.substituteVariables(context.getDeployerUsername());
         if (StringUtils.isBlank(username)) {
@@ -631,7 +631,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         Map<String, String> configuration = definition.getConfiguration();
         Map<String, String> filtered = Maps.filterKeys(configuration, new Predicate<String>() {
             public boolean apply(String input) {
-                return StringUtils.endsWith(input, AbstractBuildContext.SERVER_ID_PARAM);
+                return StringUtils.endsWith(input, PackageManagersContext.SERVER_ID_PARAM);
             }
         });
         return filtered.values().iterator().next();

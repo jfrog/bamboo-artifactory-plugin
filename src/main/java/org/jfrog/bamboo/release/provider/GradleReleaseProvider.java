@@ -7,7 +7,7 @@ import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.build.extractor.release.PropertiesTransformer;
@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class GradleReleaseProvider extends AbstractReleaseProvider {
 
-    protected GradleReleaseProvider(AbstractBuildContext internalContext, BuildContext context,
+    protected GradleReleaseProvider(PackageManagersContext internalContext, BuildContext context,
                                     BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         super(internalContext, context, buildLogger, customVariableContext, credentialsAccessor);
     }
@@ -52,7 +52,7 @@ public class GradleReleaseProvider extends AbstractReleaseProvider {
             return false;
 
         StringBuilder buildPropertiesLocation = new StringBuilder();
-        GradleBuildContext gradleBuildContext = (GradleBuildContext) AbstractBuildContext.createContextFromMap(conf);
+        GradleBuildContext gradleBuildContext = (GradleBuildContext) PackageManagersContext.createContextFromMap(conf);
         String buildScriptSubDir = gradleBuildContext.getBuildScript();
         if (StringUtils.isNotBlank(buildScriptSubDir)) {
             buildPropertiesLocation.append(buildScriptSubDir);

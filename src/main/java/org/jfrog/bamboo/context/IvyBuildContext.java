@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * @author Tomer Cohen
  */
-public class IvyBuildContext extends AbstractBuildContext {
+public class IvyBuildContext extends PackageManagersContext {
     public static final String PREFIX = "builder.artifactoryIvyBuilder.";
     public static final String ANT_OPTS_PARAM = "antOpts";
     public static final String TARGET_OPTS_PARAM = "target";

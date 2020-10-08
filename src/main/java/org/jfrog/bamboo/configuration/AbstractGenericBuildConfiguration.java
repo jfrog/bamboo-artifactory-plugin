@@ -7,8 +7,9 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.ArtifactoryBuildContext;
 import org.jfrog.bamboo.context.GenericContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,10 +29,10 @@ public class AbstractGenericBuildConfiguration extends AbstractArtifactoryConfig
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", -1);
         context.put("selectedRepoKey", "");
-        context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
+        context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, PackageManagersContext.ENV_VARS_TO_EXCLUDE);
         context.put(GenericContext.SIGN_METHOD_MAP_KEY, GenericContext.SIGN_METHOD_MAP);
-        context.put(GenericContext.BUILD_NAME, AbstractBuildContext.DEFAULT_BUILD_NAME);
-        context.put(GenericContext.BUILD_NUMBER, AbstractBuildContext.DEFAULT_BUILD_NUMBER);
+        context.put(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.DEFAULT_BUILD_NAME);
+        context.put(ArtifactoryBuildContext.BUILD_NUMBER, ArtifactoryBuildContext.DEFAULT_BUILD_NUMBER);
     }
 
     @Override
@@ -40,19 +41,12 @@ public class AbstractGenericBuildConfiguration extends AbstractArtifactoryConfig
         populateLegacyContextForEdit(context, taskDefinition);
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         String envVarsExcludePatterns = (String)context.get(GenericContext.ENV_VARS_EXCLUDE_PATTERNS);
+        if (envVarsExcludePatterns == null) {
+            context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, PackageManagersContext.ENV_VARS_TO_EXCLUDE);
+        }
         context.put("serverConfigManager", serverConfigManager);
         context.put("selectedServerId", context.get(GenericContext.PREFIX + GenericContext.SERVER_ID_PARAM));
-        if (envVarsExcludePatterns == null) {
-            context.put(GenericContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
-        }
-        String buildName = (String)context.get(GenericContext.BUILD_NAME);
-        if (buildName == null) {
-            context.put(GenericContext.BUILD_NAME, AbstractBuildContext.DEFAULT_BUILD_NAME);
-        }
-        String buildNumber = (String)context.get(GenericContext.BUILD_NUMBER);
-        if (buildNumber == null) {
-            context.put(GenericContext.BUILD_NUMBER, AbstractBuildContext.DEFAULT_BUILD_NUMBER);
-        }
+        populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     @Override
@@ -78,6 +72,6 @@ public class AbstractGenericBuildConfiguration extends AbstractArtifactoryConfig
     @Override
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         // Validate build name and number.
-        TaskConfigurationValidations.validateCaptureBuildInfoParams(GenericContext.BUILD_NAME, GenericContext.BUILD_NUMBER, AbstractBuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
+        TaskConfigurationValidations.validateCaptureBuildInfoParams(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.BUILD_NUMBER, PackageManagersContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
 }

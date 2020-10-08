@@ -49,9 +49,10 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
         logger = taskContext.getBuildLogger();
         collectBuildIssuesContext = new CollectBuildIssuesContext(taskContext.getConfigurationMap());
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(collectBuildIssuesContext.getBuildName(taskContext.getBuildContext()),
+                collectBuildIssuesContext.getBuildNumber(taskContext.getBuildContext()), taskContext, taskContext.getBuildContext(),
                 environmentVariableAccessor, collectBuildIssuesContext.getArtifactoryServerId(), collectBuildIssuesContext.getUsername(),
-                collectBuildIssuesContext.getPassword(), getBuildName(), getBuildNumber(), buildParamsOverrideManager);
+                collectBuildIssuesContext.getPassword(), buildParamsOverrideManager);
     }
 
     @NotNull
@@ -138,7 +139,7 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
         org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
         String config = getIssuesCollectionConfig(taskContext, logger);
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
-        String buildName = collectBuildIssuesContext.getBuildName();
+        String buildName = collectBuildIssuesContext.getBuildName(taskContext.getBuildContext());
         return new IssuesCollector().collectIssues(projectRootDir, bambooBuildInfoLog, config, clientBuilder, buildName);
     }
 
@@ -150,17 +151,5 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
-    }
-
-    // Backward compatibility for old tasks, with empty build name.
-    private String getBuildName() {
-        String buildName = collectBuildIssuesContext.getBuildName();
-        return TaskUtils.getBuildName(taskContext.getBuildContext(), buildName);
-    }
-
-    // Backward compatibility for old tasks, with empty build number.
-    private String getBuildNumber() {
-        String buildNumber = collectBuildIssuesContext.getBuildNumber();
-        return TaskUtils.getBuildNumber(taskContext.getBuildContext(), buildNumber);
     }
 }
