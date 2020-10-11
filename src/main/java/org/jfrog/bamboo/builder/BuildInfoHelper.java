@@ -42,18 +42,18 @@ import java.util.*;
 public class BuildInfoHelper extends BaseBuildInfoHelper {
     private static final Logger log = Logger.getLogger(BuildInfoHelper.class);
     private final Map<String, String> env;
+    private String buildName;
+    private String buildNumber;
     private final String vcsRevision;
     private final String vcsUrl;
     private ServerConfig serverConfig;
-    private String buildName;
-    private String buildNumber;
 
-    private BuildInfoHelper(Map<String, String> env, String vcsRevision, String vcsUrl, String buildName, String buildNumber) {
+    private BuildInfoHelper(String buildName, String buildNumber, Map<String, String> env, String vcsRevision, String vcsUrl) {
+        this.buildName = buildName;
+        this.buildNumber = buildNumber;
         this.env = env;
         this.vcsRevision = vcsRevision;
         this.vcsUrl = vcsUrl;
-        this.buildName = buildName;
-        this.buildNumber = buildNumber;
     }
 
     private BuildInfoBuilder extractBuilder(BuildContext buildContext, BuildLogger buildLogger) {
@@ -226,7 +226,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
             throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
         }
 
-        BuildInfoHelper buildInfoHelper = new BuildInfoHelper(env, vcsRevision, vcsUrl, buildName, buildNumber);
+        BuildInfoHelper buildInfoHelper = new BuildInfoHelper(buildName, buildNumber, env, vcsRevision, vcsUrl);
         buildInfoHelper.init(buildParamsOverrideManager, buildContext);
         return buildInfoHelper;
     }
