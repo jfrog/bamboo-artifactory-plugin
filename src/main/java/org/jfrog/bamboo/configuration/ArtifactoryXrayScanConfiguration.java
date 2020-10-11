@@ -6,6 +6,7 @@ import com.atlassian.bamboo.utils.error.ErrorCollection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
+import org.jfrog.bamboo.context.ArtifactoryBuildContext;
 import org.jfrog.bamboo.context.XrayScanContext;
 
 import java.util.Map;
@@ -34,6 +35,7 @@ public class ArtifactoryXrayScanConfiguration extends AbstractArtifactoryConfigu
         populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         context.put("selectedServerId", context.get(XrayScanContext.SERVER_ID_PARAM));
         context.put("serverConfigManager", serverConfigManager);
+        populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     @Override
@@ -60,5 +62,8 @@ public class ArtifactoryXrayScanConfiguration extends AbstractArtifactoryConfigu
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
         // Validate scan server.
         TaskConfigurationValidations.validateArtifactoryServerProvidedAndValid(XrayScanContext.SERVER_ID_PARAM, serverConfigManager, params, errorCollection);
+
+        // Validate build name and number.
+        TaskConfigurationValidations.validateBuildNameNumber(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.BUILD_NUMBER, params, errorCollection);
     }
 }

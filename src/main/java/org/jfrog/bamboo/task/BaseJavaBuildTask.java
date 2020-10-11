@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.BuildInfoFields;
 
@@ -66,7 +66,7 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
         this.customVariableContext = customVariableContext;
     }
 
-    void initEnvironmentVariables(AbstractBuildContext buildContext) {
+    void initEnvironmentVariables(PackageManagersContext buildContext) {
         environmentVariables = TaskUtils.getEnvironmentVariables(buildContext, environmentVariableAccessor);
     }
 
@@ -80,7 +80,7 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
         return taskContext.getBuildLogger();
     }
 
-    public TaskResult collectTestResults(AbstractBuildContext buildContext, TaskContext taskContext,
+    public TaskResult collectTestResults(PackageManagersContext buildContext, TaskContext taskContext,
                                          ExternalProcess process) {
         TaskResultBuilder builder = TaskResultBuilder.newBuilder(taskContext).checkReturnCode(process);
         if (buildContext.isTestChecked() && buildContext.getTestDirectory() != null) {
@@ -97,7 +97,7 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
      * @param capabilityContext The capability context of the build.
      * @return                  The path to the Java home.
      */
-    protected String getConfiguredJdkPath(BuildParamsOverrideManager buildParamsOverrideManager, AbstractBuildContext context,
+    protected String getConfiguredJdkPath(BuildParamsOverrideManager buildParamsOverrideManager, PackageManagersContext context,
                                           CapabilityContext capabilityContext) {
         // If the relevant Bamboo variables have been configured, read the build JDK from the configured
         if (shouldOverrideJdk()) {

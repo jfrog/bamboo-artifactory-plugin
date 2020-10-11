@@ -11,7 +11,8 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.ArtifactoryBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.NpmBuildContext;
 
 import java.util.Map;
@@ -68,10 +69,8 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
         context.put("selectedPublishingRepoKey", selectedPublishingRepoKey);
 
         context.put("serverConfigManager", serverConfigManager);
-        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
-        if (envVarsExcludePatterns == null) {
-            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
-        }
+        populateDefaultEnvVarsExcludePatternsInBuildContext(context);
+        populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     private void populateNpmCommandsContext(@NotNull Map<String, Object> context) {
@@ -80,7 +79,7 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
     }
 
     @Override
-    protected void resetResolverConfigIfNeeded(AbstractBuildContext buildContext) {
+    protected void resetResolverConfigIfNeeded(PackageManagersContext buildContext) {
         long serverId = buildContext.getResolutionArtifactoryServerId();
         if (serverId == -1) {
             buildContext.resetResolverContextToDefault();
@@ -122,9 +121,12 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
         }
 
         // Validate Executable.
-        String executableKey = NpmBuildContext.PREFIX + AbstractBuildContext.EXECUTABLE;
+        String executableKey = NpmBuildContext.PREFIX + PackageManagersContext.EXECUTABLE;
         if (StringUtils.isBlank(params.getString(executableKey))) {
             errorCollection.addError(executableKey, "Please specify an Executable.");
         }
+
+        // Validate build name and number.
+        TaskConfigurationValidations.validateCaptureBuildInfoParams(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.BUILD_NUMBER, NpmBuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
 }

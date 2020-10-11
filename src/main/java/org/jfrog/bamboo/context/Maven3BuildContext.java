@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * @author Tomer Cohen
  */
-public class Maven3BuildContext extends AbstractBuildContext {
+public class Maven3BuildContext extends PackageManagersContext {
     public static final String PREFIX = "builder.artifactoryMaven3Builder.";
     public static final String DEPLOYABLE_REPO_KEY = "deployableRepo";
     public static final String PUBLISH_ARTIFACTS = "deployMavenArtifacts";
@@ -116,7 +116,8 @@ public class Maven3BuildContext extends AbstractBuildContext {
                 BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO, PREFIX + ENVIRONMENT_VARIABLES,
                 TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, ENABLE_RELEASE_MANAGEMENT,
                 PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH, PREFIX + ALTERNATIVE_TASKS, RESOLVE_FROM_ARTIFACTORY
-                , PREFIX + RESOLUTION_SERVER_ID_PARAM, PREFIX + RESOLVER_USERNAME_PARAM, PREFIX + RESOLVER_PASSWORD_PARAM);
+                , PREFIX + RESOLUTION_SERVER_ID_PARAM, PREFIX + RESOLVER_USERNAME_PARAM, PREFIX + RESOLVER_PASSWORD_PARAM,
+                BUILD_NAME, BUILD_NUMBER);
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }

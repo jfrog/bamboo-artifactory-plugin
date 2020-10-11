@@ -69,8 +69,10 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         logger = taskContext.getBuildLogger();
         buildContext = taskContext.getBuildContext();
         genericContext = new GenericContext(taskContext.getConfigurationMap());
-        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, buildContext, environmentVariableAccessor,
-                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(), buildParamsOverrideManager);
+        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(genericContext.getBuildName(buildContext),
+                genericContext.getBuildNumber(buildContext), taskContext, buildContext, environmentVariableAccessor,
+                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(),
+                buildParamsOverrideManager);
     }
 
     @Override
@@ -98,7 +100,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
                 initFileSpec(taskContext);
                 build = deployByFileSpec(sourceCodeDirectory, taskContext, build, clientBuilder, fileSpec);
             } else {
-                build = deployByLegacyPattern(sourceCodeDirectory, taskContext, build, getClient(clientBuilder), genericContext);
+                build = deployByLegacyPattern(sourceCodeDirectory, build, getClient(clientBuilder), genericContext);
             }
             List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
             if (genericContext.isCaptureBuildInfo() || (genericContext.isPublishBuildInfo() && TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions))) {
@@ -188,7 +190,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         return result;
     }
 
-    private Build deployByLegacyPattern(File sourceCodeDirectory, TaskContext taskContext, Build build, ArtifactoryBuildInfoClient client, GenericContext context) throws IOException, NoSuchAlgorithmException {
+    private Build deployByLegacyPattern(File sourceCodeDirectory, Build build, ArtifactoryBuildInfoClient client, GenericContext context) throws IOException, NoSuchAlgorithmException {
         Multimap<String, File> filesMap = buildTargetPathToFiles(sourceCodeDirectory, context);
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = buildInfoHelper.getDynamicPropertyMap(build);
@@ -201,7 +203,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         for (DeployDetails detail : details) {
             client.deployArtifact(detail);
         }
-        return buildInfoHelper.addBuildInfoParams(taskContext, build, dynamicPropertyMap, artifacts, Lists.newArrayList(), Lists.newArrayList());
+        return buildInfoHelper.addBuildInfoParams(build, artifacts, Lists.newArrayList(), Lists.newArrayList());
     }
 
     private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry, String targetRepository,
@@ -231,7 +233,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         } catch (Exception e) {
             throw new IOException(e);
         }
-        return buildInfoHelper.addBuildInfoParams(taskContext, build, buildProperties, artifacts, Lists.newArrayList(), Lists.newArrayList());
+        return buildInfoHelper.addBuildInfoParams(build, artifacts, Lists.newArrayList(), Lists.newArrayList());
     }
 
     public void publishBuildInfo(TaskContext taskContext, ArtifactoryBuildInfoClient client, Build build) throws IOException {

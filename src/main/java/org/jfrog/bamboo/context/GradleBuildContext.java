@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * @author Tomer Cohen
  */
-public class GradleBuildContext extends AbstractBuildContext {
+public class GradleBuildContext extends PackageManagersContext {
     public static final String PREFIX = "builder.artifactoryGradleBuilder.";
     public static final String SWITCHES_PARAM = "switches";
     public static final String TASKS_PARAM = "tasks";
@@ -102,7 +102,8 @@ public class GradleBuildContext extends AbstractBuildContext {
                 PREFIX + ARTIFACT_SPECS_PARAM, PREFIX + EXECUTABLE, TEST_CHECKED,
                 PREFIX + TEST_RESULT_DIRECTORY, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
-                PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS);
+                PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS,
+                BUILD_NAME, BUILD_NUMBER);
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }

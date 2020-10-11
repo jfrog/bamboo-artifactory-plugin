@@ -6,7 +6,7 @@ import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.vcs.AbstractVcsCoordinator;
 
 import java.io.File;
@@ -45,8 +45,8 @@ public class PerforceCoordinator extends AbstractVcsCoordinator {
 
     @Override
     public void afterSuccessfulReleaseVersionBuild() throws IOException, InterruptedException {
-        AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
-        AbstractBuildContext.ReleaseManagementContext releaseManagementContext = context.releaseManagementContext;
+        PackageManagersContext context = PackageManagersContext.createContextFromMap(configuration);
+        PackageManagersContext.ReleaseManagementContext releaseManagementContext = context.releaseManagementContext;
         String labelChangeListId = configuration.get("repository.revision.number");
         if (modifiedFilesForReleaseVersion) {
             log("Submitting release version changes");
@@ -73,8 +73,8 @@ public class PerforceCoordinator extends AbstractVcsCoordinator {
     @Override
     public void afterDevelopmentVersionChange(boolean modified) throws IOException, InterruptedException {
         super.afterDevelopmentVersionChange(modified);
-        AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
-        AbstractBuildContext.ReleaseManagementContext releaseManagementContext = context.releaseManagementContext;
+        PackageManagersContext context = PackageManagersContext.createContextFromMap(configuration);
+        PackageManagersContext.ReleaseManagementContext releaseManagementContext = context.releaseManagementContext;
         if (modified) {
             log("Submitting next development version changes");
             perforce.commitWorkingCopy(currentChangeListId, releaseManagementContext.getNextDevelopmentComment());
@@ -92,7 +92,7 @@ public class PerforceCoordinator extends AbstractVcsCoordinator {
 
     @Override
     public void buildCompleted(BuildContext buildContext) throws IOException, InterruptedException {
-        AbstractBuildContext context = AbstractBuildContext.createContextFromMap(configuration);
+        PackageManagersContext context = PackageManagersContext.createContextFromMap(configuration);
         CurrentBuildResult result = buildContext.getBuildResult();
         if (!BuildState.SUCCESS.equals(result.getBuildState())) {
             safeRevertWorkingCopy();

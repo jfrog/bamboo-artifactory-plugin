@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * @author Tomer Cohen
  */
-public class IvyBuildContext extends AbstractBuildContext {
+public class IvyBuildContext extends PackageManagersContext {
     public static final String PREFIX = "builder.artifactoryIvyBuilder.";
     public static final String ANT_OPTS_PARAM = "antOpts";
     public static final String TARGET_OPTS_PARAM = "target";
@@ -107,6 +107,6 @@ public class IvyBuildContext extends AbstractBuildContext {
                 PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 INCLUDE_ENV_VARS_PARAM, ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_INCLUDE_PATTERNS,
                 PREFIX + EXECUTABLE, PREFIX + EXCLUDE_PATTERN, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
-                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY);
+                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, BUILD_NAME, BUILD_NUMBER);
     }
 }

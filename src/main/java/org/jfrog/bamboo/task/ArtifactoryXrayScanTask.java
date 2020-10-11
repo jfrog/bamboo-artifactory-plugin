@@ -1,8 +1,10 @@
 package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.task.*;
-import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskException;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -132,9 +134,8 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
 
     private ArtifactoryXrayResponse doXrayScan(TaskContext taskContext, ArtifactoryXrayClient client) throws IOException, InterruptedException {
         // Extract build parameters
-        BuildContext buildContext = taskContext.getBuildContext();
-        String buildNumber = String.valueOf(buildContext.getBuildNumber());
-        String buildName = buildContext.getPlanName();
+        String buildName = xrayContext.getBuildName(taskContext.getBuildContext());
+        String buildNumber = xrayContext.getBuildNumber(taskContext.getBuildContext());
 
         // Launch Xray Scan
         return client.xrayScanBuild(buildName, buildNumber, "bamboo");

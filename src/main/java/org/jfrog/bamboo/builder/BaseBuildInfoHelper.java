@@ -34,7 +34,7 @@ import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.BuildInfoProperties;
@@ -99,7 +99,7 @@ public abstract class BaseBuildInfoHelper {
         }
     }
 
-    protected String getPublishingRepoKey(AbstractBuildContext buildContext, Map<String, String> environment) {
+    protected String getPublishingRepoKey(PackageManagersContext buildContext, Map<String, String> environment) {
         // In case this is a Release Staging build, return the publishing repo configured
         // in the Release Staging configuration page:
         String releaseManagementPublishRepo = environment.get("bamboo_release_management_repoKey");

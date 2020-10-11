@@ -4,7 +4,7 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.repository.perforce.PerforceRepository;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.vcs.AbstractVcsManager;
 import org.jfrog.build.vcs.perforce.PerforceClient;
 
@@ -29,10 +29,10 @@ public class PerforceManager extends AbstractVcsManager {
         super(context, buildLogger);
         Map<String, String> confMap = getTaskConfiguration();
         if (confMap != null) {
-            port = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_PORT);
-            client = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_CLIENT);
-            username = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_USERNAME);
-            password = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.PERFORCE_PASSWORD);
+            port = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.PERFORCE_PORT);
+            client = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.PERFORCE_CLIENT);
+            username = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.PERFORCE_USERNAME);
+            password = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.PERFORCE_PASSWORD);
         }
     }
 

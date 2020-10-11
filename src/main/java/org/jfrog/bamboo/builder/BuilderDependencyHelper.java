@@ -24,7 +24,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.PluginProperties;
 
 import java.io.*;
@@ -44,7 +44,7 @@ public class BuilderDependencyHelper implements Serializable {
         this.builderKey = builderKey;
     }
 
-    public String downloadDependenciesAndGetPath(File rootDir, AbstractBuildContext context, String dependencyName)
+    public String downloadDependenciesAndGetPath(File rootDir, PackageManagersContext context, String dependencyName)
             throws IOException {
         String pluginKey = PluginProperties.getPluginKey();
         String pluginDescriptorKey = PluginProperties.getPluginDescriptorKey();
@@ -113,7 +113,7 @@ public class BuilderDependencyHelper implements Serializable {
      * @param context
      * @return Bamboo base URL if found. Null if running in an un-recognized type of agent.
      */
-    private String getBambooBaseUrl(AbstractBuildContext context) {
+    private String getBambooBaseUrl(PackageManagersContext context) {
         if (administrationConfiguration != null) {
             return administrationConfiguration.getBaseUrl();
         } else if (administrationConfigurationAccessor != null) {

@@ -8,20 +8,18 @@ import java.util.Set;
 /**
  * Created by Bar Belity on 30/05/2018.
  */
-public class XrayScanContext {
+public class XrayScanContext extends ArtifactoryBuildContext {
     public static final String SERVER_ID_PARAM = "artifactory.xrayScan.artifactoryServerId";
     public static final String FAIL_IF_VULNERABLE = "artifactory.xrayScan.failIfVulnerable";
     public static final String USERNAME = "artifactory.xrayScan.username";
     public static final String PASSWORD = "artifactory.xrayScan.password";
 
-    private final Map<String, String> env;
-
     public XrayScanContext(Map<String, String> env) {
-        this.env = env;
+        super(env);
     }
 
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(SERVER_ID_PARAM, USERNAME, PASSWORD, FAIL_IF_VULNERABLE);
+        return Sets.newHashSet(SERVER_ID_PARAM, USERNAME, PASSWORD, FAIL_IF_VULNERABLE, BUILD_NAME, BUILD_NUMBER);
     }
 
     public String getUsername() {

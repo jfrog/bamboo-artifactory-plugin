@@ -10,6 +10,8 @@
     [#--The Dummy password is a workaround for the autofill (Chrome)--]
     [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
 
+    [#include 'editBuildNameNumberSnippet.ftl'/]
+
     [@ww.select labelKey='artifactory.task.collectBuildIssues.header.config.source' name='artifactory.task.collectBuildIssues.config.source' listKey='key' listValue='value' toggle='true' list=configSourceOptions/]
         [@ui.bambooSection dependsOn='artifactory.task.collectBuildIssues.config.source' showOn='taskConfiguration']
             [@ww.textarea name='artifactory.task.collectBuildIssues.config.source.taskConfiguration' labelKey='artifactory.task.collectBuildIssues.header.config.json' rows='10' cols='80' cssClass="long-field" /]

@@ -46,7 +46,8 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private BuildInfoHelper buildInfoHelper;
     private BuildParamsOverrideManager buildParamsOverrideManager;
     private Map<String, String> environmentVariables;
-
+    private String buildName;
+    private String buildNumber;
 
     public ArtifactoryNpmTask(EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -60,6 +61,8 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
         logger = taskContext.getBuildLogger();
         npmBuildContext = new NpmBuildContext(taskContext.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
+        buildName = npmBuildContext.getBuildName(taskContext.getBuildContext());
+        buildNumber = npmBuildContext.getBuildNumber(taskContext.getBuildContext());
         initBuildInfoHelper();
         environmentVariables = getEnv();
         packagePath = getPackagePath();
@@ -82,6 +85,8 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
         // Append build info and add to context
         if (npmBuildContext.isCaptureBuildInfo()) {
+            build.setName(buildName);
+            build.setNumber(buildNumber);
             buildInfoHelper.addEnvVarsToBuild(npmBuildContext, build);
             taskBuildInfo = build;
         }
@@ -102,11 +107,11 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      */
     private void initBuildInfoHelper() {
         if (npmBuildContext.isNpmCommandInstall()) {
-            buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+            buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(buildName, buildNumber, taskContext, taskContext.getBuildContext(),
                     environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(), npmBuildContext.getResolverUsername(),
                     npmBuildContext.getResolverPassword(), buildParamsOverrideManager);
         } else {
-            buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+            buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(buildName, buildNumber, taskContext, taskContext.getBuildContext(),
                     environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(), npmBuildContext.getDeployerUsername(),
                     npmBuildContext.getDeployerPassword(), buildParamsOverrideManager);
         }

@@ -3,7 +3,7 @@ package org.jfrog.bamboo.util.version;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
@@ -19,9 +19,9 @@ import java.util.Map;
  */
 public abstract class VersionHelper {
 
-    protected AbstractBuildContext context;
+    protected PackageManagersContext context;
 
-    protected VersionHelper(AbstractBuildContext context) {
+    protected VersionHelper(PackageManagersContext context) {
         this.context = context;
     }
 
@@ -78,7 +78,7 @@ public abstract class VersionHelper {
         return nextVersion + "-SNAPSHOT";
     }
 
-    public static VersionHelper getHelperAccordingToType(AbstractBuildContext context,
+    public static VersionHelper getHelperAccordingToType(PackageManagersContext context,
                                                          CapabilityContext capabilityContext) {
         if (context instanceof GradleBuildContext) {
             return new GradleVersionHelper(context);

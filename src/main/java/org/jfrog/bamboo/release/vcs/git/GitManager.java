@@ -20,7 +20,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.vcs.AbstractVcsManager;
 
 import java.io.File;
@@ -56,12 +56,12 @@ public class GitManager extends AbstractVcsManager {
     private void initVcsConfiguration() {
         Map<String, String> confMap = getTaskConfiguration();
         if (confMap != null) {
-            url = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_URL);
-            authenticationType = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_AUTHENTICATION_TYPE);
-            username = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_USERNAME);
-            password = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_PASSWORD);
-            sshKey = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_SSH_KEY);
-            sshPassphrase = confMap.get(AbstractBuildContext.VCS_PREFIX + AbstractBuildContext.GIT_PASSPHRASE);
+            url = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.GIT_URL);
+            authenticationType = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.GIT_AUTHENTICATION_TYPE);
+            username = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.GIT_USERNAME);
+            password = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.GIT_PASSWORD);
+            sshKey = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.GIT_SSH_KEY);
+            sshPassphrase = confMap.get(PackageManagersContext.VCS_PREFIX + PackageManagersContext.GIT_PASSPHRASE);
         }
     }
 

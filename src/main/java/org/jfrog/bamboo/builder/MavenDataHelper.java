@@ -6,7 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.util.ProxyUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
@@ -25,7 +25,7 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
     private String resolverUrl;
 
     public MavenDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
-                           AbstractBuildContext buildContext, EnvironmentVariableAccessor envVarAccessor,
+                           PackageManagersContext buildContext, EnvironmentVariableAccessor envVarAccessor,
                            String artifactoryPluginVersion, boolean aggregateBuildInfo) {
         super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion, aggregateBuildInfo);
         long selectedServerId = buildContext.getArtifactoryServerId();
@@ -39,7 +39,7 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
     }
 
     @Override
-    protected void setClientData(AbstractBuildContext builder, ArtifactoryClientConfiguration clientConf,
+    protected void setClientData(PackageManagersContext builder, ArtifactoryClientConfiguration clientConf,
                                  ServerConfig serverConfig, Map<String, String> environment) {
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
         clientConf.publisher.setRecordAllDependencies(buildContext.isRecordAllDependencies());
@@ -59,7 +59,7 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
     }
 
     @NotNull
-    public void addPasswordsSystemProps(List<String> command, AbstractBuildContext builder, @NotNull TaskContext context) {
+    public void addPasswordsSystemProps(List<String> command, PackageManagersContext builder, @NotNull TaskContext context) {
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
         super.addPasswordsSystemProps(command, buildContext, context);
         if (resolverPassword == null) {
@@ -76,7 +76,7 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
     private boolean isResolutionConfigured(Maven3BuildContext buildContext, String resolutionRepo) {
         return buildContext.isResolveFromArtifactory() &&
                 StringUtils.isNotBlank(resolutionRepo) &&
-                !AbstractBuildContext.NO_RESOLUTION_REPO_KEY_CONFIGURED.equals(resolutionRepo) &&
+                !PackageManagersContext.NO_RESOLUTION_REPO_KEY_CONFIGURED.equals(resolutionRepo) &&
                 serverConfigManager.getServerConfigById(buildContext.getResolutionArtifactoryServerId()) != null;
     }
 

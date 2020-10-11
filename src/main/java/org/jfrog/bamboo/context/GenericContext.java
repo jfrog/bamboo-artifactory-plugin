@@ -8,15 +8,15 @@ import org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration;
 import java.util.Map;
 import java.util.Set;
 
-import static org.jfrog.bamboo.context.AbstractBuildContext.BUILD_INFO_AGGREGATION;
-import static org.jfrog.bamboo.context.AbstractBuildContext.CAPTURE_BUILD_INFO;
+import static org.jfrog.bamboo.context.PackageManagersContext.BUILD_INFO_AGGREGATION;
+import static org.jfrog.bamboo.context.PackageManagersContext.CAPTURE_BUILD_INFO;
 
 /**
  * @author Tomer Cohen
  */
-public class GenericContext {
+public class GenericContext extends ArtifactoryBuildContext {
     public static final String PREFIX = "builder.artifactoryGenericBuilder.";
-    public static final String SERVER_ID_PARAM = AbstractBuildContext.SERVER_ID_PARAM;
+    public static final String SERVER_ID_PARAM = PackageManagersContext.SERVER_ID_PARAM;
     public static final String REPO_KEY = "builder.artifactoryGenericBuilder.deployableRepo";
     public static final String REPO_RESOLVE_KEY = "artifactory.generic.resolveRepo";
     public static final String USERNAME = "artifactory.generic.username";
@@ -37,16 +37,15 @@ public class GenericContext {
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of(
             "false", "Don't Sign", "true", "Sign");
 
-    private final Map<String, String> env;
-
     public GenericContext(Map<String, String> env) {
-        this.env = env;
+        super(env);
     }
 
     public static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN, SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
-                SPEC_SOURCE_FILE, ARTIFACT_SPECS, RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS,
-                USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE);
+        return Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN,
+                SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO, SPEC_SOURCE_FILE, ARTIFACT_SPECS,
+                RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS,
+                USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE, BUILD_NAME, BUILD_NUMBER);
     }
 
     public long getSelectedServerId() {
@@ -130,5 +129,13 @@ public class GenericContext {
 
     public String getArtifactSpecs() {
         return env.get(ARTIFACT_SPECS);
+    }
+
+    public String getBuildName() {
+        return env.get(BUILD_NAME);
+    }
+
+    public String getBuildNumber() {
+        return env.get(BUILD_NUMBER);
     }
 }

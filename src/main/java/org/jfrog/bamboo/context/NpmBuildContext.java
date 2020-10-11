@@ -6,7 +6,7 @@ import org.jfrog.bamboo.configuration.ArtifactoryNpmConfiguration;
 import java.util.Map;
 import java.util.Set;
 
-public class NpmBuildContext extends AbstractBuildContext {
+public class NpmBuildContext extends PackageManagersContext {
     public static final String PREFIX = "artifactory.task.npm.";
     public static final String COMMAND_CHOICE = PREFIX + "command.choice";
     public static final String NPM_DEPLOYER_SERVER_ID = PREFIX + SERVER_ID_PARAM;
@@ -35,7 +35,8 @@ public class NpmBuildContext extends AbstractBuildContext {
         return Sets.newHashSet(COMMAND_CHOICE, COMMAND_INSTALL, COMMAND_PUBLISH, NPM_ARGUMENTS,
                 WORKING_SUBDIRECTORY, NPM_EXECUTABLE, NPM_ENV, NPM_RESOLVER_SERVER_ID, NPM_RESOLUTION_REPO, NPM_RESOLVER_USERNAME,
                 NPM_RESOLVER_PASSWORD, NPM_DEPLOYER_SERVER_ID, NPM_PUBLISHING_REPO, NPM_DEPLOYER_USERNAME, NPM_DEPLOYER_PASSWORD,
-                INCLUDE_ENV_VARS_PARAM, ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_INCLUDE_PATTERNS, CAPTURE_BUILD_INFO);
+                INCLUDE_ENV_VARS_PARAM, ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_INCLUDE_PATTERNS, CAPTURE_BUILD_INFO,
+                BUILD_NAME, BUILD_NUMBER);
     }
 
     public String getCommandChoice() {

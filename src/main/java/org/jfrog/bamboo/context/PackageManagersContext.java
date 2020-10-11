@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
  *
  * @author Tomer Cohen
  */
-public abstract class AbstractBuildContext {
+public abstract class PackageManagersContext extends ArtifactoryBuildContext {
 
     public static final String SERVER_ID_PARAM = "artifactoryServerId";
     public static final String PUBLISHING_REPO_PARAM = "publishingRepo";
@@ -59,7 +59,7 @@ public abstract class AbstractBuildContext {
     public static final String EXECUTABLE = "executable";
     public static final String BASE_URL = "baseUrl";
 
-    // release management props.
+    // Release management props.
     public static final String ENABLE_RELEASE_MANAGEMENT = "enableReleaseManagement";
     public static final String ACTIVATE_RELEASE_MANAGEMENT = "activateReleaseManagement";
     public static final String VCS_TAG_BASE = "vcsTagBase";
@@ -84,14 +84,13 @@ public abstract class AbstractBuildContext {
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
     private final String prefix;
-    protected final Map<String, String> env;
 
-    public AbstractBuildContext(String prefix, Map<String, String> env) {
+    public PackageManagersContext(String prefix, Map<String, String> env) {
+        super(env);
         this.prefix = prefix;
-        this.env = env;
     }
 
-    public static AbstractBuildContext createContextFromMap(Map<String, String> map) {
+    public static PackageManagersContext createContextFromMap(Map<String, String> map) {
         if (map == null || map.isEmpty()) {
             throw new IllegalArgumentException("No empty map allowed");
         }

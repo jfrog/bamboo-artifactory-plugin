@@ -12,7 +12,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
@@ -34,11 +34,11 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
 
     private boolean isReleaseEnabled;
     protected VcsCoordinator coordinator;
-    protected final AbstractBuildContext buildContext;
+    protected final PackageManagersContext buildContext;
     protected final BuildLogger buildLogger;
     protected final BuildContext context;
 
-    protected AbstractReleaseProvider(AbstractBuildContext buildContext, BuildContext context,
+    protected AbstractReleaseProvider(PackageManagersContext buildContext, BuildContext context,
                                       BuildLogger buildLogger, CustomVariableContext customVariableContext, CredentialsAccessor credentialsAccessor) {
         this.context = context;
         this.buildContext = buildContext;
@@ -50,7 +50,7 @@ public abstract class AbstractReleaseProvider implements ReleaseProvider {
 
     protected abstract Map<? extends String, ? extends String> getTaskConfiguration(BuildDefinition definition);
 
-    public static ReleaseProvider createReleaseProvider(AbstractBuildContext buildContext, BuildContext context,
+    public static ReleaseProvider createReleaseProvider(PackageManagersContext buildContext, BuildContext context,
                                                         BuildLogger buildLogger,
                                                         CustomVariableContext customVariableContext,
                                                         CredentialsAccessor credentialsAccessor) {

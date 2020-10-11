@@ -8,7 +8,7 @@ import com.atlassian.bamboo.plan.branch.ChainBranch;
 import com.atlassian.bamboo.plugins.web.conditions.AbstractPlanPermissionCondition;
 import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
 import com.atlassian.bamboo.task.TaskDefinition;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class ReleasePromotionActionCondition extends AbstractPlanPermissionCondi
         List<TaskDefinition> taskDefs = plan.getBuildDefinition().getTaskDefinitions();
         for (TaskDefinition taskDef : taskDefs) {
             if (taskDef.isEnabled()) {
-                AbstractBuildContext buildContext = AbstractBuildContext.createContextFromMap(taskDef.getConfiguration());
+                PackageManagersContext buildContext = PackageManagersContext.createContextFromMap(taskDef.getConfiguration());
                 if (buildContext != null && buildContext.releaseManagementContext.isReleaseMgmtEnabled()) {
                     return true;
                 }

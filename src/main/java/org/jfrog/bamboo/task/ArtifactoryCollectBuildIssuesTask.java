@@ -49,7 +49,8 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
         logger = taskContext.getBuildLogger();
         collectBuildIssuesContext = new CollectBuildIssuesContext(taskContext.getConfigurationMap());
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(taskContext, taskContext.getBuildContext(),
+        buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(collectBuildIssuesContext.getBuildName(taskContext.getBuildContext()),
+                collectBuildIssuesContext.getBuildNumber(taskContext.getBuildContext()), taskContext, taskContext.getBuildContext(),
                 environmentVariableAccessor, collectBuildIssuesContext.getArtifactoryServerId(), collectBuildIssuesContext.getUsername(),
                 collectBuildIssuesContext.getPassword(), buildParamsOverrideManager);
     }
@@ -134,15 +135,11 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
         return new CollectBuildIssuesContext(context.getConfigurationMap()).getConfigFilePath();
     }
 
-    private String getBuildName(@NotNull TaskContext taskContext) {
-        return taskContext.getBuildContext().getPlanName();
-    }
-
     private Issues collectBuildIssues(BuildLogger logger, File projectRootDir) throws IOException, InterruptedException {
         org.jfrog.build.api.util.Log bambooBuildInfoLog = new BuildInfoLog(log, logger);
         String config = getIssuesCollectionConfig(taskContext, logger);
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
-        String buildName = getBuildName(taskContext);
+        String buildName = collectBuildIssuesContext.getBuildName(taskContext.getBuildContext());
         return new IssuesCollector().collectIssues(projectRootDir, bambooBuildInfoLog, config, clientBuilder, buildName);
     }
 

@@ -12,7 +12,7 @@ import org.apache.tools.ant.types.Commandline;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Build;
@@ -209,7 +209,7 @@ public class TaskUtils {
      * @return Path to requested executable.
      * @throws TaskException - If capability is not defined or doesn't exist
      */
-    public static String getExecutablePath(AbstractBuildContext buildContext, CapabilityContext capabilityContext,
+    public static String getExecutablePath(PackageManagersContext buildContext, CapabilityContext capabilityContext,
                                            String builderKey, String executableName, String taskName) throws TaskException {
         ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
         if (capabilitySet == null) {
@@ -234,7 +234,7 @@ public class TaskUtils {
      * @param environmentVariableAccessor - Accessor used to get available env
      * @return Map of all environment variables
      */
-    public static Map<String, String> getEnvironmentVariables(AbstractBuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor) {
+    public static Map<String, String> getEnvironmentVariables(PackageManagersContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor) {
         Map<String, String> env = Maps.newHashMap();
         env.putAll(environmentVariableAccessor.getEnvironment());
         if (StringUtils.isNotBlank(buildContext.getEnvironmentVariables())) {

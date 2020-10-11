@@ -9,7 +9,8 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
-import org.jfrog.bamboo.context.AbstractBuildContext;
+import org.jfrog.bamboo.context.ArtifactoryBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 
@@ -74,14 +75,12 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         GradleBuildContext buildContext = GradleBuildContext.createGradleContextFromMap(context);
         context.put("hasTests", buildContext.isTestChecked());
         context.put("serverConfigManager", serverConfigManager);
-        String envVarsExcludePatterns = (String) context.get(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS);
-        if (envVarsExcludePatterns == null) {
-            context.put(AbstractBuildContext.ENV_VARS_EXCLUDE_PATTERNS, AbstractBuildContext.ENV_VARS_TO_EXCLUDE);
-        }
         context.put("artifactory.vcs.git.vcs.type.list", getVcsTypes());
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
         context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_OPTIONS_KEY, GradleBuildContext.getPublishForkCountList());
         context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_KEY, buildContext.getPublishForkCount());
+        populateDefaultEnvVarsExcludePatternsInBuildContext(context);
+        populateDefaultBuildNameNumberInBuildContext(context);
     }
 
     @NotNull
@@ -128,14 +127,17 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         TaskConfigurationValidations.validateArtifactoryServerAndRepo(deploymentServerKey, deploymentRepoKey, serverConfigManager, params, errorCollection);
 
         // Validate Build JDK.
-        String buildJdkKey = GradleBuildContext.PREFIX + AbstractBuildContext.JDK;
+        String buildJdkKey = GradleBuildContext.PREFIX + PackageManagersContext.JDK;
         TaskConfigurationValidations.validateJdk(buildJdkKey, params, errorCollection);
 
         // Validate Executable.
-        String executableKey = GradleBuildContext.PREFIX + AbstractBuildContext.EXECUTABLE;
+        String executableKey = GradleBuildContext.PREFIX + PackageManagersContext.EXECUTABLE;
         TaskConfigurationValidations.validateExecutable(executableKey, params, errorCollection);
 
         // Validate release management.
         TaskConfigurationValidations.validateReleaseManagement(params, errorCollection);
+
+        // Validate build name and number.
+        TaskConfigurationValidations.validateCaptureBuildInfoParams(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.BUILD_NUMBER, GradleBuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
 }
