@@ -1,15 +1,11 @@
 package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.ErrorLogEntry;
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
@@ -17,7 +13,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -25,11 +20,9 @@ import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.IvyDataHelper;
 import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
 import org.jfrog.bamboo.context.IvyBuildContext;
-import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
-import org.jfrog.build.api.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,14 +38,11 @@ import java.util.Map;
 public class ArtifactoryIvyTask extends BaseJavaBuildTask {
     public static final String TASK_NAME = "artifactoryIvyTask";
     public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "ant.bat" : "ant";
-    private static final Logger log = Logger.getLogger(ArtifactoryIvyTask.class);
     private static final String IVY_KEY = "system.builder.ivy.";
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
-    private BuilderDependencyHelper dependencyHelper;
-    private String ivyDependenciesDir = "";
+    private final BuilderDependencyHelper dependencyHelper;
     private IvyBuildContext ivyBuildContext;
-    private BuildLogger logger;
     private MavenAndIvyBuildInfoDataHelperBase ivyDataHelper;
     private String artifactoryPluginVersion;
 
@@ -67,11 +57,11 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
     }
 
     @Override
-    protected void initTask(@NotNull TaskContext context) {
-        logger = getBuildLogger(context);
+    protected void initTask(@NotNull CommonTaskContext context) {
+        super.initTask(context);
         Map<String, String> combinedMap = Maps.newHashMap();
         combinedMap.putAll(context.getConfigurationMap());
-        combinedMap.putAll(context.getBuildContext().getBuildDefinition().getCustomConfiguration());
+        combinedMap.putAll(((TaskContext)context).getBuildContext().getBuildDefinition().getCustomConfiguration());
         ivyBuildContext = new IvyBuildContext(combinedMap);
         initEnvironmentVariables(ivyBuildContext);
         aggregateBuildInfo = ivyBuildContext.shouldAggregateBuildInfo(context, ivyBuildContext.getArtifactoryServerId());
@@ -87,6 +77,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
         logger.getInterceptorStack().add(errorLines);
 
         File rootDirectory = context.getRootDirectory();
+        String ivyDependenciesDir;
         try {
             ivyDependenciesDir = extractIvyDependencies(ivyBuildContext.getArtifactoryServerId(), rootDirectory, ivyBuildContext);
             log.info(logger.addBuildLogEntry("Ivy dependency directory found at: " + ivyDependenciesDir));
@@ -99,9 +90,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
                     "Build Info support is disabled.", ioe);
         }
         if (ivyDependenciesDir == null) {
-            String message = "Ivy dependency directory not found.";
-            logger.addErrorLogEntry(message);
-            log.error(message);
+            buildInfoLog.error("Ivy dependency directory not found.");
         }
 
         String executable = TaskUtils.getExecutablePath(ivyBuildContext, capabilityContext, IVY_KEY, EXECUTABLE_NAME, TASK_NAME);
@@ -169,11 +158,6 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
     @Override
     protected String getTaskUsageName() {
         return "ivy";
-    }
-
-    @Override
-    protected Log getLog() {
-        return new BuildInfoLog(log, logger);
     }
 
     /**

@@ -1,8 +1,8 @@
 package org.jfrog.bamboo.context;
 
+import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskDefinition;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -24,7 +24,6 @@ import java.util.NoSuchElementException;
  */
 public abstract class PackageManagersContext extends ArtifactoryBuildContext {
 
-    public static final String SERVER_ID_PARAM = "artifactoryServerId";
     public static final String PUBLISHING_REPO_PARAM = "publishingRepo";
     public static final String DEPLOYER_USERNAME_PARAM = "deployerUsername";
     public static final String DEPLOYER_PASSWORD_PARAM = "deployerPassword";
@@ -83,11 +82,9 @@ public abstract class PackageManagersContext extends ArtifactoryBuildContext {
     public static final String ENV_VARS_TO_EXCLUDE = "*password*,*secret*,*security*,*key*";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
-    private final String prefix;
 
     public PackageManagersContext(String prefix, Map<String, String> env) {
-        super(env);
-        this.prefix = prefix;
+        super(prefix, env);
     }
 
     public static PackageManagersContext createContextFromMap(Map<String, String> map) {
@@ -144,14 +141,6 @@ public abstract class PackageManagersContext extends ArtifactoryBuildContext {
         );
     }
 
-    public long getArtifactoryServerId() {
-        String serverId = env.get(prefix + SERVER_ID_PARAM);
-        if (StringUtils.isBlank(serverId)) {
-            return -1;
-        }
-        return Long.parseLong(serverId);
-    }
-
     public long getResolutionArtifactoryServerId() {
         String serverId = env.get(prefix + RESOLUTION_SERVER_ID_PARAM);
         if (StringUtils.isBlank(serverId)) {
@@ -188,18 +177,22 @@ public abstract class PackageManagersContext extends ArtifactoryBuildContext {
         return env.get(prefix + PUBLISHING_REPO_PARAM);
     }
 
+    @Override
     public String getDeployerUsername() {
         return env.get(prefix + DEPLOYER_USERNAME_PARAM);
     }
 
+    @Override
     public String getDeployerPassword() {
         return env.get(prefix + DEPLOYER_PASSWORD_PARAM);
     }
 
+    @Override
     public String getResolverUsername() {
         return env.get(prefix + RESOLVER_USERNAME_PARAM);
     }
 
+    @Override
     public String getResolverPassword() {
         return env.get(prefix + RESOLVER_PASSWORD_PARAM);
     }
@@ -372,11 +365,7 @@ public abstract class PackageManagersContext extends ArtifactoryBuildContext {
                     if (Iterables.contains(split, propertyKey)) {
                         ModuleVersionHolder existingReleaseProp;
                         try {
-                            existingReleaseProp = Iterables.find(result, new Predicate<ModuleVersionHolder>() {
-                                public boolean apply(ModuleVersionHolder holder) {
-                                    return (holder != null) && holder.getKey().equals(propertyKey);
-                                }
-                            });
+                            existingReleaseProp = Iterables.find(result, holder -> (holder != null) && holder.getKey().equals(propertyKey));
                             existingReleaseProp.setReleaseProp(false);
                         } catch (NoSuchElementException e) {
                             result.add(new ModuleVersionHolder(propertyKey, entry.getValue(), false));
@@ -423,14 +412,14 @@ public abstract class PackageManagersContext extends ArtifactoryBuildContext {
         return tokens;
     }
 
-    public boolean shouldAggregateBuildInfo(@NotNull TaskContext taskContext) {
+    public boolean shouldAggregateBuildInfo(@NotNull CommonTaskContext taskContext) {
         if (isCaptureBuildInfo()) {
-                return true;
+            return true;
         }
         if (isPublishBuildInfo()) {
             // Task was created prior to version 2.7.0, and set to publish build-info.
             // If the plan contains a publish build info task, disable task publishing and use build aggregation instead.
-            List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
+            List<? extends TaskDefinition> taskDefinitions = ((TaskContext) taskContext).getBuildContext().getRuntimeTaskDefinitions();
             if (TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions)) {
                 resetPublishBuildInfo();
                 return true;

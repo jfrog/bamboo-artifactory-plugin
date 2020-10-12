@@ -30,6 +30,16 @@ public class GradleBuildContext extends PackageManagersContext {
         super(PREFIX, env);
     }
 
+    @Override
+    public String getResolverUsername() {
+        return env.get(PREFIX + DEPLOYER_USERNAME_PARAM);
+    }
+
+    @Override
+    public String getResolverPassword() {
+        return env.get(PREFIX + DEPLOYER_PASSWORD_PARAM);
+    }
+
     public String getSwitches() {
         return env.get(PREFIX + SWITCHES_PARAM);
     }
@@ -59,7 +69,7 @@ public class GradleBuildContext extends PackageManagersContext {
     }
 
     public boolean isUseGradleWrapper() {
-        return Boolean.valueOf(env.get(PREFIX + USE_GRADLE_WRAPPER_PARAM));
+        return Boolean.parseBoolean(env.get(PREFIX + USE_GRADLE_WRAPPER_PARAM));
     }
 
     public String getGradleWrapperLocation() {
@@ -103,7 +113,8 @@ public class GradleBuildContext extends PackageManagersContext {
                 PREFIX + TEST_RESULT_DIRECTORY, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 TEST_DIRECTORY_OPTION, ENABLE_RELEASE_MANAGEMENT, PREFIX + VCS_TAG_BASE, PREFIX + GIT_RELEASE_BRANCH,
                 PREFIX + ALTERNATIVE_TASKS, PREFIX + RELEASE_PROPS, PREFIX + NEXT_INTEG_PROPS,
-                BUILD_NAME, BUILD_NUMBER);
+                BUILD_NAME, BUILD_NUMBER, RESOLVER_OVERRIDE_CREDENTIALS_CHOICE, RESOLVER_SHARED_CREDENTIALS,
+                DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, DEPLOYER_SHARED_CREDENTIALS);
         fieldsToCopy.addAll(getVcsFieldsToCopy());
         return fieldsToCopy;
     }

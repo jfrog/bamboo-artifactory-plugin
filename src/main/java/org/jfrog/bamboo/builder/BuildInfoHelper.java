@@ -2,6 +2,7 @@ package org.jfrog.bamboo.builder;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
+import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.util.BuildUtils;
 import com.atlassian.bamboo.utils.EscapeChars;
@@ -40,10 +41,9 @@ import java.util.*;
  * @author Tomer Cohen
  */
 public class BuildInfoHelper extends BaseBuildInfoHelper {
-    private static final Logger log = Logger.getLogger(BuildInfoHelper.class);
     private final Map<String, String> env;
-    private String buildName;
-    private String buildNumber;
+    private final String buildName;
+    private final String buildNumber;
     private final String vcsRevision;
     private final String vcsUrl;
     private ServerConfig serverConfig;
@@ -211,7 +211,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return clientBuilder;
     }
 
-    private static BuildInfoHelper createBuildInfoHelperBase(String buildName, String buildNumber, TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig) {
+    private static BuildInfoHelper createBuildInfoHelperBase(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig) {
         Map<String, String> env = new HashMap<>();
         env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
         env.putAll(environmentVariableAccessor.getEnvironment());
@@ -227,11 +227,11 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         }
 
         BuildInfoHelper buildInfoHelper = new BuildInfoHelper(buildName, buildNumber, env, vcsRevision, vcsUrl);
-        buildInfoHelper.init(buildParamsOverrideManager, buildContext);
+        buildInfoHelper.init(buildParamsOverrideManager, buildContext, taskContext.getBuildLogger());
         return buildInfoHelper;
     }
 
-    public static BuildInfoHelper createDeployBuildInfoHelper(String buildName, String buildNumber, TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
+    public static BuildInfoHelper createDeployBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
                                                               long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
@@ -243,7 +243,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return buildInfoHelper;
     }
 
-    public static BuildInfoHelper createResolveBuildInfoHelper(String buildName, String buildNumber, TaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
+    public static BuildInfoHelper createResolveBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
         BuildInfoHelper buildInfoHelper = createBuildInfoHelperBase(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);

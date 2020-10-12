@@ -1,28 +1,24 @@
 package org.jfrog.bamboo.task;
 
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
+import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
-import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.PublishedBuildDetails;
 import org.jfrog.bamboo.util.PublishedBuilds;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.generic.GenericData;
 import org.jfrog.build.api.Build;
-import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -42,11 +38,8 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryPublishBuildInfoTask";
 
     private final EnvironmentVariableAccessor environmentVariableAccessor;
-    private static final Logger log = Logger.getLogger(ArtifactoryPublishBuildInfoTask.class);
-    private BuildLogger logger;
     private CustomVariableContext customVariableContext;
     private BuildInfoHelper buildInfoHelper;
-    private BuildParamsOverrideManager buildParamsOverrideManager;
 
     public ArtifactoryPublishBuildInfoTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -58,23 +51,25 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     }
 
     @Override
-    protected void initTask(@NotNull TaskContext context) {
-        logger = context.getBuildLogger();
+    protected void initTask(@NotNull CommonTaskContext context) {
+        super.initTask(context);
         PublishBuildInfoContext publishBuildInfoContext = new PublishBuildInfoContext(context.getConfigurationMap());
-        buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        BuildContext buildContext = context.getBuildContext();
+        BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
+        BuildContext buildContext = ((TaskContext) context).getBuildContext();
+        Map<String, String> runtimeContext = context.getRuntimeTaskContext();
         buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(publishBuildInfoContext.getBuildName(buildContext),
                 publishBuildInfoContext.getBuildNumber(buildContext), context, buildContext, environmentVariableAccessor,
-                publishBuildInfoContext.getArtifactoryServerId(), publishBuildInfoContext.getUsername(),
-                publishBuildInfoContext.getPassword(), buildParamsOverrideManager);
+                publishBuildInfoContext.getArtifactoryServerId(),
+                publishBuildInfoContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
+                publishBuildInfoContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager);
     }
 
     @NotNull
     @Override
-    public TaskResult runTask(@NotNull TaskContext taskContext) throws TaskException {
+    public TaskResult runTask(@NotNull TaskContext taskContext) {
         Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
-        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
-        try (ArtifactoryBuildInfoClient client = clientBuilder.build()){
+        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
+        try (ArtifactoryBuildInfoClient client = clientBuilder.build()) {
             String aggregatedBuildsJson = TaskUtils.getAndDeleteAggregatedBuildInfo(taskContext);
             Build build = buildInfoHelper.getBuilder(taskContext).build();
             // Aggregate relevant builds to one build.
@@ -102,10 +97,11 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
      * Append the build-infos which were aggregated during the plan execution, and have the same build name and number
      * as the executed Publish Build Info task.
      * The unpublished builds during this task execution are inserted back into the context.
-     * @param taskContext - The task's context.
-     * @param build - Build object to publish.
+     *
+     * @param taskContext           - The task's context.
+     * @param build                 - Build object to publish.
      * @param publishCandidatesJson - All build-infos collected during the build execution.
-     * @throws IOException
+     * @throws IOException if buildInfoToJsonString fails
      */
     private void addBuildsToPublish(TaskContext taskContext, Build build, String publishCandidatesJson) throws IOException {
         // Deserialize builds string.
@@ -136,12 +132,13 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     /**
      * Add the current published build details to the build's build-data map.
      * These details are later used by BuildInfoAction to create the published Build Info UI in the build's summary screen.
-     * @param artifactoryUrl - Artifactory server URL.
-     * @param buildName - Published build name.
-     * @param buildNumber - Published build number.
-     * @param taskContext - The task's context.
+     *
+     * @param artifactoryUrl  - Artifactory server URL.
+     * @param buildName       - Published build name.
+     * @param buildNumber     - Published build number.
+     * @param taskContext     - The task's context.
      * @param customBuildData - Plan's build-data object, used to store data.
-     * @throws IOException
+     * @throws IOException if buildInfoToJsonString fails
      */
     private void addPublishedBuildDetailsToBuildData(String artifactoryUrl, String buildName, String buildNumber, TaskContext taskContext, Map<String, String> customBuildData) throws IOException {
         // Get existing PublishedBuilds from context.
@@ -167,11 +164,6 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     @Override
     protected String getTaskUsageName() {
         return "publish_build_info";
-    }
-
-    @Override
-    protected Log getLog() {
-        return new BuildInfoLog(log, logger);
     }
 
     @Override

@@ -1,7 +1,12 @@
 package org.jfrog.bamboo.task;
 
+import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.plugin.PluginAccessor;
+import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.usageReport.UsageReporter;
@@ -11,16 +16,24 @@ import org.jfrog.build.extractor.usageReport.UsageReporter;
  */
 public abstract class ArtifactoryTaskBase {
 
+    protected static final Logger log = Logger.getLogger(ArtifactoryTaskBase.class);
     protected PluginAccessor pluginAccessor;
+    protected CommonTaskContext taskContext;
+    protected BuildLogger logger;
+    protected Log buildInfoLog;
+
+    protected void initTask(@NotNull CommonTaskContext context) {
+        this.taskContext = context;
+        this.logger = taskContext.getBuildLogger();
+        this.buildInfoLog = new BuildInfoLog(log, logger);
+    }
 
     protected abstract ServerConfig getUsageServerConfig();
 
     protected abstract String getTaskUsageName();
 
-    protected abstract Log getLog();
-
     protected void reportUsage(ServerConfig serverConfig, String taskName, Log log) {
-        String[] featureIdArray = new String[] {taskName};
+        String[] featureIdArray = new String[]{taskName};
         UsageReporter usageReporter = new UsageReporter("bamboo-artifactory-plugin/" + Utils.getPluginVersion(pluginAccessor), featureIdArray);
 
         try {
@@ -32,7 +45,7 @@ public abstract class ArtifactoryTaskBase {
     }
 
     @SuppressWarnings("unused")
-    public void setPluginAccessor(PluginAccessor pluginAccessor){
+    public void setPluginAccessor(PluginAccessor pluginAccessor) {
         this.pluginAccessor = pluginAccessor;
     }
 }

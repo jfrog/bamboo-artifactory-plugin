@@ -23,8 +23,7 @@ public abstract class ArtifactoryTaskType extends ArtifactoryTaskBase implements
 
     protected abstract TaskResult runTask(@NotNull TaskContext context) throws TaskException;
 
-    protected abstract void initTask(@NotNull TaskContext context) throws TaskException;
-
+    @NotNull
     public TaskResult execute(@NotNull TaskContext context) throws TaskException {
         // Remove aggregated build-info from plan context.
         // This is done in order to prevent it from being added as an environment-variable when a task
@@ -40,7 +39,7 @@ public abstract class ArtifactoryTaskType extends ArtifactoryTaskBase implements
         // Report task usage to Artifactory.
         ServerConfig server = getUsageServerConfig();
         if (server != null) {
-            reportUsage(server, getTaskUsageName(), getLog());
+            reportUsage(server, getTaskUsageName(), buildInfoLog);
         }
 
         // Run task execution.

@@ -38,14 +38,15 @@ public class GenericContext extends ArtifactoryBuildContext {
             "false", "Don't Sign", "true", "Sign");
 
     public GenericContext(Map<String, String> env) {
-        super(env);
+        super("artifactory.generic.", env);
     }
 
     public static Set<String> getFieldsToCopy() {
         return Sets.newHashSet(PREFIX + SERVER_ID_PARAM, REPO_KEY, REPO_RESOLVE_KEY, USERNAME, PASSWORD, DEPLOY_PATTERN,
                 SPEC_SOURCE_JOB_CONFIGURATION, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO, SPEC_SOURCE_FILE, ARTIFACT_SPECS,
                 RESOLVE_PATTERN, PUBLISH_BUILD_INFO, INCLUDE_ENV_VARS, ENV_VARS_INCLUDE_PATTERNS, ENV_VARS_EXCLUDE_PATTERNS,
-                USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE, BUILD_NAME, BUILD_NUMBER);
+                USE_SPECS_CHOICE, SPEC_SOURCE_CHOICE, BUILD_NAME, BUILD_NUMBER, RESOLVER_OVERRIDE_CREDENTIALS_CHOICE, RESOLVER_SHARED_CREDENTIALS,
+                DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, DEPLOYER_SHARED_CREDENTIALS);
     }
 
     public long getSelectedServerId() {
@@ -69,18 +70,6 @@ public class GenericContext extends ArtifactoryBuildContext {
             return env.get("artifactory.generic.deployableRepo");
         }
         return key;
-    }
-
-    public String getUsername() {
-        return env.get(USERNAME);
-    }
-
-    public String getPassword() {
-        return env.get(PASSWORD);
-    }
-
-    public long getArtifactoryServerId() {
-        return 0;
     }
 
     public String getDeployPattern() {
