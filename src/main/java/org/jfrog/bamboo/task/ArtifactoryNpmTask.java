@@ -1,8 +1,8 @@
 package org.jfrog.bamboo.task;
 
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
@@ -10,7 +10,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimaps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
@@ -19,7 +18,6 @@ import org.jfrog.bamboo.context.NpmBuildContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.Build;
-import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
 import org.jfrog.build.extractor.npm.extractor.NpmInstall;
 import org.jfrog.build.extractor.npm.extractor.NpmPublish;
@@ -33,21 +31,19 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_COLLECTION_ACTIV
 
 public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private static final String TASK_NAME = "artifactoryNpmTask";
-    private static final String EXECUTABLE_NAME = "npm";
     private static final String NPM_KEY = "system.builder.npm.";
-    private static final Logger log = Logger.getLogger(ArtifactoryNpmTask.class);
+    private static final String EXECUTABLE_NAME = "npm";
+
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final CapabilityContext capabilityContext;
-    private CustomVariableContext customVariableContext;
-    private TaskContext taskContext;
-    private BuildLogger logger;
-    private NpmBuildContext npmBuildContext;
-    private Path packagePath;
-    private BuildInfoHelper buildInfoHelper;
     private BuildParamsOverrideManager buildParamsOverrideManager;
+    private CustomVariableContext customVariableContext;
     private Map<String, String> environmentVariables;
-    private String buildName;
+    private NpmBuildContext npmBuildContext;
+    private BuildInfoHelper buildInfoHelper;
     private String buildNumber;
+    private String buildName;
+    private Path packagePath;
 
     public ArtifactoryNpmTask(EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -56,14 +52,14 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     }
 
     @Override
-    protected void initTask(@NotNull TaskContext context) throws TaskException {
-        taskContext = context;
-        logger = taskContext.getBuildLogger();
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
+        super.initTask(context);
         npmBuildContext = new NpmBuildContext(taskContext.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        buildName = npmBuildContext.getBuildName(taskContext.getBuildContext());
-        buildNumber = npmBuildContext.getBuildNumber(taskContext.getBuildContext());
-        initBuildInfoHelper();
+        BuildContext buildContext = ((TaskContext) context).getBuildContext();
+        buildName = npmBuildContext.getBuildName(buildContext);
+        buildNumber = npmBuildContext.getBuildNumber(buildContext);
+        initBuildInfoHelper(buildContext);
         environmentVariables = getEnv();
         packagePath = getPackagePath();
     }
@@ -105,40 +101,46 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     /**
      * Initialise a BuildInfoHelper from the appropriate parameters (deploy / resolve)
      */
-    private void initBuildInfoHelper() {
+    private void initBuildInfoHelper(BuildContext buildContext) {
+        Map<String, String> runtimeContext = taskContext.getRuntimeTaskContext();
         if (npmBuildContext.isNpmCommandInstall()) {
-            buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(buildName, buildNumber, taskContext, taskContext.getBuildContext(),
-                    environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(), npmBuildContext.getResolverUsername(),
-                    npmBuildContext.getResolverPassword(), buildParamsOverrideManager);
+            buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(buildName, buildNumber, taskContext, buildContext,
+                    environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(),
+                    npmBuildContext.getOverriddenUsername(runtimeContext, buildInfoLog, false),
+                    npmBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false), buildParamsOverrideManager);
         } else {
-            buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(buildName, buildNumber, taskContext, taskContext.getBuildContext(),
-                    environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(), npmBuildContext.getDeployerUsername(),
-                    npmBuildContext.getDeployerPassword(), buildParamsOverrideManager);
+            buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(buildName, buildNumber, taskContext, buildContext,
+                    environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(),
+                    npmBuildContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
+                    npmBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager);
         }
     }
 
 
     /**
      * Handles the execution of npm Install.
+     *
      * @return Build containing affected artifacts, null if execution failed.
      */
     private Build executeNpmInstall() {
         ArtifactoryDependenciesClientBuilder clientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
-        return new NpmInstall(clientBuilder, repo, npmBuildContext.getArguments(), getLog(), packagePath, environmentVariables, "").execute();
+        return new NpmInstall(clientBuilder, repo, npmBuildContext.getArguments(), buildInfoLog, packagePath, environmentVariables, "").execute();
     }
 
     /**
      * Handles the execution of npm Publish.
+     *
      * @return Build containing affected artifacts, null if execution failed.
      */
     private Build executeNpmPublish() {
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
-        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), packagePath, repo, getLog(), environmentVariables, "").execute();
+        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), packagePath, repo, buildInfoLog, environmentVariables, "").execute();
     }
 
     /**
      * Get a map of the artifact properties needed to be set (Build name, Build number, etc...).
+     *
      * @return Map containing all properties.
      */
     private ArrayListMultimap<String, String> getPropertiesMap() {
@@ -149,6 +151,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     /**
      * Get package path from the root directory and append subdirectory if needed.
+     *
      * @return Package path
      */
     private Path getPackagePath() {
@@ -171,7 +174,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     /**
      * Npm commands expect the npm executable to be in "PATH"
-     * */
+     */
     public Map<String, String> addExecutablePathToEnv(Map<String, String> env) throws TaskException {
         String executablePath = TaskUtils.getExecutablePath(npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME);
         String path = env.get("PATH");
@@ -192,10 +195,5 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     @Override
     protected String getTaskUsageName() {
         return "npm";
-    }
-
-    @Override
-    protected Log getLog() {
-        return new BuildInfoLog(log, logger);
     }
 }

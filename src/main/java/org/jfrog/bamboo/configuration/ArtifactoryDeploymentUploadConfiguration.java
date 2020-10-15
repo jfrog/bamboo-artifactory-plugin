@@ -2,15 +2,17 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
-import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfrog.bamboo.context.DeploymentUploadContext;
 import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
 
 import java.util.Map;
 import java.util.Set;
+
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
 
 /**
  * Artifactory Deployment task configuration
@@ -18,10 +20,11 @@ import java.util.Set;
  * @author Aviad Shikloshi
  */
 public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactoryConfiguration {
+    static final Set<String> FIELDS_TO_COPY = DeploymentUploadContext.getFieldsToCopy();
 
     // Prefix for each configured field.
     public static final String DEPLOYMENT_PREFIX = "artifactory.deployment.";
-    // The configured repository. Used in the old deoployment implementation.
+    // The configured repository. Used in the old deployment implementation.
     public static final String LEGACY_DEPLOYMENT_REPOSITORY = "deploymentRepository";
     public static final String PASSWORD = "password";
     public static final String USERNAME = "username";
@@ -31,18 +34,6 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     public static final String SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";
     // Plain text field that contains a path to a spec file on the filesystem. Will be used if @SPEC_SOURCE_CHOICE is configured to "file"
     public static final String SPEC_SOURCE_FILE = "file";
-
-    private static Set<String> getFieldsToCopy() {
-        return Sets.newHashSet(
-                DEPLOYMENT_PREFIX + PackageManagersContext.SERVER_ID_PARAM,
-                DEPLOYMENT_PREFIX + USERNAME,
-                DEPLOYMENT_PREFIX + PASSWORD,
-                DEPLOYMENT_PREFIX + LEGACY_DEPLOYMENT_REPOSITORY,
-                DEPLOYMENT_PREFIX + SPEC_SOURCE_CHOICE,
-                DEPLOYMENT_PREFIX + SPEC_SOURCE_JOB_CONFIGURATION,
-                DEPLOYMENT_PREFIX + SPEC_SOURCE_FILE
-        );
-    }
 
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
@@ -61,7 +52,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
         populateLegacyContextForEdit(context, taskDefinition);
-        populateContextWithConfiguration(context, taskDefinition, getFieldsToCopy());
+        populateContextWithConfiguration(context, taskDefinition, FIELDS_TO_COPY);
         String selectedServerId = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + PackageManagersContext.SERVER_ID_PARAM);
         String username = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + USERNAME);
         String password = taskDefinition.getConfiguration().get(DEPLOYMENT_PREFIX + PASSWORD);
@@ -91,6 +82,14 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
             String spec = createSpecFromLegacyConfig(taskDefinition);
             context.put(DEPLOYMENT_PREFIX + SPEC_SOURCE_JOB_CONFIGURATION, spec);
         }
+
+        // Backward compatibility for tasks with overridden username and password
+        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
+        DeploymentUploadContext taskContext = new DeploymentUploadContext(taskConfiguration);
+        if (StringUtils.isBlank(taskContext.getDeployerOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getUsername(), taskContext.getPassword())) {
+            context.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
+        }
     }
 
     private String createSpecFromLegacyConfig(@NotNull TaskDefinition taskDefinition) {
@@ -112,7 +111,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     }
 
     @Override
-    public boolean taskProducesTestResults(TaskDefinition taskDefinition) {
+    public boolean taskProducesTestResults(@NotNull TaskDefinition taskDefinition) {
         return false;
     }
 
@@ -130,7 +129,7 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params, @Nullable TaskDefinition previousTaskDefinition) {
         final Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
-        taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, getFieldsToCopy());
+        taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, FIELDS_TO_COPY);
         decryptFields(taskConfigMap);
         return taskConfigMap;
     }

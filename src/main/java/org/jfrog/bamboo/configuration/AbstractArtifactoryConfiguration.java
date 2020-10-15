@@ -3,6 +3,7 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
+import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.repository.NameValuePair;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
@@ -12,7 +13,7 @@ import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,22 +51,32 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     protected I18nResolver i18nResolver;
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
-    private static final Map TEST_RESULTS_FILE_PATTERN_TYPES = ImmutableMap
+    private static final Map<String, String> TEST_RESULTS_FILE_PATTERN_TYPES = ImmutableMap
             .of(CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD, "Look in the standard test results directory.",
                     CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM, "Specify custom results directories");
     public static final String CFG_LEGACY_PATTERNS = "legacyPatterns";
     public static final String CFG_FILE_SPECS = "specs";
-    public static final Map USE_SPECS_OPTIONS = ImmutableMap.of(CFG_FILE_SPECS, "Specs", CFG_LEGACY_PATTERNS, "Legacy patterns (deprecated)");
+    public static final Map<String, String> USE_SPECS_OPTIONS = ImmutableMap.of(CFG_FILE_SPECS, "Specs", CFG_LEGACY_PATTERNS, "Legacy patterns (deprecated)");
+
+    // If selected, use the credentials configured in the global Artifactory servers configuration
+    public static final String CVG_CRED_NO_OVERRIDE = "noOverriding";
+    // If selected, override username and password as configured in the job configuration
+    public static final String CVG_CRED_USERNAME_PASSWORD = "usernamePassword";
+    // If selected, use the shared credentials chosen in the job configuration
+    public static final String CVG_CRED_SHARED_CREDENTIALS = "sharedCredentials";
+    // Map between credential overriding options to description
+    public static final Map<String, String> CFG_OVERRIDE_CREDENTIALS_OPTIONS = ImmutableMap.of(CVG_CRED_NO_OVERRIDE, "No overriding", CVG_CRED_USERNAME_PASSWORD, "Provide username and password", CVG_CRED_SHARED_CREDENTIALS, "Use shared credentials");
     public static final String CFG_SPEC_SOURCE_FILE = "file";
     public static final String CFG_SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";
     public static final Map<String, String> CFG_SPEC_SOURCE = ImmutableMap.of(CFG_SPEC_SOURCE_JOB_CONFIGURATION, "Task configuration", CFG_SPEC_SOURCE_FILE, "File");
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of("false", "Don't Sign", "true", "Sign");
     public static final String SIGN_METHOD_MAP_KEY = "signMethods";
     protected transient ServerConfigManager serverConfigManager;
+    protected transient CredentialsAccessor credentialsAccessor;
     protected AdministrationConfiguration administrationConfiguration;
     protected UIConfigSupport uiConfigSupport;
-    private String builderContextPrefix;
-    private String capabilityPrefix;
+    private final String builderContextPrefix;
+    private final String capabilityPrefix;
     private static final Logger log = Logger.getLogger(AbstractArtifactoryConfiguration.class);
     protected TaskConfiguratorHelperImpl taskConfiguratorHelper = new TaskConfiguratorHelperImpl();
 
@@ -108,7 +119,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      * The following code takes care of backward compatibility, for tasks which were created before 2.7.0.
      */
     public void populateLegacyContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        if (!Boolean.valueOf(taskDefinition.getConfiguration().get(BUILD_INFO_AGGREGATION))) {
+        if (!Boolean.parseBoolean(taskDefinition.getConfiguration().get(BUILD_INFO_AGGREGATION))) {
             context.put(PackageManagersContext.CAPTURE_BUILD_INFO, false);
             context.put(PUBLISH_BUILD_INFO_PARAM, true);
         }
@@ -174,10 +185,12 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         context.put(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.DEFAULT_BUILD_NAME);
         context.put(ArtifactoryBuildContext.BUILD_NUMBER, ArtifactoryBuildContext.DEFAULT_BUILD_NUMBER);
         context.put(SIGN_METHOD_MAP_KEY, SIGN_METHOD_MAP);
+        context.put("overrideCredentialsOptions", CFG_OVERRIDE_CREDENTIALS_OPTIONS);
         context.put("useSpecsOptions", USE_SPECS_OPTIONS);
         context.put(GenericContext.USE_SPECS_CHOICE, CFG_FILE_SPECS);
         context.put("specSourceOptions", CFG_SPEC_SOURCE);
         context.put(GenericContext.SPEC_SOURCE_CHOICE, CFG_SPEC_SOURCE_JOB_CONFIGURATION);
+        context.put("credentialsAccessor", credentialsAccessor);
     }
 
     /**
@@ -188,6 +201,16 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
      */
     public void setUiConfigSupport(UIConfigSupport uiConfigSupport) {
         this.uiConfigSupport = uiConfigSupport;
+    }
+
+    /**
+     * Sets the credentials accessor from bamboo. NOTE: This method is called from Bamboo upon instantiation of this class by
+     * reflection.
+     *
+     * @param credentialsAccessor - Bamboo credentials accessor
+     */
+    public void setCredentialsAccessor(final CredentialsAccessor credentialsAccessor) {
+        this.credentialsAccessor = credentialsAccessor;
     }
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
@@ -236,7 +259,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
                     try {
                         value = URLDecoder.decode(value, "UTF-8");
                     } catch (Exception ignore) {
-                    /* Ignore. Trying to decode password that was not encoded. */
+                        /* Ignore. Trying to decode password that was not encoded. */
                     }
                     value = TaskUtils.decryptIfNeeded(value);
                 }
@@ -254,7 +277,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     private boolean shouldEncrypt(String key) {
-         return key.contains("artifactory") && (key.contains("password") || key.contains("ssh"));
+        return key.contains("artifactory") && (key.contains("password") || key.contains("ssh"));
     }
 
     /**
@@ -291,6 +314,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
 
     /**
      * Reset the build context configuration of the resolver back to the default values if no server id was selected
+     *
      * @param buildContext The build context which holds the environment for the configuration.
      */
     protected void resetResolverConfigIfNeeded(PackageManagersContext buildContext) {
@@ -357,11 +381,11 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     public static void populateDefaultBuildNameNumberInBuildContext(@NotNull Map<String, Object> context) {
-        String buildName = (String)context.get(ArtifactoryBuildContext.BUILD_NAME);
+        String buildName = (String) context.get(ArtifactoryBuildContext.BUILD_NAME);
         if (buildName == null) {
             context.put(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.DEFAULT_BUILD_NAME);
         }
-        String buildNumber = (String)context.get(ArtifactoryBuildContext.BUILD_NUMBER);
+        String buildNumber = (String) context.get(ArtifactoryBuildContext.BUILD_NUMBER);
         if (buildNumber == null) {
             context.put(ArtifactoryBuildContext.BUILD_NUMBER, ArtifactoryBuildContext.DEFAULT_BUILD_NUMBER);
         }

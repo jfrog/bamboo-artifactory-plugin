@@ -14,8 +14,7 @@ public abstract class ArtifactoryDeploymentTaskType extends ArtifactoryTaskBase 
 
     protected abstract TaskResult runTask(@NotNull DeploymentTaskContext context) throws TaskException;
 
-    protected abstract void initTask(@NotNull DeploymentTaskContext context) throws TaskException;
-
+    @NotNull
     public TaskResult execute(@NotNull DeploymentTaskContext context) throws TaskException {
         // Initialize task.
         initTask(context);
@@ -23,7 +22,7 @@ public abstract class ArtifactoryDeploymentTaskType extends ArtifactoryTaskBase 
         // Report task usage to Artifactory.
         ServerConfig server = getUsageServerConfig();
         if (server != null) {
-            reportUsage(server, getTaskUsageName(), getLog());
+            reportUsage(server, getTaskUsageName(), buildInfoLog);
         }
 
         // Run task execution.

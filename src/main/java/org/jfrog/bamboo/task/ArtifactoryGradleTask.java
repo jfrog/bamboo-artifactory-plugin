@@ -1,16 +1,11 @@
 package org.jfrog.bamboo.task;
 
-import com.atlassian.bamboo.build.ErrorLogEntry;
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
@@ -18,17 +13,18 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.GradleDataHelper;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
-import org.jfrog.bamboo.util.*;
+import org.jfrog.bamboo.context.PackageManagersContext;
+import org.jfrog.bamboo.util.ConfigurationPathHolder;
+import org.jfrog.bamboo.util.PluginProperties;
+import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.BuildInfoFields;
-import org.jfrog.build.api.util.Log;
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
 
 import java.io.File;
@@ -47,18 +43,17 @@ import java.util.zip.ZipEntry;
  */
 public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     public static final String TASK_NAME = "artifactoryGradleTask";
-    public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
+
     public static final String EXECUTABLE_WRAPPER_NAME = SystemUtils.IS_OS_WINDOWS ? "./gradlew.bat" : "./gradlew";
-    private static final Logger log = Logger.getLogger(ArtifactoryGradleTask.class);
+    public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
     private static final String GRADLE_KEY = "system.builder.gradle.";
-    private final CapabilityContext capabilityContext;
-    private BuildLogger logger;
-    private BuilderDependencyHelper dependencyHelper;
-    private String gradleDependenciesDir = null;
     private AdministrationConfiguration administrationConfiguration;
-    private String artifactoryPluginVersion;
+    private final BuilderDependencyHelper dependencyHelper;
+    private final CapabilityContext capabilityContext;
     private GradleBuildContext gradleBuildContext;
     private GradleDataHelper gradleDataHelper;
+    private String artifactoryPluginVersion;
+    private String gradleDependenciesDir;
 
     public ArtifactoryGradleTask(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
@@ -70,8 +65,8 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     }
 
     @Override
-    protected void initTask(@NotNull TaskContext context) {
-        logger = getBuildLogger(context);
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
+        super.initTask(context);
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         gradleBuildContext = createBuildContext(context);
         initEnvironmentVariables(gradleBuildContext);
@@ -91,12 +86,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         try {
             gradleDependenciesDir = extractGradleDependencies(gradleBuildContext.getArtifactoryServerId(), rootDirectory, gradleBuildContext);
         } catch (IOException e) {
-            gradleDependenciesDir = null;
-            logger.addBuildLogEntry(new ErrorLogEntry(
-                    "Error occurred while preparing Artifactory Gradle Runner dependencies. Build Info support is " +
-                            "disabled: " + e.getMessage()));
-            log.error("Error occurred while preparing Artifactory Gradle Runner dependencies. " +
-                    "Build Info support is disabled.", e);
+            buildInfoLog.error("Error occurred while preparing Artifactory Gradle Runner dependencies. Build Info support is disabled: ", e);
         }
 
         // Get gradle executable.
@@ -175,12 +165,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         return "gradle";
     }
 
-    @Override
-    protected Log getLog() {
-        return new BuildInfoLog(log, logger);
-    }
-
-    private GradleBuildContext createBuildContext(TaskContext context) {
+    private GradleBuildContext createBuildContext(CommonTaskContext context) {
         Map<String, String> combinedMap = getCombinedConfiguration(context);
         return new GradleBuildContext(combinedMap);
     }
@@ -194,9 +179,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
         }
 
         InputStream initScriptStream = null;
-        JarFile gradleJar = null;
-        try {
-            gradleJar = new JarFile(gradleJarFile);
+        try (JarFile gradleJar = new JarFile(gradleJarFile)) {
             ZipEntry initScriptEntry = gradleJar.getEntry("initscripttemplate.gradle");
 
             if (initScriptEntry == null) {
@@ -219,18 +202,10 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
             }
             return configurationPathHolder;
         } catch (IOException e) {
-            log.warn(logger.addBuildLogEntry("Unable to read from the Gradle extractor jar. Build-info task will not be added: " +
-                    e.getMessage()));
+            buildInfoLog.warn("Unable to read from the Gradle extractor jar. Build-info task will not be added: " + e.getMessage());
             return null;
         } finally {
             IOUtils.closeQuietly(initScriptStream);
-            try {
-                if (gradleJar != null) {
-                    gradleJar.close();
-                }
-            } catch (IOException e) {
-                log.warn(logger.addBuildLogEntry("Unable to close the Gradle extractor jar: " + e.getMessage()));
-            }
         }
     }
 

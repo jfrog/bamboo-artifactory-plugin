@@ -17,6 +17,7 @@ import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.BuildInfoConfigProperties;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
@@ -111,7 +112,7 @@ public class TaskUtils {
         return new ServerConfig(serverConfig.getId(), serverUrl, username, password, serverConfig.getTimeout());
     }
 
-    public static ArtifactoryDependenciesClientBuilder getArtifactoryDependenciesClientBuilder(ServerConfig serverConfig, BuildInfoLog log) {
+    public static ArtifactoryDependenciesClientBuilder getArtifactoryDependenciesClientBuilder(ServerConfig serverConfig, Log log) {
         ArtifactoryDependenciesClientBuilder dependenciesClientBuilder = new ArtifactoryDependenciesClientBuilder();
         dependenciesClientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
                 .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
@@ -119,7 +120,7 @@ public class TaskUtils {
         return dependenciesClientBuilder;
     }
 
-    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfig serverConfig, BuildInfoLog log) {
+    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfig serverConfig, Log log) {
         ArtifactoryDependenciesClient dependenciesClient = new ArtifactoryDependenciesClient(serverConfig.getUrl(),
                 serverConfig.getUsername(), serverConfig.getPassword(), log);
         dependenciesClient.setConnectionTimeout(serverConfig.getTimeout());
@@ -127,7 +128,7 @@ public class TaskUtils {
         return dependenciesClient;
     }
 
-    public static ArtifactoryBuildInfoClientBuilder getArtifactoryBuildInfoClientBuilder(ServerConfig serverConfig, BuildInfoLog log) {
+    public static ArtifactoryBuildInfoClientBuilder getArtifactoryBuildInfoClientBuilder(ServerConfig serverConfig, Log log) {
         ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
         clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
                 .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
@@ -135,7 +136,7 @@ public class TaskUtils {
         return clientBuilder;
     }
 
-    public static ArtifactoryBuildInfoClient getArtifactoryBuildInfoClient(ServerConfig serverConfig, BuildInfoLog log) {
+    public static ArtifactoryBuildInfoClient getArtifactoryBuildInfoClient(ServerConfig serverConfig, Log log) {
         ArtifactoryBuildInfoClient buildInfoClient = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
                 serverConfig.getUsername(), serverConfig.getPassword(), log);
         buildInfoClient.setConnectionTimeout(serverConfig.getTimeout());

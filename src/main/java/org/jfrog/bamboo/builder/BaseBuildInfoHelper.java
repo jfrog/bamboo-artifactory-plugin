@@ -16,9 +16,9 @@
 
 package org.jfrog.bamboo.builder;
 
+import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.configuration.AdministrationConfiguration;
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
-import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.utils.EscapeChars;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.trigger.ManualBuildTriggerReason;
@@ -35,9 +35,11 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PackageManagersContext;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.BuildInfoProperties;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 
 import java.io.File;
@@ -53,9 +55,9 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_SERVLET_KEY_PARAM;
  * @author Noam Y. Tenne
  */
 public abstract class BaseBuildInfoHelper {
-    @SuppressWarnings({"UnusedDeclaration"})
-    private static final Logger log = Logger.getLogger(BaseBuildInfoHelper.class);
+    protected static final Logger log = Logger.getLogger(BaseBuildInfoHelper.class);
 
+    protected Log buildInfoLog;
     protected BuildContext context;
     protected ServerConfigManager serverConfigManager;
     protected AdministrationConfiguration administrationConfiguration;
@@ -64,13 +66,14 @@ public abstract class BaseBuildInfoHelper {
     protected String bambooBaseUrl;
     protected BuildParamsOverrideManager buildParamsOverrideManager;
 
-    public void init(BuildParamsOverrideManager buildParamsOverrideManager, BuildContext context) {
+    public void init(BuildParamsOverrideManager buildParamsOverrideManager, BuildContext context, BuildLogger logger) {
+        this.buildParamsOverrideManager = buildParamsOverrideManager;
         this.context = context;
+        buildInfoLog = new BuildInfoLog(log, logger);
         serverConfigManager = ServerConfigManager.getInstance();
         ContainerManager.autowireComponent(this);
         httpClient = new HttpClient();
         bambooBaseUrl = determineBambooBaseUrl();
-        this.buildParamsOverrideManager = buildParamsOverrideManager;
     }
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
@@ -109,8 +112,8 @@ public abstract class BaseBuildInfoHelper {
         // Take the publishing repo defined as a Bamboo variable or, if not defined, take the value
         // configured in the task configuration page:
         return overrideParam(
-            buildContext.getPublishingRepo(),
-            BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
+                buildContext.getPublishingRepo(),
+                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
     }
 
     /**
@@ -134,6 +137,7 @@ public abstract class BaseBuildInfoHelper {
 
     /**
      * Get parameters from buildInfoConfig.propertiesFile
+     *
      * @param propFilePath Path to buildInfoConfig.propertiesFile
      * @return Map of the parameters
      */
@@ -220,7 +224,7 @@ public abstract class BaseBuildInfoHelper {
      *
      * @param originalValue Value from the task configuration.
      * @param overrideKey   Bamboo variable name.
-     * @return              The Bamboo variable if defined. If not, the configured value.
+     * @return The Bamboo variable if defined. If not, the configured value.
      */
     public String overrideParam(String originalValue, String overrideKey) {
         String overriddenValue = buildParamsOverrideManager.getOverrideValue(overrideKey);
@@ -243,14 +247,13 @@ public abstract class BaseBuildInfoHelper {
         return principal;
     }
 
-    protected ServerConfig getConfiguredServer(TaskContext context, long selectedServerId) {
+    protected ServerConfig getConfiguredServer(Log buildInfoLog, long selectedServerId) {
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(selectedServerId);
         if (serverConfig == null) {
             String warning =
                     "Found an ID of a selected Artifactory server configuration (" + selectedServerId +
                             ") but could not find a matching configuration. Build info collection is disabled.";
-            context.getBuildLogger().addErrorLogEntry(warning);
-            log.warn(warning);
+            buildInfoLog.warn(warning);
             return null;
         }
         return serverConfig;

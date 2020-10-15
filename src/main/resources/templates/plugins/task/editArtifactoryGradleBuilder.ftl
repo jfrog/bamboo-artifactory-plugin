@@ -45,10 +45,19 @@
 [@ui.bambooSection id="serverSelectSection" titleKey='artifactory.task.serverSelection' collapsible=true]
     [@ww.select name='builder.artifactoryGradleBuilder.artifactoryServerId' labelKey='artifactory.task.gradle.artifactoryServerId' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayGradleArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
-    [@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername' onchange='javascript: overridingCredentialsChanged()'/]
-    [@ww.password labelKey='artifactory.task.gradle.deployerPassword' name='builder.artifactoryGradleBuilder.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged()'/]
-[#--The Dummy password is a workaround for the autofill (Chrome)--]
-    [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+    [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+[#--  No credentials overriding  --]
+    [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
+[#--  Username and password  --]
+    [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='usernamePassword']
+        [@ww.textfield labelKey='artifactory.task.gradle.deployerUsername' name='builder.artifactoryGradleBuilder.deployerUsername' onchange='javascript: overridingCredentialsChanged()'/]
+        [@ww.password labelKey='artifactory.task.gradle.deployerPassword' name='builder.artifactoryGradleBuilder.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged()'/]
+    [/@ui.bambooSection]
+[#--  Use shared credentials  --]
+    [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='sharedCredentials']
+        [@ww.select name='deployer.sharedCredentials' labelKey='artifactory.task.generic.sharedCredentials' list=credentialsAccessor.allCredentials
+        listKey='name' listValue='name' toggle='true'/]
+    [/@ui.bambooSection]
 [/@ui.bambooSection]
 
 <div id="gradleArtifactoryConfigDiv">
@@ -57,7 +66,7 @@
         [@ww.select name='builder.artifactoryGradleBuilder.resolutionRepo' labelKey='artifactory.task.gradle.resolutionRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
         <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
+             style="display: none; width: 80%; font-size: 80%"/>
     [/@ui.bambooSection]
 
     [#--Deployment--]
@@ -65,7 +74,7 @@
         [@ww.select name='builder.artifactoryGradleBuilder.publishingRepo' labelKey='artifactory.task.gradle.publishingRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
         <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
+             style="display: none; width: 80%; font-size: 80%"/>
         [@ww.checkbox labelKey='artifactory.task.gradle.publishArtifacts' name='publishArtifacts' toggle='true'/]
         [@ui.bambooSection dependsOn='publishArtifacts' showOn=true]
             [@ww.select labelKey="artifactory.task.gradle.publishForkCount" name="builder.artifactoryGradleBuilder.publishForkCount" list="builder.artifactoryGradleBuilder.publishForkCountList" value='builder.artifactoryGradleBuilder.publishForkCount'/]
@@ -120,8 +129,8 @@
 
     function displayGradleArtifactoryConfigs(serverId) {
         var serverSelectDiv = document.getElementById('serverSelectSection');
-        var credentialsUserName = serverSelectDiv.getElementsByTagName('input')[1].value;
-        var credentialsPassword = serverSelectDiv.getElementsByTagName('input')[2].value;
+        var credentialsUserName = serverSelectDiv.getElementsByTagName('input')[2].value;
+        var credentialsPassword = serverSelectDiv.getElementsByTagName('input')[3].value;
 
         var configDiv = document.getElementById('gradleArtifactoryConfigDiv');
         if ((serverId == null) || (serverId.length == 0) || (-1 == serverId)) {
@@ -145,7 +154,7 @@
     function loadGradlePublishRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                '&deployableRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType: 'json',
             cache: false,
             success: function (json) {
@@ -168,13 +177,13 @@
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the publishing repository list.<br>' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
+                    'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
                 if (XMLHttpRequest.status == 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
+                        'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
-                            'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
+                        'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
                 errorMessage += "<br>";
                 publishErrorDiv.innerHTML = errorMessage;
@@ -187,7 +196,7 @@
     function loadGradleResolvingRepoKeys(serverId, credentialsUserName, credentialsPassword) {
         AJS.$.ajax({
             url: '${req.contextPath}/plugins/servlet/artifactoryConfigServlet?serverId=' + serverId +
-                    '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
+                '&resolvingRepos=true&user=' + credentialsUserName + '&password=' + credentialsPassword,
             dataType: 'json',
             cache: false,
             success: function (json) {
@@ -210,13 +219,13 @@
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorMessage = 'An error has occurred while retrieving the resolving repository list.<br>' +
-                        'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
+                    'Response: ' + XMLHttpRequest.status + ', ' + XMLHttpRequest.statusText + '.<br>';
                 if (XMLHttpRequest.status == 404) {
                     errorMessage +=
-                            'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
+                        'Please make sure that the Artifactory Server Configuration Management Servlet is accessible.'
                 } else {
                     errorMessage +=
-                            'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
+                        'Please check the server logs for error messages from the Artifactory Server Configuration Management Servlet.'
                 }
                 errorMessage += "<br>";
                 resolveErrorDiv.innerHTML = errorMessage;

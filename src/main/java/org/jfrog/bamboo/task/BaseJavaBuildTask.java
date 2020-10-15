@@ -5,10 +5,7 @@ import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ExternalProcessBuilder;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
@@ -68,16 +65,6 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
 
     void initEnvironmentVariables(PackageManagersContext buildContext) {
         environmentVariables = TaskUtils.getEnvironmentVariables(buildContext, environmentVariableAccessor);
-    }
-
-    /**
-     * Get the build logger that will print messages to Bamboo's log from the context.
-     *
-     * @param taskContext The task context.
-     * @return The build logger.
-     */
-    public BuildLogger getBuildLogger(TaskContext taskContext) {
-        return taskContext.getBuildLogger();
     }
 
     public TaskResult collectTestResults(PackageManagersContext buildContext, TaskContext taskContext,
@@ -229,10 +216,10 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
     }
 
     @NotNull
-    Map<String, String> getCombinedConfiguration(TaskContext context) {
+    Map<String, String> getCombinedConfiguration(CommonTaskContext context) {
         Map<String, String> combinedMap = Maps.newHashMap();
         combinedMap.putAll(context.getConfigurationMap());
-        BuildContext parentBuildContext = context.getBuildContext().getParentBuildContext();
+        BuildContext parentBuildContext = ((TaskContext) context).getBuildContext().getParentBuildContext();
         if (parentBuildContext != null) {
             Map<String, String> customBuildData = parentBuildContext.getBuildResult().getCustomBuildData();
             combinedMap.putAll(customBuildData);

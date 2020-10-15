@@ -6,16 +6,19 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.ArtifactoryBuildContext;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 
 import java.util.Map;
 import java.util.Set;
+
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.RESOLVER_OVERRIDE_CREDENTIALS_CHOICE;
 
 /**
  * Configuration for {@link org.jfrog.bamboo.task.ArtifactoryMaven3Task}
@@ -77,12 +80,24 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("artifactory.vcs.git.authenticationType.list", getGitAuthenticationTypes());
         populateDefaultEnvVarsExcludePatternsInBuildContext(context);
         populateDefaultBuildNameNumberInBuildContext(context);
+
+        // Backward compatibility for tasks with overridden username and password
+        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
+        Maven3BuildContext taskContext = new Maven3BuildContext(taskConfiguration);
+        if (StringUtils.isBlank(taskContext.getResolverOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getResolverUsername(), taskContext.getResolverPassword())) {
+            context.put(RESOLVER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
+        }
+        if (StringUtils.isBlank(taskContext.getDeployerOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getDeployerUsername(), taskContext.getDeployerPassword())) {
+            context.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
+        }
     }
 
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-            @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, FIELDS_TO_COPY);
         Maven3BuildContext buildContext = new Maven3BuildContext(taskConfigMap);

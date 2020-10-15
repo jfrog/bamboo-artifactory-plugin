@@ -6,9 +6,12 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
+import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.ProxyUtils;
+import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
 
 import java.util.List;
@@ -32,14 +35,14 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
         if (selectedServerId == -1) {
             // No deployment server configured, configure resolution server if needed.
             selectedServerId = buildContext.getResolutionArtifactoryServerId();
-            if (selectedServerId != -1 && isServerConfigured(context, selectedServerId)) {
-                setClientData(buildContext, clientConf, selectedServerConfig, envVarAccessor.getEnvironment(context));
+            if (selectedServerId != -1 && isServerConfigured(selectedServerId)) {
+                setClientData(context, buildContext, clientConf, selectedServerConfig, envVarAccessor.getEnvironment(context));
             }
         }
     }
 
     @Override
-    protected void setClientData(PackageManagersContext builder, ArtifactoryClientConfiguration clientConf,
+    protected void setClientData(TaskContext taskContext, PackageManagersContext builder, ArtifactoryClientConfiguration clientConf,
                                  ServerConfig serverConfig, Map<String, String> environment) {
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
         clientConf.publisher.setRecordAllDependencies(buildContext.isRecordAllDependencies());
@@ -48,7 +51,7 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
             long serverId = buildContext.getResolutionArtifactoryServerId();
             ServerConfig resolutionServerConfig = serverConfigManager.getServerConfigById(serverId);
             if (resolutionServerConfig != null) {
-                setResolverProperties(buildContext, resolutionServerConfig);
+                setResolverProperties(taskContext, buildContext, resolutionServerConfig);
                 clientConf.resolver.setContextUrl(resolverUrl);
                 clientConf.resolver.setRepoKey(resolutionRepo);
                 clientConf.resolver.setUsername(resolverUsername);
@@ -58,7 +61,6 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
         }
     }
 
-    @NotNull
     public void addPasswordsSystemProps(List<String> command, PackageManagersContext builder, @NotNull TaskContext context) {
         Maven3BuildContext buildContext = (Maven3BuildContext) builder;
         super.addPasswordsSystemProps(command, buildContext, context);
@@ -80,21 +82,18 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
                 serverConfigManager.getServerConfigById(buildContext.getResolutionArtifactoryServerId()) != null;
     }
 
-    private void setResolverProperties(Maven3BuildContext buildContext, ServerConfig resolutionServerConfig) {
-        // Set url.
+    private void setResolverProperties(TaskContext taskContext, Maven3BuildContext buildContext, ServerConfig resolutionServerConfig) {
+        Map<String, String> runtimeContext = taskContext.getRuntimeTaskContext();
+        Log buildInfoLog = new BuildInfoLog(log, taskContext.getBuildLogger());
+
+        // Override username and password if needed
+        ServerConfig overriderServerConfig = TaskUtils.getResolutionServerConfig(
+                buildContext.getOverriddenUsername(runtimeContext, buildInfoLog, false),
+                buildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false),
+                serverConfigManager, selectedServerConfig, buildParamsOverrideManager);
         resolverUrl = resolutionServerConfig.getUrl();
-        // Set username.
-        resolverUsername = buildContext.getResolverUsername();
-        resolverUsername = overrideParam(resolverUsername, BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME);
-        if (StringUtils.isBlank(resolverUsername)) {
-            resolverUsername = resolutionServerConfig.getUsername();
-        }
-        // Set password.
-        resolverPassword = buildContext.getResolverPassword();
-        resolverPassword = overrideParam(resolverPassword, BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD);
-        if (StringUtils.isBlank(resolverPassword)) {
-            resolverPassword = resolutionServerConfig.getPassword();
-        }
+        resolverUsername = overriderServerConfig.getUsername();
+        resolverPassword = overriderServerConfig.getPassword();
     }
 
     public ServerConfig getResolveServer() {

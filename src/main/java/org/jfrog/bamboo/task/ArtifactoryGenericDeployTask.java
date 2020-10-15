@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.task;
 
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.task.*;
@@ -13,17 +12,18 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
-import org.jfrog.bamboo.util.*;
+import org.jfrog.bamboo.util.FileSpecUtils;
+import org.jfrog.bamboo.util.TaskDefinitionHelper;
+import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.util.FileChecksumCalculator;
-import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
@@ -45,17 +45,14 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_SELECTED_SERVER_
  */
 public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryGenericTask";
-    private static final Logger log = Logger.getLogger(ArtifactoryGenericDeployTask.class);
     private final EnvironmentVariableAccessor environmentVariableAccessor;
-    private BuildLogger logger;
-    private BuildInfoHelper buildInfoHelper;
-    private BuildParamsOverrideManager buildParamsOverrideManager;
-    private TaskContext taskContext;
-    private ArtifactoryBuildInfoClient client;
+    private final BuildParamsOverrideManager buildParamsOverrideManager;
     private CustomVariableContext customVariableContext;
-    private String fileSpec;
-    private BuildContext buildContext;
+    private ArtifactoryBuildInfoClient client;
+    private BuildInfoHelper buildInfoHelper;
     private GenericContext genericContext;
+    private BuildContext buildContext;
+    private String fileSpec;
 
     public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -64,14 +61,16 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
     }
 
     @Override
-    public void initTask(TaskContext context) {
-        taskContext = context;
-        logger = taskContext.getBuildLogger();
-        buildContext = taskContext.getBuildContext();
+    public void initTask(@NotNull CommonTaskContext context) throws TaskException {
+        super.initTask(context);
+        buildContext = ((TaskContext) taskContext).getBuildContext();
         genericContext = new GenericContext(taskContext.getConfigurationMap());
+        Map<String, String> runtimeContext = context.getRuntimeTaskContext();
         buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(genericContext.getBuildName(buildContext),
                 genericContext.getBuildNumber(buildContext), taskContext, buildContext, environmentVariableAccessor,
-                genericContext.getSelectedServerId(), genericContext.getUsername(), genericContext.getPassword(),
+                genericContext.getSelectedServerId(),
+                genericContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
+                genericContext.getOverriddenPassword(runtimeContext, buildInfoLog, true),
                 buildParamsOverrideManager);
     }
 
@@ -89,16 +88,16 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         }
 
         Build build = buildInfoHelper.getBuild(taskContext, genericContext);
-        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
+        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
         try {
-            File sourceCodeDirectory = getWorkingDirectory(taskContext);
+            File sourceCodeDirectory = getWorkingDirectory();
             if (sourceCodeDirectory == null) {
                 log.error(logger.addErrorLogEntry("No build directory found!"));
                 return TaskResultBuilder.newBuilder(taskContext).success().build();
             }
             if (genericContext.isUseFileSpecs()) {
-                initFileSpec(taskContext);
-                build = deployByFileSpec(sourceCodeDirectory, taskContext, build, clientBuilder, fileSpec);
+                initFileSpec();
+                build = deployByFileSpec(sourceCodeDirectory, build, clientBuilder, fileSpec);
             } else {
                 build = deployByLegacyPattern(sourceCodeDirectory, build, getClient(clientBuilder), genericContext);
             }
@@ -137,14 +136,9 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         return "generic_deploy";
     }
 
-    @Override
-    protected Log getLog() {
-        return new BuildInfoLog(log, logger);
-    }
-
-    private void initFileSpec(@NotNull CommonTaskContext context) throws IOException {
+    private void initFileSpec() throws IOException {
         fileSpec = FileSpecUtils.getFileSpec(genericContext.isFileSpecInJobConfiguration(),
-                genericContext.getJobConfigurationSpec(), genericContext.getFilePathSpec(), getWorkingDirectory(context),
+                genericContext.getJobConfigurationSpec(), genericContext.getFilePathSpec(), getWorkingDirectory(),
                 customVariableContext, logger);
         logger.addBuildLogEntry("Spec: " + fileSpec);
         FileSpecUtils.validateFileSpec(fileSpec);
@@ -157,8 +151,8 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         return this.client;
     }
 
-    private File getWorkingDirectory(@NotNull CommonTaskContext context) {
-        return TaskUtils.getVcsWorkingDirectory(this.taskContext);
+    private File getWorkingDirectory() {
+        return TaskUtils.getVcsWorkingDirectory((TaskContext) taskContext);
     }
 
     private Multimap<String, File> buildTargetPathToFiles(File directory, GenericContext context)
@@ -207,7 +201,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
     }
 
     private Set<DeployDetails> buildDeployDetailsFromFileSet(Map.Entry<String, File> fileEntry, String targetRepository,
-                                                            Map<String, String> propertyMap) throws IOException,
+                                                             Map<String, String> propertyMap) throws IOException,
             NoSuchAlgorithmException {
         Set<DeployDetails> result = Sets.newHashSet();
         String targetPath = fileEntry.getKey();
@@ -223,8 +217,8 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         return result;
     }
 
-    private Build deployByFileSpec(File sourceCodeDirectory, TaskContext taskContext, Build build, ArtifactoryBuildInfoClientBuilder clientBuilder, String spec) throws IOException, NoSuchAlgorithmException {
-        SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(ArtifactoryGenericDeployTask.log, taskContext.getBuildLogger()));
+    private Build deployByFileSpec(File sourceCodeDirectory, Build build, ArtifactoryBuildInfoClientBuilder clientBuilder, String spec) throws IOException {
+        SpecsHelper specsHelper = new SpecsHelper(buildInfoLog);
         Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
         buildInfoHelper.addCommonProperties(buildProperties);
         List<Artifact> artifacts;

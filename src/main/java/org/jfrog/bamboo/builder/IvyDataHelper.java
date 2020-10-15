@@ -1,6 +1,7 @@
 package org.jfrog.bamboo.builder;
 
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
+import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.TaskContext;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
@@ -14,12 +15,12 @@ import java.util.Map;
  */
 public class IvyDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
 
-    public IvyDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context, PackageManagersContext buildContext, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion, boolean aggregateBuildInfo) {
-        super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion, aggregateBuildInfo);
+    public IvyDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, CommonTaskContext context, PackageManagersContext buildContext, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion, boolean aggregateBuildInfo) {
+        super(buildParamsOverrideManager, (TaskContext) context, buildContext, envVarAccessor, artifactoryPluginVersion, aggregateBuildInfo);
     }
 
     @Override
-    protected void setClientData(PackageManagersContext builder, ArtifactoryClientConfiguration clientConf,
+    protected void setClientData(TaskContext taskContext, PackageManagersContext builder, ArtifactoryClientConfiguration clientConf,
                                  ServerConfig serverConfig, Map<String, String> environment) {
 
         if (builder.isPublishArtifacts()) {

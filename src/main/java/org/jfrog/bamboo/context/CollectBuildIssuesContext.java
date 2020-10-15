@@ -7,32 +7,22 @@ import java.util.Map;
 import java.util.Set;
 
 public class CollectBuildIssuesContext extends ArtifactoryBuildContext {
-    public static final String SERVER_ID_PARAM = "artifactory.task.collectBuildIssues." + PackageManagersContext.SERVER_ID_PARAM;
-    public static final String CONFIG_SOURCE_CHOICE = "artifactory.task.collectBuildIssues.config.source";
-    private static final String USERNAME = "artifactory.task.collectBuildIssues.username";
-    private static final String PASSWORD = "artifactory.task.collectBuildIssues.password";
-    private static final String CONFIG_SOURCE_FILE = "artifactory.task.collectBuildIssues.config.source.file";
-    private static final String CONFIG_SOURCE_TASK_CONFIGURATION = "artifactory.task.collectBuildIssues.config.source.taskConfiguration";
+    private static final String PREFIX = "artifactory.task.collectBuildIssues.";
+    public static final String SERVER_ID_PARAM = PREFIX + PackageManagersContext.SERVER_ID_PARAM;
+    public static final String CONFIG_SOURCE_CHOICE = PREFIX + "config.source";
+    private static final String USERNAME = PREFIX + USERNAME_PARAM;
+    private static final String PASSWORD = PREFIX + PASSWORD_PARAM;
+    private static final String CONFIG_SOURCE_FILE = PREFIX + "config.source.file";
+    private static final String CONFIG_SOURCE_TASK_CONFIGURATION = PREFIX + "config.source.taskConfiguration";
 
     public CollectBuildIssuesContext(Map<String, String> env) {
-        super(env);
+        super(PREFIX, env);
     }
 
     public static Set<String> getFieldsToCopy() {
         return Sets.newHashSet(SERVER_ID_PARAM, USERNAME, PASSWORD, CONFIG_SOURCE_CHOICE, CONFIG_SOURCE_FILE,
-                CONFIG_SOURCE_TASK_CONFIGURATION, BUILD_NAME, BUILD_NUMBER);
-    }
-
-    public long getArtifactoryServerId() {
-        return Long.parseLong(env.get(SERVER_ID_PARAM));
-    }
-
-    public String getUsername() {
-        return env.get(USERNAME);
-    }
-
-    public String getPassword() {
-        return env.get(PASSWORD);
+                CONFIG_SOURCE_TASK_CONFIGURATION, BUILD_NAME, BUILD_NUMBER,
+                DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, DEPLOYER_SHARED_CREDENTIALS);
     }
 
     public boolean isConfigSourceTaskConfiguration() {

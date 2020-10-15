@@ -1,11 +1,13 @@
 package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.task.TaskDefinition;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.context.GenericContext;
 
 import java.util.Map;
+
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
 
 /**
  * Configuration for {@link org.jfrog.bamboo.task.ArtifactoryGenericDeployTask}
@@ -32,6 +34,14 @@ public class ArtifactoryGenericBuildConfiguration extends AbstractGenericBuildCo
         }
         context.put("selectedRepoKey", selectedPublishingRepoKey);
         context.put(GenericContext.SIGN_METHOD_MAP_KEY, GenericContext.SIGN_METHOD_MAP);
+
+        // Backward compatibility for tasks with overridden username and password
+        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
+        GenericContext taskContext = new GenericContext(taskConfiguration);
+        if (StringUtils.isBlank(taskContext.getDeployerOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getUsername(), taskContext.getPassword())) {
+            context.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
+        }
     }
 
     @Override

@@ -5,16 +5,18 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.ArtifactoryBuildContext;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.IvyBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 
 import java.util.Map;
 import java.util.Set;
+
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
 
 /**
  * Configuration for {@link org.jfrog.bamboo.task.ArtifactoryIvyTask}
@@ -70,6 +72,14 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         context.put("serverConfigManager", serverConfigManager);
         populateDefaultEnvVarsExcludePatternsInBuildContext(context);
         populateDefaultBuildNameNumberInBuildContext(context);
+
+        // Backward compatibility for tasks with overridden username and password
+        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
+        IvyBuildContext taskContext = new IvyBuildContext(taskConfiguration);
+        if (StringUtils.isBlank(taskContext.getDeployerOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getDeployerUsername(), taskContext.getDeployerPassword())) {
+            context.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
+        }
     }
 
     @NotNull

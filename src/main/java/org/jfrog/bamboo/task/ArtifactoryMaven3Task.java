@@ -1,15 +1,11 @@
 package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.ErrorLogEntry;
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.logger.interceptors.ErrorMemorisingInterceptor;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
 import com.atlassian.bamboo.process.ProcessService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
@@ -17,19 +13,16 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.log4j.Logger;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.MavenDataHelper;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.util.BuildInfoLog;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
-import org.jfrog.build.api.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,15 +38,14 @@ import java.util.Map;
  */
 public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     public static final String TASK_NAME = "maven3Task";
-    private static final Logger log = Logger.getLogger(ArtifactoryMaven3Task.class);
+
     private final EnvironmentVariableAccessor environmentVariableAccessor;
+    private final BuilderDependencyHelper dependencyHelper;
     private final CapabilityContext capabilityContext;
-    private BuilderDependencyHelper dependencyHelper;
-    private String mavenDependenciesDir;
-    private BuildLogger logger;
     private Maven3BuildContext mavenBuildContext;
     private MavenDataHelper mavenDataHelper;
     private String artifactoryPluginVersion;
+    private String mavenDependenciesDir;
 
     public ArtifactoryMaven3Task(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
@@ -67,13 +59,13 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     }
 
     @Override
-    public void initTask(TaskContext taskContext) {
-        logger = getBuildLogger(taskContext);
+    protected void initTask(@NotNull CommonTaskContext taskContext) throws TaskException {
+        super.initTask(taskContext);
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         mavenBuildContext = createBuildContext(taskContext);
         initEnvironmentVariables(mavenBuildContext);
         aggregateBuildInfo = mavenBuildContext.shouldAggregateBuildInfo(taskContext);
-        mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, taskContext,
+        mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, (TaskContext) taskContext,
                 mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion, aggregateBuildInfo);
     }
 
@@ -149,11 +141,6 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         return "maven";
     }
 
-    @Override
-    protected Log getLog() {
-        return new BuildInfoLog(log, logger);
-    }
-
     /**
      * Returns the path of the java executable of the select JDK
      *
@@ -195,7 +182,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         return command;
     }
 
-    private Maven3BuildContext createBuildContext(TaskContext context) {
+    private Maven3BuildContext createBuildContext(CommonTaskContext context) {
         Map<String, String> combinedMap = getCombinedConfiguration(context);
         return new Maven3BuildContext(combinedMap);
     }
@@ -294,7 +281,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
 
         String m2ConfPath;
 
-        /**
+        /*
          * Customize the classworlds conf to activate the build info recorder only if received a valid dependency
          * directory path
          */

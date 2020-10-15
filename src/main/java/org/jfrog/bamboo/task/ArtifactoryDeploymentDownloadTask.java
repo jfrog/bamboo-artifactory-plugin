@@ -7,7 +7,6 @@ import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.variable.CustomVariableContext;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
@@ -16,11 +15,11 @@ import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Bamboo Download from Artifactory in deployment task - Download files from Artifactory in order to use them in deployment task.
@@ -28,35 +27,28 @@ import java.io.IOException;
  * @author Yahav Itzhak
  */
 public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTaskType {
-    private static final Logger log = Logger.getLogger(ArtifactoryDeploymentDownloadTask.class);
     private CustomVariableContext customVariableContext;
-    private String fileSpec;
-    private BuildLogger logger;
-    private GenericContext genericContext;
     private ServerConfig downloadServerConfig;
+    private GenericContext genericContext;
+    private String fileSpec;
 
     @Override
-    protected void initTask(@NotNull DeploymentTaskContext context) {
-        logger = context.getBuildLogger();
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
+        super.initTask(context);
         genericContext = new GenericContext(context.getConfigurationMap());
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         downloadServerConfig = getArtifactoryServerConfig(buildParamsOverrideManager);
     }
 
     @NotNull
-    public TaskResult runTask(@NotNull DeploymentTaskContext deploymentTaskContext) throws TaskException {
-        ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(downloadServerConfig, new BuildInfoLog(log, logger));
-        try {
+    public TaskResult runTask(@NotNull DeploymentTaskContext deploymentTaskContext) {
+        try (ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(downloadServerConfig, new BuildInfoLog(log, logger))) {
             initFileSpec(deploymentTaskContext, genericContext, logger);
             SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(log, logger));
             specsHelper.downloadArtifactsBySpec(fileSpec, client, deploymentTaskContext.getWorkingDirectory().getCanonicalPath());
         } catch (IOException e) {
-            String message = "Exception occurred while executing task";
-            logger.addErrorLogEntry(message, e);
-            log.error(message, e);
+            buildInfoLog.error("Exception occurred while executing task", e);
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
-        } finally {
-            client.close();
         }
         return TaskResultBuilder.newBuilder(deploymentTaskContext).success().build();
     }
@@ -67,8 +59,11 @@ public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTask
         if (selectedServerConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
         }
+        Map<String, String> runtimeContext = taskContext.getRuntimeTaskContext();
         // Get overridden server configurations for download.
-        return TaskUtils.getResolutionServerConfig(genericContext.getUsername(), genericContext.getPassword(),
+        return TaskUtils.getResolutionServerConfig(
+                genericContext.getOverriddenUsername(runtimeContext, buildInfoLog, false),
+                genericContext.getOverriddenPassword(runtimeContext, buildInfoLog, false),
                 serverConfigManager, selectedServerConfig, buildParamsOverrideManager);
     }
 
@@ -92,10 +87,5 @@ public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTask
     @Override
     protected String getTaskUsageName() {
         return "deployment_download";
-    }
-
-    @Override
-    protected Log getLog() {
-        return new BuildInfoLog(log, logger);
     }
 }

@@ -1,5 +1,6 @@
 package org.jfrog.bamboo.context;
 
+import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.TaskContext;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
@@ -83,7 +84,7 @@ public class IvyBuildContext extends PackageManagersContext {
         return new IvyBuildContext(transformed);
     }
 
-    public boolean shouldAggregateBuildInfo(@NotNull TaskContext taskContext, long serverId) {
+    public boolean shouldAggregateBuildInfo(@NotNull CommonTaskContext taskContext, long serverId) {
         boolean aggregateBuildInfo = super.shouldAggregateBuildInfo(taskContext);
         if (!aggregateBuildInfo) {
             return false;
@@ -107,6 +108,8 @@ public class IvyBuildContext extends PackageManagersContext {
                 PREFIX + FILTER_EXCLUDED_ARTIFACTS_FROM_BUILD_PARAM, BUILD_INFO_AGGREGATION, CAPTURE_BUILD_INFO,
                 INCLUDE_ENV_VARS_PARAM, ENV_VARS_EXCLUDE_PATTERNS, ENV_VARS_INCLUDE_PATTERNS,
                 PREFIX + EXECUTABLE, PREFIX + EXCLUDE_PATTERN, TEST_CHECKED, PREFIX + TEST_RESULT_DIRECTORY,
-                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, BUILD_NAME, BUILD_NUMBER);
+                TEST_DIRECTORY_OPTION, PREFIX + WORKING_SUB_DIRECTORY, BUILD_NAME, BUILD_NUMBER,
+                RESOLVER_OVERRIDE_CREDENTIALS_CHOICE, RESOLVER_SHARED_CREDENTIALS,
+                DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, DEPLOYER_SHARED_CREDENTIALS);
     }
 }
