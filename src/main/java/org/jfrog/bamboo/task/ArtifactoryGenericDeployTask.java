@@ -61,7 +61,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
     }
 
     @Override
-    public void initTask(@NotNull CommonTaskContext context) {
+    public void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
         buildContext = ((TaskContext) taskContext).getBuildContext();
         genericContext = new GenericContext(taskContext.getConfigurationMap());

@@ -1,10 +1,7 @@
 package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.task.CommonTaskContext;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +28,7 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
     private XrayScanContext xrayContext;
 
     @Override
-    protected void initTask(@NotNull CommonTaskContext context) {
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
         xrayContext = new XrayScanContext(context.getConfigurationMap());
         setXrayServerConfigurations(xrayContext);

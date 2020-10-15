@@ -111,7 +111,7 @@
               class="org.jfrog.bamboo.task.ArtifactoryGenericDeployTask">
         <description>Upload build artifacts to Artifactory using File Specs while collecting build-info.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericBuildConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/generic/editArtifactoryGenericBuildAction.ftl"/>
@@ -127,7 +127,7 @@
         <description>Download artifacts from Artifactory using File Specs, while collecting build-info.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/generic/editArtifactoryGenericResolveAction.ftl"/>
         <resource type="freemarker" name="view"
@@ -142,7 +142,7 @@
         <description>Collect build issues from the git commit messages of the project and add it to the build-info.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryCollectBuildIssuesConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/task/editArtifactoryCollectBuildIssuesAction.ftl"/>
         <resource type="freemarker" name="view"
@@ -157,7 +157,7 @@
         <description>Scan a build with JFrog Xray. The scanned build must be published to Artifactory prior to scanning, using the 'Publish Build Info' task.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryXrayScanConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/xray/editArtifactoryXrayScanAction.ftl"/>
         <resource type="freemarker" name="view"
@@ -172,7 +172,7 @@
         <description>Publish the build-info collected in previous tasks to Artifactory.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryPublishBuildInfoConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/task/editArtifactoryPublishBuildInfoAction.ftl"/>
         <resource type="freemarker" name="view"
@@ -222,7 +222,7 @@
               class="org.jfrog.bamboo.task.ArtifactoryNpmTask">
         <description>Install, pack and deploy npm packages from and to Artifactory.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryNpmConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.NpmCapabilityHelper"/>
         <executable key="npm" pathHelpKey="builder.npm.pathHelp"/>
@@ -301,7 +301,7 @@
               class="org.jfrog.bamboo.task.ArtifactoryIvyTask">
         <description>Build with Ivy, while resolving dependencies and deploying artifacts from and to Artifactory.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryIvyConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <category name="builder"/>
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.IvyCapabilityHelper"/>
         <executable key="ivy" pathHelpKey="builder.ivy.pathHelp"/>
@@ -349,7 +349,7 @@
         <description>Download artifacts from Artifactory using File Specs.</description>
         <category name="deployment"/>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryGenericResolveConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/deployment/editArtifactoryDeploymentDownloadTask.ftl"/>
         <resource type="freemarker" name="view"
@@ -362,7 +362,7 @@
               class="org.jfrog.bamboo.task.ArtifactoryDeploymentUploadTask">
         <description>Upload build artifacts to Artifactory using File Specs.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryDeploymentUploadConfiguration"/>
-        <runtimeTaskDataProvider class="org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/deployment/editArtifactoryDeploymentAction.ftl"/>

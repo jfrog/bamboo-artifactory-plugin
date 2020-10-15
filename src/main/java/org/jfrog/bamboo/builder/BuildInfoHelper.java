@@ -211,7 +211,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return clientBuilder;
     }
 
-    private static BuildInfoHelper createBuildInfoHelperBase(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig) {
+    private static BuildInfoHelper createBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig) {
         Map<String, String> env = new HashMap<>();
         env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
         env.putAll(environmentVariableAccessor.getEnvironment());
@@ -235,7 +235,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
                                                               long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
-        BuildInfoHelper buildInfoHelper = createBuildInfoHelperBase(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
+        BuildInfoHelper buildInfoHelper = createBuildInfoHelper(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
 
         buildInfoHelper.serverConfig = TaskUtils.getDeploymentServerConfig(username, password, serverConfigManager,
                 selectedServerConfig, buildParamsOverrideManager);
@@ -246,7 +246,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     public static BuildInfoHelper createResolveBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
-        BuildInfoHelper buildInfoHelper = createBuildInfoHelperBase(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
+        BuildInfoHelper buildInfoHelper = createBuildInfoHelper(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
 
         buildInfoHelper.serverConfig = TaskUtils.getResolutionServerConfig(username, password, serverConfigManager,
                 selectedServerConfig, buildParamsOverrideManager);

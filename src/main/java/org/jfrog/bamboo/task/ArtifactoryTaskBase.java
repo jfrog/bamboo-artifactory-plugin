@@ -2,6 +2,7 @@ package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.CommonTaskContext;
+import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.plugin.PluginAccessor;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,7 @@ public abstract class ArtifactoryTaskBase {
     protected BuildLogger logger;
     protected Log buildInfoLog;
 
-    protected void initTask(@NotNull CommonTaskContext context) {
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         this.taskContext = context;
         this.logger = taskContext.getBuildLogger();
         this.buildInfoLog = new BuildInfoLog(log, logger);

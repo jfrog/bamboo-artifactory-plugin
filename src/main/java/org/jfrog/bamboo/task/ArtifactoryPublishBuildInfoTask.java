@@ -1,10 +1,7 @@
 package org.jfrog.bamboo.task;
 
 import com.atlassian.bamboo.process.EnvironmentVariableAccessor;
-import com.atlassian.bamboo.task.CommonTaskContext;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
@@ -51,7 +48,7 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     }
 
     @Override
-    protected void initTask(@NotNull CommonTaskContext context) {
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
         PublishBuildInfoContext publishBuildInfoContext = new PublishBuildInfoContext(context.getConfigurationMap());
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);

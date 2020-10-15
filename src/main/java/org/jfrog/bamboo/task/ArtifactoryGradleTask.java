@@ -65,7 +65,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     }
 
     @Override
-    protected void initTask(@NotNull CommonTaskContext context) {
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         gradleBuildContext = createBuildContext(context);

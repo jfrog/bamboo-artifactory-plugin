@@ -8,6 +8,7 @@ import com.atlassian.bamboo.task.runtime.RuntimeTaskDefinition;
 import com.atlassian.bamboo.v2.build.CommonContext;
 import com.atlassian.bamboo.v2.build.agent.messages.AuthenticableMessage;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider;
 
 import java.util.HashMap;
 import java.util.Map;

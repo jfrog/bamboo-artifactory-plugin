@@ -10,7 +10,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimaps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
@@ -53,7 +52,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     }
 
     @Override
-    protected void initTask(@NotNull CommonTaskContext context) {
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
         npmBuildContext = new NpmBuildContext(taskContext.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
@@ -61,11 +60,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
         buildName = npmBuildContext.getBuildName(buildContext);
         buildNumber = npmBuildContext.getBuildNumber(buildContext);
         initBuildInfoHelper(buildContext);
-        try {
-            environmentVariables = getEnv();
-        } catch (TaskException e) {
-            buildInfoLog.warn("Couldn't retrieve environment variables: " + ExceptionUtils.getMessage(e));
-        }
+        environmentVariables = getEnv();
         packagePath = getPackagePath();
     }
 

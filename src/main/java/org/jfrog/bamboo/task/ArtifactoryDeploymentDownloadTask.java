@@ -3,6 +3,7 @@ package org.jfrog.bamboo.task;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.deployments.execution.DeploymentTaskContext;
 import com.atlassian.bamboo.task.CommonTaskContext;
+import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.variable.CustomVariableContext;
@@ -32,7 +33,7 @@ public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTask
     private String fileSpec;
 
     @Override
-    protected void initTask(@NotNull CommonTaskContext context) {
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
         genericContext = new GenericContext(context.getConfigurationMap());
         BuildParamsOverrideManager buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);

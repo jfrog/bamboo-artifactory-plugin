@@ -8,7 +8,7 @@ import java.util.Map;
 
 import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.CVG_CRED_SHARED_CREDENTIALS;
 import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.CVG_CRED_USERNAME_PASSWORD;
-import static org.jfrog.bamboo.release.provider.SharedCredentialsDataProvider.*;
+import static org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider.*;
 
 /**
  * Created by Bar Belity on 08/10/2020.

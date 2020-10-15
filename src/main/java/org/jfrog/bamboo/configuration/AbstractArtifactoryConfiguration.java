@@ -62,9 +62,13 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     public static final String CFG_FILE_SPECS = "specs";
     public static final Map<String, String> USE_SPECS_OPTIONS = ImmutableMap.of(CFG_FILE_SPECS, "Specs", CFG_LEGACY_PATTERNS, "Legacy patterns (deprecated)");
 
+    // If selected, use the credentials configured in the global Artifactory servers configuration
     public static final String CVG_CRED_NO_OVERRIDE = "noOverriding";
+    // If selected, override username and password as configured in the job configuration
     public static final String CVG_CRED_USERNAME_PASSWORD = "usernamePassword";
+    // If selected, use the shared credentials chosen in the job configuration
     public static final String CVG_CRED_SHARED_CREDENTIALS = "sharedCredentials";
+    // Map between credential overriding options to description
     public static final Map<String, String> CFG_OVERRIDE_CREDENTIALS_OPTIONS = ImmutableMap.of(CVG_CRED_NO_OVERRIDE, "No overriding", CVG_CRED_USERNAME_PASSWORD, "Provide username and password", CVG_CRED_SHARED_CREDENTIALS, "Use shared credentials");
     public static final String CFG_SPEC_SOURCE_FILE = "file";
     public static final String CFG_SPEC_SOURCE_JOB_CONFIGURATION = "jobConfiguration";

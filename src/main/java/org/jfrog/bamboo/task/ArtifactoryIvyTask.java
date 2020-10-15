@@ -57,7 +57,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
     }
 
     @Override
-    protected void initTask(@NotNull CommonTaskContext context) {
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
         Map<String, String> combinedMap = Maps.newHashMap();
         combinedMap.putAll(context.getConfigurationMap());

@@ -1,4 +1,4 @@
-package org.jfrog.bamboo.release.provider;
+package org.jfrog.bamboo.security.provider;
 
 import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.credentials.CredentialsData;

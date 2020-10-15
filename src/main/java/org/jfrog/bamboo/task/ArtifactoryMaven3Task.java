@@ -59,7 +59,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     }
 
     @Override
-    protected void initTask(@NotNull CommonTaskContext taskContext) {
+    protected void initTask(@NotNull CommonTaskContext taskContext) throws TaskException {
         super.initTask(taskContext);
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         mavenBuildContext = createBuildContext(taskContext);
