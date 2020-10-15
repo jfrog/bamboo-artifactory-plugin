@@ -6,8 +6,7 @@ import org.jfrog.build.api.util.Log;
 
 import java.util.Map;
 
-import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.CVG_CRED_SHARED_CREDENTIALS;
-import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.CVG_CRED_USERNAME_PASSWORD;
+import static org.jfrog.bamboo.configuration.AbstractArtifactoryConfiguration.*;
 import static org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider.*;
 
 /**
@@ -116,30 +115,46 @@ public abstract class ArtifactoryBuildContext {
 
     public String getOverriddenUsername(Map<String, String> runtimeTaskContext, Log log, boolean deployer) {
         switch (StringUtils.defaultString(deployer ? getDeployerOverrideCredentialsChoice() : getResolverOverrideCredentialsChoice())) {
-            case CVG_CRED_USERNAME_PASSWORD:
-                String username = deployer ? getDeployerUsername() : getResolverUsername();
-                log.info("Using Artifactory username '" + username + "' configured in job");
-                return username;
+            case CVG_CRED_NO_OVERRIDE:
+                return "";
             case CVG_CRED_SHARED_CREDENTIALS:
-                username = runtimeTaskContext.get(deployer ? DEPLOYER_SHARED_CREDENTIALS_USER : RESOLVER_SHARED_CREDENTIALS_USER);
+                String username = runtimeTaskContext.get(deployer ? DEPLOYER_SHARED_CREDENTIALS_USER : RESOLVER_SHARED_CREDENTIALS_USER);
                 String credentialsId = deployer ? getDeployerSharedCredentials() : getResolverSharedCredentials();
                 log.info("Using Artifactory username '" + username + "' configured in credentials ID '" + credentialsId + "'");
                 return username;
+            case CVG_CRED_USERNAME_PASSWORD:
+                username = deployer ? getDeployerUsername() : getResolverUsername();
+                log.info("Using Artifactory username '" + username + "' configured in job");
+                return username;
             default:
+                // Backward compatibility
+                username = deployer ? getDeployerUsername() : getResolverUsername();
+                if (StringUtils.isNotBlank(username)) {
+                    log.info("Using Artifactory username '" + username + "' configured in job");
+                    return username;
+                }
                 return "";
         }
     }
 
     public String getOverriddenPassword(Map<String, String> runtimeTaskContext, Log log, boolean deployer) {
         switch (StringUtils.defaultString(deployer ? getDeployerOverrideCredentialsChoice() : getResolverOverrideCredentialsChoice())) {
-            case CVG_CRED_USERNAME_PASSWORD:
-                log.info("Using Artifactory password configured in job");
-                return deployer ? getDeployerPassword() : getResolverPassword();
+            case CVG_CRED_NO_OVERRIDE:
+                return "";
             case CVG_CRED_SHARED_CREDENTIALS:
                 String credentialsId = deployer ? getDeployerSharedCredentials() : getResolverSharedCredentials();
                 log.info("Using Artifactory password configured in credentials ID '" + credentialsId + "'");
                 return runtimeTaskContext.get(deployer ? DEPLOYER_SHARED_CREDENTIALS_PASSWORD : RESOLVER_SHARED_CREDENTIALS_PASSWORD);
+            case CVG_CRED_USERNAME_PASSWORD:
+                log.info("Using Artifactory password configured in job");
+                return deployer ? getDeployerPassword() : getResolverPassword();
             default:
+                // Backward compatibility
+                String password = deployer ? getDeployerPassword() : getResolverPassword();
+                if (StringUtils.isNotBlank(password)) {
+                    log.info("Using Artifactory password configured in job");
+                    return password;
+                }
                 return "";
         }
     }

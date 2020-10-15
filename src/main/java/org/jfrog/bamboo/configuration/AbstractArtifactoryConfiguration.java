@@ -35,10 +35,6 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
-import static org.jfrog.bamboo.context.ArtifactoryBuildContext.RESOLVER_OVERRIDE_CREDENTIALS_CHOICE;
-import static org.jfrog.bamboo.context.GenericContext.PASSWORD;
-import static org.jfrog.bamboo.context.GenericContext.USERNAME;
 import static org.jfrog.bamboo.context.PackageManagersContext.BUILD_INFO_AGGREGATION;
 import static org.jfrog.bamboo.context.PackageManagersContext.PUBLISH_BUILD_INFO_PARAM;
 
@@ -113,14 +109,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         super.populateContextForEdit(context, taskDefinition);
         serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
-
-        // Backward compatibility for tasks with overridden username and password
-        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
-        if (StringUtils.isAllBlank(taskConfiguration.get(RESOLVER_OVERRIDE_CREDENTIALS_CHOICE), taskConfiguration.get(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE))
-                && !StringUtils.isAnyBlank(taskConfiguration.get(USERNAME), taskConfiguration.get(PASSWORD))) {
-            taskConfiguration.put(RESOLVER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
-            taskConfiguration.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
-        }
     }
 
     /**

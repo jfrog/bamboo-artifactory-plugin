@@ -2,7 +2,7 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.DeploymentUploadContext;
@@ -11,6 +11,8 @@ import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
 
 import java.util.Map;
 import java.util.Set;
+
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
 
 /**
  * Artifactory Deployment task configuration
@@ -79,6 +81,14 @@ public class ArtifactoryDeploymentUploadConfiguration extends AbstractArtifactor
         if (StringUtils.isBlank(specSource)) {
             String spec = createSpecFromLegacyConfig(taskDefinition);
             context.put(DEPLOYMENT_PREFIX + SPEC_SOURCE_JOB_CONFIGURATION, spec);
+        }
+
+        // Backward compatibility for tasks with overridden username and password
+        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
+        DeploymentUploadContext taskContext = new DeploymentUploadContext(taskConfiguration);
+        if (StringUtils.isBlank(taskContext.getDeployerOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getUsername(), taskContext.getPassword())) {
+            context.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
         }
     }
 

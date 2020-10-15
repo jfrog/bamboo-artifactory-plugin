@@ -4,6 +4,7 @@ import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
@@ -13,6 +14,8 @@ import org.jfrog.bamboo.task.ArtifactoryCollectBuildIssuesTask;
 
 import java.util.Map;
 import java.util.Set;
+
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
 
 /**
  * Configuration for {@link ArtifactoryCollectBuildIssuesTask}
@@ -42,6 +45,14 @@ public class ArtifactoryCollectBuildIssuesConfiguration extends AbstractArtifact
         context.put("selectedServerId", context.get(CollectBuildIssuesContext.SERVER_ID_PARAM));
         context.put("serverConfigManager", serverConfigManager);
         populateDefaultBuildNameNumberInBuildContext(context);
+
+        // Backward compatibility for tasks with overridden username and password
+        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
+        CollectBuildIssuesContext taskContext = new CollectBuildIssuesContext(taskConfiguration);
+        if (StringUtils.isBlank(taskContext.getDeployerOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getUsername(), taskContext.getPassword())) {
+            context.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
+        }
     }
 
     /**

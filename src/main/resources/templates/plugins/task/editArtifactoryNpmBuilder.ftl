@@ -43,10 +43,19 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
         listKey='repoKey' listValue='repoKey' toggle='true'/]
         <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
              style="display: none; width: 80%; font-size: 80%"/>
-        [@ww.textfield labelKey='artifactory.task.npm.header.deployerUsername' name='artifactory.task.npm.deployerUsername' onchange='javascript: overridingCredentialsChanged("publish")'/]
-        [@ww.password labelKey='artifactory.task.npm.header.deployerPassword' name='artifactory.task.npm.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("publish")'/]
-        [#--The Dummy password is a workaround for the autofill (Chrome)--]
-        [@ww.password name='artifactory.password.DUMMY' cssStyle='visibility:hidden; position: absolute'/]
+        [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [#--  No credentials overriding  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
+        [#--  Username and password  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='usernamePassword']
+            [@ww.textfield labelKey='artifactory.task.npm.header.deployerUsername' name='artifactory.task.npm.deployerUsername' onchange='javascript: overridingCredentialsChanged("publish")'/]
+            [@ww.password labelKey='artifactory.task.npm.header.deployerPassword' name='artifactory.task.npm.deployerPassword' showPassword='true' onchange='javascript: overridingCredentialsChanged("publish")'/]
+        [/@ui.bambooSection]
+        [#--  Use shared credentials  --]
+        [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='sharedCredentials']
+            [@ww.select name='deployer.sharedCredentials' labelKey='artifactory.task.generic.sharedCredentials' list=credentialsAccessor.allCredentials
+            listKey='name' listValue='name' toggle='true'/]
+        [/@ui.bambooSection]
     </div>
 [/@ui.bambooSection]
 

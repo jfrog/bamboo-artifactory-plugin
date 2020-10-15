@@ -6,16 +6,19 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.ArtifactoryBuildContext;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 
 import java.util.Map;
 import java.util.Set;
+
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
 
 /**
  * Configuration for {@link org.jfrog.bamboo.task.ArtifactoryGradleTask}
@@ -81,12 +84,20 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         context.put(GradleBuildContext.PREFIX + PUBLISH_FORK_COUNT_KEY, buildContext.getPublishForkCount());
         populateDefaultEnvVarsExcludePatternsInBuildContext(context);
         populateDefaultBuildNameNumberInBuildContext(context);
+
+        // Backward compatibility for tasks with overridden username and password
+        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
+        GradleBuildContext taskContext = new GradleBuildContext(taskConfiguration);
+        if (StringUtils.isBlank(taskContext.getDeployerOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getDeployerUsername(), taskContext.getDeployerPassword())) {
+            context.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
+        }
     }
 
     @NotNull
     @Override
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
-            @Nullable TaskDefinition previousTaskDefinition) {
+                                                     @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
         taskConfiguratorHelper.populateTaskConfigMapWithActionParameters(taskConfigMap, params, FIELDS_TO_COPY);
         GradleBuildContext buildContext = new GradleBuildContext(taskConfigMap);

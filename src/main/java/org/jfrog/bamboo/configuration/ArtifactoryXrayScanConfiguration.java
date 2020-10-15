@@ -3,6 +3,7 @@ package org.jfrog.bamboo.configuration;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
@@ -11,6 +12,8 @@ import org.jfrog.bamboo.context.XrayScanContext;
 
 import java.util.Map;
 import java.util.Set;
+
+import static org.jfrog.bamboo.context.ArtifactoryBuildContext.DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE;
 
 /**
  * Created by Bar Belity on 30/05/2018.
@@ -36,6 +39,14 @@ public class ArtifactoryXrayScanConfiguration extends AbstractArtifactoryConfigu
         context.put("selectedServerId", context.get(XrayScanContext.SERVER_ID_PARAM));
         context.put("serverConfigManager", serverConfigManager);
         populateDefaultBuildNameNumberInBuildContext(context);
+
+        // Backward compatibility for tasks with overridden username and password
+        Map<String, String> taskConfiguration = taskDefinition.getConfiguration();
+        XrayScanContext taskContext = new XrayScanContext(taskConfiguration);
+        if (StringUtils.isBlank(taskContext.getDeployerOverrideCredentialsChoice()) &&
+                StringUtils.isNoneBlank(taskContext.getUsername(), taskContext.getPassword())) {
+            context.put(DEPLOYER_OVERRIDE_CREDENTIALS_CHOICE, CVG_CRED_USERNAME_PASSWORD);
+        }
     }
 
     @Override
