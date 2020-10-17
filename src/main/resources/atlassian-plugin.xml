@@ -235,6 +235,21 @@
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
+    <!--Docker task-->
+    <taskType key="artifactoryDockerTask" name="Artifactory Docker"
+              class="org.jfrog.bamboo.task.ArtifactoryDockerTask">
+        <description>Push docker images to Artifactory.</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryDockerConfiguration"/>
+        <category name="builder"/>
+        <resource type="freemarker" name="edit"
+                  location="/templates/plugins/task/editArtifactoryDockerBuilder.ftl"/>
+        <resource type="freemarker" name="view"
+                  location="/templates/plugins/task/viewArtifactoryDockerBuilder.ftl"/>
+        <resource type="download" name="icon"
+                  location="images/artifactory-docker-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
     <!--build info-->
     <xwork key="buildInfoLinkAction" name="Artifactory Release Promotion">
         <package name="artifactoryReleasePlugin" extends="buildView">

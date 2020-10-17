@@ -15,6 +15,7 @@ import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.Issues;
+import org.jfrog.build.api.Vcs;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
 import org.jfrog.build.extractor.issuesCollection.IssuesCollector;
 
@@ -22,7 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM;
+import static org.jfrog.build.extractor.clientConfiguration.util.GitUtils.extractVcs;
 
 public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
     private final EnvironmentVariableAccessor environmentVariableAccessor;
@@ -65,10 +66,6 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
             return TaskResultBuilder.newBuilder(taskContext).failedWithError().build();
         }
 
-        Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
-        if (!customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
-            customBuildData.put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
-        }
         return TaskResultBuilder.newBuilder(taskContext).success().build();
     }
 
@@ -128,7 +125,8 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
         String config = getIssuesCollectionConfig(taskContext, logger);
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
         String buildName = collectBuildIssuesContext.getBuildName(((TaskContext) taskContext).getBuildContext());
-        return new IssuesCollector().collectIssues(projectRootDir, buildInfoLog, config, clientBuilder, buildName);
+        Vcs vcs = extractVcs(projectRootDir, buildInfoLog);
+        return new IssuesCollector().collectIssues(projectRootDir, buildInfoLog, config, clientBuilder, buildName, vcs);
     }
 
     private void addIssuesToBuildInfoInContext(@NotNull TaskContext taskContext, Issues issues) {

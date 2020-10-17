@@ -73,8 +73,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
             log.warn(buildLogger.addErrorLogEntry("Agent machine time is lower than the server machine time, please synchronize them."));
         }
 
-        BuildInfoBuilder builder = new BuildInfoBuilder(buildName)
-                .number(buildNumber).type(BuildType.GENERIC)
+        BuildInfoBuilder builder = new BuildInfoBuilder(buildName).number(buildNumber)
                 .agent(new Agent("Bamboo", BuildUtils.getVersionAndBuild())).artifactoryPrincipal(serverConfig.getUsername())
                 .startedDate(new Date()).durationMillis(duration).url(buildUrl);
         if (StringUtils.isNotBlank(vcsRevision)) {

@@ -13,7 +13,7 @@
         [/@ui.bambooSection]
         [#--  Use shared credentials  --]
         [@ui.bambooSection dependsOn='resolver.overrideCredentialsChoice' showOn='sharedCredentials']
-            [@ww.select name='resolver.sharedCredentials' labelKey='artifactory.task.generic.sharedCredentials' list=credentialsAccessor.allCredentials
+            [@ww.select name='resolver.sharedCredentials' labelKey='artifactory.task.sharedCredentials' list=credentialsAccessor.allCredentials
             listKey='name' listValue='name' toggle='true'/]
         [/@ui.bambooSection]
 

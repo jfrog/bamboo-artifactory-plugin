@@ -6,8 +6,6 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimaps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
@@ -24,10 +22,7 @@ import org.jfrog.build.extractor.npm.extractor.NpmPublish;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
-
-import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM;
 
 public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private static final String TASK_NAME = "artifactoryNpmTask";
@@ -87,10 +82,6 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
             taskBuildInfo = build;
         }
 
-        Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
-        if (!customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
-            customBuildData.put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM, "true");
-        }
         return TaskResultBuilder.newBuilder(taskContext).success().build();
     }
 
@@ -135,18 +126,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      */
     private Build executeNpmPublish() {
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
-        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), getPropertiesMap(), packagePath, repo, buildInfoLog, environmentVariables, "").execute();
-    }
-
-    /**
-     * Get a map of the artifact properties needed to be set (Build name, Build number, etc...).
-     *
-     * @return Map containing all properties.
-     */
-    private ArrayListMultimap<String, String> getPropertiesMap() {
-        Map<String, String> propertiesMap = new HashMap<>();
-        buildInfoHelper.addCommonProperties(propertiesMap);
-        return ArrayListMultimap.create(Multimaps.forMap(propertiesMap));
+        return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), TaskUtils.getCommonArtifactPropertiesMap(buildInfoHelper), packagePath, repo, buildInfoLog, environmentVariables, "").execute();
     }
 
     /**
