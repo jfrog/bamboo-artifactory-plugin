@@ -159,6 +159,12 @@
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-extractor-nuget</artifactId>
+            <version>${buildinfo.nuget.version}</version>
+            <classifier>uber</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-npm</artifactId>
             <version>${buildinfo.npm.version}</version>
             <classifier>uber</classifier>
@@ -203,6 +209,12 @@
             <artifactId>atlassian-bamboo-web</artifactId>
             <version>${bamboo.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>stax2-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -346,6 +358,17 @@
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
                                     <destFileName>build-info-extractor-gradle-${buildinfo.gradle.version}-uber.jar
+                                    </destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.jfrog.buildinfo</groupId>
+                                    <artifactId>build-info-extractor-nuget</artifactId>
+                                    <version>${buildinfo.nuget.version}</version>
+                                    <type>jar</type>
+                                    <classifier>uber</classifier>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
+                                    <destFileName>build-info-extractor-nuget-${buildinfo.nuget.version}-uber.jar
                                     </destFileName>
                                 </artifactItem>
                                 <artifactItem>

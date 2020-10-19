@@ -8,6 +8,7 @@ import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang.SystemUtils;
 import com.google.common.collect.Multimaps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.types.Commandline;
@@ -202,6 +203,28 @@ public class TaskUtils {
                 getCustomBuildData().remove(AGGREGATED_BUILD_INFO);
     }
 
+    /**
+     * Add an executable path to a provided env map.
+     * @param env - Environment variables map to add
+     * @param buildContext - The task's corresponding BuildContext
+     * @param capabilityContext - The task's corresponding CapabilityContext
+     * @param builderKey - Builder prefix key, such as "system.builder.npm."
+     * @param executableName - Executable name in file system (os specific)
+     * @param taskName - Task's name
+     * @return environment variables map with the added executable path
+     * @throws TaskException - If capability is not defined or doesn't exist
+     */
+    public static Map<String, String> addExecutablePathToEnv(Map<String, String> env, PackageManagersContext buildContext, CapabilityContext capabilityContext, String builderKey, String executableName, String taskName) throws TaskException {
+        String executablePath = TaskUtils.getExecutablePath(buildContext, capabilityContext, builderKey, executableName, taskName);
+        String path = env.get("PATH");
+        if (SystemUtils.IS_OS_WINDOWS) {
+            path = executablePath + ";" + path;
+        } else {
+            path = executablePath + ":" + path;
+        }
+        env.put("PATH", path);
+        return env;
+    }
 
     /**
      * Returns the path to the executable needed for the task.
@@ -225,10 +248,13 @@ public class TaskUtils {
             throw new TaskException(taskName + " capability: " + buildContext.getExecutable() +
                     " is not defined, please check job configuration");
         }
-        final String path = Paths.get(capability.getValue(), "bin", executableName).toString();
+        String path = Paths.get(capability.getValue(), "bin", executableName).toString();
 
         if (!new File(path).exists()) {
-            throw new TaskException("Executable '" + executableName + "'  does not exist at path '" + path + "'");
+            path = Paths.get(capability.getValue()).toString();
+            if (!new File(path).exists()) {
+                throw new TaskException("Executable '" + executableName + "'  does not exist at path '" + path + "'");
+            }
         }
         return path;
     }

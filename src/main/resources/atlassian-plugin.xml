@@ -203,6 +203,38 @@
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
+    <!--Nuget task-->
+    <taskType key="artifactoryNugetTask" name="Artifactory Nuget"
+              class="org.jfrog.bamboo.task.ArtifactoryNugetTask">
+        <description>Restore and push NuGet packages from and to Artifactory.</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryNugetConfiguration"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
+        <category name="builder"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.NugetCapabilityHelper"/>
+        <executable key="nuget" pathHelpKey="builder.nuget.pathHelp"/>
+        <resource type="freemarker" name="edit"
+                  location="/templates/plugins/task/editArtifactoryNugetBuilder.ftl"/>
+        <resource type="download" name="icon"
+                  location="images/artifactory-nuget-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
+    <!--Dotnet task-->
+    <taskType key="artifactoryDotNetCoreTask" name="Artifactory .Net"
+              class="org.jfrog.bamboo.task.ArtifactoryDotNetCoreTask">
+        <description>Restore and push .Net applications from and to Artifactory's NuGet repositories.</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryDotNetCoreConfiguration"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
+        <category name="builder"/>
+        <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.DotNetCapabilityHelper"/>
+        <executable key="dotnet" pathHelpKey="builder.dotnet.pathHelp"/>
+        <resource type="freemarker" name="edit"
+                  location="/templates/plugins/task/editArtifactoryDotNetCoreBuilder.ftl"/>
+        <resource type="download" name="icon"
+                  location="images/artifactory-dotnet-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
     <!--Npm task-->
     <taskType key="artifactoryNpmTask" name="Artifactory Npm"
               class="org.jfrog.bamboo.task.ArtifactoryNpmTask">
