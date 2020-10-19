@@ -39,6 +39,7 @@
         <buildinfo.gradle.version>4.17.x-SNAPSHOT</buildinfo.gradle.version>
         <buildinfo.ivy.version>2.19.x-SNAPSHOT</buildinfo.ivy.version>
         <buildinfo.npm.version>2.19.x-SNAPSHOT</buildinfo.npm.version>
+        <buildinfo.nuget.version>2.19.x-SNAPSHOT</buildinfo.nuget.version>
         <buildinfo.docker.version>2.19.x-SNAPSHOT</buildinfo.docker.version>
     </properties>
     
