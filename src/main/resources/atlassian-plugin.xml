@@ -240,6 +240,7 @@
               class="org.jfrog.bamboo.task.ArtifactoryDockerTask">
         <description>Push docker images to Artifactory.</description>
         <configuration class="org.jfrog.bamboo.configuration.ArtifactoryDockerConfiguration"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <category name="builder"/>
         <resource type="freemarker" name="edit"
                   location="/templates/plugins/task/editArtifactoryDockerBuilder.ftl"/>
