@@ -19,7 +19,6 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.MavenDataHelper;
 import org.jfrog.bamboo.context.Maven3BuildContext;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
@@ -113,7 +112,11 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
             log.error(logger.addErrorLogEntry("Maven home is not defined!"));
             return TaskResultBuilder.newBuilder(taskContext).failed().build();
         }
-        List<String> command = buildCommand(mavenHome, rootDirectory, systemProps);
+        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, mavenBuildContext, capabilityContext);
+        List<String> command = buildCommand(mavenHome, jdkPath, rootDirectory, systemProps);
+
+        // Override the JAVA_HOME according to the build configuration.
+        environmentVariables.put("JAVA_HOME", jdkPath);
 
         ExternalProcess process = getExternalProcess(taskContext, rootDirectory, command, environmentVariables);
         try {
@@ -146,8 +149,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
      *
      * @return Java bin path
      */
-    public String getJavaExecutable(PackageManagersContext context) throws TaskException {
-        String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, context, capabilityContext);
+    public String getJavaExecutable(String jdkPath) {
         StringBuilder binPathBuilder = new StringBuilder(jdkPath);
         if (SystemUtils.IS_OS_WINDOWS) {
             binPathBuilder.append("bin").append(File.separator).append("java.exe");
@@ -166,8 +168,8 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         return binPath;
     }
 
-    private List<String> buildCommand(String mavenHome, File rootDirectory, List<String> systemProps) throws TaskException {
-        List<String> command = getCommand(mavenBuildContext);
+    private List<String> buildCommand(String mavenHome, String jdkPath, File rootDirectory, List<String> systemProps) throws TaskException {
+        List<String> command = getCommand(jdkPath);
         appendClassPathArguments(command, mavenHome);
         appendClassWorldsConfArgument(command, mavenHome);
         appendBuildInfoPropertiesArgument(command);
@@ -196,9 +198,9 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         command.add(Commandline.quoteArgument("-Dmaven.multiModuleProjectDirectory" + "=" + rootDirectory.getPath()));
     }
 
-    private List<String> getCommand(Maven3BuildContext mavenBuildContext) throws TaskException {
+    private List<String> getCommand(String jdkPath) throws TaskException {
         List<String> command = Lists.newArrayList();
-        String executable = getJavaExecutable(mavenBuildContext);
+        String executable = getJavaExecutable(jdkPath);
         if (StringUtils.isBlank(executable)) {
             log.error("No Maven executable found");
             return command;
