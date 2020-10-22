@@ -29,9 +29,6 @@ public class DockerBuildContext extends PackageManagersContext {
         super(PREFIX, env);
     }
 
-    /**
-     * @return Get a set of all the fields to copy while populating the build context for a Npm build.
-     */
     public static Set<String> getFieldsToCopy() {
         return Sets.newHashSet(COMMAND_CHOICE, COMMAND_PULL, COMMAND_PUSH, DOCKER_PUSH_SERVER_ID, DOCKER_PULL_SERVER_ID,
                 DOCKER_PULL_REPO, DOCKER_PUSH_REPO, DOCKER_PULL_USERNAME, DOCKER_PULL_PASSWORD, DOCKER_PUSH_USERNAME,
