@@ -6,11 +6,14 @@ import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimaps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
+import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.security.EncryptionHelper;
@@ -30,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -243,5 +247,16 @@ public class TaskUtils {
                     .splitEnvironmentAssignments(buildContext.getEnvironmentVariables(), false));
         }
         return env;
+    }
+
+    /**
+     * Get a map of the commonly used artifact properties to be set when deploying an artifact.
+     * Build name, build number, vcs url, vcs revision, timestamp.
+     * @return Map containing all properties.
+     */
+    public static ArrayListMultimap<String, String> getCommonArtifactPropertiesMap(BuildInfoHelper buildInfoHelper) {
+        Map<String, String> propertiesMap = new HashMap<>();
+        buildInfoHelper.addCommonProperties(propertiesMap);
+        return ArrayListMultimap.create(Multimaps.forMap(propertiesMap));
     }
 }
