@@ -39,6 +39,7 @@
         <buildinfo.gradle.version>4.17.x-SNAPSHOT</buildinfo.gradle.version>
         <buildinfo.ivy.version>2.19.x-SNAPSHOT</buildinfo.ivy.version>
         <buildinfo.npm.version>2.19.x-SNAPSHOT</buildinfo.npm.version>
+        <buildinfo.nuget.version>2.19.x-SNAPSHOT</buildinfo.nuget.version>
         <buildinfo.docker.version>2.19.x-SNAPSHOT</buildinfo.docker.version>
     </properties>
     
@@ -159,6 +160,12 @@
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>build-info-extractor-nuget</artifactId>
+            <version>${buildinfo.nuget.version}</version>
+            <classifier>uber</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-npm</artifactId>
             <version>${buildinfo.npm.version}</version>
             <classifier>uber</classifier>
@@ -203,6 +210,13 @@
             <artifactId>atlassian-bamboo-web</artifactId>
             <version>${bamboo.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <!-- Exclude 'stax2-api' to prevent classloader issue, this dependency is provided by 'build-info-extractor-nuget' -->
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>stax2-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -346,6 +360,17 @@
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
                                     <destFileName>build-info-extractor-gradle-${buildinfo.gradle.version}-uber.jar
+                                    </destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.jfrog.buildinfo</groupId>
+                                    <artifactId>build-info-extractor-nuget</artifactId>
+                                    <version>${buildinfo.nuget.version}</version>
+                                    <type>jar</type>
+                                    <classifier>uber</classifier>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
+                                    <destFileName>build-info-extractor-nuget-${buildinfo.nuget.version}-uber.jar
                                     </destFileName>
                                 </artifactItem>
                                 <artifactItem>

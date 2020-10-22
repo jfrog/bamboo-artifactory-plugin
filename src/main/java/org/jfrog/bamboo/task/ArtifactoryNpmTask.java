@@ -7,7 +7,6 @@ import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
@@ -107,7 +106,6 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
         }
     }
 
-
     /**
      * Handles the execution of npm Install.
      *
@@ -149,22 +147,8 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     public Map<String, String> getEnv() throws TaskException {
         Map<String, String> env = TaskUtils.getEnvironmentVariables(npmBuildContext, environmentVariableAccessor);
-        return addExecutablePathToEnv(env);
-    }
-
-    /**
-     * Npm commands expect the npm executable to be in "PATH"
-     */
-    public Map<String, String> addExecutablePathToEnv(Map<String, String> env) throws TaskException {
-        String executablePath = TaskUtils.getExecutablePath(npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME);
-        String path = env.get("PATH");
-        if (SystemUtils.IS_OS_WINDOWS) {
-            path = executablePath + ";" + path;
-        } else {
-            path = executablePath + ":" + path;
-        }
-        env.put("PATH", path);
-        return env;
+        // Npm commands expect the npm executable to be in "PATH".
+        return TaskUtils.addExecutablePathToEnv(env, npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME);
     }
 
     @Override
