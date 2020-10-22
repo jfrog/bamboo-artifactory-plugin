@@ -53,8 +53,9 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
             "  ]\n" +
             "}";
 
-    protected void initTask(CommonTaskContext context, String taskKey, String executable, String taskName) throws TaskException {
+    protected void initTask(CommonTaskContext context, String taskKey, String executable, String taskName, TaskType taskType) throws TaskException {
         super.initTask(context);
+        this.taskType = taskType;
         dotNetBuildContext = new DotNetBuildContext(taskContext.getConfigurationMap());
         buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         BuildContext buildContext = ((TaskContext) context).getBuildContext();
@@ -75,9 +76,7 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
             try {
                 build = executePush();
             } catch (Exception e) {
-                String message = "Exception occurred while executing task";
-                logger.addErrorLogEntry(message, e);
-                log.error(message, e);
+                buildInfoLog.error("Exception occurred while executing task", e);
                 return TaskResultBuilder.newBuilder(taskContext).failedWithError().build();
             }
         }

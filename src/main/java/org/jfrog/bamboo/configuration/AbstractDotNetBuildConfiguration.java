@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * Created by Bar Belity on 13/10/2020.
  */
-public class AbstractDotNetBuildConfiguration extends AbstractArtifactoryConfiguration {
+public abstract class AbstractDotNetBuildConfiguration extends AbstractArtifactoryConfiguration {
 
     private static final Set<String> FIELDS_TO_COPY = DotNetBuildContext.getFieldsToCopy();
     public static final String CFG_COMMAND_RESTORE = "restore";
@@ -102,11 +102,6 @@ public class AbstractDotNetBuildConfiguration extends AbstractArtifactoryConfigu
         if (serverId == -1) {
             buildContext.resetResolverContextToDefault();
         }
-    }
-
-    @Override
-    protected String getKey() {
-        return null;
     }
 
     @Override

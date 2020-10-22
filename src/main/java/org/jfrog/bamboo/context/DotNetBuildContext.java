@@ -57,6 +57,6 @@ public class DotNetBuildContext extends PackageManagersContext {
     }
 
     public boolean isRestoreCommand() {
-        return (AbstractDotNetBuildConfiguration.CFG_COMMAND_RESTORE.equals(env.get(COMMAND_CHOICE)));
+        return AbstractDotNetBuildConfiguration.CFG_COMMAND_RESTORE.equals(env.get(COMMAND_CHOICE));
     }
 }

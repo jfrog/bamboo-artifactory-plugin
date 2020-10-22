@@ -20,8 +20,7 @@ public class ArtifactoryNugetTask extends ArtifactoryDotNetTaskBase {
 
     @Override
     protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
-        taskType = TaskType.NUGET;
-        super.initTask(context, NUGET_KEY, EXECUTABLE_NAME, TASK_NAME);
+        initTask(context, NUGET_KEY, EXECUTABLE_NAME, TASK_NAME, TaskType.NUGET);
     }
 
     @Override

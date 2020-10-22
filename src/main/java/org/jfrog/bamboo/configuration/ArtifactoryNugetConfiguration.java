@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.configuration;
 
-import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.task.ArtifactoryNugetTask;
@@ -26,11 +25,6 @@ public class ArtifactoryNugetConfiguration extends AbstractDotNetBuildConfigurat
         context.put("artifactoryNugetTask", this);
         context.put("builderType", this);
         context.put("builder", this);
-    }
-
-    @Override
-    public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
-        super.populateContextForEdit(context, taskDefinition);
     }
 
     @Override

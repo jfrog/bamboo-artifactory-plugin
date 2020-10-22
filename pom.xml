@@ -211,6 +211,7 @@
             <version>${bamboo.version}</version>
             <scope>provided</scope>
             <exclusions>
+                <!-- Exclude 'stax2-api' to prevent classloader issue, this dependency is provided by 'build-info-extractor-nuget' -->
                 <exclusion>
                     <groupId>org.codehaus.woodstox</groupId>
                     <artifactId>stax2-api</artifactId>

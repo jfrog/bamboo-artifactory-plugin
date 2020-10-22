@@ -20,8 +20,7 @@ public class ArtifactoryDotNetCoreTask extends ArtifactoryDotNetTaskBase {
 
     @Override
     protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
-        taskType = TaskType.DOTNET;
-        super.initTask(context, DOTNETCORE_KEY, EXECUTABLE_NAME, TASK_NAME);
+        initTask(context, DOTNETCORE_KEY, EXECUTABLE_NAME, TASK_NAME, TaskType.DOTNET);
     }
 
     @Override
