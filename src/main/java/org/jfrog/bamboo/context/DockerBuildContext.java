@@ -41,7 +41,7 @@ public class DockerBuildContext extends PackageManagersContext {
     }
 
     public boolean isDockerCommandPull() {
-        return (ArtifactoryDockerConfiguration.CFG_DOCKER_COMMAND_PULL.equals(env.get(COMMAND_CHOICE)));
+        return ArtifactoryDockerConfiguration.CFG_DOCKER_COMMAND_PULL.equals(env.get(COMMAND_CHOICE));
     }
 
     public String getImageName() {

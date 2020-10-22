@@ -12,9 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.configuration.util.TaskConfigurationValidations;
 import org.jfrog.bamboo.context.ArtifactoryBuildContext;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.DockerBuildContext;
-import org.jfrog.bamboo.context.NpmBuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -113,7 +112,7 @@ public class ArtifactoryDockerConfiguration extends AbstractArtifactoryConfigura
 
     @Override
     public void validate(@NotNull ActionParametersMap params, @NotNull ErrorCollection errorCollection) {
-        String commandChoiceKey = NpmBuildContext.COMMAND_CHOICE;
+        String commandChoiceKey = DockerBuildContext.COMMAND_CHOICE;
         if (CFG_DOCKER_COMMAND_PUSH.equals(params.getString(commandChoiceKey))) {
             // Validate push server.
             TaskConfigurationValidations.validateArtifactoryServerAndRepo(DockerBuildContext.DOCKER_PUSH_SERVER_ID,
