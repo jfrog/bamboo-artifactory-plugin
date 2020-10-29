@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.*;
 import static org.jfrog.bamboo.util.ConstantValues.AGGREGATED_BUILD_INFO;
 
 /**
@@ -91,17 +92,18 @@ public class TaskUtils {
 
     public static ServerConfig getResolutionServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
         return getRequestedServerConfig(baseUsername, basePassword, serverConfigManager, serverConfig, buildParamsOverrideManager,
-                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME, BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD);
+                OVERRIDE_ARTIFACTORY_RESOLVER_URL, OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME, OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD);
     }
 
     public static ServerConfig getDeploymentServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
         return getRequestedServerConfig(baseUsername, basePassword, serverConfigManager, serverConfig, buildParamsOverrideManager,
-                BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME, BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
+                OVERRIDE_ARTIFACTORY_DEPLOYER_URL, OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME, OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD);
     }
 
     private static ServerConfig getRequestedServerConfig(String baseUsername, String basePassword,
                                                          ServerConfigManager serverConfigManager, ServerConfig serverConfig,
-                                                         BuildParamsOverrideManager buildParamsOverrideManager, String overrideUsernameKey, String overridePasswordKey) {
+                                                         BuildParamsOverrideManager buildParamsOverrideManager,
+                                                         String overrideUrlKey, String overrideUsernameKey, String overridePasswordKey) {
         if (serverConfig == null) {
             return null;
         }
@@ -113,7 +115,8 @@ public class TaskUtils {
         if (StringUtils.isBlank(password)) {
             password = serverConfigManager.substituteVariables(serverConfig.getPassword());
         }
-        String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
+
+        String serverUrl = overrideParam(serverConfigManager.substituteVariables(serverConfig.getUrl()), overrideUrlKey, buildParamsOverrideManager);
 
         return new ServerConfig(serverConfig.getId(), serverUrl, username, password, serverConfig.getTimeout());
     }

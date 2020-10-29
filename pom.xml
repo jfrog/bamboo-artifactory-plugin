@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jfrog.bamboo</groupId>
@@ -27,13 +28,16 @@
     </scm>
 
     <properties>
-        <bamboo.version>7.1.3</bamboo.version>
+        <bamboo.version>7.1.4</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
         <!-- This plugin key is to be used as a unique ID of the plugin incl.
         version and not as a key regarding the Atlassian plugin descriptor -->
         <plugin.key>${project.groupId}.${project.artifactId}-${project.version}</plugin.key>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <buildinfo.version>2.20.0</buildinfo.version>
         <buildinfo.maven.version>2.20.0</buildinfo.maven.version>
         <buildinfo.gradle.version>4.18.0</buildinfo.gradle.version>
@@ -56,10 +60,14 @@
                     <url>http://oss.jfrog.org/artifactory/jfrog-dependencies</url>
                 </repository>
                 <repository>
-                    <snapshots />
+                    <snapshots/>
                     <id>snapshots</id>
                     <name>libs-snapshot</name>
                     <url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
+                </repository>
+                <repository>
+                    <id>atlassian-public</id>
+                    <url>https://maven.atlassian.com/repository/public</url>
                 </repository>
             </repositories>
             <pluginRepositories>
@@ -72,10 +80,14 @@
                     <url>http://oss.jfrog.org/artifactory/jfrog-dependencies</url>
                 </pluginRepository>
                 <pluginRepository>
-                    <snapshots />
+                    <snapshots/>
                     <id>snapshots</id>
                     <name>plugins-snapshot</name>
                     <url>http://oss.jfrog.org/artifactory/plugins-snapshot</url>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>atlassian-public</id>
+                    <url>https://maven.atlassian.com/repository/public</url>
                 </pluginRepository>
             </pluginRepositories>
         </profile>
@@ -105,6 +117,10 @@
                 <exclusion>
                     <groupId>org.apache.httpcomponents</groupId>
                     <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -169,29 +185,52 @@
             <artifactId>build-info-extractor-npm</artifactId>
             <version>${buildinfo.npm.version}</version>
             <classifier>uber</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-docker</artifactId>
             <version>${buildinfo.docker.version}</version>
             <classifier>uber</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-ivy</artifactId>
             <version>${buildinfo.ivy.version}</version>
             <classifier>uber</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-maven3</artifactId>
             <version>${buildinfo.maven.version}</version>
             <classifier>uber</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.jfrog.buildinfo</groupId>
-            <artifactId>build-info-extractor-maven3</artifactId>
-            <version>${buildinfo.maven.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jdom</groupId>
+                    <artifactId>jdom</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
@@ -220,6 +259,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.atlassian.labs</groupId>
+            <artifactId>rest-api-browser</artifactId>
+            <version>3.2.3</version>
+        </dependency>
+
+        <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>1</version>
@@ -229,6 +274,7 @@
             <groupId>javax.ws.rs</groupId>
             <artifactId>jsr311-api</artifactId>
             <version>1.1.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -272,14 +318,49 @@
             <artifactId>maven-embedder</artifactId>
             <version>3.0.3</version>
         </dependency>
+
+        <!-- WIRED TEST RUNNER DEPENDENCIES -->
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.3</version>
+            <groupId>com.atlassian.plugins</groupId>
+            <artifactId>atlassian-plugins-osgi-testrunner</artifactId>
+            <version>2.0.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jfrog.testing</groupId>
+            <artifactId>jfrog-testing-infra</artifactId>
+            <version>1.0.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.atlassian.plugins</groupId>
+            <artifactId>atlassian-plugins-osgi</artifactId>
+            <version>5.3.5</version>
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.atlassian.plugin</groupId>
+            <artifactId>atlassian-spring-scanner-annotation</artifactId>
+            <version>1.2.13</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.plugin</groupId>
+            <artifactId>atlassian-spring-scanner-runtime</artifactId>
+            <version>1.2.13</version>
+            <scope>runtime</scope>
+        </dependency>
+
     </dependencies>
+
     <build>
         <!-- Copy src/main/resources/ to target/classes/.
         filtering=true means that the resources variables ${ENV_KEY} will be replaced by ENV_VALUE.
@@ -305,13 +386,73 @@
         <plugins>
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
-                <artifactId>maven-bamboo-plugin</artifactId>
-                <version>6.2.4</version>
+                <artifactId>bamboo-maven-plugin</artifactId>
+                <version>8.0.2</version>
                 <extensions>true</extensions>
                 <configuration>
                     <productVersion>${bamboo.version}</productVersion>
+                    <productDataVersion>${bamboo.data.version}</productDataVersion>
+                    <enableQuickReload>true</enableQuickReload>
+                    <productDataPath>${basedir}/src/test/resources/bamboo-home.zip</productDataPath>
+                    <jvmArgs>-Xms512m -Xmx1024m -server
+                        -Datlassian.bamboo.build.disable=true -Datlassian.bamboo.branch.detection.disable=true
+                        -Datlassian.bamboo.closed.branch.detection.disable=true
+                    </jvmArgs>
+                    <systemPropertyVariables>the active branch
+                        <GIT_BRANCH>${git.branch}</GIT_BRANCH>
+                    </systemPropertyVariables>
+                    <products>
+                        <product>
+                            <id>bamboo</id>
+                            <instanceId>bambooExpected</instanceId>
+                            <version>${bamboo.version}</version>
+                            <productDataVersion>${bamboo.version}</productDataVersion>
+                        </product>
+                    </products>
+                    <testGroups>
+                        <testGroup>
+                            <id>it</id>
+                            <productIds>
+                                <productId>bamboo</productId>
+                            </productIds>
+                            <includes>
+                                <include>it/org/jfrog/bamboo/*Test.java</include>
+                            </includes>
+                        </testGroup>
+                    </testGroups>
+
+                    <pluginArtifacts>
+                        <pluginArtifact>
+                            <groupId>com.zuhlke.testing</groupId>
+                            <artifactId>atlassian-plugin-test-console-enabler</artifactId>
+                            <version>1.0.1</version>
+                        </pluginArtifact>
+                    </pluginArtifacts>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>com.atlassian.plugin</groupId>
+                <artifactId>atlassian-spring-scanner-maven-plugin</artifactId>
+                <version>1.2.13</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>atlassian-spring-scanner</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scannedDependencies>
+                        <dependency>
+                            <groupId>com.atlassian.plugin</groupId>
+                            <artifactId>atlassian-spring-scanner-external-jar</artifactId>
+                        </dependency>
+                    </scannedDependencies>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -322,6 +463,22 @@
                         <goals>
                             <goal>jar-no-fork</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--This plugin Injects the git branch. We use ${git.branch} to run the tests locally on the active branch.-->
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>4.0.3</version>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>initialize</phase>
                     </execution>
                 </executions>
             </plugin>
@@ -340,7 +497,7 @@
                             <excludes>META-INF/**/*</excludes>
                             <excludeClassifiers>uber</excludeClassifiers>
                             <includeArtifactIds>
-                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,,build-info-vcs,jackson-core-asl,jackson-mapper-asl,p4java-jfrog,org.eclipse.jgit
+                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,build-info-vcs,jackson-core-asl,jackson-mapper-asl,p4java-jfrog,org.eclipse.jgit
                             </includeArtifactIds>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                             <overWriteReleases>true</overWriteReleases>
@@ -426,16 +583,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.10</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.10</version>
-            </plugin>
 
             <!--    The following plugin removes GroovyAssert from the created jat to prevent agent loading failure     -->
             <plugin>
@@ -451,22 +598,27 @@
                         <configuration>
                             <tasks>
                                 <delete>
-                                    <fileset dir="${project.build.directory}/classes/groovy/test/" includes="GroovyAssert.class" />
+                                    <fileset dir="${project.build.directory}/classes/groovy/test/"
+                                             includes="GroovyAssert.class"/>
                                 </delete>
                             </tasks>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.atlassian.maven.plugins</groupId>
+                    <artifactId>amps-dispatcher-maven-plugin</artifactId>
+                    <version>8.2.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>com.atlassian.upm.atlassian-universal-plugin-manager-plugin</artifactId>
+                    <version>4.0.16</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

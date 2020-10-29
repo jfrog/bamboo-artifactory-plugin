@@ -1,0 +1,10 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}-tests" name="${project.name}-tests" plugins-version="2">
+    <plugin-info>
+        <description>Integration tests for Bamboo Artifactory plugin</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    </plugin-info>
+
+    <bambooEventListener name="Server Listener" key="server-listener" class="it.org.jfrog.bamboo.prehook.ServerListener"/>
+
+</atlassian-plugin>

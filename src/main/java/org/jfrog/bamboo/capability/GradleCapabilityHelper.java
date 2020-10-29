@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class GradleCapabilityHelper extends AbstractHomeDirectoryCapabilityDefaultsHelper {
+    public static final String KEY = CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".gradle.Gradle";
+
     private static final String GRADLE_HOME_POSIX = "/usr/share/gradle/";
     private static final String GRADLE_EXECUTABLE_NAME = "gradle";
 
@@ -34,6 +36,6 @@ public class GradleCapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @Override
     @NotNull
     protected String getCapabilityKey() {
-        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".gradle.Gradle";
+        return KEY;
     }
 }
