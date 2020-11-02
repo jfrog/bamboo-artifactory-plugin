@@ -38,9 +38,11 @@
         <div id="maven3ArtifactoryResolutionConfigDiv">
             [@ww.select name='builder.artifactoryMaven3Builder.resolutionRepo' labelKey='artifactory.task.maven.resolutionRepo' list=dummyList
             listKey='repoKey' listValue='repoKey' toggle='true' /]
-            <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
-                 style="display: none; width: 80%; font-size: 80%"/>
-            [@ww.select labelKey='Override credentials' name='resolver.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+            [@ui.bambooSection]
+                <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
+                     style="display: none; width: 80%; font-size: 80%"/>
+            [/@ui.bambooSection]
+            [@ww.select labelKey='artifactory.task.overrideCredentials' name='resolver.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
             [#--  No credentials overriding  --]
             [@ui.bambooSection dependsOn='resolver.overrideCredentialsChoice' showOn='noOverriding'/]
             [#--  Username and password  --]
@@ -64,9 +66,11 @@
     <div id="maven3ArtifactoryConfigDiv">
         [@ww.select name='builder.artifactoryMaven3Builder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true' /]
-        <div id="deploy-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%"/>
-        [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [@ui.bambooSection]
+            <div id="deploy-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%"/>
+        [/@ui.bambooSection]
+        [@ww.select labelKey='artifactory.task.overrideCredentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
         [#--  No credentials overriding  --]
         [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
         [#--  Username and password  --]

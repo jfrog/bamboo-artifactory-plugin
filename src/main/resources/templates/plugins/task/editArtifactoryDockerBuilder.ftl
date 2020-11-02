@@ -10,9 +10,11 @@
     <div id="dockerArtifactoryResolvingConfigDiv">
         [@ww.select labelKey='artifactory.task.docker.header.resolutionRepo' name='artifactory.task.docker.resolutionRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
-        <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
-        [@ww.select labelKey='Override credentials' name='resolver.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [@ui.bambooSection]
+            <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%" />
+        [/@ui.bambooSection]
+        [@ww.select labelKey='artifactory.task.overrideCredentials' name='resolver.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
         [#--  No credentials overriding  --]
         [@ui.bambooSection dependsOn='resolver.overrideCredentialsChoice' showOn='noOverriding'/]
         [#--  Username and password  --]
@@ -34,9 +36,11 @@
     <div id="dockerArtifactoryPublishingConfigDiv">
         [@ww.select labelKey='artifactory.task.docker.header.publishingRepo' name='artifactory.task.docker.publishingRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
-        <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%" />
-        [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [@ui.bambooSection]
+            <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%" />
+        [/@ui.bambooSection]
+        [@ww.select labelKey='artifactory.task.overrideCredentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
         [#--  No credentials overriding  --]
         [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
         [#--  Username and password  --]

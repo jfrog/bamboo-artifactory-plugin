@@ -39,9 +39,11 @@
 
     <div id="ivyArtifactoryConfigDiv">
         [@ww.select name='builder.artifactoryIvyBuilder.deployableRepo' labelKey='artifactory.task.maven.targetRepo' list=dummyList listKey='repoKey' listValue='repoKey' toggle='true'/]
-        <div id="deploy-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%"/>
-        [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [@ui.bambooSection]
+            <div id="deploy-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%"/>
+        [/@ui.bambooSection]
+        [@ww.select labelKey='artifactory.task.overrideCredentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
         [#--  No credentials overriding  --]
         [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
         [#--  Username and password  --]

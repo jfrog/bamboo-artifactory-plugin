@@ -45,7 +45,7 @@
 [@ui.bambooSection id="serverSelectSection" titleKey='artifactory.task.serverSelection' collapsible=true]
     [@ww.select name='builder.artifactoryGradleBuilder.artifactoryServerId' labelKey='artifactory.task.gradle.artifactoryServerId' list=serverConfigManager.allServerConfigs
     listKey='id' listValue='url' onchange='javascript: displayGradleArtifactoryConfigs(this.value)' emptyOption=true toggle='true'/]
-    [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+    [@ww.select labelKey='artifactory.task.overrideCredentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
 [#--  No credentials overriding  --]
     [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
 [#--  Username and password  --]
@@ -65,16 +65,20 @@
     [@ui.bambooSection titleKey='artifactory.task.resolutionConfigurationsTitle' collapsible=true]
         [@ww.select name='builder.artifactoryGradleBuilder.resolutionRepo' labelKey='artifactory.task.gradle.resolutionRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
-        <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%"/>
+        [@ui.bambooSection]
+            <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%"/>
+        [/@ui.bambooSection]
     [/@ui.bambooSection]
 
     [#--Deployment--]
     [@ui.bambooSection titleKey='artifactory.task.deploymentConfigurationsTitle' collapsible=true]
         [@ww.select name='builder.artifactoryGradleBuilder.publishingRepo' labelKey='artifactory.task.gradle.publishingRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
-        <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%"/>
+        [@ui.bambooSection]
+            <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%"/>
+        [/@ui.bambooSection]
         [@ww.checkbox labelKey='artifactory.task.gradle.publishArtifacts' name='publishArtifacts' toggle='true'/]
         [@ui.bambooSection dependsOn='publishArtifacts' showOn=true]
             [@ww.select labelKey="artifactory.task.gradle.publishForkCount" name="builder.artifactoryGradleBuilder.publishForkCount" list="builder.artifactoryGradleBuilder.publishForkCountList" value='builder.artifactoryGradleBuilder.publishForkCount'/]

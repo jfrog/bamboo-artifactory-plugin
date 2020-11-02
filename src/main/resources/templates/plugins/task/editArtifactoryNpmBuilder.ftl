@@ -16,9 +16,11 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
     <div id="npmArtifactoryResolvingConfigDiv">
         [@ww.select labelKey='artifactory.task.npm.header.resolutionRepo' name='artifactory.task.npm.resolutionRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
-        <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%"/>
-        [@ww.select labelKey='Override credentials' name='resolver.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [@ui.bambooSection]
+            <div id="resolve-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%"/>
+        [/@ui.bambooSection]
+        [@ww.select labelKey='artifactory.task.overrideCredentials' name='resolver.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
         [#--  No credentials overriding  --]
         [@ui.bambooSection dependsOn='resolver.overrideCredentialsChoice' showOn='noOverriding'/]
         [#--  Username and password  --]
@@ -41,9 +43,11 @@ list=uiConfigBean.getExecutableLabels('npm') extraUtility=addExecutableLink requ
     <div id="npmArtifactoryPublishingConfigDiv">
         [@ww.select labelKey='artifactory.task.npm.header.publishingRepo' name='artifactory.task.npm.publishingRepo' list=dummyList
         listKey='repoKey' listValue='repoKey' toggle='true'/]
-        <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
-             style="display: none; width: 80%; font-size: 80%"/>
-        [@ww.select labelKey='Override credentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
+        [@ui.bambooSection]
+            <div id="publish-repo-error" class="aui-message aui-message-error error shadowed"
+                 style="display: none; width: 80%; font-size: 80%"/>
+        [/@ui.bambooSection]
+        [@ww.select labelKey='artifactory.task.overrideCredentials' name='deployer.overrideCredentialsChoice' listKey='key' listValue='value' toggle='true' list=overrideCredentialsOptions/]
         [#--  No credentials overriding  --]
         [@ui.bambooSection dependsOn='deployer.overrideCredentialsChoice' showOn='noOverriding'/]
         [#--  Username and password  --]
