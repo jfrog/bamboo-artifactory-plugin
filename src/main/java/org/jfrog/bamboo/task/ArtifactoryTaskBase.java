@@ -12,6 +12,8 @@ import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.usageReport.UsageReporter;
 
+import java.io.File;
+
 /**
  * Created by Bar Belity on 08/12/2019.
  */
@@ -20,6 +22,8 @@ public abstract class ArtifactoryTaskBase {
     protected static final Logger log = Logger.getLogger(ArtifactoryTaskBase.class);
     protected PluginAccessor pluginAccessor;
     protected CommonTaskContext taskContext;
+    protected boolean containerized;
+    protected String fileSeparator;
     protected BuildLogger logger;
     protected Log buildInfoLog;
 
@@ -27,6 +31,8 @@ public abstract class ArtifactoryTaskBase {
         this.taskContext = context;
         this.logger = taskContext.getBuildLogger();
         this.buildInfoLog = new BuildInfoLog(log, logger);
+        this.containerized = taskContext.getCommonContext().getDockerPipelineConfiguration().isEnabled();
+        this.fileSeparator = containerized ? "/" : File.separator;
     }
 
     protected abstract ServerConfig getUsageServerConfig();

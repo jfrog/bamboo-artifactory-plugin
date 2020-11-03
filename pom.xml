@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jfrog.bamboo</groupId>
@@ -42,7 +43,7 @@
         <buildinfo.nuget.version>2.20.0</buildinfo.nuget.version>
         <buildinfo.docker.version>2.20.0</buildinfo.docker.version>
     </properties>
-    
+
     <profiles>
         <profile>
             <activation>
@@ -56,7 +57,7 @@
                     <url>http://oss.jfrog.org/artifactory/jfrog-dependencies</url>
                 </repository>
                 <repository>
-                    <snapshots />
+                    <snapshots/>
                     <id>snapshots</id>
                     <name>libs-snapshot</name>
                     <url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
@@ -72,7 +73,7 @@
                     <url>http://oss.jfrog.org/artifactory/jfrog-dependencies</url>
                 </pluginRepository>
                 <pluginRepository>
-                    <snapshots />
+                    <snapshots/>
                     <id>snapshots</id>
                     <name>plugins-snapshot</name>
                     <url>http://oss.jfrog.org/artifactory/plugins-snapshot</url>
@@ -285,6 +286,17 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>maven3/classworlds-freestyle.conf</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <!--Exclude classworlds-freestyle.conf from environment variables substitution during build -->
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>maven3/classworlds-freestyle.conf</include>
+                </includes>
             </resource>
         </resources>
         <plugins>
@@ -436,7 +448,8 @@
                         <configuration>
                             <tasks>
                                 <delete>
-                                    <fileset dir="${project.build.directory}/classes/groovy/test/" includes="GroovyAssert.class" />
+                                    <fileset dir="${project.build.directory}/classes/groovy/test/"
+                                             includes="GroovyAssert.class"/>
                                 </delete>
                             </tasks>
                         </configuration>

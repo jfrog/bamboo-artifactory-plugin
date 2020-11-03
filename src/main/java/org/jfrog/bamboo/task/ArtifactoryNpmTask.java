@@ -148,7 +148,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     public Map<String, String> getEnv() throws TaskException {
         Map<String, String> env = TaskUtils.getEnvironmentVariables(npmBuildContext, environmentVariableAccessor);
         // Npm commands expect the npm executable to be in "PATH".
-        return TaskUtils.addExecutablePathToEnv(env, npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME);
+        return TaskUtils.addExecutablePathToEnv(env, npmBuildContext, capabilityContext, NPM_KEY, EXECUTABLE_NAME, TASK_NAME, containerized);
     }
 
     @Override
