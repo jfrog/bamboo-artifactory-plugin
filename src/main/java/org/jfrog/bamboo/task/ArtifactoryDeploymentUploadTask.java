@@ -52,7 +52,7 @@ public class ArtifactoryDeploymentUploadTask extends ArtifactoryDeploymentTaskTy
     @Override
     public TaskResult runTask(@NotNull DeploymentTaskContext deploymentTaskContext) {
         ArtifactoryBuildInfoClientBuilder clientBuilder = TaskUtils.getArtifactoryBuildInfoClientBuilder(uploadServerConfig, buildInfoLog);
-        String artifactsRootDirectory = deploymentTaskContext.getRootDirectory().getAbsolutePath();
+        String artifactsRootDirectory = deploymentTaskContext.getWorkingDirectory().getAbsolutePath();
         try {
             initFileSpec(deploymentTaskContext);
             SpecsHelper specsHelper = new SpecsHelper(buildInfoLog);

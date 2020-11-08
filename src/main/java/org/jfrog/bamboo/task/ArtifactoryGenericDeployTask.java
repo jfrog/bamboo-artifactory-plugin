@@ -19,7 +19,6 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
-import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Build;
@@ -33,6 +32,7 @@ import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -90,16 +90,16 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         Build build = buildInfoHelper.getBuild(taskContext, genericContext);
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
         try {
-            File sourceCodeDirectory = getWorkingDirectory();
-            if (sourceCodeDirectory == null) {
+            File workingDirectory = getWorkingDirectory();
+            if (workingDirectory == null) {
                 log.error(logger.addErrorLogEntry("No build directory found!"));
                 return TaskResultBuilder.newBuilder(taskContext).success().build();
             }
             if (genericContext.isUseFileSpecs()) {
                 initFileSpec();
-                build = deployByFileSpec(sourceCodeDirectory, build, clientBuilder, fileSpec);
+                build = deployByFileSpec(workingDirectory, build, clientBuilder, fileSpec);
             } else {
-                build = deployByLegacyPattern(sourceCodeDirectory, build, getClient(clientBuilder), genericContext);
+                build = deployByLegacyPattern(workingDirectory, build, getClient(clientBuilder), genericContext);
             }
             List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
             if (genericContext.isCaptureBuildInfo() || (genericContext.isPublishBuildInfo() && TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions))) {
@@ -151,8 +151,22 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         return this.client;
     }
 
+    /**
+     * Gets the VCS checkout directory of the build.
+     * If the build has more than 1 checkout-location, return the default working directory.
+     * We keep using the VCS checkout directory for backward compatibility.
+     * @return the working directory for the task.
+     */
     private File getWorkingDirectory() {
-        return TaskUtils.getVcsWorkingDirectory((TaskContext) taskContext);
+        Map<Long, String> checkoutLocations = buildContext.getCheckoutLocation();
+        if (checkoutLocations.size() == 1) {
+            Iterator<String> checkoutLocationsIterator = checkoutLocations.values().iterator();
+            String checkoutLocation = checkoutLocationsIterator.next();
+            if (StringUtils.isNotBlank(checkoutLocation)) {
+                return new File(checkoutLocation);
+            }
+        }
+        return taskContext.getWorkingDirectory();
     }
 
     private Multimap<String, File> buildTargetPathToFiles(File directory, GenericContext context)
