@@ -297,10 +297,10 @@ public class TaskUtils {
     }
 
     /**
-     * Return global Bamboo temp folder. This folder is also mounted in containers.
+     * Return the global Bamboo temp folder. This folder is also mounted in containers.
      *
      * @param customVariableContext - Task custom variables
-     * @return global Bamboo temp folder
+     * @return global the Global Bamboo temp folder
      */
     public static File getBambooTmp(CustomVariableContext customVariableContext) {
         return new File(customVariableContext.getVariableContexts().get("tmp.directory").getValue());

@@ -22,7 +22,9 @@ public abstract class ArtifactoryTaskBase {
     protected static final Logger log = Logger.getLogger(ArtifactoryTaskBase.class);
     protected PluginAccessor pluginAccessor;
     protected CommonTaskContext taskContext;
+    // True if the task is attending to be run in a Docker container
     protected boolean containerized;
+    // File separator of the target agent: '/' in Unix/Linux/container or '\' in Windows
     protected String fileSeparator;
     protected BuildLogger logger;
     protected Log buildInfoLog;

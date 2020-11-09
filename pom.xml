@@ -282,6 +282,11 @@
 
     </dependencies>
     <build>
+        <!-- Copy src/main/resources/ to target/classes/.
+        filtering=true means that the resources variables ${ENV_KEY} will be replaced by ENV_VALUE.
+        filtering=false means that the resource are copied from the source to the target dir without changes.
+        "classworlds-freestyle.conf" contains variables such as ${maven.home} that we want to keep during plugin's
+        build and replace later, during running of Bamboo tasks. -->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -291,7 +296,6 @@
                 </excludes>
             </resource>
             <resource>
-                <!--Exclude classworlds-freestyle.conf from environment variables substitution during build -->
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
                 <includes>
