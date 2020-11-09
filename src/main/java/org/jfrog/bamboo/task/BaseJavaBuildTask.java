@@ -30,6 +30,7 @@ import java.util.Map;
 
 import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.OVERRIDE_JDK_ENV_VAR_KEY;
 import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.SHOULD_OVERRIDE_JDK_KEY;
+import static org.jfrog.bamboo.util.TaskUtils.getBambooTmp;
 
 /**
  * Common super type for all tasks
@@ -49,6 +50,7 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
     String buildInfoPropertiesFile;
     boolean activateBuildInfoRecording;
     boolean aggregateBuildInfo;
+    final File bambooTmp;
 
     protected BaseJavaBuildTask(TestCollationService testCollationService,
                                 EnvironmentVariableAccessor environmentVariableAccessor, ProcessService processService) {
@@ -57,6 +59,7 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
         this.processService = processService;
         this.environmentVariableAccessor = environmentVariableAccessor;
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
+        this.bambooTmp = getBambooTmp(customVariableContext);
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
@@ -126,8 +129,8 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
      */
     public StringBuilder getPathBuilder(String basePath) {
         StringBuilder confPathBuilder = new StringBuilder(basePath);
-        if (!basePath.endsWith(File.separator)) {
-            confPathBuilder.append(File.separator);
+        if (!basePath.endsWith(fileSeparator)) {
+            confPathBuilder.append(fileSeparator);
         }
         return confPathBuilder;
     }
@@ -230,10 +233,10 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
     void createBuildInfoFiles(boolean shouldCaptureBuildInfo, MavenAndIvyBuildInfoDataHelperBase dataHelper) throws TaskException {
         try {
             if (shouldCaptureBuildInfo) {
-                String buildInfoJsonPath = dataHelper.createBuildInfoJSonFileAndGetItsPath();
+                String buildInfoJsonPath = dataHelper.createBuildInfoJSonFileAndGetItsPath(bambooTmp);
                 environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, buildInfoJsonPath);
             }
-            buildInfoPropertiesFile = dataHelper.createBuildInfoPropsFileAndGetItsPath(shouldCaptureBuildInfo);
+            buildInfoPropertiesFile = dataHelper.createBuildInfoPropsFileAndGetItsPath(shouldCaptureBuildInfo, bambooTmp);
         } catch (IOException e) {
             throw new TaskException("Failed to create Build Info properties file.", e);
         }

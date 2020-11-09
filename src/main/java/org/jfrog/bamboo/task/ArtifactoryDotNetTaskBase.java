@@ -143,7 +143,7 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
 
     protected Map<String, String> getEnv(String taskKey, String executable, String taskName) throws TaskException {
         Map<String, String> env = TaskUtils.getEnvironmentVariables(dotNetBuildContext, environmentVariableAccessor);
-        return TaskUtils.addExecutablePathToEnv(env, dotNetBuildContext, capabilityContext, taskKey, executable, taskName);
+        return TaskUtils.addExecutablePathToEnv(env, dotNetBuildContext, capabilityContext, taskKey, executable, taskName, containerized);
     }
 
     protected Path getWorkPath() {

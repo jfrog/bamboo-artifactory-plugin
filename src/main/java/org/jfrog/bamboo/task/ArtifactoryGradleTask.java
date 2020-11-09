@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
+import static org.jfrog.bamboo.util.TaskUtils.getPlanKey;
+
 /**
  * Invocation of the Gradle build.
  *
@@ -85,7 +87,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
 
         File rootDirectory = context.getRootDirectory();
         try {
-            gradleDependenciesDir = extractGradleDependencies(gradleBuildContext.getArtifactoryServerId(), rootDirectory, gradleBuildContext);
+            gradleDependenciesDir = extractGradleDependencies(gradleBuildContext.getArtifactoryServerId(), gradleBuildContext);
         } catch (IOException e) {
             buildInfoLog.error("Error occurred while preparing Artifactory Gradle Runner dependencies. Build Info support is disabled: ", e);
         }
@@ -195,7 +197,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
 
                 String scriptTemplate = IOUtils.toString(initScriptStream, StandardCharsets.UTF_8);
                 ConfigurationPathHolder configurationPathHolder = initScriptHelper
-                        .createAndGetGradleInitScriptPath(gradleDependenciesDir, buildContext, scriptTemplate,
+                        .createAndGetGradleInitScriptPath(bambooTmp, gradleDependenciesDir, buildContext, scriptTemplate,
                                 environmentVariableAccessor.getEnvironment(), aggregateBuildInfo);
                 if (aggregateBuildInfo) {
                     environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, initScriptHelper.getBuildInfoTempFilePath().getAbsolutePath());
@@ -218,7 +220,7 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
             return EXECUTABLE_WRAPPER_NAME;
         }
         // Return gradle executable
-        return TaskUtils.getExecutablePath(buildContext, capabilityContext, GRADLE_KEY, EXECUTABLE_NAME, TASK_NAME);
+        return TaskUtils.getExecutablePath(buildContext, capabilityContext, GRADLE_KEY, EXECUTABLE_NAME, TASK_NAME, containerized);
     }
 
     /**
@@ -226,13 +228,12 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
      *
      * @return Path of recorder and dependency jar folder if extraction succeeded. Null if not
      */
-    private String extractGradleDependencies(long artifactoryServerId, File rootDirectory,
-                                             GradleBuildContext context) throws IOException {
+    private String extractGradleDependencies(long artifactoryServerId, GradleBuildContext context) throws IOException {
         if (artifactoryServerId == -1 && !aggregateBuildInfo) {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(rootDirectory, context,
+        return dependencyHelper.downloadDependenciesAndGetPath(bambooTmp, getPlanKey(customVariableContext), context,
                 PluginProperties.getPluginProperty(PluginProperties.GRADLE_DEPENDENCY_FILENAME_KEY));
     }
 

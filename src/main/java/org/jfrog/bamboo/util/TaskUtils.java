@@ -6,10 +6,11 @@ import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
+import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.SystemUtils;
 import com.google.common.collect.Multimaps;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -99,8 +100,8 @@ public class TaskUtils {
     }
 
     private static ServerConfig getRequestedServerConfig(String baseUsername, String basePassword,
-                                                        ServerConfigManager serverConfigManager, ServerConfig serverConfig,
-                                                        BuildParamsOverrideManager buildParamsOverrideManager, String overrideUsernameKey, String overridePasswordKey) {
+                                                         ServerConfigManager serverConfigManager, ServerConfig serverConfig,
+                                                         BuildParamsOverrideManager buildParamsOverrideManager, String overrideUsernameKey, String overridePasswordKey) {
         if (serverConfig == null) {
             return null;
         }
@@ -179,8 +180,7 @@ public class TaskUtils {
         // Read build-info from file.
         Path generatedBuildInfoPath = Paths.get(buildInfoFilePath);
         StringBuilder contentBuilder = new StringBuilder();
-        try (Stream<String> stream = Files.lines(generatedBuildInfoPath, StandardCharsets.UTF_8))
-        {
+        try (Stream<String> stream = Files.lines(generatedBuildInfoPath, StandardCharsets.UTF_8)) {
             stream.forEach(s -> contentBuilder.append(s).append("\n"));
         }
         generatedBuildInfoPath.toFile().delete();
@@ -205,19 +205,21 @@ public class TaskUtils {
 
     /**
      * Add an executable path to a provided env map.
-     * @param env - Environment variables map to add
-     * @param buildContext - The task's corresponding BuildContext
+     *
+     * @param env               - Environment variables map to add
+     * @param buildContext      - The task's corresponding BuildContext
      * @param capabilityContext - The task's corresponding CapabilityContext
-     * @param builderKey - Builder prefix key, such as "system.builder.npm."
-     * @param executableName - Executable name in file system (os specific)
-     * @param taskName - Task's name
+     * @param builderKey        - Builder prefix key, such as "system.builder.npm."
+     * @param executableName    - Executable name in file system (os specific)
+     * @param taskName          - Task's name
+     * @param containerized     - True if the task is attending to be run in a Docker container
      * @return environment variables map with the added executable path
      * @throws TaskException - If capability is not defined or doesn't exist
      */
-    public static Map<String, String> addExecutablePathToEnv(Map<String, String> env, PackageManagersContext buildContext, CapabilityContext capabilityContext, String builderKey, String executableName, String taskName) throws TaskException {
-        String executablePath = TaskUtils.getExecutablePath(buildContext, capabilityContext, builderKey, executableName, taskName);
+    public static Map<String, String> addExecutablePathToEnv(Map<String, String> env, PackageManagersContext buildContext, CapabilityContext capabilityContext, String builderKey, String executableName, String taskName, boolean containerized) throws TaskException {
+        String executablePath = TaskUtils.getExecutablePath(buildContext, capabilityContext, builderKey, executableName, taskName, containerized);
         String path = env.get("PATH");
-        if (SystemUtils.IS_OS_WINDOWS) {
+        if (SystemUtils.IS_OS_WINDOWS && !containerized) {
             path = executablePath + ";" + path;
         } else {
             path = executablePath + ":" + path;
@@ -229,16 +231,18 @@ public class TaskUtils {
     /**
      * Returns the path to the executable needed for the task.
      * Path is built from the executable configuration and the executable name.
-     * @param buildContext - The task's corresponding BuildContext
+     *
+     * @param buildContext      - The task's corresponding BuildContext
      * @param capabilityContext - The task's corresponding CapabilityContext
-     * @param builderKey - Builder prefix key, such as "system.builder.npm."
-     * @param executableName - Executable name in file system (os specific)
-     * @param taskName - Task's name
+     * @param builderKey        - Builder prefix key, such as "system.builder.npm."
+     * @param executableName    - Executable name in file system (os specific)
+     * @param taskName          - Task's name
+     * @param containerized     - True if the task is attending to be run in a Docker container
      * @return Path to requested executable.
      * @throws TaskException - If capability is not defined or doesn't exist
      */
     public static String getExecutablePath(PackageManagersContext buildContext, CapabilityContext capabilityContext,
-                                           String builderKey, String executableName, String taskName) throws TaskException {
+                                           String builderKey, String executableName, String taskName, boolean containerized) throws TaskException {
         ReadOnlyCapabilitySet capabilitySet = capabilityContext.getCapabilitySet();
         if (capabilitySet == null) {
             return null;
@@ -248,6 +252,10 @@ public class TaskUtils {
             throw new TaskException(taskName + " capability: " + buildContext.getExecutable() +
                     " is not defined, please check job configuration");
         }
+        if (containerized) {
+            return capability.getValue();
+        }
+
         String path = Paths.get(capability.getValue(), "bin", executableName).toString();
 
         if (!new File(path).exists()) {
@@ -261,7 +269,8 @@ public class TaskUtils {
 
     /**
      * Get a map of both environments variables configured in the task configuration and the ones already set.
-     * @param buildContext - The task's corresponding BuildContext
+     *
+     * @param buildContext                - The task's corresponding BuildContext
      * @param environmentVariableAccessor - Accessor used to get available env
      * @return Map of all environment variables
      */
@@ -278,11 +287,32 @@ public class TaskUtils {
     /**
      * Get a map of the commonly used artifact properties to be set when deploying an artifact.
      * Build name, build number, vcs url, vcs revision, timestamp.
+     *
      * @return Map containing all properties.
      */
     public static ArrayListMultimap<String, String> getCommonArtifactPropertiesMap(BuildInfoHelper buildInfoHelper) {
         Map<String, String> propertiesMap = new HashMap<>();
         buildInfoHelper.addCommonProperties(propertiesMap);
         return ArrayListMultimap.create(Multimaps.forMap(propertiesMap));
+    }
+
+    /**
+     * Return the global Bamboo temp folder. This folder is also mounted in containers.
+     *
+     * @param customVariableContext - Task custom variables
+     * @return global the Global Bamboo temp folder
+     */
+    public static File getBambooTmp(CustomVariableContext customVariableContext) {
+        return new File(customVariableContext.getVariableContexts().get("tmp.directory").getValue());
+    }
+
+    /**
+     * Return the plan key of the running task.
+     *
+     * @param customVariableContext - Task's variables context
+     * @return the plan key of the running task
+     */
+    public static String getPlanKey(CustomVariableContext customVariableContext) {
+        return customVariableContext.getVariableContexts().get("planKey").getValue();
     }
 }

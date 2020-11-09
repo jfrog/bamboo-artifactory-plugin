@@ -38,24 +38,27 @@ public class BuilderDependencyHelper implements Serializable {
 
     private AdministrationConfiguration administrationConfiguration;
     private AdministrationConfigurationAccessor administrationConfigurationAccessor;
-    private String builderKey;
+    private final String builderKey;
 
     public BuilderDependencyHelper(String builderKey) {
         this.builderKey = builderKey;
     }
 
-    public String downloadDependenciesAndGetPath(File rootDir, PackageManagersContext context, String dependencyName)
+    public String downloadDependenciesAndGetPath(File bambooTemp, String planKey, PackageManagersContext context, String dependencyName)
             throws IOException {
         String pluginKey = PluginProperties.getPluginKey();
         String pluginDescriptorKey = PluginProperties.getPluginDescriptorKey();
 
-        if (rootDir == null) {
+        if (bambooTemp == null) {
             return null;
         }
-        File rootDirParent = rootDir.getParentFile();
+        File planTemp = new File(bambooTemp, planKey);
+        if (!planTemp.exists()) {
+            planTemp.mkdir();
+        }
 
         //Search for older plugin dirs and remove if any exist
-        for (File buildDirChild : rootDirParent.listFiles()) {
+        for (File buildDirChild : planTemp.listFiles()) {
             String buildDirChildName = buildDirChild.getName();
             if (buildDirChildName.startsWith(pluginDescriptorKey) &&
                     (!buildDirChildName.equals(pluginKey) || buildDirChildName.endsWith("-SNAPSHOT"))) {
@@ -64,7 +67,7 @@ public class BuilderDependencyHelper implements Serializable {
             }
         }
 
-        File pluginDir = new File(rootDirParent, pluginKey);
+        File pluginDir = new File(planTemp, pluginKey);
         File builderDependencyDir = new File(pluginDir, builderKey);
         if (builderDependencyDir.isDirectory()) {
             // Validates extractor existence

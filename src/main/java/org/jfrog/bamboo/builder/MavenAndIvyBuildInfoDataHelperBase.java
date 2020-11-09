@@ -95,12 +95,12 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
                 String.valueOf(buildContext.releaseManagementContext.isActivateReleaseManagement()));
     }
 
-    public String createBuildInfoPropsFileAndGetItsPath(boolean shouldCaptureBuildInfo) throws IOException {
+    public String createBuildInfoPropsFileAndGetItsPath(boolean shouldCaptureBuildInfo, File bambooTmp) throws IOException {
         if (selectedServerConfig == null && !shouldCaptureBuildInfo) {
             return null;
         }
         try {
-            File tempPropertiesFile = File.createTempFile("buildInfo", ".properties");
+            File tempPropertiesFile = File.createTempFile("buildInfo", ".properties", bambooTmp);
             clientConf.setPropertiesFile(tempPropertiesFile.getAbsolutePath());
             clientConf.persistToPropertiesFile();
             return tempPropertiesFile.getCanonicalPath();
@@ -111,9 +111,9 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
         }
     }
 
-    public String createBuildInfoJSonFileAndGetItsPath() throws IOException {
+    public String createBuildInfoJSonFileAndGetItsPath(File bambooTmp) throws IOException {
         try {
-            File buildInfoJsonTempFile = File.createTempFile(BuildInfoFields.GENERATED_BUILD_INFO, ".json");
+            File buildInfoJsonTempFile = File.createTempFile(BuildInfoFields.GENERATED_BUILD_INFO, ".json", bambooTmp);
             clientConf.info.setGeneratedBuildInfoFilePath(buildInfoJsonTempFile.getAbsolutePath());
             return buildInfoJsonTempFile.getCanonicalPath();
         } catch (IOException e) {

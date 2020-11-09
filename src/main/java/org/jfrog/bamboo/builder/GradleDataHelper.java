@@ -82,7 +82,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         return selectedServerConfig != null;
     }
 
-    public ConfigurationPathHolder createAndGetGradleInitScriptPath(String dependenciesDir, GradleBuildContext buildContext, String scriptTemplate, Map<String, String> generalEnv, boolean aggregateBuildInfo) {
+    public ConfigurationPathHolder createAndGetGradleInitScriptPath(File bambooTmp, String dependenciesDir, GradleBuildContext buildContext, String scriptTemplate, Map<String, String> generalEnv, boolean aggregateBuildInfo) {
         if (selectedServerConfig == null && !aggregateBuildInfo) {
             return null;
         }
@@ -90,7 +90,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
         String normalizedPath = FilenameUtils.separatorsToUnix(dependenciesDir);
         scriptTemplate = scriptTemplate.replace("${pluginLibDir}", normalizedPath);
         try {
-            File buildProps = File.createTempFile("buildinfo", "properties");
+            File buildProps = File.createTempFile("buildinfo", "properties", bambooTmp);
             // Add Bamboo build variables.
             MapDifference<String, String> buildVarDifference = Maps.difference(generalEnv, System.getenv());
             Map<String, String> filteredBuildVarDifferences = buildVarDifference.entriesOnlyOnLeft();
@@ -98,7 +98,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
                     buildContext.getEnvVarsIncludePatterns(),
                     buildContext.getEnvVarsExcludePatterns());
             if (aggregateBuildInfo) {
-                buildInfoTempFile = File.createTempFile(BuildInfoFields.GENERATED_BUILD_INFO, ".json");
+                buildInfoTempFile = File.createTempFile(BuildInfoFields.GENERATED_BUILD_INFO, ".json", bambooTmp);
                 configuration.info.setGeneratedBuildInfoFilePath(buildInfoTempFile.getAbsolutePath());
             }
             configuration.info.addBuildVariables(filteredBuildVarDifferences, patterns);
@@ -108,7 +108,7 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
             configuration.persistToPropertiesFile();
 
             // Write data to init script file.
-            File tempInitScript = File.createTempFile("artifactory.init.script", "gradle");
+            File tempInitScript = File.createTempFile("artifactory.init.script", "gradle", bambooTmp);
             FileUtils.writeStringToFile(tempInitScript, scriptTemplate, "utf-8");
             if (buildContext.isPublishBuildInfo() || buildContext.isCaptureBuildInfo()) {
                 this.context.getBuildResult().getCustomBuildData().put(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM,
