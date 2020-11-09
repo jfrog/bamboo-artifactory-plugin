@@ -115,7 +115,7 @@
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/generic/editArtifactoryGenericBuildAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-deploy-icon.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -128,7 +128,7 @@
         <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/generic/editArtifactoryGenericResolveAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-resolve-icon.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -141,7 +141,7 @@
         <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/task/editArtifactoryCollectBuildIssuesAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-issues-icon.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -154,7 +154,7 @@
         <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/xray/editArtifactoryXrayScanAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-xray-icon.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -167,7 +167,7 @@
         <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/task/editArtifactoryPublishBuildInfoAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-publish-icon.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -183,7 +183,7 @@
         <resource type="freemarker" name="edit"
                   location="/templates/plugins/task/editArtifactoryMaven3Builder.ftl"/>
         <resource type="download" name="icon"
-                  location="images/artifactory-maven-icon.png"/>
+                  location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -199,7 +199,7 @@
         <resource type="freemarker" name="edit"
                   location="/templates/plugins/task/editArtifactoryGradleBuilder.ftl"/>
         <resource type="download" name="icon"
-                  location="images/artifactory-gradle-icon.png"/>
+                  location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -215,7 +215,7 @@
         <resource type="freemarker" name="edit"
                   location="/templates/plugins/task/editArtifactoryNugetBuilder.ftl"/>
         <resource type="download" name="icon"
-                  location="images/artifactory-nuget-icon.png"/>
+                  location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -231,7 +231,7 @@
         <resource type="freemarker" name="edit"
                   location="/templates/plugins/task/editArtifactoryDotNetCoreBuilder.ftl"/>
         <resource type="download" name="icon"
-                  location="images/artifactory-dotnet-icon.png"/>
+                  location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -247,7 +247,7 @@
         <resource type="freemarker" name="edit"
                   location="/templates/plugins/task/editArtifactoryNpmBuilder.ftl"/>
         <resource type="download" name="icon"
-                  location="images/artifactory-npm-icon.png"/>
+                  location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -261,7 +261,7 @@
         <resource type="freemarker" name="edit"
                   location="/templates/plugins/task/editArtifactoryDockerBuilder.ftl"/>
         <resource type="download" name="icon"
-                  location="images/artifactory-docker-icon.png"/>
+                  location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -336,7 +336,7 @@
         <capabilityDefaultsHelper class="org.jfrog.bamboo.capability.IvyCapabilityHelper"/>
         <executable key="ivy" pathHelpKey="builder.ivy.pathHelp"/>
         <resource type="freemarker" name="edit" location="/templates/plugins/task/editArtifactoryIvyBuilder.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-ivy-icon.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -381,7 +381,7 @@
         <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/deployment/editArtifactoryDeploymentDownloadTask.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-download-icon.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
@@ -393,7 +393,7 @@
         <category name="deployment"/>
         <resource type="freemarker" name="edit"
                   location="templates/plugins/deployment/editArtifactoryDeploymentAction.ftl"/>
-        <resource type="download" name="icon" location="images/artifactory-deploy-icon.png"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
