@@ -133,9 +133,6 @@ public class BuilderDependencyHelper implements Serializable {
         String dependencyUrl = dependencyBaseUrl + dependencyFileName;
         GetMethod getMethod = new GetMethod(dependencyUrl);
 
-        InputStream responseBodyAsStream = null;
-        FileOutputStream fileOutputStream = null;
-
         try {
             int responseStatus;
             try {
@@ -150,21 +147,21 @@ public class BuilderDependencyHelper implements Serializable {
                         + responseStatus + ", Message: " + getMethod.getStatusText());
             }
 
-            responseBodyAsStream = getMethod.getResponseBodyAsStream();
-            if (responseBodyAsStream == null) {
-                throw new IOException("Requested dependency: " + dependencyUrl +
-                        ", but received a null response stream.");
-            }
+            try (InputStream responseBodyAsStream = getMethod.getResponseBodyAsStream()) {
+                if (responseBodyAsStream == null) {
+                    throw new IOException("Requested dependency: " + dependencyUrl + ", but received a null response stream.");
+                }
 
-            File file = new File(builderDependencyDir, dependencyFileName);
-            if (!file.isFile()) {
-                fileOutputStream = new FileOutputStream(file);
-                IOUtils.copy(responseBodyAsStream, fileOutputStream);
+                File file = new File(builderDependencyDir, dependencyFileName);
+                if (file.isFile()) {
+                    return;
+                }
+                try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                    IOUtils.copy(responseBodyAsStream, fileOutputStream);
+                }
             }
         } finally {
             getMethod.releaseConnection();
-            IOUtils.closeQuietly(responseBodyAsStream);
-            IOUtils.closeQuietly(fileOutputStream);
         }
     }
 }

@@ -38,16 +38,13 @@ public class FileSpecUtils {
     }
 
     public static String getSpecFromFile(File sourceCodeDirectory, String specFilePath) throws IOException {
-        FileInputStream fis = null;
-        try {
-            Path path = Paths.get(specFilePath);
-            File specFile = path.isAbsolute() ? path.toFile() : Paths.get(sourceCodeDirectory.getAbsolutePath(), specFilePath).toFile();
-            fis = new FileInputStream(specFile);
+        Path path = Paths.get(specFilePath);
+        File specFile = path.isAbsolute() ? path.toFile() : Paths.get(sourceCodeDirectory.getAbsolutePath(), specFilePath).toFile();
+
+        try (FileInputStream fis = new FileInputStream(specFile)) {
             byte[] data = new byte[(int) specFile.length()];
             fis.read(data);
             return new String(data, StandardCharsets.UTF_8);
-        } finally {
-            IOUtils.closeQuietly(fis);
         }
     }
 }

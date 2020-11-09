@@ -4,7 +4,6 @@ import com.atlassian.core.util.FileUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.DownloadableArtifact;
@@ -58,12 +57,13 @@ public class DependenciesDownloaderImpl implements DependenciesDownloader {
         try {
             File newFile = new File(filePath);
             FileUtils.copyFile(is, newFile, true);
-
             return FileChecksumCalculator.calculateChecksums(newFile, "md5", "sha1");
         } catch (Exception e) {
             log.warn("Caught exception while saving dependency file" + e.getLocalizedMessage());
         } finally {
-            IOUtils.closeQuietly(is);
+            if (is != null) {
+                is.close();
+            }
         }
 
         return null;
@@ -126,12 +126,12 @@ public class DependenciesDownloaderImpl implements DependenciesDownloader {
     }
 
     //TODO - as part of buildInfo V-2.6.x we need to do some changes to support the json spec
-    public boolean getFlatDownload(){
+    public boolean getFlatDownload() {
         return this.flatDownload;
     }
 
     //TODO - as part of buildInfo V-2.6.x we need to do some changes to support the json spec
-    public void setFlatDownload(boolean flat){
+    public void setFlatDownload(boolean flat) {
         this.flatDownload = flat;
     }
 }

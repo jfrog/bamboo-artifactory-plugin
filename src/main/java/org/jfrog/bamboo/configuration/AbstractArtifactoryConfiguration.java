@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -221,7 +222,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         final File private_key_file = params.getFiles().get(keyToRead);
         if (private_key_file != null) {
             try {
-                return FileUtils.readFileToString(private_key_file);
+                return FileUtils.readFileToString(private_key_file, StandardCharsets.UTF_8);
             } catch (IOException e) {
                 log.error("Cannot read uploaded file", e);
             }

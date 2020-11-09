@@ -181,7 +181,6 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
             return null;
         }
 
-        InputStream initScriptStream = null;
         try (JarFile gradleJar = new JarFile(gradleJarFile)) {
             ZipEntry initScriptEntry = gradleJar.getEntry("initscripttemplate.gradle");
 
@@ -190,25 +189,24 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
                 return null;
             }
 
-            initScriptStream = gradleJar.getInputStream(initScriptEntry);
-            if (initScriptStream == null) {
-                log.warn(logger.addBuildLogEntry("Unable to locate the gradle init script template. Build-info task will not be added."));
-                return null;
-            }
+            try (InputStream initScriptStream = gradleJar.getInputStream(initScriptEntry)) {
+                if (initScriptStream == null) {
+                    log.warn(logger.addBuildLogEntry("Unable to locate the gradle init script template. Build-info task will not be added."));
+                    return null;
+                }
 
-            String scriptTemplate = IOUtils.toString(initScriptStream, StandardCharsets.UTF_8);
-            ConfigurationPathHolder configurationPathHolder = initScriptHelper
-                    .createAndGetGradleInitScriptPath(bambooTmp, gradleDependenciesDir, buildContext, scriptTemplate,
-                            environmentVariableAccessor.getEnvironment(), aggregateBuildInfo);
-            if (aggregateBuildInfo) {
-                environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, initScriptHelper.getBuildInfoTempFilePath().getAbsolutePath());
+                String scriptTemplate = IOUtils.toString(initScriptStream, StandardCharsets.UTF_8);
+                ConfigurationPathHolder configurationPathHolder = initScriptHelper
+                        .createAndGetGradleInitScriptPath(bambooTmp, gradleDependenciesDir, buildContext, scriptTemplate,
+                                environmentVariableAccessor.getEnvironment(), aggregateBuildInfo);
+                if (aggregateBuildInfo) {
+                    environmentVariables.put(BuildInfoFields.GENERATED_BUILD_INFO, initScriptHelper.getBuildInfoTempFilePath().getAbsolutePath());
+                }
+                return configurationPathHolder;
             }
-            return configurationPathHolder;
         } catch (IOException e) {
             buildInfoLog.warn("Unable to read from the Gradle extractor jar. Build-info task will not be added: " + e.getMessage());
             return null;
-        } finally {
-            IOUtils.closeQuietly(initScriptStream);
         }
     }
 
