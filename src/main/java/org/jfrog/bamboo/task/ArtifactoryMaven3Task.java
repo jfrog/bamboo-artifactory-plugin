@@ -10,7 +10,6 @@ import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.ExternalProcess;
 import com.google.common.collect.Lists;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.tools.ant.types.Commandline;
@@ -25,10 +24,15 @@ import org.jfrog.bamboo.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static org.jfrog.bamboo.util.TaskUtils.getPlanKey;
 
 /**
  * Invocation of the Maven 3 task
@@ -44,16 +48,14 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     private Maven3BuildContext mavenBuildContext;
     private MavenDataHelper mavenDataHelper;
     private String artifactoryPluginVersion;
-    private String mavenDependenciesDir;
 
     public ArtifactoryMaven3Task(final ProcessService processService,
                                  final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
                                  TestCollationService testCollationService) {
-
         super(testCollationService, environmentVariableAccessor, processService);
         this.environmentVariableAccessor = environmentVariableAccessor;
         this.capabilityContext = capabilityContext;
-        dependencyHelper = new BuilderDependencyHelper("artifactoryMaven3Builder");
+        this.dependencyHelper = new BuilderDependencyHelper("artifactoryMaven3Builder");
         ContainerManager.autowireComponent(dependencyHelper);
     }
 
@@ -80,8 +82,9 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
             serverId = mavenBuildContext.getArtifactoryServerId();
         }
         File rootDirectory = taskContext.getRootDirectory();
+        String mavenDependenciesDir;
         try {
-            mavenDependenciesDir = extractMaven3Dependencies(rootDirectory, serverId, mavenBuildContext);
+            mavenDependenciesDir = extractMaven3Dependencies(serverId, mavenBuildContext);
         } catch (IOException e) {
             mavenDependenciesDir = null;
             logger.addBuildLogEntry(new ErrorLogEntry(
@@ -106,14 +109,17 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
             rootDirectory = new File(rootDirectory, subDirectory);
         }
 
+
         // Create maven command.
         String mavenHome = getMavenHome(mavenBuildContext);
         if (StringUtils.isBlank(mavenHome)) {
             log.error(logger.addErrorLogEntry("Maven home is not defined!"));
             return TaskResultBuilder.newBuilder(taskContext).failed().build();
         }
+        environmentVariables.put("MAVEN_HOME", mavenHome);
+
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, mavenBuildContext, capabilityContext);
-        List<String> command = buildCommand(mavenHome, jdkPath, rootDirectory, systemProps);
+        List<String> command = buildCommand(mavenHome, jdkPath, rootDirectory, systemProps, mavenDependenciesDir);
 
         // Override the JAVA_HOME according to the build configuration.
         environmentVariables.put("JAVA_HOME", jdkPath);
@@ -151,16 +157,16 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
      */
     public String getJavaExecutable(String jdkPath) {
         StringBuilder binPathBuilder = new StringBuilder(jdkPath);
-        if (SystemUtils.IS_OS_WINDOWS) {
-            binPathBuilder.append("bin").append(File.separator).append("java.exe");
+        if (SystemUtils.IS_OS_WINDOWS && !containerized) {
+            binPathBuilder.append("bin").append(fileSeparator).append("java.exe");
         } else {
             // IBM's AIX JDK has different locations
-            String aixJdkLocation = "jre" + File.separator + "sh" + File.separator + "java";
+            String aixJdkLocation = "jre" + fileSeparator + "sh" + File.separator + "java";
             File aixJdk = new File(binPathBuilder.toString() + aixJdkLocation);
             if (aixJdk.isFile()) {
                 binPathBuilder.append(aixJdkLocation);
             } else {
-                binPathBuilder.append("bin").append(File.separator).append("java");
+                binPathBuilder.append("bin").append(fileSeparator).append("java");
             }
         }
         String binPath = binPathBuilder.toString();
@@ -168,13 +174,15 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         return binPath;
     }
 
-    private List<String> buildCommand(String mavenHome, String jdkPath, File rootDirectory, List<String> systemProps) throws TaskException {
+    private List<String> buildCommand(String mavenHome, String jdkPath, File rootDirectory, List<String> systemProps, String mavenDependenciesDir) {
         List<String> command = getCommand(jdkPath);
         appendClassPathArguments(command, mavenHome);
+        addMavenHome(command, mavenHome);
+        addMavenConf(command, mavenHome);
+        addMavenPluginLib(command, mavenDependenciesDir);
         appendClassWorldsConfArgument(command, mavenHome);
         appendBuildInfoPropertiesArgument(command);
         appendMavenOpts(command, mavenBuildContext);
-        addMavenHome(command, mavenHome);
         addMavenMultiModuleProjectPath(command, rootDirectory);
         command.add("org.codehaus.plexus.classworlds.launcher.Launcher");
         appendGoals(command, mavenBuildContext);
@@ -193,26 +201,28 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         command.add(Commandline.quoteArgument("-Dmaven.home" + "=" + mavenHome));
     }
 
+    private void addMavenConf(List<String> command, String mavenHome) {
+        command.add(Commandline.quoteArgument("-Dmaven.conf" + "=" + mavenHome + fileSeparator + "conf"));
+    }
+
     //Starting from Maven 3.3.3
     private void addMavenMultiModuleProjectPath(List<String> command, File rootDirectory) {
         command.add(Commandline.quoteArgument("-Dmaven.multiModuleProjectDirectory" + "=" + rootDirectory.getPath()));
     }
 
-    private List<String> getCommand(String jdkPath) throws TaskException {
+    private List<String> getCommand(String jdkPath) {
         List<String> command = Lists.newArrayList();
         String executable = getJavaExecutable(jdkPath);
         if (StringUtils.isBlank(executable)) {
             log.error("No Maven executable found");
             return command;
         }
-        if (SystemUtils.IS_OS_WINDOWS) {
+        if (SystemUtils.IS_OS_WINDOWS && !containerized) {
             command.add("cmd.exe");
             command.add("/c");
             command.add("call");
-            command.add(Commandline.quoteArgument(executable));
-        } else {
-            command.add(Commandline.quoteArgument(executable));
         }
+        command.add(Commandline.quoteArgument(executable));
         return command;
     }
 
@@ -236,26 +246,8 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
      */
     private void appendClassPathArguments(List<String> arguments, String mavenHomePath) {
         arguments.add("-cp");
-
-        StringBuilder classPathBuilder = getPathBuilder(mavenHomePath).append("boot");
-        String mavenBootPath = classPathBuilder.toString();
-
-        File mavenBootFolder = new File(mavenBootPath);
-        if (!mavenBootFolder.isDirectory()) {
-            throw new IllegalStateException("Could not find the Maven lib directory in the expected path: " +
-                    mavenBootPath + ".");
-        }
-        String[] bootJars = mavenBootFolder.list();
-        for (String bootJar : bootJars) {
-            if (StringUtils.startsWithIgnoreCase(bootJar, "plexus-classworlds") &&
-                    StringUtils.endsWithIgnoreCase(bootJar, ".jar")) {
-                classPathBuilder.append(File.separator).append(bootJar);
-                String classPath = getCanonicalPath(classPathBuilder.toString());
-                arguments.add(Commandline.quoteArgument(classPath));
-                return;
-            }
-        }
-        throw new IllegalStateException("Could not find plexus classworlds jar in " + mavenBootPath + ".");
+        StringBuilder classPathBuilder = getPathBuilder(mavenHomePath).append("boot").append(fileSeparator).append("*");
+        arguments.add(classPathBuilder.toString());
     }
 
     private void appendGoals(List<String> arguments, Maven3BuildContext context) {
@@ -271,38 +263,39 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         arguments.addAll(Arrays.asList(goalArray));
     }
 
+    private void addMavenPluginLib(List<String> command, String mavenDependenciesDir) {
+        if (!StringUtils.contains(mavenBuildContext.getMavenOpts(), "-Dm3plugin.lib")) {
+            command.add("-Dm3plugin.lib=" + mavenDependenciesDir);
+        }
+    }
+
     /**
      * Appends the maven classworlds configuration file argument to the command
      *
-     * @param arguments     Aggregated command arguments
-     * @param mavenHomePath Path to Maven installation home
+     * @param arguments     - Aggregated command arguments
+     * @param mavenHomePath - Path to Maven installation home
      */
     private void appendClassWorldsConfArgument(List<String> arguments, String mavenHomePath) {
-        String originalConfPath = getPathBuilder(mavenHomePath).append("bin").append(File.separator).append("m2.conf").
-                toString();
+        String classworldsConfPath;
 
-        String m2ConfPath;
 
-        /*
-         * Customize the classworlds conf to activate the build info recorder only if received a valid dependency
-         * directory path
-         */
+        // Customize the classworlds conf to activate the build info recorder only if received a valid dependency directory path
         if (activateBuildInfoRecording) {
-            try {
-                List m2ConfLines = FileUtils.readLines(new File(originalConfPath), "utf-8");
-                m2ConfLines.add("load " + mavenDependenciesDir + File.separator + "*.jar");
-
-                File tempM2Conf = File.createTempFile("artifactoryM2", "conf");
-                FileUtils.writeLines(tempM2Conf, m2ConfLines);
-                m2ConfPath = tempM2Conf.getCanonicalPath();
+            try (InputStream is = getClass().getClassLoader().getResourceAsStream("maven3/classworlds-freestyle.conf")) {
+                if (is == null) {
+                    throw new RuntimeException("Error occurred while writing Maven 3 customized m2.conf: 'maven3/classworlds-freestyle.conf' doesn't exist.");
+                }
+                File tempM2Conf = File.createTempFile("artifactoryM2", "conf", bambooTmp);
+                Files.copy(is, tempM2Conf.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                classworldsConfPath = tempM2Conf.toString();
             } catch (IOException ioe) {
                 throw new RuntimeException("Error occurred while writing Maven 3 customized m2.conf", ioe);
             }
         } else {
-            m2ConfPath = originalConfPath;
+            classworldsConfPath = getPathBuilder(mavenHomePath).append("bin").append(fileSeparator).append("m2.conf").toString();
         }
 
-        arguments.add(Commandline.quoteArgument("-Dclassworlds.conf=" + m2ConfPath));
+        arguments.add(Commandline.quoteArgument("-Dclassworlds.conf=" + classworldsConfPath));
     }
 
     private void appendBuildInfoPropertiesArgument(List<String> arguments) {
@@ -317,14 +310,14 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
      *
      * @return Path of recorder and dependency jar folder if extraction succeeded. Null if not
      */
-    private String extractMaven3Dependencies(File rootDir, long artifactoryServerId, Maven3BuildContext mavenBuildContext)
+    private String extractMaven3Dependencies(long artifactoryServerId, Maven3BuildContext mavenBuildContext)
             throws IOException {
 
         if (artifactoryServerId == -1 && !aggregateBuildInfo) {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(rootDir, mavenBuildContext,
+        return dependencyHelper.downloadDependenciesAndGetPath(bambooTmp, getPlanKey(customVariableContext), mavenBuildContext,
                 PluginProperties.getPluginProperty(PluginProperties.MAVEN3_DEPENDENCY_FILENAME_KEY));
     }
 

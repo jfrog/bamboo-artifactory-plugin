@@ -30,6 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.jfrog.bamboo.util.TaskUtils.getPlanKey;
+
 /**
  * Invocation of the Ant/Ivy task.
  *
@@ -79,7 +81,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
         File rootDirectory = context.getRootDirectory();
         String ivyDependenciesDir;
         try {
-            ivyDependenciesDir = extractIvyDependencies(ivyBuildContext.getArtifactoryServerId(), rootDirectory, ivyBuildContext);
+            ivyDependenciesDir = extractIvyDependencies(ivyBuildContext.getArtifactoryServerId(), ivyBuildContext);
             log.info(logger.addBuildLogEntry("Ivy dependency directory found at: " + ivyDependenciesDir));
         } catch (IOException ioe) {
             ivyDependenciesDir = null;
@@ -93,7 +95,7 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
             buildInfoLog.error("Ivy dependency directory not found.");
         }
 
-        String executable = TaskUtils.getExecutablePath(ivyBuildContext, capabilityContext, IVY_KEY, EXECUTABLE_NAME, TASK_NAME);
+        String executable = TaskUtils.getExecutablePath(ivyBuildContext, capabilityContext, IVY_KEY, EXECUTABLE_NAME, TASK_NAME, containerized);
         if (StringUtils.isBlank(executable)) {
             log.error(logger.addErrorLogEntry("Cannot find ivy executable"));
             return TaskResultBuilder.newBuilder(context).failed().build();
@@ -165,14 +167,14 @@ public class ArtifactoryIvyTask extends BaseJavaBuildTask {
      *
      * @return Path of recorder and dependency jar folder if extraction succeeded. Null if not
      */
-    private String extractIvyDependencies(long artifactoryServerId, File rootDirectory, IvyBuildContext context)
+    private String extractIvyDependencies(long artifactoryServerId, IvyBuildContext context)
             throws IOException {
 
         if (artifactoryServerId == -1) {
             return null;
         }
 
-        return dependencyHelper.downloadDependenciesAndGetPath(rootDirectory, context,
+        return dependencyHelper.downloadDependenciesAndGetPath(bambooTmp, getPlanKey(customVariableContext), context,
                 PluginProperties.getPluginProperty(PluginProperties.IVY_DEPENDENCY_FILENAME_KEY));
     }
 }
