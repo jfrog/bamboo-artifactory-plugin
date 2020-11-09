@@ -85,8 +85,7 @@ public class ArtifactoryConfigServlet extends HttpServlet {
         if (serverConfig == null) {
             resp.sendError(HttpStatus.SC_NOT_FOUND, "Could not find an Artifactory server configuration with the ID " +
                     serverId + ".");
-            log.error("Unable to retrieve server configuration. No configuration was found with the ID " + serverId +
-                     ".");
+            log.error("Unable to retrieve server configuration. No configuration was found with the ID " + serverId + ".");
             return;
         }
 
@@ -114,14 +113,10 @@ public class ArtifactoryConfigServlet extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         jsonFactory.setCodec(mapper);
 
-        PrintWriter writer = null;
-        try {
-            writer = resp.getWriter();
+        try (PrintWriter writer = resp.getWriter()) {
             JsonGenerator jsonGenerator = jsonFactory.createJsonGenerator(writer);
             jsonGenerator.writeObject(toReturn);
             writer.flush();
-        } finally {
-            IOUtils.closeQuietly(writer);
         }
     }
 }

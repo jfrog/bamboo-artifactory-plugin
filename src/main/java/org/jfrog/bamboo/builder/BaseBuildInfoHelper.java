@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -147,16 +146,10 @@ public abstract class BaseBuildInfoHelper {
             File propFile = new File(propFilePath);
             if (propFile.isFile()) {
                 Properties fileProperties = new Properties();
-
-                FileInputStream inputStream = null;
-                try {
-                    inputStream = new FileInputStream(propFile);
+                try (FileInputStream inputStream = new FileInputStream(propFile)) {
                     fileProperties.load(inputStream);
                 } catch (IOException ioe) {
-                    log.error("Error occurred while trying to resolve build info properties from: " + propFilePath,
-                            ioe);
-                } finally {
-                    IOUtils.closeQuietly(inputStream);
+                    log.error("Error occurred while trying to resolve build info properties from: " + propFilePath, ioe);
                 }
 
                 variablesToReturn.putAll(Utils.filterPropertiesKeysByPrefix(fileProperties, ClientProperties.PROP_DEPLOY_PARAM_PROP_PREFIX));

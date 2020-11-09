@@ -23,7 +23,6 @@ import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.sal.api.user.UserProfile;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfrog.bamboo.util.ConstantValues;
@@ -78,13 +77,9 @@ public class BuildServlet extends HttpServlet {
             return;
         }
 
-        PrintWriter writer = null;
-        try {
-            writer = resp.getWriter();
+        try (PrintWriter writer = resp.getWriter()) {
             writer.write(plan.getName());
             writer.flush();
-        } finally {
-            IOUtils.closeQuietly(writer);
         }
     }
 }

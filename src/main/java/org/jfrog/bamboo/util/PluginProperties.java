@@ -16,7 +16,6 @@
 
 package org.jfrog.bamboo.util;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
@@ -75,13 +74,10 @@ public class PluginProperties {
     }
 
     private static Properties getPluginProperties() throws IOException {
-        InputStream pluginPropertiesStream = null;
-        try {
+        try (InputStream pluginPropertiesStream = PluginProperties.class.getClassLoader().getResourceAsStream("artifactory.plugin.properties")) {
             // TODO: This was previously loaded by Thread.currentThread().getContextClassLoader() in plugins2 this
             // returns null changing it to the current implementation
             // PluginProperties.class.getClassLoader().getResourceAsStream("artifactory.plugin.properties") may cause some concurrency problems
-            pluginPropertiesStream =
-                    PluginProperties.class.getClassLoader().getResourceAsStream("artifactory.plugin.properties");
 
             if (pluginPropertiesStream == null) {
                 throw new IllegalStateException("Could not find artifactory.plugin.properties resource.");
@@ -89,8 +85,6 @@ public class PluginProperties {
             Properties pluginProperties = new Properties();
             pluginProperties.load(pluginPropertiesStream);
             return pluginProperties;
-        } finally {
-            IOUtils.closeQuietly(pluginPropertiesStream);
         }
     }
 }

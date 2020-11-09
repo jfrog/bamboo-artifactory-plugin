@@ -9,7 +9,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -51,7 +50,6 @@ public class ConfigurationHelper implements Serializable {
         params.put(ConstantValues.PLAN_KEY_PARAM, planKey);
         String requestUrl = prepareRequestUrl(ADMIN_CONFIG_SERVLET_CONTEXT_NAME, params);
         GetMethod getMethod = new GetMethod(requestUrl);
-        InputStream responseStream = null;
         try {
             executeMethod(requestUrl, getMethod);
 
@@ -59,19 +57,18 @@ public class ConfigurationHelper implements Serializable {
             ObjectMapper mapper = new ObjectMapper();
             jsonFactory.setCodec(mapper);
 
-            responseStream = getMethod.getResponseBodyAsStream();
-            if (responseStream == null) {
-                return Maps.newHashMap();
+            try (InputStream responseStream = getMethod.getResponseBodyAsStream()) {
+                if (responseStream == null) {
+                    return Maps.newHashMap();
+                }
+                JsonParser parser = jsonFactory.createJsonParser(responseStream);
+                return parser.readValueAs(Map.class);
             }
-
-            JsonParser parser = jsonFactory.createJsonParser(responseStream);
-            return parser.readValueAs(Map.class);
         } catch (IOException e) {
             String message = "Failed while invoking URL " + requestUrl + " to get Bamboo variables. " + e.getMessage();
             throw new RuntimeException(message, e);
         } finally {
             getMethod.releaseConnection();
-            IOUtils.closeQuietly(responseStream);
         }
     }
 

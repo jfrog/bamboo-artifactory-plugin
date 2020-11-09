@@ -49,12 +49,6 @@ public class TokenDataProvider extends SharedCredentialsDataProvider implements 
     }
 
     @Override
-    @Deprecated
-    public void processRuntimeTaskData(@NotNull TaskDefinition taskDefinition, @NotNull CommonContext commonContext) {
-        secureTokenService.invalidate(commonContext.getResultKey());
-    }
-
-    @Override
     public void processRuntimeTaskData(@NotNull RuntimeTaskDefinition runtimeTaskDefinition, @NotNull CommonContext commonContext) {
         secureTokenService.invalidate(commonContext.getResultKey());
     }
