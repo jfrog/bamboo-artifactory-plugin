@@ -142,8 +142,10 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         TaskConfigurationValidations.validateJdk(buildJdkKey, params, errorCollection);
 
         // Validate Executable.
-        String executableKey = GradleBuildContext.PREFIX + PackageManagersContext.EXECUTABLE;
-        TaskConfigurationValidations.validateExecutable(executableKey, params, errorCollection);
+        if (!params.getBoolean(GradleBuildContext.PREFIX + GradleBuildContext.USE_GRADLE_WRAPPER_PARAM)) {
+            String executableKey = GradleBuildContext.PREFIX + PackageManagersContext.EXECUTABLE;
+            TaskConfigurationValidations.validateExecutable(executableKey, params, errorCollection);
+        }
 
         // Validate release management.
         TaskConfigurationValidations.validateReleaseManagement(params, errorCollection);
