@@ -119,6 +119,9 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         environmentVariables.put("MAVEN_HOME", mavenHome);
 
         String jdkPath = getConfiguredJdkPath(buildParamsOverrideManager, mavenBuildContext, capabilityContext);
+        if (jdkPath == null) {
+            throw new RuntimeException("JDK path is not configured. Please make sure the agent has a well configured JDK capability.");
+        }
         List<String> command = buildCommand(mavenHome, jdkPath, rootDirectory, systemProps, mavenDependenciesDir);
 
         // Override the JAVA_HOME according to the build configuration.
