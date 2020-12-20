@@ -1,11 +1,4 @@
-updateCommitStatus: &UPDATE_COMMIT_STATUS update_commit_status jfrogCliGit --context "$step_name"
-
-resources:
-  - name: bambooGit
-    type: GitRepo
-    configuration:
-      path: jfrog/bamboo-artifactory-plugin
-      gitProvider: github
+updateCommitStatus: &UPDATE_COMMIT_STATUS update_commit_status bambooGit --context "$step_name"
 
 pipelines:
   - name: test_bamboo
@@ -19,13 +12,12 @@ pipelines:
             options: -m=8g --memory-swap=-1
       environmentVariables:
         readOnly:
-          CI: "true"
           ARTIFACTORY_URL: $int_jfrog_rt_url
           ARTIFACTORY_USERNAME: $int_jfrog_rt_user
           ARTIFACTORY_PASSWORD: $int_jfrog_rt_password
 
     steps:
-      - name: Integration_Tests
+      - name: Test
         type: Bash
         configuration:
           inputResources:
@@ -37,6 +29,8 @@ pipelines:
             - *UPDATE_COMMIT_STATUS
           onExecute:
             - cd $res_bambooGit_resourcePath
+            - export CI=true
+
             # Restore .m2 cache
             - restore_cache_files m2_home ${HOME}/.m2
 

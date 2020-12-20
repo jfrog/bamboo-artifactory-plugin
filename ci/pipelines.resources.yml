@@ -1,0 +1,19 @@
+resources:
+  - name: bambooGit
+    type: GitRepo
+    configuration:
+      path: jfrog/bamboo-artifactory-plugin
+      gitProvider: github
+      buildOn:
+        pullRequestCreate: true
+      cancelPendingRunsOn:
+        pullRequestUpdate: true
+
+  - name: bambooReleaseGit
+    type: GitRepo
+    configuration:
+      path: jfrog/bamboo-artifactory-plugin
+      gitProvider: github
+      buildOn:
+        commit: false
+
