@@ -52,6 +52,10 @@ public class SharedCredentialsDataProvider implements RuntimeTaskDataProvider {
         Map<String, String> credentialsConfiguration = credentialsData.getConfiguration();
         String username = credentialsConfiguration.get("username");
         String password = credentialsConfiguration.get("password");
+        if (username == null || password == null) {
+            // If username or password are null, the credentials type is not "Username and password" type
+            return;
+        }
         result.put(credUser, username);
         result.put(credPassword, password);
         taskDefinition.getConfiguration().put(credUser, username);
