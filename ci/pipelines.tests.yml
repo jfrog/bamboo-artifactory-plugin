@@ -3,6 +3,7 @@ updateCommitStatus: &UPDATE_COMMIT_STATUS update_commit_status bambooGit --conte
 pipelines:
   - name: test_bamboo
     configuration:
+      nodePool: u20-2xl
       runtime:
         type: image
         image:
