@@ -68,7 +68,7 @@ The integration test should include 2 parts:
 3. Temporarily, configure real Artifactory credentials in: http://localhost:6990/bamboo/admin/jfrogConfig.action
 4. Create a new plan under *Integration Tests* project. Make sure the plan key is same as in the Java code.
 The plan must capture the build info, include environment variables and finalized by the Artifactory Publish Build Info task.
-5. Run the test as instructed in the [section above](#step-2:-Run-a-single-test).
+5. Run the test as instructed in the [section above](#step-2-run-a-single-test).
 6. Once the test passed, restore dummy Artifactory credentials configured in the UI.
 7. Stop the server by `CTRL+C`. 
 8. Run [./scripts/createBambooHome.sh](./scripts/createBambooHome.sh) to update the tests Bamboo home zip.
