@@ -37,13 +37,18 @@ public class RemoteAgent {
     private static final String GRADLE_CAPABILITY_KEY = GradleCapabilityHelper.KEY + ".Gradle";
     private static final String MAVEN_CAPABILITY_KEY = Maven3CapabilityHelper.KEY + ".Maven";
 
+    enum AgentCommand {
+        START,
+        STOP
+    }
+
     static void startAgent() throws IOException, InterruptedException {
         Path agentHome = createAgentHome();
         createAgentWrapperConf(agentHome);
         createCapabilitiesProperties(agentHome);
 
         String javaExe = getJavaExe();
-        CommandResults results = runAgent(javaExe, agentHome, "start");
+        CommandResults results = runAgent(javaExe, agentHome, AgentCommand.START);
         if (!results.isOk()) {
             throw new IOException("Remote agent failed to start: " + results.getErr());
         }
@@ -54,7 +59,7 @@ public class RemoteAgent {
             @Override
             public void run() {
                 try {
-                    CommandResults results = runAgent(javaExe, agentHome, "stop");
+                    CommandResults results = runAgent(javaExe, agentHome, AgentCommand.STOP);
                     if (!results.isOk()) {
                         throw new IOException(results.getErr());
                     }
@@ -141,15 +146,15 @@ public class RemoteAgent {
      * @throws IOException          If there was an error during the execution
      * @throws InterruptedException If there was an error during the execution
      */
-    private static CommandResults runAgent(String javaExe, Path agentHome, String command) throws IOException, InterruptedException {
+    private static CommandResults runAgent(String javaExe, Path agentHome, AgentCommand command) throws IOException, InterruptedException {
         CommandExecutor executor = new CommandExecutor(javaExe, System.getenv());
         List<String> args = new ArrayList<String>() {{
             add("-jar");
             add("-Dbamboo.home=" + agentHome.toAbsolutePath().toString());
             add(AGENT_INSTALLER.toAbsolutePath().toString());
             add(BAMBOO_TEST_URL + "/agentServer/");
-            add(command);
+            add(command.toString().toLowerCase());
         }};
-        return executor.exeCommand(null, args, null);
+        return executor.exeCommand(null, args, null, null);
     }
 }

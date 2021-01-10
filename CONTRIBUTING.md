@@ -48,7 +48,7 @@ Running the above command will start a Tomcat server with the Bamboo CI server, 
 After the server is started, navigate to http://localhost:6990/bamboo. The credentials are `admin:admin`.
 
 #### Step 2: Run a single test
-The plugin's integration tests run the jobs under the *Integration Tests* project. 
+The plugin's integration tests run the jobs under the *Integration Tests* project.
 To run a test, open the *Developer Toolbar* by clicking on the arrow in the lower left corner of your browser.
 Click Toolbox > Plugin Test Console.
 The test console appears. In this console you can run a specific test.
@@ -65,10 +65,10 @@ The integration test should include 2 parts:
 #### Steps to create an integration test
 1. Create a new class extending IntegrationTestsBase, in [src/test/java/it/org/jfrog/bamboo](./src/test/java/it/org/jfrog/bamboo) - see current tests for reference.
 2. Start the Bamboo server as instructed in the previous section. Make sure the new test appear in the *Test Console*.
-3. Temporary, configure real Artifactory credentials in: http://localhost:6990/bamboo/admin/jfrogConfig.action
-4. Create a new plan under *Integration Tests* project. Make sure the plan key is same as in the Java code. 
+3. Temporarily, configure real Artifactory credentials in: http://localhost:6990/bamboo/admin/jfrogConfig.action
+4. Create a new plan under *Integration Tests* project. Make sure the plan key is same as in the Java code.
 The plan must capture the build info, include environment variables and finalized by the Artifactory Publish Build Info task.
-5. Run the test as instructed in the section above.
+5. Run the test as instructed in the [section above](#step-2:-Run-a-single-test).
 6. Once the test passed, restore dummy Artifactory credentials configured in the UI.
 7. Stop the server by `CTRL+C`. 
 8. Run [./scripts/createBambooHome.sh](./scripts/createBambooHome.sh) to update the tests Bamboo home zip.
