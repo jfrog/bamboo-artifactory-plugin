@@ -25,13 +25,9 @@ import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.vcs.VcsTypes;
 import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
 import org.jfrog.bamboo.security.EncryptionHelper;
-import org.jfrog.bamboo.util.TaskUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -233,12 +229,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     private boolean isEncrypted(String value) {
-        try {
-            value = URLDecoder.decode(value, "UTF-8");
-        } catch (Exception ignore) {
-            // Ignore. Trying to decode password that was not encoded.
-        }
-        String decryptedValue = TaskUtils.decryptIfNeeded(value);
+        String decryptedValue = EncryptionHelper.decodeAndDecryptIfNeeded(value);
         return !decryptedValue.equals(value);
     }
 
@@ -257,20 +248,10 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
             if (shouldEncrypt(key)) {
                 String value = entry.getValue();
                 if (isEncrypted(value)) {
-                    try {
-                        value = URLDecoder.decode(value, "UTF-8");
-                    } catch (Exception ignore) {
-                        /* Ignore. Trying to decode password that was not encoded. */
-                    }
-                    value = TaskUtils.decryptIfNeeded(value);
+                    value = EncryptionHelper.decodeAndDecryptIfNeeded(value);
                 }
                 if (enc) {
-                    value = EncryptionHelper.encrypt(value);
-                    try {
-                        value = URLEncoder.encode(value, "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        throw new RuntimeException(e);
-                    }
+                    value = EncryptionHelper.encryptAndEncode(value);
                 }
                 entry.setValue(value);
             }

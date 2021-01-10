@@ -18,7 +18,6 @@ import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PackageManagersContext;
-import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.api.BuildInfoConfigProperties;
@@ -79,15 +78,6 @@ public class TaskUtils {
             arguments.add(Commandline.quoteArgument("-D" + BuildInfoConfigProperties.PROP_PROPS_FILE + "=" +
                     buildInfoPropertiesFile));
         }
-    }
-
-    public static String decryptIfNeeded(String s) {
-        try {
-            s = EncryptionHelper.decrypt(s);
-        } catch (RuntimeException e) {
-            // Ignore. The field may not be encrypted.
-        }
-        return s;
     }
 
     public static ServerConfig getResolutionServerConfig(String baseUsername, String basePassword, ServerConfigManager serverConfigManager, ServerConfig serverConfig, BuildParamsOverrideManager buildParamsOverrideManager) {
