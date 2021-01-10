@@ -38,13 +38,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <buildinfo.version>2.20.0</buildinfo.version>
-        <buildinfo.maven.version>2.20.0</buildinfo.maven.version>
-        <buildinfo.gradle.version>4.18.0</buildinfo.gradle.version>
-        <buildinfo.ivy.version>2.20.0</buildinfo.ivy.version>
-        <buildinfo.npm.version>2.20.0</buildinfo.npm.version>
-        <buildinfo.nuget.version>2.20.0</buildinfo.nuget.version>
-        <buildinfo.docker.version>2.20.0</buildinfo.docker.version>
+        <buildinfo.version>2.21.x-SNAPSHOT</buildinfo.version>
+        <buildinfo.maven.version>2.21.x-SNAPSHOT</buildinfo.maven.version>
+        <buildinfo.gradle.version>4.18.x-SNAPSHOT</buildinfo.gradle.version>
+        <buildinfo.ivy.version>2.21.x-SNAPSHOT</buildinfo.ivy.version>
+        <buildinfo.npm.version>2.21.x-SNAPSHOT</buildinfo.npm.version>
+        <buildinfo.nuget.version>2.21.x-SNAPSHOT</buildinfo.nuget.version>
+        <buildinfo.docker.version>2.21.x-SNAPSHOT</buildinfo.docker.version>
     </properties>
 
     <profiles>

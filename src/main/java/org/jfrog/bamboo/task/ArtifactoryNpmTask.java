@@ -14,9 +14,11 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.NpmBuildContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
+import org.jfrog.build.api.util.Log;
 import org.jfrog.build.api.Build;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
-import org.jfrog.build.extractor.npm.extractor.NpmInstall;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
+import org.jfrog.build.extractor.npm.extractor.NpmInstallCi;
 import org.jfrog.build.extractor.npm.extractor.NpmPublish;
 
 import java.io.File;
@@ -112,9 +114,12 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      * @return Build containing affected artifacts, null if execution failed.
      */
     private Build executeNpmInstall() {
-        ArtifactoryDependenciesClientBuilder clientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
+        ServerConfig serverConfig = buildInfoHelper.getServerConfig();
+        Log buildInfoLogger = new BuildInfoLog(log, logger);
+        ArtifactoryDependenciesClientBuilder depsClientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(serverConfig, buildInfoLogger);
+        ArtifactoryBuildInfoClientBuilder buildInfoClientBuilder = TaskUtils.getArtifactoryBuildInfoClientBuilder(serverConfig, buildInfoLogger);
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
-        return new NpmInstall(clientBuilder, repo, npmBuildContext.getArguments(), buildInfoLog, packagePath, environmentVariables, "").execute();
+        return new NpmInstallCi(depsClientBuilder, buildInfoClientBuilder, repo, npmBuildContext.getArguments(), buildInfoLog, packagePath, environmentVariables, "", buildName, false).execute();
     }
 
     /**
