@@ -24,13 +24,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefaultsHelper {
+    public static final String KEY = CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven.Artifactory Maven 3";
+
     private static final Logger log = Logger.getLogger(Maven3CapabilityHelper.class);
     private static final String MAVEN3_HOME_POSIX = "/usr/share/maven3/";
     private static final Pattern MAVEN_VERSION_3 = Pattern.compile("3\\.\\d+\\.\\d+");
     private static final String M2_EXECUTABLE_NAME = "mvn";
     private static final long GET_VERSION_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
     private static final Pattern VERSION_PATTERN = Pattern.compile("Apache Maven (\\S+).*");
-
 
     @NotNull
     @Override
@@ -53,7 +54,7 @@ public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefau
     @Override
     @NotNull
     protected String getCapabilityKey() {
-        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven.Artifactory Maven 3";
+        return KEY;
     }
 
     public static class MavenVersionMatcher implements Predicate<File> {

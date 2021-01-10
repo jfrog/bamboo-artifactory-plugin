@@ -1,0 +1,64 @@
+updateCommitStatus: &UPDATE_COMMIT_STATUS update_commit_status bambooGit --context "$step_name"
+
+pipelines:
+  - name: test_bamboo
+    configuration:
+      nodePool: u20-2xl
+      runtime:
+        type: image
+        image:
+          custom:
+            name: releases-docker.jfrog.io/jfrog-ecosystem-integration-env
+            tag: 1.0.0
+            options: -m=8g --memory-swap=-1
+      environmentVariables:
+        readOnly:
+          ARTIFACTORY_URL: $int_jfrog_rt_url
+          ARTIFACTORY_USERNAME: $int_jfrog_rt_user
+          ARTIFACTORY_PASSWORD: $int_jfrog_rt_password
+
+    steps:
+      - name: Test
+        type: Bash
+        configuration:
+          inputResources:
+            - name: bambooGit
+          integrations:
+            - name: jfrog
+        execution:
+          onStart:
+            - *UPDATE_COMMIT_STATUS
+          onExecute:
+            - cd $res_bambooGit_resourcePath
+            - export CI=true
+
+            # Restore .m2 cache
+            - restore_cache_files m2_home ${HOME}/.m2
+
+            # Install Java 8
+            - echo sdkman_auto_answer=true > $HOME/.sdkman/etc/config
+            - echo sdkman_auto_selfupdate=true >> $HOME/.sdkman/etc/config
+            - source "/root/.sdkman/bin/sdkman-init.sh" && sdk update && sdk install java `sdk list java | grep -E "8.*hs-adpt" | head -1 | awk '{print $NF}'` && java -version
+
+            # Install atlassian SDK
+            - sh -c 'echo "deb https://packages.atlassian.com/debian/atlassian-sdk-deb/ stable contrib" >>/etc/apt/sources.list'
+            - curl -fL https://packages.atlassian.com/api/gpg/key/public -o public
+            - apt-key add public
+            - apt update && apt install libtcnative-1 atlassian-plugin-sdk -y
+            - ln -sv /usr/lib/x86_64-linux-gnu/libtcnative-1.so /usr/lib/
+            - atlas-version
+
+            # Run integration tests
+            - atlas-integration-test -B
+          onComplete:
+            # Show tests in the *Tests* tab
+            - save_tests $res_bambooGit_resourcePath/target/group-it/tomcat85x/surefire-reports/
+
+            # Add log files to the downloadable artifacts
+            - add_run_files $res_bambooGit_resourcePath/target/bamboo/home/logs/atlassian-bamboo.log atlassian-bamboo.log
+            - add_run_files $res_bambooGit_resourcePath/target/container/tomcat8x/cargo-bamboo-home/bamboo-agent-home/logs/atlassian-bamboo.log atlassian-bamboo-agent.log || true
+
+            # Save .m2 cache
+            - add_cache_files ${HOME}/.m2 m2_home
+
+            - *UPDATE_COMMIT_STATUS

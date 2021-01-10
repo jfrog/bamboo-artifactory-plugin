@@ -27,8 +27,10 @@ public class BuildParamsOverrideManager {
      * If this variable is not defined, the path is taken from the JAVA_HOME environment variable.
      */
     public static final String OVERRIDE_JDK_ENV_VAR_KEY = "artifactory.task.override.jdk.env.var";
+    public static final String OVERRIDE_ARTIFACTORY_DEPLOYER_URL = "artifactory.override.deployer.url";
     public static final String OVERRIDE_ARTIFACTORY_DEPLOYER_USERNAME = "artifactory.override.deployer.username";
     public static final String OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD = "artifactory.override.deployer.password";
+    public static final String OVERRIDE_ARTIFACTORY_RESOLVER_URL = "artifactory.override.resolver.url";
     public static final String OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME = "artifactory.override.resolver.username";
     public static final String OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD = "artifactory.override.resolver.password";
     public static final String OVERRIDE_ARTIFACTORY_RESOLVE_REPO = "artifactory.override.resolve.repo";
@@ -39,6 +41,8 @@ public class BuildParamsOverrideManager {
             OVERRIDE_ARTIFACTORY_DEPLOYER_PASSWORD,
             OVERRIDE_ARTIFACTORY_RESOLVER_USERNAME,
             OVERRIDE_ARTIFACTORY_RESOLVER_PASSWORD,
+            OVERRIDE_ARTIFACTORY_DEPLOYER_URL,
+            OVERRIDE_ARTIFACTORY_RESOLVER_URL,
             OVERRIDE_ARTIFACTORY_RESOLVE_REPO,
             OVERRIDE_ARTIFACTORY_DEPLOY_REPO,
             OVERRIDE_JDK_ENV_VAR_KEY,
