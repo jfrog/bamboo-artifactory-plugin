@@ -33,7 +33,7 @@ brew install atlassian/tap/atlassian-plugin-sdk
 ### Running the integration tests
 To run the integration tests, execute the following command:
 ```shell script
-atlas-clean && atlas-integration-test
+atlas-clean && atlas-integration-test -DskipITs=false
 ```
 
 ### Running a single test
