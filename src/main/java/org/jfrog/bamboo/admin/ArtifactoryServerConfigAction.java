@@ -21,6 +21,7 @@ import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
@@ -99,8 +100,12 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
 
 
     public String doUpdate() throws Exception {
+        // Decrypt password from UI, if encrypted.
+        password = EncryptionHelper.decodeAndDecryptIfNeeded(password);
         if (isTesting()) {
             testConnection();
+            // Encrypt password when returning it to UI.
+            password = EncryptionHelper.encryptAndEncode(password);
             return INPUT;
         }
         serverConfigManager.updateServerConfiguration(createServerConfig());
@@ -215,10 +220,16 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
         log.error("Error while testing the connection to Artifactory server " + url, e);
     }
 
+    /**
+     * Update fields to show in the server update page in the UI.
+     * Encrypting password so it won't show in the UI inspection.
+     *
+     * @param serverConfig - Server being updated.
+     */
     private void updateFieldsFromServerConfig(ServerConfig serverConfig) {
         setUrl(serverConfig.getUrl());
         setUsername(serverConfig.getUsername());
-        setPassword(serverConfig.getPassword());
+        setPassword(EncryptionHelper.encryptAndEncode(serverConfig.getPassword()));
         setTimeout(serverConfig.getTimeout());
     }
 

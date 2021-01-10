@@ -178,7 +178,7 @@ public class ServerConfigManager implements Serializable {
             password = req.getParameter("password");
         }
         if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
-            password = TaskUtils.decryptIfNeeded(password);
+            password = EncryptionHelper.decryptIfNeeded(password);
         } else {
             username = serverConfig.getUsername();
             password = serverConfig.getPassword();
@@ -234,7 +234,7 @@ public class ServerConfigManager implements Serializable {
         String password;
         if (StringUtils.isNotBlank(req.getParameter("user")) && StringUtils.isNotBlank(req.getParameter("password"))) {
             username = substituteVariables(req.getParameter("user"));
-            password = substituteVariables(TaskUtils.decryptIfNeeded(req.getParameter("password")));
+            password = substituteVariables(EncryptionHelper.decryptIfNeeded(req.getParameter("password")));
         } else {
             username = substituteVariables(serverConfig.getUsername());
             password = substituteVariables(serverConfig.getPassword());
@@ -273,7 +273,7 @@ public class ServerConfigManager implements Serializable {
 
         for (ServerConfig serverConfig : configuredServers) {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
-                    EncryptionHelper.encrypt(serverConfig.getPassword()), serverConfig.getTimeout()));
+                    EncryptionHelper.encrypt(serverConfig.getPassword(), true), serverConfig.getTimeout()));
         }
         String serverConfigsString = toXMLString(serverConfigs);
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigsString);
