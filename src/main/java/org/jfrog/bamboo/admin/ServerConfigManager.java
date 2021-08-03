@@ -273,7 +273,7 @@ public class ServerConfigManager implements Serializable {
 
         for (ServerConfig serverConfig : configuredServers) {
             serverConfigs.add(new ServerConfig(serverConfig.getId(), serverConfig.getUrl(), serverConfig.getUsername(),
-                    EncryptionHelper.encrypt(serverConfig.getPassword(), true), serverConfig.getTimeout()));
+                    EncryptionHelper.encryptForConfig(serverConfig.getPassword()), serverConfig.getTimeout()));
         }
         String serverConfigsString = toXMLString(serverConfigs);
         bandanaManager.setValue(PlanAwareBandanaContext.GLOBAL_CONTEXT, ARTIFACTORY_CONFIG_KEY, serverConfigsString);

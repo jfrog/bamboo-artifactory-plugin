@@ -1,5 +1,6 @@
 package org.jfrog.bamboo.security;
 
+import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -8,9 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.crypto.*;
 import javax.crypto.spec.DESedeKeySpec;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -34,32 +32,43 @@ public class EncryptionHelper {
     private static final String dbKey = "Beetlejuice version $version (c) Copyright 2003-2005 Pols Consulting Limited";
 
     /***
-     * Encrypts data with the corresponding key.
+     * Encrypts data with the constant DB key. Use this method to encrypt configuration data. For example, sensetive data which is meant
+     * to be saved to the DB.
+     * Use the 'decrypt' method for the opposite operation.
      * @param stringToEncrypt - Nullable string to encrypt.
-     * @param db - If true, encrypts with the {@link #dbKey}. Else, with the {@link #uiKey}.
      * @return - Encrypted data.
      */
     @NotNull
-    public static String encrypt(@Nullable String stringToEncrypt, boolean db) {
+    public static String encryptForConfig(@Nullable String stringToEncrypt) {
         if (StringUtils.isEmpty(stringToEncrypt)) {
             return "";
         }
-        String key = db ? dbKey : uiKey;
+
         try {
-            final byte[] encrypted = getEncrypter(key).doFinal(stringToEncrypt.getBytes(StandardCharsets.UTF_8));
+            final byte[] encrypted = getEncrypter(dbKey).doFinal(stringToEncrypt.getBytes(StandardCharsets.UTF_8));
             return Base64.getMimeEncoder().encodeToString(encrypted);
         } catch (Exception e) {
             throw new RuntimeException("Failed to encrypt.", e);
         }
     }
 
+    /***
+     * Encrypts data with the changing genetated key. Use this method to encrypt sensetive data before it is presented in the UI.
+     * Use the 'decrypt' method for the opposite operation.
+     * @param stringToEncrypt - Nullable string to encrypt.
+     * @return - Encrypted data.
+     */
     @NotNull
-    public static String encryptAndEncode(@Nullable String stringToEncrypt) {
-        String value = encrypt(stringToEncrypt, false);
+    public static String encryptForUi(@Nullable String stringToEncrypt) {
+        if (StringUtils.isEmpty(stringToEncrypt)) {
+            return "";
+        }
+
         try {
-            return URLEncoder.encode(value, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            final byte[] encrypted = getEncrypter(uiKey).doFinal(stringToEncrypt.getBytes(StandardCharsets.UTF_8));
+            return new Base32().encodeAsString(encrypted);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to encrypt.", e);
         }
     }
 
@@ -68,11 +77,13 @@ public class EncryptionHelper {
         if (StringUtils.isEmpty(data)) {
             return "";
         }
-        final byte[] encrypted = Base64.getMimeDecoder().decode(data);
+
         try {
+            final byte[] encrypted = Base64.getMimeDecoder().decode(data);
             return decryptWithKey(dbKey, encrypted);
         } catch (Exception e) {
             try {
+                final byte[] encrypted = new Base32().decode(data);
                 return decryptWithKey(uiKey, encrypted);
             } catch (Exception ee) {
                 throw new RuntimeException("Failed to decrypt.", ee);
@@ -87,16 +98,6 @@ public class EncryptionHelper {
             // Ignore. The field may not be encrypted.
         }
         return s;
-    }
-
-    public static String decodeAndDecryptIfNeeded(String s) {
-        String value = "";
-        try {
-            value = URLDecoder.decode(s, "UTF-8");
-        } catch (Exception ignore) {
-            // Ignore. Trying to decode password that was not encoded.
-        }
-        return decryptIfNeeded(value);
     }
 
     private static String decryptWithKey(String key, byte[] encrypted) throws InvalidKeySpecException, InvalidKeyException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException {
