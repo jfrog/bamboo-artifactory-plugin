@@ -229,7 +229,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     }
 
     private boolean isEncrypted(String value) {
-        String decryptedValue = EncryptionHelper.decodeAndDecryptIfNeeded(value);
+        String decryptedValue = EncryptionHelper.decryptIfNeeded(value);
         return !decryptedValue.equals(value);
     }
 
@@ -248,10 +248,10 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
             if (shouldEncrypt(key)) {
                 String value = entry.getValue();
                 if (isEncrypted(value)) {
-                    value = EncryptionHelper.decodeAndDecryptIfNeeded(value);
+                    value = EncryptionHelper.decryptIfNeeded(value);
                 }
                 if (enc) {
-                    value = EncryptionHelper.encryptAndEncode(value);
+                    value = EncryptionHelper.encryptForUi(value);
                 }
                 entry.setValue(value);
             }

@@ -57,15 +57,9 @@
             <id>oss</id>
             <repositories>
                 <repository>
-                    <id>central</id>
+                    <id>oss-releases</id>
                     <name>jfrog-dependencies</name>
-                    <url>http://oss.jfrog.org/artifactory/jfrog-dependencies</url>
-                </repository>
-                <repository>
-                    <snapshots/>
-                    <id>snapshots</id>
-                    <name>libs-snapshot</name>
-                    <url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
+                    <url>https://releases.jfrog.io/artifactory/oss-releases</url>
                 </repository>
                 <repository>
                     <id>atlassian-public</id>
@@ -73,20 +67,6 @@
                 </repository>
             </repositories>
             <pluginRepositories>
-                <pluginRepository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>central</id>
-                    <name>jfrog-dependencies</name>
-                    <url>http://oss.jfrog.org/artifactory/jfrog-dependencies</url>
-                </pluginRepository>
-                <pluginRepository>
-                    <snapshots/>
-                    <id>snapshots</id>
-                    <name>plugins-snapshot</name>
-                    <url>http://oss.jfrog.org/artifactory/plugins-snapshot</url>
-                </pluginRepository>
                 <pluginRepository>
                     <id>atlassian-public</id>
                     <url>https://maven.atlassian.com/repository/public</url>

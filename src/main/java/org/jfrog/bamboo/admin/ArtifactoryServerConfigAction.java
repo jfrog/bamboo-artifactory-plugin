@@ -101,11 +101,11 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
 
     public String doUpdate() throws Exception {
         // Decrypt password from UI, if encrypted.
-        password = EncryptionHelper.decodeAndDecryptIfNeeded(password);
+        password = EncryptionHelper.decryptIfNeeded(password);
         if (isTesting()) {
             testConnection();
             // Encrypt password when returning it to UI.
-            password = EncryptionHelper.encryptAndEncode(password);
+            password = EncryptionHelper.encryptForUi(password);
             return INPUT;
         }
         serverConfigManager.updateServerConfiguration(createServerConfig());
@@ -229,7 +229,7 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
     private void updateFieldsFromServerConfig(ServerConfig serverConfig) {
         setUrl(serverConfig.getUrl());
         setUsername(serverConfig.getUsername());
-        setPassword(EncryptionHelper.encryptAndEncode(serverConfig.getPassword()));
+        setPassword(EncryptionHelper.encryptForUi(serverConfig.getPassword()));
         setTimeout(serverConfig.getTimeout());
     }
 
