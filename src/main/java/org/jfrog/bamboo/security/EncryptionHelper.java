@@ -32,7 +32,7 @@ public class EncryptionHelper {
     private static final String dbKey = "Beetlejuice version $version (c) Copyright 2003-2005 Pols Consulting Limited";
 
     /***
-     * Encrypts data with the constant DB key. Use this method to encrypt configuration data. For example, sensetive data which is meant
+     * Encrypts data with the constant DB key. Use this method to encrypt configuration data. For example, sensitive data which is meant
      * to be saved to the DB.
      * Use the 'decrypt' method for the opposite operation.
      * @param stringToEncrypt - Nullable string to encrypt.
@@ -53,7 +53,7 @@ public class EncryptionHelper {
     }
 
     /***
-     * Encrypts data with the changing genetated key. Use this method to encrypt sensetive data before it is presented in the UI.
+     * Encrypts data with the changing generated key. Use this method to encrypt sensitive data before it is presented in the UI.
      * Use the 'decrypt' method for the opposite operation.
      * @param stringToEncrypt - Nullable string to encrypt.
      * @return - Encrypted data.
