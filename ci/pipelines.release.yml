@@ -22,7 +22,7 @@ pipelines:
           inputResources:
             - name: bambooReleaseGit
           integrations:
-            - name: ojo
+            - name: releases_temp
             - name: github_generic
         execution:
           onStart:
@@ -51,10 +51,9 @@ pipelines:
             - curl -fL https://getcli.jfrog.io | sh && chmod +x jfrog
 
             # Configure JFrog CLI
-            - ./jfrog rt c ojo --url $int_ojo_rt_url --access-token=$int_ojo_rt_token
+            - ./jfrog c add releases --artifactory-url=https://releases.jfrog.io/artifactory --access-token=$int_releases_temp_token
             - ./jfrog rt mvnc
-              --server-id-resolve ojo --repo-resolve-releases jfrog-dependencies --repo-resolve-snapshots jfrog-dependencies
-              --server-id-deploy ojo --repo-deploy-releases oss-release-local --repo-deploy-snapshots oss-snapshot-local
+              --server-id-deploy releases --repo-deploy-releases oss-release-local --repo-deploy-snapshots oss-snapshot-local
 
             # Sync changes with master
             - git merge origin/master
@@ -69,10 +68,7 @@ pipelines:
             # Run install and publish
             - >
               env -i PATH=$PATH M2_HOME=$M2_HOME HOME=$HOME
-              JFROG_CLI_BUILD_NAME=$JFROG_CLI_BUILD_NAME
-              JFROG_CLI_BUILD_NUMBER=$JFROG_CLI_BUILD_NUMBER
               ./jfrog rt mvn clean install -U -B
-            - ./jfrog rt bp
 
             # Update next development version
             - env -i PATH=$PATH M2_HOME=$M2_HOME HOME=$HOME mvn versions:set -DnewVersion=$NEXT_DEVELOPMENT_VERSION -B
