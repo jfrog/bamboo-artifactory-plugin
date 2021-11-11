@@ -59,7 +59,7 @@ public class BuilderDependencyHelper implements Serializable {
 
         //Search for older plugin dirs and remove if any exist
         File[] planTempFiles = planTemp.listFiles();
-        if (null !=  planTempFiles) {
+        if (null != planTempFiles) {
             for (File buildDirChild : planTempFiles) {
                 String buildDirChildName = buildDirChild.getName();
                 if (buildDirChildName.startsWith(pluginDescriptorKey) &&
