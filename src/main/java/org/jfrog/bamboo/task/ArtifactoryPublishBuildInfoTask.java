@@ -73,7 +73,7 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
             if (StringUtils.isNotBlank(aggregatedBuildsJson)) {
                 addBuildsToPublish(taskContext, build, aggregatedBuildsJson);
             }
-            client.sendBuildInfo(build);
+            client.sendBuildInfo(build, "");
 
             // Add build details to context.
             addPublishedBuildDetailsToBuildData(client.getArtifactoryUrl(), build.getName(), build.getNumber(), taskContext, customBuildData);

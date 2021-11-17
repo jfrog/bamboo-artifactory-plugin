@@ -126,7 +126,7 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
         ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
         String buildName = collectBuildIssuesContext.getBuildName(((TaskContext) taskContext).getBuildContext());
         Vcs vcs = extractVcs(projectRootDir, buildInfoLog);
-        return new IssuesCollector().collectIssues(projectRootDir, buildInfoLog, config, clientBuilder, buildName, vcs);
+        return new IssuesCollector().collectIssues(projectRootDir, buildInfoLog, config, clientBuilder, buildName, vcs, "");
     }
 
     private void addIssuesToBuildInfoInContext(@NotNull TaskContext taskContext, Issues issues) {

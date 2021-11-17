@@ -110,7 +110,7 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         return new NugetRun(clientBuilder, repo, taskType == TaskType.DOTNET, String.format("restore %s", dotNetBuildContext.getArguments()),
                 buildInfoLog, workingDir, environmentVariables, null, buildInfoHelper.getServerConfig().getUsername(),
-                buildInfoHelper.getServerConfig().getPassword()).execute();
+                buildInfoHelper.getServerConfig().getPassword(), "").execute();
     }
 
     protected Build executePush() throws Exception {
