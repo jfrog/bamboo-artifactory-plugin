@@ -155,6 +155,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
      * Gets the VCS checkout directory of the build.
      * If the build has more than 1 checkout-location, return the default working directory.
      * We keep using the VCS checkout directory for backward compatibility.
+     *
      * @return the working directory for the task.
      */
     private File getWorkingDirectory() {
@@ -246,7 +247,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
 
     public void publishBuildInfo(TaskContext taskContext, ArtifactoryBuildInfoClient client, Build build) throws IOException {
         BuildContext buildContext = taskContext.getBuildContext();
-        client.sendBuildInfo(build);
+        client.sendBuildInfo(build, "");
         buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, client.getArtifactoryUrl());
     }
 
