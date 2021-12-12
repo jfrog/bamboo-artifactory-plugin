@@ -321,7 +321,13 @@
         <dependency>
             <groupId>com.jfrog.testing</groupId>
             <artifactId>jfrog-testing-infra</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.9</version>
             <scope>test</scope>
         </dependency>
 
