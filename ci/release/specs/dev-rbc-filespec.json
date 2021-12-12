@@ -1,0 +1,8 @@
+{
+  "files": [
+    {
+      "pattern": "ecosys-oss-snapshot-local/(org/jfrog/bamboo/bamboo-artifactory-plugin/*/bamboo-artifactory-plugin-*)",
+      "target": "oss-snapshot-local/{1}"
+    }
+  ]
+}

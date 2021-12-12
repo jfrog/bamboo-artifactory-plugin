@@ -1,5 +1,14 @@
 updateCommitStatus: &UPDATE_COMMIT_STATUS update_commit_status bambooGit --context "$step_name"
 
+resources:
+  - name: bambooTestGit
+    type: GitRepo
+    configuration:
+      path: jfrog/bamboo-artifactory-plugin
+      gitProvider: github
+      branches:
+        include: master
+
 pipelines:
   - name: test_bamboo
     configuration:
@@ -22,14 +31,14 @@ pipelines:
         type: Bash
         configuration:
           inputResources:
-            - name: bambooGit
+            - name: bambooTestGit
           integrations:
             - name: jfrog
         execution:
           onStart:
             - *UPDATE_COMMIT_STATUS
           onExecute:
-            - cd $res_bambooGit_resourcePath
+            - cd $res_bambooTestGit_resourcePath
             - export CI=true
 
             # Restore .m2 cache
@@ -52,11 +61,11 @@ pipelines:
             - atlas-integration-test -B -DskipITs=false
           onComplete:
             # Show tests in the *Tests* tab
-            - save_tests $res_bambooGit_resourcePath/target/group-it/tomcat85x/surefire-reports/
+            - save_tests $res_bambooTestGit_resourcePath/target/group-it/tomcat85x/surefire-reports/
 
             # Add log files to the downloadable artifacts
-            - add_run_files $res_bambooGit_resourcePath/target/bamboo/home/logs/atlassian-bamboo.log atlassian-bamboo.log
-            - add_run_files $res_bambooGit_resourcePath/target/container/tomcat8x/cargo-bamboo-home/bamboo-agent-home/logs/atlassian-bamboo.log atlassian-bamboo-agent.log || true
+            - add_run_files $res_bambooTestGit_resourcePath/target/bamboo/home/logs/atlassian-bamboo.log atlassian-bamboo.log
+            - add_run_files $res_bambooTestGit_resourcePath/target/container/tomcat8x/cargo-bamboo-home/bamboo-agent-home/logs/atlassian-bamboo.log atlassian-bamboo-agent.log || true
 
             # Save .m2 cache
             - add_cache_files ${HOME}/.m2 m2_home

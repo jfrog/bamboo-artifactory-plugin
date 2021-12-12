@@ -1,5 +1,3 @@
-updateCommitStatus: &UPDATE_COMMIT_STATUS update_commit_status bambooReleaseGit --context "$step_name"
-
 pipelines:
   - name: release_bamboo
     configuration:
@@ -22,44 +20,39 @@ pipelines:
           inputResources:
             - name: bambooReleaseGit
           integrations:
-            - name: releases_temp
-            - name: github_generic
+            - name: il_automation
+            - name: entplus_deployer
         execution:
-          onStart:
-            - *UPDATE_COMMIT_STATUS
-            - restore_cache_files m2_home ${HOME}/.m2
           onExecute:
             - cd $res_bambooReleaseGit_resourcePath
 
             # Set env
             - export CI=true
-            - export JFROG_CLI_BUILD_NAME=bamboo-artifactory-plugin
+            - export JFROG_BUILD_STATUS=PASS
+            - export JFROG_CLI_BUILD_NAME=ecosystem-artifactory-bamboo-plugin-release
             - export JFROG_CLI_BUILD_NUMBER=$run_number
-            # Set M2_HOME
-            - MVN_PATH=`which mvn` && export M2_HOME=`readlink -f $MVN_PATH | xargs dirname | xargs dirname`
+            - export JFROG_CLI_BUILD_PROJECT=ecosys
 
             # Configure git
             - git checkout release
-            - git remote set-url origin https://$int_github_generic_token@github.com/jfrog/bamboo-artifactory-plugin.git
+            - git remote set-url origin https://$int_il_automation_token@github.com/jfrog/bamboo-artifactory-plugin.git
 
             # Make sure versions provided
             - echo "Checking variables"
             - test -n "$NEXT_VERSION" -a "$NEXT_VERSION" != "0.0.0"
-            - test -n "$NEXT_DEVELOPMENT_VERSION" -a "$NEXT_DEVELOPMENT_VERSION" != "0.0.x-SNAPSHOT"
-
-            # Download JFrog CLI
-            - curl -fL https://getcli.jfrog.io | sh && chmod +x jfrog
+            - test -n "$NEXT_DEVELOPMENT_VERSION" -a "$NEXT_DEVELOPMENT_VERSION" != "0.0.0"
 
             # Configure JFrog CLI
-            - ./jfrog c add releases --artifactory-url=https://releases.jfrog.io/artifactory --access-token=$int_releases_temp_token
-            - ./jfrog rt mvnc
-              --server-id-deploy releases --repo-deploy-releases oss-release-local --repo-deploy-snapshots oss-snapshot-local
+            - curl -fL https://getcli.jfrog.io/v2-jf | sh && chmod +x jf
+            - ./jf c rm --quiet
+            - ./jf c add internal --url=$int_entplus_deployer_url --user=$int_entplus_deployer_user --password=$int_entplus_deployer_apikey
+            - ./jf mvnc --repo-resolve-releases ecosys-bamboo-repos --repo-resolve-snapshots ecosys-releases-snapshots --repo-deploy-snapshots ecosys-oss-snapshot-local --repo-deploy-releases ecosys-oss-release-local
 
             # Sync changes with master
             - git merge origin/master
 
             # Update version
-            - env -i PATH=$PATH M2_HOME=$M2_HOME HOME=$HOME mvn versions:set -DnewVersion="${NEXT_VERSION}" -B
+            - env -i PATH=$PATH M2_HOME=$M2_HOME HOME=$HOME ./jf mvn versions:set -DnewVersion="${NEXT_VERSION}" -B
             - git commit -am "[artifactory-release] Release version ${NEXT_VERSION} [skipRun]" --allow-empty
             - git tag ${NEXT_VERSION}
             - git push
@@ -68,12 +61,20 @@ pipelines:
             # Run install and publish
             - >
               env -i PATH=$PATH M2_HOME=$M2_HOME HOME=$HOME
-              ./jfrog rt mvn clean install -U -B
+              JFROG_CLI_BUILD_NAME=$JFROG_CLI_BUILD_NAME
+              JFROG_CLI_BUILD_NUMBER=$JFROG_CLI_BUILD_NUMBER
+              JFROG_CLI_BUILD_PROJECT=$JFROG_CLI_BUILD_PROJECT
+              ./jf mvn clean install -U -B
+            - ./jf rt bag && ./jf rt bce
+            - ./jf rt bp
+
+            # Distribute release bundle
+            - ./jf ds rbc artifactory-bamboo-plugin $NEXT_VERSION --spec=./release/specs/prod-rbc-filespec.json --spec-vars="version=$NEXT_VERSION" --sign
+            - ./jf ds rbd artifactory-bamboo-plugin $NEXT_VERSION --site="releases.jfrog.io" --sync
 
             # Update next development version
-            - env -i PATH=$PATH M2_HOME=$M2_HOME HOME=$HOME mvn versions:set -DnewVersion=$NEXT_DEVELOPMENT_VERSION -B
+            - env -i PATH=$PATH M2_HOME=$M2_HOME HOME=$HOME ./jf mvn versions:set -DnewVersion=$NEXT_DEVELOPMENT_VERSION -B
             - git commit -am "[artifactory-release] Next development version [skipRun]"
-            - git push
 
             # Merge changes to master
             - git checkout master
@@ -83,8 +84,3 @@ pipelines:
           onComplete:
             # Show tests in the *Tests* tab
             - save_tests $res_bambooReleaseGit_resourcePath/target/surefire-reports/
-
-            - *UPDATE_COMMIT_STATUS
-
-            # Save .m2 cache
-            - add_cache_files ${HOME}/.m2 m2_home
