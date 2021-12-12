@@ -2,7 +2,7 @@ resources:
   - name: bambooSnapshotGit
     type: GitRepo
     configuration:
-      path: jfrog/jenkins-artifactory-plugin
+      path: jfrog/bamboo-artifactory-plugin
       gitProvider: il_automation
       branches:
         include: master
@@ -10,7 +10,7 @@ resources:
   - name: bambooReleaseGit
     type: GitRepo
     configuration:
-      path: jfrog/jenkins-artifactory-plugin
+      path: jfrog/bamboo-artifactory-plugin
       gitProvider: il_automation
       buildOn:
         commit: false
