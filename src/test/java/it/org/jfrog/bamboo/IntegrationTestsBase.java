@@ -114,7 +114,7 @@ public abstract class IntegrationTestsBase {
         try {
             String buildName = chain.getAllJobs().get(0).getName();
             String buildNumber = String.valueOf(chain.getLastBuildNumber());
-            Build buildInfo = helper.getBuildInfo(buildName, buildNumber);
+            Build buildInfo = helper.getBuildInfo(buildName, buildNumber, "");
             assertNotNull(buildInfo);
             helper.assertFilteredProperties(buildInfo);
             return buildInfo;

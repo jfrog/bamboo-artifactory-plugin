@@ -3,7 +3,7 @@ package it.org.jfrog.bamboo.prehook;
 import com.jfrog.testing.IntegrationTestsHelper;
 import it.org.jfrog.bamboo.IntegrationTestsBase;
 import it.org.jfrog.bamboo.utils.TestRepositories;
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 
 /**
  * Creates required Artifactory repositories before integration tests.
@@ -20,7 +20,7 @@ public class RepositoriesHandler {
     static void createTestRepositories() {
         try (IntegrationTestsHelper helper = new IntegrationTestsHelper()) {
             helper.cleanUpArtifactory();
-            StrSubstitutor repoSubstitotor = new StrSubstitutor();
+            StringSubstitutor repoSubstitotor = new StringSubstitutor();
             for (TestRepositories testRepository : TestRepositories.values()) {
                 helper.createRepo(testRepository.getTestRepository(), repoSubstitotor, IntegrationTestsBase.class.getClassLoader());
             }
