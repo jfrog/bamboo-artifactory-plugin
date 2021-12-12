@@ -54,7 +54,7 @@ pipelines:
             - ./jf rt bp
 
             # Distribute release bundle
-            - ./jf ds rbc artifactory-bamboo-plugin-snapshot $run_number --spec=./release/specs/dev-rbc-filespec.json --sign
+            - ./jf ds rbc artifactory-bamboo-plugin-snapshot $run_number --spec=./ci/release/specs/dev-rbc-filespec.json --sign
             - ./jf ds rbd artifactory-bamboo-plugin-snapshot $run_number --site="releases.jfrog.io" --sync
 
           onComplete:
