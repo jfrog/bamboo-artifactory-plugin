@@ -5,7 +5,8 @@ import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Maps;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jfrog.bamboo.release.vcs.git.GitCoordinator;
 import org.jfrog.bamboo.release.vcs.perforce.PerforceCoordinator;
 
@@ -19,7 +20,7 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public abstract class AbstractVcsCoordinator implements VcsCoordinator {
-    private static final Logger log = Logger.getLogger(AbstractVcsCoordinator.class);
+    private static final Logger log = LogManager.getLogger(AbstractVcsCoordinator.class);
     protected final BuildLogger buildLogger;
     protected final CustomVariableContext customVariableContext;
     protected final CredentialsAccessor credentialsAccessor;

@@ -2,7 +2,8 @@ package org.jfrog.bamboo.security;
 
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +23,7 @@ import java.util.Base64;
 @ThreadSafe
 public class EncryptionHelper {
 
-    private static final Logger log = Logger.getLogger(EncryptionHelper.class);
+    private static final Logger log = LogManager.getLogger(EncryptionHelper.class);
 
     private static final String DESEDE_ENCRYPTION_SCHEME = "DESede";
 

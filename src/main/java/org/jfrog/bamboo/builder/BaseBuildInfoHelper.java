@@ -29,7 +29,8 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
@@ -54,7 +55,7 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_SERVLET_KEY_PARAM;
  * @author Noam Y. Tenne
  */
 public abstract class BaseBuildInfoHelper {
-    protected static final Logger log = Logger.getLogger(BaseBuildInfoHelper.class);
+    protected static final Logger log = LogManager.getLogger(BaseBuildInfoHelper.class);
 
     protected Log buildInfoLog;
     protected BuildContext context;

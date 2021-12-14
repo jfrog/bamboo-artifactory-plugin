@@ -19,9 +19,9 @@ package org.jfrog.bamboo.admin;
 import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.sal.api.user.UserProfile;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class ArtifactoryConfigServlet extends HttpServlet {
 
-    private Logger log = Logger.getLogger(ArtifactoryConfigServlet.class);
+    private static final Logger log = LogManager.getLogger(ArtifactoryConfigServlet.class);
     private ServerConfigManager serverConfigManager;
     private final UserManager userManager;
 

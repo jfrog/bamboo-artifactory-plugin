@@ -3,7 +3,8 @@ package org.jfrog.bamboo.release.vcs;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.version.VcsHelper;
@@ -16,7 +17,7 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public abstract class AbstractVcsManager implements VcsManager {
-    private static final Logger log = Logger.getLogger(AbstractVcsManager.class);
+    private static final Logger log = LogManager.getLogger(AbstractVcsManager.class);
     private BuildContext context;
     private final BuildLogger buildLogger;
 

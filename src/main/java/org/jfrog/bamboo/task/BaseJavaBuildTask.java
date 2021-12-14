@@ -15,7 +15,7 @@ import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.utils.process.*;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
@@ -85,7 +85,7 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
      *
      * @param context           The build context which is defined for the current build environment.
      * @param capabilityContext The capability context of the build.
-     * @return                  The path to the Java home.
+     * @return The path to the Java home.
      */
     protected String getConfiguredJdkPath(BuildParamsOverrideManager buildParamsOverrideManager, PackageManagersContext context,
                                           CapabilityContext capabilityContext) {

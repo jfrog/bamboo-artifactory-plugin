@@ -19,7 +19,8 @@ package org.jfrog.bamboo.admin;
 import com.atlassian.bamboo.ww2.BambooActionSupport;
 import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.BuildInfoLog;
@@ -37,7 +38,7 @@ import java.net.URL;
  */
 public class ArtifactoryServerConfigAction extends BambooActionSupport implements GlobalAdminSecurityAware {
 
-    private transient Logger log = Logger.getLogger(ArtifactoryServerConfigAction.class);
+    private transient Logger log = LogManager.getLogger(ArtifactoryServerConfigAction.class);
 
     private String mode;
     private long serverId;

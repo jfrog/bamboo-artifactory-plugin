@@ -2,7 +2,8 @@ package org.jfrog.bamboo.release.action;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.v2.build.BaseConfigurableBuildPlugin;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Abstract build action class which is has convenience methods especially for logging by adding the '[RELEASE]' prefix
@@ -11,7 +12,7 @@ import org.apache.log4j.Logger;
  * @author Tomer Cohen
  */
 public abstract class AbstractBuildAction extends BaseConfigurableBuildPlugin {
-    private static final Logger log = Logger.getLogger(AbstractBuildAction.class);
+    private static final Logger log = LogManager.getLogger(AbstractBuildAction.class);
     private BuildLogger buildLogger;
 
     protected void log(String message) {

@@ -7,7 +7,8 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -35,7 +36,7 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public class GitManager extends AbstractVcsManager {
-    private static final Logger log = Logger.getLogger(GitManager.class);
+    private static final Logger log = LogManager.getLogger(GitManager.class);
     private static final String REF_PREFIX = "refs/heads/";
     private static final String REFS_TAGS = "refs/tags/";
     private BuildLogger buildLogger;
@@ -321,11 +322,11 @@ public class GitManager extends AbstractVcsManager {
         String url = getRemoteUrl();
         Transport transport = null;
         try (Git git = createGitApi()) {
-                transport = Transport.open(git.getRepository(), url);
-                if (transport instanceof SshTransport) {
-                    SshSessionFactory factory = new GitSshSessionFactory(sshKey, sshPassphrase);
-                    ((SshTransport) transport).setSshSessionFactory(factory);
-                }
+            transport = Transport.open(git.getRepository(), url);
+            if (transport instanceof SshTransport) {
+                SshSessionFactory factory = new GitSshSessionFactory(sshKey, sshPassphrase);
+                ((SshTransport) transport).setSshSessionFactory(factory);
+            }
         } catch (URISyntaxException e) {
             log.error(e.getMessage(), e);
             buildLogger.addErrorLogEntry(e.getMessage(), e);
