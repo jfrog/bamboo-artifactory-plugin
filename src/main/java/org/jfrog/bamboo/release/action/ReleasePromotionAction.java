@@ -22,12 +22,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.opensymphony.xwork2.ActionContext;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts2.dispatcher.Parameter;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.promotion.PromotionContext;
 import org.jfrog.bamboo.promotion.PromotionThread;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
@@ -58,7 +59,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     public static final String CURRENT_VALUE_KEY = "version.currentValue";
     public static final String RELEASE_PROP_KEY = "version.releaseProp";
     public static final String MODULE_KEY = "version.key";
-    private static final Logger log = Logger.getLogger(ReleasePromotionAction.class);
+    private static final Logger log = LogManager.getLogger(ReleasePromotionAction.class);
     private static final String PROMOTION_NORMAL_MODE = "normalMode";
     private static final Map<String, String> MODULE_VERSION_TYPES =
             ImmutableMap.of(ReleaseProvider.CFG_ONE_VERSION, "One version for all modules.",

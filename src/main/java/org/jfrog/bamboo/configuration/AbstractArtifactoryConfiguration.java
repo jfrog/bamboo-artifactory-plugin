@@ -14,7 +14,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.admin.ServerConfigManager;
@@ -74,7 +75,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     protected UIConfigSupport uiConfigSupport;
     private final String builderContextPrefix;
     private final String capabilityPrefix;
-    private static final Logger log = Logger.getLogger(AbstractArtifactoryConfiguration.class);
+    private static final Logger log = LogManager.getLogger(AbstractArtifactoryConfiguration.class);
     protected TaskConfiguratorHelperImpl taskConfiguratorHelper = new TaskConfiguratorHelperImpl();
 
     protected AbstractArtifactoryConfiguration() {

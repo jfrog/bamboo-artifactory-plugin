@@ -6,7 +6,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
@@ -31,7 +32,7 @@ import static org.jfrog.bamboo.release.action.ReleasePromotionAction.promotionCo
  */
 public class PromotionThread extends Thread {
 
-    transient Logger log = Logger.getLogger(PromotionThread.class);
+    transient Logger log = LogManager.getLogger(PromotionThread.class);
 
     private ReleasePromotionAction action;
     private ArtifactoryBuildInfoClient client;

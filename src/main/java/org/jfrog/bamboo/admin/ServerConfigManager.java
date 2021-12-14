@@ -23,7 +23,8 @@ import com.atlassian.bandana.BandanaManager;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +55,7 @@ import java.util.regex.Pattern;
  */
 public class ServerConfigManager implements Serializable {
 
-    private transient Logger log = Logger.getLogger(ServerConfigManager.class);
+    private transient Logger log = LogManager.getLogger(ServerConfigManager.class);
 
     private static final String ARTIFACTORY_CONFIG_KEY = "org.jfrog.bamboo.server.configurations.v2";
     private final List<ServerConfig> configuredServers = new CopyOnWriteArrayList<>();

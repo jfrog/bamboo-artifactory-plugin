@@ -9,7 +9,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.taskdefs.ExecuteWatchdog;
 import org.apache.tools.ant.types.Commandline;
@@ -26,7 +27,7 @@ import java.util.regex.Pattern;
 public class Maven3CapabilityHelper extends AbstractHomeDirectoryCapabilityDefaultsHelper {
     public static final String KEY = CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven.Artifactory Maven 3";
 
-    private static final Logger log = Logger.getLogger(Maven3CapabilityHelper.class);
+    private static final Logger log = LogManager.getLogger(Maven3CapabilityHelper.class);
     private static final String MAVEN3_HOME_POSIX = "/usr/share/maven3/";
     private static final Pattern MAVEN_VERSION_3 = Pattern.compile("3\\.\\d+\\.\\d+");
     private static final String M2_EXECUTABLE_NAME = "mvn";

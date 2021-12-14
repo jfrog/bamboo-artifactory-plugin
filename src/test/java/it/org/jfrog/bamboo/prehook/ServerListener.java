@@ -4,15 +4,13 @@ import com.atlassian.bamboo.event.ServerStartedEvent;
 import com.atlassian.event.api.EventListener;
 import com.jfrog.testing.IntegrationTestsHelper;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import static it.org.jfrog.bamboo.utils.Utils.GRADLE_HOME_ENV;
-import static it.org.jfrog.bamboo.utils.Utils.MAVEN_HOME_ENV;
 import static it.org.jfrog.bamboo.prehook.RemoteAgent.startAgent;
 import static it.org.jfrog.bamboo.prehook.RepositoriesHandler.createTestRepositories;
+import static it.org.jfrog.bamboo.utils.Utils.GRADLE_HOME_ENV;
+import static it.org.jfrog.bamboo.utils.Utils.MAVEN_HOME_ENV;
 
 /**
  * Contains the ServerStarted listener event.
@@ -32,7 +30,6 @@ public class ServerListener {
     @EventListener
     public void serverStarted(ServerStartedEvent buildStarted) {
         try {
-            initLogger();
             verifyEnvironment();
             createTestRepositories();
             startAgent();
@@ -43,14 +40,6 @@ public class ServerListener {
         }
         // Run the garbage collector to clear up the heap
         System.gc();
-    }
-
-    /**
-     * Init logger to get a better output logs from the tests.
-     */
-    private void initLogger() {
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.INFO);
     }
 
     /**

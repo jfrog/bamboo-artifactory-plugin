@@ -10,7 +10,8 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.task.export.TaskDefinitionExporter;
 import com.atlassian.bamboo.task.export.TaskValidationContext;
 import com.google.common.collect.Maps;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -19,7 +20,7 @@ import java.util.Map;
 
 public class ArtifactoryTaskExporter implements TaskDefinitionExporter {
 
-    private static final Logger log = Logger.getLogger(ArtifactoryTaskExporter.class);
+    private static final Logger log = LogManager.getLogger(ArtifactoryTaskExporter.class);
 
     /**
      * Converts properties to Bamboo task configuration.

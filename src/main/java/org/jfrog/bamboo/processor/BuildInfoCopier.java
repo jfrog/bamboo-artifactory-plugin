@@ -13,7 +13,8 @@ import com.atlassian.bamboo.v2.build.task.AbstractBuildTask;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.context.Maven3BuildContext;
@@ -38,7 +39,7 @@ import static org.jfrog.bamboo.util.Utils.getTaskSecurityToken;
  * @author Tomer Cohen
  */
 public class BuildInfoCopier extends AbstractBuildTask implements CustomBuildProcessor {
-    private static final Logger log = Logger.getLogger(BuildInfoCopier.class);
+    private static final Logger log = LogManager.getLogger(BuildInfoCopier.class);
 
     private volatile ArtifactManager artifactManager;
     private BuildLoggerManager buildLoggerManager;

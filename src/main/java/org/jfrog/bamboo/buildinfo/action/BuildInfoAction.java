@@ -3,7 +3,8 @@ package org.jfrog.bamboo.buildinfo.action;
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jfrog.bamboo.util.ConstantValues;
 import org.jfrog.bamboo.util.PublishedBuildDetails;
 import org.jfrog.bamboo.util.PublishedBuilds;
@@ -19,7 +20,7 @@ import java.util.List;
  * @author Tomer Cohen
  */
 public class BuildInfoAction extends ViewBuildResults {
-    transient Logger log = Logger.getLogger(BuildInfoAction.class);
+    transient Logger log = LogManager.getLogger(BuildInfoAction.class);
     private List<PublishedBuildDetails> publishedBuildsDetails = new ArrayList<>();
 
     @Override

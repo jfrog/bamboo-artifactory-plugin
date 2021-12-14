@@ -10,7 +10,6 @@ import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.struts2.dispatcher.Parameter;
 import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
@@ -32,8 +31,6 @@ import java.util.zip.GZIPInputStream;
  * @author Tomer Cohen
  */
 public class MavenVersionHelper extends VersionHelper {
-    private static final Logger log = Logger.getLogger(MavenVersionHelper.class);
-
     private final CapabilityContext capabilityContext;
 
     protected MavenVersionHelper(PackageManagersContext context, CapabilityContext capabilityContext) {

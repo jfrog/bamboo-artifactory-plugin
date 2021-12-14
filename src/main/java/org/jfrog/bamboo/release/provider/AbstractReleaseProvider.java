@@ -10,11 +10,12 @@ import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
-import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.context.Maven3BuildContext;
+import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.release.vcs.AbstractVcsCoordinator;
 import org.jfrog.bamboo.release.vcs.VcsCoordinator;
@@ -30,7 +31,7 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public abstract class AbstractReleaseProvider implements ReleaseProvider {
-    private static final Logger log = Logger.getLogger(AbstractReleaseProvider.class);
+    private static final Logger log = LogManager.getLogger(AbstractReleaseProvider.class);
 
     private boolean isReleaseEnabled;
     protected VcsCoordinator coordinator;
