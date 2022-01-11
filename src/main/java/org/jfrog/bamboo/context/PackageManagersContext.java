@@ -79,7 +79,7 @@ public abstract class PackageManagersContext extends ArtifactoryBuildContext {
     public static final String PERFORCE_USERNAME = "p4.username";
     public static final String PERFORCE_PASSWORD = "p4.password";
     public static final String VCS_PREFIX = "artifactory.vcs.";
-    public static final String ENV_VARS_TO_EXCLUDE = "*password*,*secret*,*security*,*key*";
+    public static final String ENV_VARS_TO_EXCLUDE = "*password*,*pwd*,*secret*,*security*,*key*,*token*";
 
     public final ReleaseManagementContext releaseManagementContext = new ReleaseManagementContext();
 
