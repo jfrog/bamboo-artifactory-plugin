@@ -1,7 +1,6 @@
 package org.jfrog.bamboo.release.configuration;
 
 import com.atlassian.bamboo.build.BuildDefinition;
-import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plan.configuration.MiscellaneousPlanConfigurationPlugin;
 import com.atlassian.bamboo.v2.build.BaseConfigurablePlugin;
@@ -20,12 +19,7 @@ public class ReleaseManagementConfigurator extends BaseConfigurablePlugin
         return false;
     }
 
-    @Override
-    public boolean isApplicableTo(@NotNull Plan plan) {
-        return false;
-    }
-
     public void transformBuildDefinition(@NotNull Map<String, Object> configObjects,
-            @NotNull Map<String, String> configParameters, @NotNull BuildDefinition definition) {
+                                         @NotNull Map<String, String> configParameters, @NotNull BuildDefinition definition) {
     }
 }
