@@ -47,7 +47,7 @@ pipelines:
             # Install Java 8
             - echo sdkman_auto_answer=true > $HOME/.sdkman/etc/config
             - echo sdkman_auto_selfupdate=true >> $HOME/.sdkman/etc/config
-            - source "/root/.sdkman/bin/sdkman-init.sh" && sdk update && sdk install java `sdk list java | grep -E "8.*hs-adpt" | head -1 | awk '{print $NF}'` && java -version
+            - source "/root/.sdkman/bin/sdkman-init.sh" && sdk update && sdk install java `sdk list java | grep -E "8.*-zulu" | head -1 | awk '{print $NF}'` && java -version
 
             # Install atlassian SDK
             - sh -c 'echo "deb https://packages.atlassian.com/debian/atlassian-sdk-deb/ stable contrib" >>/etc/apt/sources.list'
