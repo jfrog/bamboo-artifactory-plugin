@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jfrog.bamboo</groupId>
@@ -79,7 +79,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.10</version>
+            <version>1.7.36</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -333,12 +333,12 @@
             <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>com.jfrog.testing</groupId>
             <artifactId>jfrog-testing-infra</artifactId>
             <version>1.0.2</version>
             <scope>test</scope>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
@@ -369,9 +369,7 @@
     </dependencies>
 
     <build>
-        <!-- Copy src/main/resources/ to target/classes/.
-        filtering=true means that the resources variables ${ENV_KEY} will be replaced by ENV_VALUE.
-        filtering=false means that the resource are copied from the source to the target dir without changes.
+        <!-- Copy src/main/resources/ to target/classes/. filtering=true means that the resources variables ${ENV_KEY} will be replaced by ENV_VALUE. filtering=false means that the resource are copied from the source to the target dir without changes.
         "classworlds-freestyle.conf" contains variables such as ${maven.home} that we want to keep during plugin's
         build and replace later, during running of Bamboo tasks. -->
         <resources>
@@ -401,9 +399,7 @@
                     <productDataVersion>${bamboo.data.version}</productDataVersion>
                     <enableQuickReload>true</enableQuickReload>
                     <productDataPath>${basedir}/src/test/resources/bamboo-home.zip</productDataPath>
-                    <jvmArgs>-Xms512m -Xmx1024m -server
-                        -Datlassian.bamboo.build.disable=true -Datlassian.bamboo.branch.detection.disable=true
-                        -Datlassian.bamboo.closed.branch.detection.disable=true
+                    <jvmArgs>-Xms512m -Xmx1024m -server -Datlassian.bamboo.build.disable=true -Datlassian.bamboo.branch.detection.disable=true -Datlassian.bamboo.closed.branch.detection.disable=true
                     </jvmArgs>
                     <systemPropertyVariables>the active branch
                         <GIT_BRANCH>${git.branch}</GIT_BRANCH>
@@ -605,8 +601,7 @@
                         <configuration>
                             <tasks>
                                 <delete>
-                                    <fileset dir="${project.build.directory}/classes/groovy/test/"
-                                             includes="GroovyAssert.class"/>
+                                    <fileset dir="${project.build.directory}/classes/groovy/test/" includes="GroovyAssert.class"/>
                                 </delete>
                             </tasks>
                         </configuration>
