@@ -90,7 +90,7 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
         ServerConfig overriderServerConfig = TaskUtils.getResolutionServerConfig(
                 buildContext.getOverriddenUsername(runtimeContext, buildInfoLog, false),
                 buildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false),
-                serverConfigManager, selectedServerConfig, buildParamsOverrideManager);
+                serverConfigManager, resolutionServerConfig, buildParamsOverrideManager);
         resolverUrl = resolutionServerConfig.getUrl();
         resolverUsername = overriderServerConfig.getUsername();
         resolverPassword = overriderServerConfig.getPassword();
