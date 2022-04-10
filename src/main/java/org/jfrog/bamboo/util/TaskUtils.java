@@ -34,9 +34,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.jfrog.bamboo.configuration.BuildParamsOverrideManager.*;
@@ -48,6 +47,9 @@ import static org.jfrog.bamboo.util.ConstantValues.AGGREGATED_BUILD_INFO;
  * @author Tomer Cohen
  */
 public class TaskUtils {
+    // Bamboo's buildData variable size is limited by the size of an environment variable in the operating system.
+    // This variable limits the size of a buildData variable.
+    private static final int MAX_BUILD_DATA_SIZE = 16384;
 
     /**
      * Get an escaped version of the environment map that is to be passed onwards to the extractors. Bamboo escapes the
@@ -186,14 +188,52 @@ public class TaskUtils {
         return BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoJson);
     }
 
-    public static void addBuildInfoToContext(TaskContext taskContext, String buildInfo) {
-        taskContext.getBuildContext().getParentBuildContext().getBuildResult().
-                getCustomBuildData().put(AGGREGATED_BUILD_INFO, buildInfo);
+    /**
+     * Split buildData variable to chunks, to bypass the limitation of an environment variable size.
+     *
+     * @param buildData - the buildData variable
+     * @return chunks of the buildData variable
+     */
+    private static List<String> splitBuildDataToChunks(String buildData) {
+        List<String> chunks = new ArrayList<>();
+        for (int i = 0; i < buildData.length(); i += MAX_BUILD_DATA_SIZE) {
+            chunks.add(buildData.substring(i, Math.min(buildData.length(), i + MAX_BUILD_DATA_SIZE)));
+        }
+        return chunks;
     }
 
+    /**
+     * Add a build info to the task context.
+     *
+     * @param taskContext - The task context
+     * @param buildInfo   - String representation of the build info
+     */
+    public static void addBuildInfoToContext(TaskContext taskContext, String buildInfo) {
+        Map<String, String> customBuildData = taskContext.getBuildContext().getParentBuildContext().getBuildResult().getCustomBuildData();
+        List<String> chunks = splitBuildDataToChunks(buildInfo);
+        for (int i = 0; i < chunks.size(); i++) {
+            customBuildData.put(AGGREGATED_BUILD_INFO + "." + i, chunks.get(i));
+        }
+    }
+
+    /**
+     * Get and delete build info from the task context.
+     *
+     * @param taskContext - The task context
+     * @return a string representation of the Build Info
+     */
     public static String getAndDeleteAggregatedBuildInfo(TaskContext taskContext) {
-        return taskContext.getBuildContext().getParentBuildContext().getBuildResult().
-                getCustomBuildData().remove(AGGREGATED_BUILD_INFO);
+        Map<String, String> customBuildData = taskContext.getBuildContext().getParentBuildContext().getBuildResult().getCustomBuildData();
+        List<Map.Entry<String, String>> chunks = customBuildData.entrySet().stream()
+                .filter(stringStringEntry -> stringStringEntry.getKey().startsWith(AGGREGATED_BUILD_INFO + "."))
+                .sorted(Comparator.comparingInt(entry -> Integer.parseInt(StringUtils.substringAfterLast(entry.getKey(), "."))))
+                .collect(Collectors.toList());
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, String> chunk : chunks) {
+            stringBuilder.append(chunk.getValue());
+            customBuildData.remove(chunk.getKey());
+        }
+        return stringBuilder.toString();
     }
 
     /**
