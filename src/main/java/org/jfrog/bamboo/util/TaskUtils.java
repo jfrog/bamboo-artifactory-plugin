@@ -49,7 +49,7 @@ import static org.jfrog.bamboo.util.ConstantValues.AGGREGATED_BUILD_INFO;
 public class TaskUtils {
     // Bamboo's buildData variable size is limited by the size of an environment variable in the operating system.
     // This variable limits the size of a buildData variable.
-    private static final int MAX_BUILD_DATA_SIZE = 16384;
+    private static final int MAX_BUILD_DATA_SIZE = 2047;
 
     /**
      * Get an escaped version of the environment map that is to be passed onwards to the extractors. Bamboo escapes the
