@@ -153,4 +153,9 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         // Validate build name and number.
         TaskConfigurationValidations.validateCaptureBuildInfoParams(ArtifactoryBuildContext.BUILD_NAME, ArtifactoryBuildContext.BUILD_NUMBER, GradleBuildContext.CAPTURE_BUILD_INFO, params, errorCollection);
     }
+
+    @Override
+    protected boolean isUseWrapper(TaskDefinition taskDefinition) {
+        return Boolean.parseBoolean(taskDefinition.getConfiguration().get(GradleBuildContext.PREFIX + GradleBuildContext.USE_GRADLE_WRAPPER_PARAM));
+    }
 }

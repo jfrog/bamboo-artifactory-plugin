@@ -157,12 +157,24 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         if (StringUtils.isNotBlank(builderContextPrefix)) {
             taskConfiguratorHelper.addJdkRequirement(requirements, taskDefinition,
                     builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
-            if (StringUtils.isNotBlank(capabilityPrefix)) {
-                taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
-                        builderContextPrefix + PackageManagersContext.EXECUTABLE, capabilityPrefix);
+            if (!isUseWrapper(taskDefinition)) {
+                if (StringUtils.isNotBlank(capabilityPrefix)) {
+                    taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
+                            builderContextPrefix + PackageManagersContext.EXECUTABLE, capabilityPrefix);
+                }
             }
         }
         return requirements;
+    }
+
+    /**
+     * Return true if the task uses a wrapper. Using a wrapper should remove the requirement capability.
+     *
+     * @param taskDefinition - The task definition
+     * @return if the task uses a wrapper.
+     */
+    protected boolean isUseWrapper(TaskDefinition taskDefinition) {
+        return false;
     }
 
     protected void populateContextWithConfiguration(@NotNull Map<String, Object> context,
