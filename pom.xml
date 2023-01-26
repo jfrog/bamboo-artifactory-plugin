@@ -224,15 +224,15 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-smile</artifactId>
-            <version>1.9.13</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.14.1</version>
         </dependency>
 
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>1.9.13</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.14.1</version>
         </dependency>
 
         <dependency>
@@ -264,7 +264,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>2.1.210</version>
+            <version>2.1.214</version>
         </dependency>
 
         <dependency>
@@ -284,11 +284,6 @@
             <artifactId>jsr311-api</artifactId>
             <version>1.1.1</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.2.2-atlassian-1</version>
         </dependency>
 
         <dependency>
@@ -320,12 +315,12 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
-            <version>3.0.3</version>
+            <version>3.8.7</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-embedder</artifactId>
-            <version>3.0.3</version>
+            <version>3.8.7</version>
         </dependency>
 
         <!-- WIRED TEST RUNNER DEPENDENCIES -->
@@ -360,14 +355,14 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>1.9</version>
+            <version>1.10.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.atlassian.plugins</groupId>
             <artifactId>atlassian-plugins-osgi</artifactId>
-            <version>5.3.5</version>
+            <version>7.1.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -522,7 +517,7 @@
                             <excludes>META-INF/**/*</excludes>
                             <excludeClassifiers>uber</excludeClassifiers>
                             <includeArtifactIds>
-                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,build-info-vcs,jackson-core-asl,jackson-mapper-asl,p4java-jfrog,org.eclipse.jgit
+                                build-info-api,build-info-client,build-info-extractor,build-info-extractor-maven3,build-info-vcs,p4java-jfrog,org.eclipse.jgit
                             </includeArtifactIds>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                             <overWriteReleases>true</overWriteReleases>

@@ -520,7 +520,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
 
         Map<String, String> taskConfiguration = definition.getConfiguration();
         PackageManagersContext context = PackageManagersContext.createContextFromMap(taskConfiguration);
-        ArtifactoryManagerBuilder clientBuilder = createClientForPromotion(serverConfigManager, serverConfig, context, log);
+        ArtifactoryManagerBuilder clientBuilder = createClientForPromotion(serverConfigManager, serverConfig, context, log, taskConfiguration);
         ResultsSummary summary = getResultsSummary();
         TriggerReason reason = summary.getTriggerReason();
         String username = "";
@@ -608,19 +608,19 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     private static ArtifactoryManagerBuilder createClientForPromotion(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
-                                                                      PackageManagersContext context, Logger log) {
+                                                                      PackageManagersContext context, Logger log, Map<String, String> taskConfiguration) {
+        BuildInfoLog bambooLog = new BuildInfoLog(log);
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-        String username = serverConfigManager.substituteVariables(context.getDeployerUsername());
+        String username = serverConfigManager.substituteVariables(context.getOverriddenUsername(taskConfiguration, bambooLog, true));
         if (StringUtils.isBlank(username)) {
             username = serverConfigManager.substituteVariables(serverConfig.getUsername());
         }
         ArtifactoryManagerBuilder clientBuilder;
-        BuildInfoLog bambooLog = new BuildInfoLog(log);
         if (StringUtils.isBlank(username)) {
             clientBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverConfig.getId(), serverUrl, "",
                     "", serverConfig.getTimeout()), bambooLog);
         } else {
-            String password = serverConfigManager.substituteVariables(context.getDeployerPassword());
+            String password = serverConfigManager.substituteVariables(context.getOverriddenPassword(taskConfiguration, bambooLog, true));
             if (StringUtils.isBlank(password)) {
                 password = serverConfigManager.substituteVariables(serverConfig.getPassword());
             }
