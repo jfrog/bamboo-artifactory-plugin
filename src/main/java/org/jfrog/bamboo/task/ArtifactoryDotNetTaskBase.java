@@ -109,7 +109,7 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         return new NugetRun(artifactoryManagerBuilder, repo, taskType == TaskType.DOTNET, String.format("restore %s", dotNetBuildContext.getArguments()),
                 buildInfoLog, workingDir, environmentVariables, null, buildInfoHelper.getServerConfig().getUsername(),
-                buildInfoHelper.getServerConfig().getPassword(), "").execute();
+                buildInfoHelper.getServerConfig().getPassword(), "v2").execute();
     }
 
     protected BuildInfo executePush() throws Exception {
@@ -121,13 +121,17 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
         String targetPath = createTargetPath(repo, dotNetBuildContext.getPushTarget());
         String uploadSpec = String.format(specTemplate, artifactsPattern, targetPath);
 
+        // Add build info properties.
+        BuildInfo build = buildInfoHelper.getBuilder((TaskContext) taskContext).build();
+        Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
+        buildInfoHelper.addCommonProperties(buildProperties);
+
         // Perform upload.
         SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(log, logger));
         ArtifactoryManagerBuilder artifactoryManagerBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
-        List<Artifact> artifactList = specsHelper.uploadArtifactsBySpec(uploadSpec, workingDir.toFile(), new HashMap<>(), artifactoryManagerBuilder);
+        List<Artifact> artifactList = specsHelper.uploadArtifactsBySpec(uploadSpec, workingDir.toFile(), buildProperties, artifactoryManagerBuilder);
 
-        // Create build object.
-        BuildInfo build = buildInfoHelper.getBuilder((TaskContext) taskContext).build();
+        // Add artifacts to build info helper.
         return buildInfoHelper.addBuildInfoParams(build, artifactList, Lists.newArrayList(), Lists.newArrayList());
     }
 
