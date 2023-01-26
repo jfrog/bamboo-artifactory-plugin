@@ -20,11 +20,11 @@ import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.Utils;
-import org.jfrog.build.api.Artifact;
-import org.jfrog.build.api.Build;
 import org.jfrog.build.api.util.FileChecksumCalculator;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.ci.Artifact;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
 import org.jfrog.build.extractor.clientConfiguration.util.PublishedItemsHelper;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
@@ -48,7 +48,6 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
     private final EnvironmentVariableAccessor environmentVariableAccessor;
     private final BuildParamsOverrideManager buildParamsOverrideManager;
     private CustomVariableContext customVariableContext;
-    private ArtifactoryBuildInfoClient client;
     private BuildInfoHelper buildInfoHelper;
     private GenericContext genericContext;
     private BuildContext buildContext;
@@ -79,7 +78,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
     public TaskResult runTask(@NotNull TaskContext taskContext) {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getPluginVersion(pluginAccessor));
 
-        // Check if should stop task.
+        // Check if we should stop task.
         CurrentBuildResult result = buildContext.getBuildResult();
         // If build wasn't a success don't do anything.
         if (result.getBuildState().equals(BuildState.FAILED)) {
@@ -87,8 +86,8 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
             return TaskResultBuilder.newBuilder(taskContext).success().build();
         }
 
-        Build build = buildInfoHelper.getBuild(taskContext, genericContext);
-        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
+        BuildInfo build = buildInfoHelper.getBuild(taskContext, genericContext);
+        ArtifactoryManagerBuilder artifactoryManagerBuilder = buildInfoHelper.getClientBuilder(logger, log);
         try {
             File workingDirectory = getWorkingDirectory();
             if (workingDirectory == null) {
@@ -97,16 +96,16 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
             }
             if (genericContext.isUseFileSpecs()) {
                 initFileSpec();
-                build = deployByFileSpec(workingDirectory, build, clientBuilder, fileSpec);
+                build = deployByFileSpec(workingDirectory, build, artifactoryManagerBuilder, fileSpec);
             } else {
-                build = deployByLegacyPattern(workingDirectory, build, getClient(clientBuilder), genericContext);
+                build = deployByLegacyPattern(workingDirectory, build, artifactoryManagerBuilder, genericContext);
             }
             List<? extends TaskDefinition> taskDefinitions = taskContext.getBuildContext().getRuntimeTaskDefinitions();
             if (genericContext.isCaptureBuildInfo() || (genericContext.isPublishBuildInfo() && TaskDefinitionHelper.isBuildPublishTaskExists(taskDefinitions))) {
                 taskBuildInfo = build;
             } else {
                 if (genericContext.isPublishBuildInfo()) {
-                    publishBuildInfo(taskContext, getClient(clientBuilder), build);
+                    publishBuildInfo(taskContext, artifactoryManagerBuilder, build);
                 }
             }
         } catch (Exception e) {
@@ -114,10 +113,6 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
             logger.addErrorLogEntry(message, e);
             log.error(message, e);
             return TaskResultBuilder.newBuilder(taskContext).failedWithError().build();
-        } finally {
-            if (this.client != null) {
-                this.client.close();
-            }
         }
         Map<String, String> customBuildData = result.getCustomBuildData();
         if (genericContext.isPublishBuildInfo() && !customBuildData.containsKey(BUILD_RESULT_COLLECTION_ACTIVATED_PARAM)) {
@@ -142,13 +137,6 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
                 customVariableContext, logger);
         logger.addBuildLogEntry("Spec: " + fileSpec);
         FileSpecUtils.validateFileSpec(fileSpec);
-    }
-
-    private ArtifactoryBuildInfoClient getClient(ArtifactoryBuildInfoClientBuilder clientBuilder) {
-        if (this.client == null) {
-            this.client = clientBuilder.build();
-        }
-        return this.client;
     }
 
     /**
@@ -199,7 +187,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         return result;
     }
 
-    private Build deployByLegacyPattern(File sourceCodeDirectory, Build build, ArtifactoryBuildInfoClient client, GenericContext context) throws IOException, NoSuchAlgorithmException {
+    private BuildInfo deployByLegacyPattern(File sourceCodeDirectory, BuildInfo build, ArtifactoryManagerBuilder artifactoryManagerBuilder, GenericContext context) throws IOException, NoSuchAlgorithmException {
         Multimap<String, File> filesMap = buildTargetPathToFiles(sourceCodeDirectory, context);
         Set<DeployDetails> details = Sets.newHashSet();
         Map<String, String> dynamicPropertyMap = buildInfoHelper.getDynamicPropertyMap(build);
@@ -209,9 +197,12 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         }
         List<Artifact> artifacts = buildInfoHelper.convertDeployDetailsToArtifacts(details);
 
-        for (DeployDetails detail : details) {
-            client.deployArtifact(detail);
+        try (ArtifactoryManager artifactoryManager = artifactoryManagerBuilder.build()) {
+            for (DeployDetails detail : details) {
+                artifactoryManager.upload(detail);
+            }
         }
+
         return buildInfoHelper.addBuildInfoParams(build, artifacts, Lists.newArrayList(), Lists.newArrayList());
     }
 
@@ -232,23 +223,25 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
         return result;
     }
 
-    private Build deployByFileSpec(File sourceCodeDirectory, Build build, ArtifactoryBuildInfoClientBuilder clientBuilder, String spec) throws IOException {
+    private BuildInfo deployByFileSpec(File sourceCodeDirectory, BuildInfo build, ArtifactoryManagerBuilder artifactoryManagerBuilder, String spec) throws IOException {
         SpecsHelper specsHelper = new SpecsHelper(buildInfoLog);
         Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
         buildInfoHelper.addCommonProperties(buildProperties);
-        List<Artifact> artifacts;
+        List<org.jfrog.build.extractor.ci.Artifact> artifacts;
         try {
-            artifacts = specsHelper.uploadArtifactsBySpec(spec, sourceCodeDirectory, buildProperties, clientBuilder);
+            artifacts = specsHelper.uploadArtifactsBySpec(spec, sourceCodeDirectory, buildProperties, artifactoryManagerBuilder);
         } catch (Exception e) {
             throw new IOException(e);
         }
         return buildInfoHelper.addBuildInfoParams(build, artifacts, Lists.newArrayList(), Lists.newArrayList());
     }
 
-    public void publishBuildInfo(TaskContext taskContext, ArtifactoryBuildInfoClient client, Build build) throws IOException {
+    public void publishBuildInfo(TaskContext taskContext, ArtifactoryManagerBuilder artifactoryManagerBuilder, BuildInfo build) throws IOException {
         BuildContext buildContext = taskContext.getBuildContext();
-        client.sendBuildInfo(build, "");
-        buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, client.getArtifactoryUrl());
+        try (ArtifactoryManager artifactoryManager = artifactoryManagerBuilder.build()) {
+            artifactoryManager.publishBuildInfo(build, "");
+            buildContext.getBuildResult().getCustomBuildData().put(BUILD_RESULT_SELECTED_SERVER_PARAM, artifactoryManager.getUrl());
+        }
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {

@@ -1,6 +1,5 @@
 package org.jfrog.bamboo.task;
 
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.commons.lang.StringUtils;
@@ -9,12 +8,10 @@ import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.XrayScanContext;
-import org.jfrog.bamboo.util.BuildInfoLog;
-import org.jfrog.bamboo.util.ProxyUtils;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.client.artifactoryXrayResponse.ArtifactoryXrayResponse;
 import org.jfrog.build.client.artifactoryXrayResponse.Summary;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryXrayClient;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 
 import java.io.IOException;
 import java.util.Map;
@@ -37,7 +34,7 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
-        try (ArtifactoryXrayClient client = createArtifactoryXrayClient(logger)) {
+        try (ArtifactoryManager client = TaskUtils.getArtifactoryManagerBuilderBuilder(xrayServerConfig, buildInfoLog).build()) {
             ArtifactoryXrayResponse buildScanResult = doXrayScan(taskContext, client);
             try {
                 String scanMessage = handleXrayScanResult(buildScanResult);
@@ -95,15 +92,6 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
         return summary;
     }
 
-    private ArtifactoryXrayClient createArtifactoryXrayClient(BuildLogger logger) {
-        // Extract parameters for Xray Client.
-        ArtifactoryXrayClient client = new ArtifactoryXrayClient(xrayServerConfig.getUrl(), xrayServerConfig.getUsername(),
-                xrayServerConfig.getPassword(), new BuildInfoLog(log, logger));
-        // Add proxy Configurations.
-        ProxyUtils.setProxyConfig(xrayServerConfig.getUrl(), client);
-        return client;
-    }
-
     private void setXrayServerConfigurations(XrayScanContext xrayContext) {
         ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         xrayServerConfig = serverConfigManager.getServerConfigById(xrayContext.getArtifactoryServerId());
@@ -117,12 +105,12 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
                 serverConfigManager, xrayServerConfig, new BuildParamsOverrideManager(customVariableContext));
     }
 
-    private ArtifactoryXrayResponse doXrayScan(TaskContext taskContext, ArtifactoryXrayClient client) throws IOException, InterruptedException {
+    private ArtifactoryXrayResponse doXrayScan(TaskContext taskContext, ArtifactoryManager client) throws IOException {
         // Extract build parameters
         String buildName = xrayContext.getBuildName(taskContext.getBuildContext());
         String buildNumber = xrayContext.getBuildNumber(taskContext.getBuildContext());
 
         // Launch Xray Scan
-        return client.xrayScanBuild(buildName, buildNumber, "bamboo");
+        return client.scanBuild(buildName, buildNumber, "", "bamboo");
     }
 }

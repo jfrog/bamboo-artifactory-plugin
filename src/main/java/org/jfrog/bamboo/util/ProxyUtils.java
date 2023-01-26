@@ -2,9 +2,8 @@ package org.jfrog.bamboo.util;
 
 import com.google.common.base.Strings;
 import org.jfrog.build.client.ProxyConfiguration;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientBuilderBase;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryClientConfiguration;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBaseClient;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,17 +21,10 @@ public class ProxyUtils {
     private static final String KEY_HTTP_NON_PROXY_HOSTS = "http.nonProxyHosts";
     private static final String KEY_HTTP_PROXY_PORT_DEFAULT = "80";
 
-    public static void setProxyConfig(String artifactoryUrl, ArtifactoryBaseClient client) {
+    public static void setProxyConfig(String artifactoryUrl, ArtifactoryManagerBuilder artifactoryManagerBuilder) {
         ProxyConfiguration proxyConfiguration = getProxyConfiguration(artifactoryUrl);
         if (proxyConfiguration != null) {
-            client.setProxyConfiguration(proxyConfiguration);
-        }
-    }
-
-    public static void setProxyConfig(String artifactoryUrl, ArtifactoryClientBuilderBase builder) {
-        ProxyConfiguration proxyConfiguration = getProxyConfiguration(artifactoryUrl);
-        if (proxyConfiguration != null) {
-            builder.setProxyConfiguration(proxyConfiguration);
+            artifactoryManagerBuilder.setProxyConfiguration(proxyConfiguration);
         }
     }
 

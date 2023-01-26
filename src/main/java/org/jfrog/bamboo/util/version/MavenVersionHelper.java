@@ -15,9 +15,9 @@ import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.release.action.ModuleVersionHolder;
 import org.jfrog.bamboo.release.action.ReleasePromotionAction;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.Module;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.ci.Module;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +50,7 @@ public class MavenVersionHelper extends VersionHelper {
             try {
                 reader = new InputStreamReader(new GZIPInputStream(new FileInputStream(buildInfoFile)));
                 String buildInfoString = CharStreams.toString(reader);
-                Build build = BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoString);
+                BuildInfo build = BuildInfoExtractorUtils.jsonStringToBuildInfo(buildInfoString);
                 List<Module> modules = build.getModules();
                 for (Module module : modules) {
                     String id = module.getId();

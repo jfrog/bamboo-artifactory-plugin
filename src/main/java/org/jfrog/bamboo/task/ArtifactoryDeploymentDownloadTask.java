@@ -15,7 +15,7 @@ import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTask
 
     @NotNull
     public TaskResult runTask(@NotNull DeploymentTaskContext deploymentTaskContext) {
-        try (ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(downloadServerConfig, new BuildInfoLog(log, logger))) {
+        try (ArtifactoryManager client = TaskUtils.getArtifactoryManagerBuilderBuilder(downloadServerConfig, new BuildInfoLog(log, logger)).build()) {
             initFileSpec(deploymentTaskContext, genericContext, logger);
             SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(log, logger));
             specsHelper.downloadArtifactsBySpec(fileSpec, client, deploymentTaskContext.getWorkingDirectory().getCanonicalPath());

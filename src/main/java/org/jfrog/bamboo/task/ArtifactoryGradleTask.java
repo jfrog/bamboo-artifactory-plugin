@@ -24,7 +24,7 @@ import org.jfrog.bamboo.util.ConfigurationPathHolder;
 import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
-import org.jfrog.build.api.BuildInfoFields;
+import org.jfrog.build.extractor.ci.BuildInfoFields;
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
 
 import java.io.File;

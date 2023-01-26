@@ -22,12 +22,12 @@ import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.version.VcsHelper;
-import org.jfrog.build.api.*;
-import org.jfrog.build.api.builder.ArtifactBuilder;
-import org.jfrog.build.api.builder.BuildInfoBuilder;
-import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.api.dependency.BuildDependency;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
+import org.jfrog.build.extractor.builder.BuildInfoBuilder;
+import org.jfrog.build.extractor.builder.ModuleBuilder;
+import org.jfrog.build.extractor.ci.Module;
+import org.jfrog.build.extractor.ci.*;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
 import org.jfrog.build.extractor.clientConfiguration.PatternMatcher;
@@ -96,14 +96,17 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         List<Artifact> result = new ArrayList<>();
         for (DeployDetails detail : details) {
             String ext = FilenameUtils.getExtension(detail.getFile().getName());
-            Artifact artifact = new ArtifactBuilder(detail.getFile().getName()).md5(detail.getMd5())
-                    .sha1(detail.getSha1()).type(ext).build();
+            Artifact artifact = new Artifact();
+            artifact.setName(detail.getFile().getName());
+            artifact.setType(ext);
+            artifact.setMd5(detail.getMd5());
+            artifact.setSha1(detail.getSha1());
             result.add(artifact);
         }
         return result;
     }
 
-    public Map<String, String> getDynamicPropertyMap(Build build) {
+    public Map<String, String> getDynamicPropertyMap(BuildInfo build) {
         Map<String, String> filteredPropertyMap = new HashMap<>();
         if (build.getProperties() != null) {
             for (Map.Entry<Object, Object> entry : build.getProperties().entrySet()) {
@@ -124,10 +127,10 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     }
 
     @NotNull
-    public Build getBuild(@NotNull TaskContext taskContext, GenericContext genericContext) {
+    public BuildInfo getBuild(@NotNull TaskContext taskContext, GenericContext genericContext) {
         BuildInfoBuilder builder = getBuilder(taskContext);
         addEnvVarsToBuildInfoBuilder(genericContext.isIncludeEnvVars(), genericContext.getEnvVarsIncludePatterns(), genericContext.getEnvVarsExcludePatterns(), builder);
-        Build build = builder.build();
+        BuildInfo build = builder.build();
         build.setBuildAgent(new BuildAgent("Generic"));
         return build;
     }
@@ -152,7 +155,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         }
     }
 
-    public void addEnvVarsToBuild(PackageManagersContext abstractBuildContext, Build build) {
+    public void addEnvVarsToBuild(PackageManagersContext abstractBuildContext, BuildInfo build) {
         // Building a new build only to collect env. The initial build details parameters set bellow will not be used.
         BuildInfoBuilder temporaryBuilder = new BuildInfoBuilder("tempBuildName").number("tempBuildNumber").started("tempTimeStamp");
         addEnvVarsToBuildInfoBuilder(abstractBuildContext.isIncludeEnvVars(), abstractBuildContext.getEnvVarsIncludePatterns(), abstractBuildContext.getEnvVarsExcludePatterns(), temporaryBuilder);
@@ -204,10 +207,9 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return moduleBuilder.build();
     }
 
-    public ArtifactoryBuildInfoClientBuilder getClientBuilder(BuildLogger buildLogger, Logger logger) {
+    public ArtifactoryManagerBuilder getClientBuilder(BuildLogger buildLogger, Logger logger) {
         BuildInfoLog bambooBuildInfoLog = new BuildInfoLog(logger, buildLogger);
-        ArtifactoryBuildInfoClientBuilder clientBuilder = TaskUtils.getArtifactoryBuildInfoClientBuilder(serverConfig, bambooBuildInfoLog);
-        return clientBuilder;
+        return TaskUtils.getArtifactoryManagerBuilderBuilder(serverConfig, bambooBuildInfoLog);
     }
 
     private static BuildInfoHelper createBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig) {
@@ -253,7 +255,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return buildInfoHelper;
     }
 
-    public Build addBuildInfoParams(Build build, List<Artifact> artifacts, List<Dependency> dependencies, List<BuildDependency> buildDependencies) {
+    public BuildInfo addBuildInfoParams(BuildInfo build, List<Artifact> artifacts, List<Dependency> dependencies, List<BuildDependency> buildDependencies) {
         Module module = BuildInfoHelper.createModule(buildName, buildNumber, artifacts, dependencies);
         build.setBuildDependencies(buildDependencies);
         build.setModules(Lists.newArrayList(module));

@@ -15,10 +15,10 @@ import org.jfrog.bamboo.util.PublishedBuildDetails;
 import org.jfrog.bamboo.util.PublishedBuilds;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.generic.GenericData;
-import org.jfrog.build.api.Build;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,18 +65,18 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
         Map<String, String> customBuildData = taskContext.getBuildContext().getBuildResult().getCustomBuildData();
-        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
-        try (ArtifactoryBuildInfoClient client = clientBuilder.build()) {
+        ArtifactoryManagerBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
+        try (ArtifactoryManager client = clientBuilder.build()) {
             String aggregatedBuildsJson = TaskUtils.getAndDeleteAggregatedBuildInfo(taskContext);
-            Build build = buildInfoHelper.getBuilder(taskContext).build();
+            BuildInfo build = buildInfoHelper.getBuilder(taskContext).build();
             // Aggregate relevant builds to one build.
             if (StringUtils.isNotBlank(aggregatedBuildsJson)) {
                 addBuildsToPublish(taskContext, build, aggregatedBuildsJson);
             }
-            client.sendBuildInfo(build, "");
+            client.publishBuildInfo(build, "");
 
             // Add build details to context.
-            addPublishedBuildDetailsToBuildData(client.getArtifactoryUrl(), build.getName(), build.getNumber(), taskContext, customBuildData);
+            addPublishedBuildDetailsToBuildData(client.getUrl(), build.getName(), build.getNumber(), taskContext, customBuildData);
         } catch (IOException e) {
             String message = "Exception occurred while executing task";
             logger.addErrorLogEntry(message, e);
@@ -100,14 +100,14 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
      * @param publishCandidatesJson - All build-infos collected during the build execution.
      * @throws IOException if buildInfoToJsonString fails
      */
-    private void addBuildsToPublish(TaskContext taskContext, Build build, String publishCandidatesJson) throws IOException {
+    private void addBuildsToPublish(TaskContext taskContext, BuildInfo build, String publishCandidatesJson) throws IOException {
         // Deserialize builds string.
         GenericData buildsGenericData = BuildInfoExtractorUtils.jsonStringToGeneric(publishCandidatesJson, GenericData.class);
 
         // Aggregate build to publish while keeping them for removal from context.
-        List<Build> allBuilds = buildsGenericData.getBuilds();
-        List<Build> buildsToRemove = new ArrayList<>();
-        for (Build buildFromContext : allBuilds) {
+        List<BuildInfo> allBuilds = buildsGenericData.getBuilds();
+        List<BuildInfo> buildsToRemove = new ArrayList<>();
+        for (BuildInfo buildFromContext : allBuilds) {
             if (buildFromContext.getName().equals(build.getName()) && buildFromContext.getNumber().equals(build.getNumber())) {
                 build.append(buildFromContext);
                 buildsToRemove.add(buildFromContext);

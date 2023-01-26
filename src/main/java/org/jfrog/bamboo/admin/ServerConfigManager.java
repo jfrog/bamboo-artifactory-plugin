@@ -31,7 +31,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
@@ -169,7 +170,7 @@ public class ServerConfigManager implements Serializable {
                     "configuration by the ID " + serverId);
             return Lists.newArrayList();
         }
-        ArtifactoryBuildInfoClient client;
+        ArtifactoryManagerBuilder managerBuilder;
 
         String serverUrl = substituteVariables(serverConfig.getUrl());
         String username = null;
@@ -188,14 +189,14 @@ public class ServerConfigManager implements Serializable {
         password = substituteVariables(password);
 
         if (StringUtils.isBlank(username)) {
-            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl,
+            managerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverConfig.getId(), serverUrl,
                     "", "", serverConfig.getTimeout()), new BuildInfoLog(log));
         } else {
-            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, username,
+            managerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverConfig.getId(), serverUrl, username,
                     password, serverConfig.getTimeout()), new BuildInfoLog(log));
         }
 
-        try {
+        try (ArtifactoryManager client = managerBuilder.build()) {
             return client.getLocalRepositoriesKeys();
         } catch (IOException ioe) {
             log.error("Error while retrieving target repository list from: " + serverUrl, ioe);
@@ -209,8 +210,6 @@ public class ServerConfigManager implements Serializable {
             }
 
             return Lists.newArrayList();
-        } finally {
-            client.close();
         }
     }
 
@@ -228,7 +227,7 @@ public class ServerConfigManager implements Serializable {
                     "configuration by the ID " + serverId);
             return Lists.newArrayList();
         }
-        ArtifactoryBuildInfoClient client;
+        ArtifactoryManagerBuilder managerBuilder;
 
         String serverUrl = substituteVariables(serverConfig.getUrl());
         String username;
@@ -242,17 +241,17 @@ public class ServerConfigManager implements Serializable {
         }
 
         if (StringUtils.isBlank(username)) {
-            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl,
+            managerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverConfig.getId(), serverUrl,
                     "", "", serverConfig.getTimeout()), new BuildInfoLog(log));
         } else {
-            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, username,
+            managerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverConfig.getId(), serverUrl, username,
                     password, serverConfig.getTimeout()), new BuildInfoLog(log));
         }
 
-        client.setConnectionTimeout(serverConfig.getTimeout());
+        managerBuilder.setConnectionTimeout(serverConfig.getTimeout());
 
-        try {
-            return client.getVirtualRepositoryKeys();
+        try (ArtifactoryManager client = managerBuilder.build()) {
+            return client.getVirtualRepositoriesKeys();
         } catch (IOException ioe) {
             log.error("Error while retrieving resolving repository list from: " + serverUrl, ioe);
             try {
@@ -264,8 +263,6 @@ public class ServerConfigManager implements Serializable {
                 log.error("Error while sending error to response", e);
             }
             return Lists.newArrayList();
-        } finally {
-            client.close();
         }
     }
 

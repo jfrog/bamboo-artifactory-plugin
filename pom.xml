@@ -28,7 +28,7 @@
     </scm>
 
     <properties>
-        <bamboo.version>7.1.4</bamboo.version>
+        <bamboo.version>9.0.1</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
@@ -40,13 +40,8 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--Skip integration tests unless explicitly requested with -DskipITs=false-->
         <skipITs>true</skipITs>
-        <buildinfo.version>2.26.1</buildinfo.version>
-        <buildinfo.maven.version>2.26.1</buildinfo.maven.version>
-        <buildinfo.gradle.version>4.24.1</buildinfo.gradle.version>
-        <buildinfo.ivy.version>2.26.1</buildinfo.ivy.version>
-        <buildinfo.npm.version>2.26.1</buildinfo.npm.version>
-        <buildinfo.nuget.version>2.26.1</buildinfo.nuget.version>
-        <buildinfo.docker.version>2.26.1</buildinfo.docker.version>
+        <buildinfo.version>2.39.x-SNAPSHOT</buildinfo.version>
+        <buildinfo.gradle.version>4.31.x-SNAPSHOT</buildinfo.gradle.version>
     </properties>
 
     <profiles>
@@ -84,17 +79,18 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.17.1</version>
+            <version>2.19.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.8.1</version>
+            <version>3.12.0</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>2.5</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
@@ -168,13 +164,13 @@
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-nuget</artifactId>
-            <version>${buildinfo.nuget.version}</version>
+            <version>${buildinfo.version}</version>
             <classifier>uber</classifier>
         </dependency>
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-npm</artifactId>
-            <version>${buildinfo.npm.version}</version>
+            <version>${buildinfo.version}</version>
             <classifier>uber</classifier>
             <exclusions>
                 <exclusion>
@@ -186,7 +182,7 @@
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-docker</artifactId>
-            <version>${buildinfo.docker.version}</version>
+            <version>${buildinfo.version}</version>
             <classifier>uber</classifier>
             <exclusions>
                 <exclusion>
@@ -206,7 +202,7 @@
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-ivy</artifactId>
-            <version>${buildinfo.ivy.version}</version>
+            <version>${buildinfo.version}</version>
             <classifier>uber</classifier>
             <exclusions>
                 <exclusion>
@@ -218,12 +214,12 @@
         <dependency>
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>build-info-extractor-maven3</artifactId>
-            <version>${buildinfo.maven.version}</version>
+            <version>${buildinfo.version}</version>
             <classifier>uber</classifier>
             <exclusions>
                 <exclusion>
-                    <groupId>org.jdom</groupId>
-                    <artifactId>jdom</artifactId>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy-all</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -544,12 +540,12 @@
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-maven3</artifactId>
-                                    <version>${buildinfo.maven.version}</version>
+                                    <version>${buildinfo.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-maven3-${buildinfo.maven.version}-uber.jar
+                                    <destFileName>build-info-extractor-maven3-${buildinfo.version}-uber.jar
                                     </destFileName>
                                 </artifactItem>
                                 <artifactItem>
@@ -566,71 +562,48 @@
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-nuget</artifactId>
-                                    <version>${buildinfo.nuget.version}</version>
+                                    <version>${buildinfo.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-nuget-${buildinfo.nuget.version}-uber.jar
+                                    <destFileName>build-info-extractor-nuget-${buildinfo.version}-uber.jar
                                     </destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-npm</artifactId>
-                                    <version>${buildinfo.npm.version}</version>
+                                    <version>${buildinfo.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-npm-${buildinfo.npm.version}-uber.jar
+                                    <destFileName>build-info-extractor-npm-${buildinfo.version}-uber.jar
                                     </destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-docker</artifactId>
-                                    <version>${buildinfo.docker.version}</version>
+                                    <version>${buildinfo.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-docker-${buildinfo.docker.version}-uber.jar
+                                    <destFileName>build-info-extractor-docker-${buildinfo.version}-uber.jar
                                     </destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jfrog.buildinfo</groupId>
                                     <artifactId>build-info-extractor-ivy</artifactId>
-                                    <version>${buildinfo.ivy.version}</version>
+                                    <version>${buildinfo.version}</version>
                                     <type>jar</type>
                                     <classifier>uber</classifier>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/lib</outputDirectory>
-                                    <destFileName>build-info-extractor-ivy-${buildinfo.ivy.version}-uber.jar
+                                    <destFileName>build-info-extractor-ivy-${buildinfo.version}-uber.jar
                                     </destFileName>
                                 </artifactItem>
                             </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!--    The following plugin removes GroovyAssert from the created jat to prevent agent loading failure     -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>remove-GroovyAssert</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <delete>
-                                    <fileset dir="${project.build.directory}/classes/groovy/test/"
-                                             includes="GroovyAssert.class"/>
-                                </delete>
-                            </tasks>
                         </configuration>
                     </execution>
                 </executions>

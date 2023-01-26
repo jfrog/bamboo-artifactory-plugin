@@ -11,8 +11,8 @@ import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.DockerBuildContext;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.docker.extractor.DockerPull;
 import org.jfrog.build.extractor.docker.extractor.DockerPush;
 
@@ -30,7 +30,7 @@ public class ArtifactoryDockerTask extends ArtifactoryTaskType {
     private BuildInfoHelper buildInfoHelper;
     private String buildNumber;
     private String buildName;
-    private ArtifactoryDependenciesClientBuilder dependenciesClientBuilder;
+    private ArtifactoryManagerBuilder artifactoryManagerBuilder;
 
     public ArtifactoryDockerTask(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
@@ -47,13 +47,13 @@ public class ArtifactoryDockerTask extends ArtifactoryTaskType {
         buildName = dockerBuildContext.getBuildName(buildContext);
         buildNumber = dockerBuildContext.getBuildNumber(buildContext);
         initBuildInfoHelper(buildContext);
-        dependenciesClientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(buildInfoHelper.getServerConfig(), buildInfoLog);
+        artifactoryManagerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(buildInfoHelper.getServerConfig(), buildInfoLog);
     }
 
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
-        Build build;
+        BuildInfo build;
         if (dockerBuildContext.isDockerCommandPull()) {
             build = executeDockerPull();
         } else {
@@ -76,20 +76,20 @@ public class ArtifactoryDockerTask extends ArtifactoryTaskType {
         return TaskResultBuilder.newBuilder(taskContext).success().build();
     }
 
-    private Build executeDockerPull() {
+    private BuildInfo executeDockerPull() {
         String repo = buildInfoHelper.overrideParam(dockerBuildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
         String userName = buildInfoHelper.getServerConfig().getUsername();
         String password = buildInfoHelper.getServerConfig().getPassword();
-        return new DockerPull(buildInfoHelper.getClientBuilder(logger, log), dependenciesClientBuilder,
+        return new DockerPull(artifactoryManagerBuilder,
                 dockerBuildContext.getImageName(), dockerBuildContext.getHost(), repo, userName, password,
                 buildInfoLog, environmentVariables).execute();
     }
 
-    private Build executeDockerPush() {
+    private BuildInfo executeDockerPush() {
         String repo = buildInfoHelper.overrideParam(dockerBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
         String userName = buildInfoHelper.getServerConfig().getUsername();
         String password = buildInfoHelper.getServerConfig().getPassword();
-        return new DockerPush(buildInfoHelper.getClientBuilder(logger, log), dependenciesClientBuilder, dockerBuildContext.getImageName(),
+        return new DockerPush(artifactoryManagerBuilder, dockerBuildContext.getImageName(),
                 dockerBuildContext.getHost(), TaskUtils.getCommonArtifactPropertiesMap(buildInfoHelper), repo,
                 userName, password, buildInfoLog, environmentVariables).execute();
     }

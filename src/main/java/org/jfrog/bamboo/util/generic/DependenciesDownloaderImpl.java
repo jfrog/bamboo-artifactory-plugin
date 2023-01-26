@@ -5,11 +5,11 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.DownloadableArtifact;
 import org.jfrog.build.api.util.FileChecksumCalculator;
 import org.jfrog.build.api.util.Log;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.ci.Dependency;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 import org.jfrog.build.extractor.clientConfiguration.util.DependenciesDownloader;
 import org.jfrog.build.extractor.clientConfiguration.util.DependenciesDownloaderHelper;
 
@@ -25,20 +25,20 @@ import java.util.Set;
  * @author Lior Hasson
  */
 public class DependenciesDownloaderImpl implements DependenciesDownloader {
-    private ArtifactoryDependenciesClient client;
+    private final ArtifactoryManager artifactoryManager;
     private Log log;
     private File workingDirectory;
     private boolean flatDownload = false;
 
-    public DependenciesDownloaderImpl(ArtifactoryDependenciesClient client, File workingDirectory, Log log) {
-        this.client = client;
+    public DependenciesDownloaderImpl(ArtifactoryManager artifactoryManager, File workingDirectory, Log log) {
+        this.artifactoryManager = artifactoryManager;
         this.workingDirectory = workingDirectory;
         this.log = log;
     }
 
     @Override
-    public ArtifactoryDependenciesClient getClient() {
-        return client;
+    public ArtifactoryManager getArtifactoryManager() {
+        return artifactoryManager;
     }
 
     @Override
@@ -48,7 +48,7 @@ public class DependenciesDownloaderImpl implements DependenciesDownloader {
     }
 
     @Override
-    public String getTargetDir(String targetDir, String relativeDir) throws IOException {
+    public String getTargetDir(String targetDir, String relativeDir) {
         return FilenameUtils.concat(workingDirectory.getPath(), FilenameUtils.concat(targetDir, relativeDir));
     }
 
