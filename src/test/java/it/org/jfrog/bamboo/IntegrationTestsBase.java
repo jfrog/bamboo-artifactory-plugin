@@ -11,7 +11,7 @@ import it.org.jfrog.bamboo.utils.TestRepositories;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jfrog.build.api.Build;
+import org.jfrog.build.extractor.ci.BuildInfo;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -108,13 +108,13 @@ public abstract class IntegrationTestsBase {
      *
      * @return build info for the plan
      */
-    Build getAndAssertPlanBuildInfo() {
+    BuildInfo getAndAssertPlanBuildInfo() {
         ImmutableChain chain = planManager.getPlanByKey(PlanKeys.getPlanKey(planKey), Chain.class);
         assertNotNull(chain);
         try {
             String buildName = chain.getAllJobs().get(0).getName();
             String buildNumber = String.valueOf(chain.getLastBuildNumber());
-            Build buildInfo = helper.getBuildInfo(buildName, buildNumber, "");
+            BuildInfo buildInfo = helper.getBuildInfo(buildName, buildNumber, "");
             assertNotNull(buildInfo);
             helper.assertFilteredProperties(buildInfo);
             return buildInfo;
