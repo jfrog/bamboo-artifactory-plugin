@@ -40,8 +40,8 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--Skip integration tests unless explicitly requested with -DskipITs=false-->
         <skipITs>true</skipITs>
-        <buildinfo.version>2.39.x-SNAPSHOT</buildinfo.version>
-        <buildinfo.gradle.version>4.31.x-SNAPSHOT</buildinfo.gradle.version>
+        <buildinfo.version>2.39.1</buildinfo.version>
+        <buildinfo.gradle.version>4.31.1</buildinfo.gradle.version>
     </properties>
 
     <profiles>
