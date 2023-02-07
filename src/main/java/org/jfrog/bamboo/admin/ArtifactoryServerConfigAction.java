@@ -25,9 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.security.EncryptionHelper;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
-import org.jfrog.build.util.VersionException;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -191,21 +192,21 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
     }
 
     private void testConnection() {
-        ArtifactoryBuildInfoClient testClient;
+        ArtifactoryManagerBuilder managerBuilder;
         if (StringUtils.isNotBlank(username)) {
-            testClient = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverId, url, username,
+            managerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverId, url, username,
                     password, timeout), new BuildInfoLog(log));
         } else {
-            testClient = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverId, url,
+            managerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverId, url,
                     "", "", timeout), new BuildInfoLog(log));
         }
-        try {
-            testClient.verifyCompatibleArtifactoryVersion();
+        try (ArtifactoryManager client = managerBuilder.build()) {
+            client.getVersion();
             addActionMessage("Connection successful!");
-        } catch (VersionException ve) {
-            handleConnectionException(ve);
         } catch (IllegalArgumentException iae) {
             handleConnectionException(iae);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

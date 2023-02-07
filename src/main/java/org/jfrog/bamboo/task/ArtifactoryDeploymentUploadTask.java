@@ -17,7 +17,7 @@ import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.deployment.LegacyDeploymentUtils;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
 import java.io.File;
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Bamboo deployment Artifactory task - Takes pre defined artifacts from a build plan and deploys them to Artifactory
+ * Bamboo deployment Artifactory task - Takes pre-defined artifacts from a build plan and deploys them to Artifactory
  *
  * @author Aviad Shikloshi
  */
@@ -51,7 +51,7 @@ public class ArtifactoryDeploymentUploadTask extends ArtifactoryDeploymentTaskTy
     @NotNull
     @Override
     public TaskResult runTask(@NotNull DeploymentTaskContext deploymentTaskContext) {
-        ArtifactoryBuildInfoClientBuilder clientBuilder = TaskUtils.getArtifactoryBuildInfoClientBuilder(uploadServerConfig, buildInfoLog);
+        ArtifactoryManagerBuilder clientBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(uploadServerConfig, buildInfoLog);
         String artifactsRootDirectory = deploymentTaskContext.getWorkingDirectory().getAbsolutePath();
         try {
             initFileSpec(deploymentTaskContext);

@@ -16,10 +16,10 @@ import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
 import org.jfrog.bamboo.util.generic.GenericArtifactsResolver;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.ci.Dependency;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
 import java.io.IOException;
@@ -62,23 +62,23 @@ public class ArtifactoryGenericResolveTask extends ArtifactoryTaskType {
     public TaskResult runTask(@NotNull TaskContext taskContext) {
         logger.addBuildLogEntry("Bamboo Artifactory Plugin version: " + Utils.getPluginVersion(pluginAccessor));
 
-        try (ArtifactoryDependenciesClient client = TaskUtils.getArtifactoryDependenciesClient(buildInfoHelper.getServerConfig(), buildInfoLog)) {
+        try (ArtifactoryManager artifactoryManager = TaskUtils.getArtifactoryManagerBuilderBuilder(buildInfoHelper.getServerConfig(), buildInfoLog).build()) {
             List<BuildDependency> buildDependencies;
             List<Dependency> dependencies;
             if (genericContext.isUseFileSpecs()) {
                 buildDependencies = Lists.newArrayList();
                 initFileSpec(taskContext, logger);
                 SpecsHelper specsHelper = new SpecsHelper(buildInfoLog);
-                dependencies = specsHelper.downloadArtifactsBySpec(fileSpec, client, taskContext.getWorkingDirectory().getCanonicalPath());
+                dependencies = specsHelper.downloadArtifactsBySpec(fileSpec, artifactoryManager, taskContext.getWorkingDirectory().getCanonicalPath());
             } else {
-                GenericArtifactsResolver resolver = new GenericArtifactsResolver(taskContext, client,
+                GenericArtifactsResolver resolver = new GenericArtifactsResolver(taskContext, artifactoryManager,
                         genericContext.getResolvePattern(), buildInfoLog);
                 buildDependencies = resolver.retrieveBuildDependencies();
                 dependencies = resolver.retrievePublishedDependencies();
             }
 
             if (genericContext.isCaptureBuildInfo()) {
-                Build build = buildInfoHelper.getBuild(taskContext, genericContext);
+                BuildInfo build = buildInfoHelper.getBuild(taskContext, genericContext);
                 build = buildInfoHelper.addBuildInfoParams(build, Lists.newArrayList(), dependencies, buildDependencies);
                 taskBuildInfo = build;
             }

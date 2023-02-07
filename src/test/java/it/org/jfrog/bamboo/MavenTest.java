@@ -5,8 +5,8 @@ import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.plugins.osgi.test.AtlassianPluginsTestRunner;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.Module;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.ci.Module;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,7 +31,7 @@ public class MavenTest extends IntegrationTestsBase {
     @Test
     public void checkPlanResults() {
         Set<String> expectedArtifacts = Sets.newHashSet("multi-3.7-SNAPSHOT.pom");
-        Build buildInfo = getAndAssertPlanBuildInfo();
+        BuildInfo buildInfo = getAndAssertPlanBuildInfo();
         assertEquals(4, buildInfo.getModules().size());
 
         Module module = helper.getAndAssertModule(buildInfo, "org.jfrog.test:multi:3.7-SNAPSHOT");

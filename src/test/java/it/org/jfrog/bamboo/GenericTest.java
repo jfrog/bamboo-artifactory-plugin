@@ -4,8 +4,8 @@ import com.atlassian.bamboo.plan.PlanExecutionManager;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.plugins.osgi.test.AtlassianPluginsTestRunner;
 import com.google.common.collect.Sets;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.Module;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.ci.Module;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,7 +26,7 @@ public class GenericTest extends IntegrationTestsBase {
 
     @Test
     public void checkPlanResults() {
-        Build buildInfo = getAndAssertPlanBuildInfo();
+        BuildInfo buildInfo = getAndAssertPlanBuildInfo();
         assertEquals(1, buildInfo.getModules().size());
         Module module = helper.getAndAssertModule(buildInfo, buildInfo.getName() + ":" + buildInfo.getNumber());
         helper.assertModuleArtifacts(module, Sets.newHashSet("README.md"));

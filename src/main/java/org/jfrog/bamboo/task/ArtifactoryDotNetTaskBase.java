@@ -15,10 +15,9 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.DotNetBuildContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.api.Artifact;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
+import org.jfrog.build.extractor.ci.Artifact;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 import org.jfrog.build.extractor.nuget.extractor.NugetRun;
 
@@ -69,7 +68,7 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
-        Build build;
+        BuildInfo build;
         if (dotNetBuildContext.isRestoreCommand()) {
             build = executeRestore();
         } else {
@@ -103,17 +102,17 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
         ContainerManager.autowireComponent(this);
     }
 
-    protected Build executeRestore() {
-        ArtifactoryDependenciesClientBuilder clientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(
+    protected BuildInfo executeRestore() {
+        ArtifactoryManagerBuilder artifactoryManagerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(
                 buildInfoHelper.getServerConfig(), new BuildInfoLog(log, logger));
         String repo = buildInfoHelper.overrideParam(dotNetBuildContext.getResolutionRepo(),
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
-        return new NugetRun(clientBuilder, repo, taskType == TaskType.DOTNET, String.format("restore %s", dotNetBuildContext.getArguments()),
+        return new NugetRun(artifactoryManagerBuilder, repo, taskType == TaskType.DOTNET, String.format("restore %s", dotNetBuildContext.getArguments()),
                 buildInfoLog, workingDir, environmentVariables, null, buildInfoHelper.getServerConfig().getUsername(),
-                buildInfoHelper.getServerConfig().getPassword(), "").execute();
+                buildInfoHelper.getServerConfig().getPassword(), "v2").execute();
     }
 
-    protected Build executePush() throws Exception {
+    protected BuildInfo executePush() throws Exception {
         String repo = buildInfoHelper.overrideParam(dotNetBuildContext.getPublishingRepo(),
                 BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
 
@@ -122,13 +121,17 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
         String targetPath = createTargetPath(repo, dotNetBuildContext.getPushTarget());
         String uploadSpec = String.format(specTemplate, artifactsPattern, targetPath);
 
+        // Add build info properties.
+        BuildInfo build = buildInfoHelper.getBuilder((TaskContext) taskContext).build();
+        Map<String, String> buildProperties = buildInfoHelper.getDynamicPropertyMap(build);
+        buildInfoHelper.addCommonProperties(buildProperties);
+
         // Perform upload.
         SpecsHelper specsHelper = new SpecsHelper(new BuildInfoLog(log, logger));
-        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
-        List<Artifact> artifactList = specsHelper.uploadArtifactsBySpec(uploadSpec, workingDir.toFile(), new HashMap<>(), clientBuilder);
+        ArtifactoryManagerBuilder artifactoryManagerBuilder = buildInfoHelper.getClientBuilder(taskContext.getBuildLogger(), log);
+        List<Artifact> artifactList = specsHelper.uploadArtifactsBySpec(uploadSpec, workingDir.toFile(), buildProperties, artifactoryManagerBuilder);
 
-        // Create build object.
-        Build build = buildInfoHelper.getBuilder((TaskContext) taskContext).build();
+        // Add artifacts to build info helper.
         return buildInfoHelper.addBuildInfoParams(build, artifactList, Lists.newArrayList(), Lists.newArrayList());
     }
 

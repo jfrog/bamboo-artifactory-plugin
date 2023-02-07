@@ -2,6 +2,7 @@ package org.jfrog.bamboo.release.action;
 
 import com.atlassian.bamboo.build.ViewBuildResults;
 import com.atlassian.bamboo.builder.BuildState;
+import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plan.cache.ImmutableChain;
@@ -39,11 +40,13 @@ import org.jfrog.bamboo.util.*;
 import org.jfrog.bamboo.util.version.VersionHelper;
 import org.jfrog.build.api.release.Promotion;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
+import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * An action to display when entering the "Artifactory Release & Promotion" tab from within a job.
@@ -138,7 +141,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     }
 
     private int findLatestBuildNumberWithBuildInfo() {
-        List<ResultsSummary> summaries = resultsSummaryManager.getLastNResultsSummaries(getImmutablePlan(), 100);
+        List<ResultsSummary> summaries = resultsSummaryManager.getLastNResultsSummaries((PlanIdentifier) Objects.requireNonNull(getImmutablePlan()), 100);
         for (ResultsSummary summary : summaries) {
             if (summary.getBuildState().equals(BuildState.SUCCESS)) {
                 boolean biActive = Boolean.parseBoolean(
@@ -517,7 +520,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
 
         Map<String, String> taskConfiguration = definition.getConfiguration();
         PackageManagersContext context = PackageManagersContext.createContextFromMap(taskConfiguration);
-        ArtifactoryBuildInfoClient client = createClientForPromotion(serverConfigManager, serverConfig, context, log);
+        ArtifactoryManagerBuilder clientBuilder = createClientForPromotion(serverConfigManager, serverConfig, context, log, taskConfiguration);
         ResultsSummary summary = getResultsSummary();
         TriggerReason reason = summary.getTriggerReason();
         String username = "";
@@ -540,7 +543,9 @@ public class ReleasePromotionAction extends ViewBuildResults {
         }
 
         // Run promotion thread.
-        new PromotionThread(this, client, username, buildName, buildNumber).start();
+        try (ArtifactoryManager client = clientBuilder.build()) {
+            new PromotionThread(this, client, username, buildName, buildNumber).start();
+        }
         promoting = false;
         return SUCCESS;
     }
@@ -602,27 +607,27 @@ public class ReleasePromotionAction extends ViewBuildResults {
         return TaskDefinitionHelper.findMavenOrGradleDefinition(definitions);
     }
 
-    private static ArtifactoryBuildInfoClient createClientForPromotion(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
-                                                                       PackageManagersContext context, Logger log) {
+    private static ArtifactoryManagerBuilder createClientForPromotion(ServerConfigManager serverConfigManager, ServerConfig serverConfig,
+                                                                      PackageManagersContext context, Logger log, Map<String, String> taskConfiguration) {
+        BuildInfoLog bambooLog = new BuildInfoLog(log);
         String serverUrl = serverConfigManager.substituteVariables(serverConfig.getUrl());
-        String username = serverConfigManager.substituteVariables(context.getDeployerUsername());
+        String username = serverConfigManager.substituteVariables(context.getOverriddenUsername(taskConfiguration, bambooLog, true));
         if (StringUtils.isBlank(username)) {
             username = serverConfigManager.substituteVariables(serverConfig.getUsername());
         }
-        ArtifactoryBuildInfoClient client;
-        BuildInfoLog bambooLog = new BuildInfoLog(log);
+        ArtifactoryManagerBuilder clientBuilder;
         if (StringUtils.isBlank(username)) {
-            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, "",
+            clientBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverConfig.getId(), serverUrl, "",
                     "", serverConfig.getTimeout()), bambooLog);
         } else {
-            String password = serverConfigManager.substituteVariables(context.getDeployerPassword());
+            String password = serverConfigManager.substituteVariables(context.getOverriddenPassword(taskConfiguration, bambooLog, true));
             if (StringUtils.isBlank(password)) {
                 password = serverConfigManager.substituteVariables(serverConfig.getPassword());
             }
-            client = TaskUtils.getArtifactoryBuildInfoClient(new ServerConfig(serverConfig.getId(), serverUrl, username, password,
+            clientBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(new ServerConfig(serverConfig.getId(), serverUrl, username, password,
                     serverConfig.getTimeout()), bambooLog);
         }
-        return client;
+        return clientBuilder;
     }
 
     public String getSelectedServerId(TaskDefinition definition) {

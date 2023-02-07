@@ -21,7 +21,7 @@ import org.jfrog.bamboo.builder.MavenAndIvyBuildInfoDataHelperBase;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.api.BuildInfoFields;
+import org.jfrog.build.extractor.ci.BuildInfoFields;
 
 import java.io.File;
 import java.io.IOException;

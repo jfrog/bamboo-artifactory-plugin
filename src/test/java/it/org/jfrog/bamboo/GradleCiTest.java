@@ -4,8 +4,8 @@ import com.atlassian.bamboo.plan.PlanExecutionManager;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.plugins.osgi.test.AtlassianPluginsTestRunner;
 import com.google.common.collect.Sets;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.Module;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.ci.Module;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,7 +31,7 @@ public class GradleCiTest extends IntegrationTestsBase {
     public void checkPlanResults() {
         Set<String> expectedArtifacts = Sets.newHashSet("gradle-example-ci-server-1.0.jar");
 
-        Build buildInfo = getAndAssertPlanBuildInfo();
+        BuildInfo buildInfo = getAndAssertPlanBuildInfo();
         assertEquals(5, buildInfo.getModules().size());
 
         Module module = helper.getAndAssertModule(buildInfo, "org.jfrog.example.gradle:gradle-example-ci-server:1.0");

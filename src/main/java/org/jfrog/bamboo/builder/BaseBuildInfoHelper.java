@@ -38,8 +38,8 @@ import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
-import org.jfrog.build.api.BuildInfoProperties;
 import org.jfrog.build.api.util.Log;
+import org.jfrog.build.extractor.ci.BuildInfoProperties;
 import org.jfrog.build.extractor.clientConfiguration.ClientProperties;
 
 import java.io.File;

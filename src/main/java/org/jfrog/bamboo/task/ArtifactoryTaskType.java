@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.generic.GenericData;
-import org.jfrog.build.api.Build;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
+import org.jfrog.build.extractor.ci.BuildInfo;
 
 import java.io.IOException;
 
@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 public abstract class ArtifactoryTaskType extends ArtifactoryTaskBase implements TaskType {
     // Build object created by the Artifactory task, will be aggregated to the plan's build-info.
-    protected Build taskBuildInfo;
+    protected BuildInfo taskBuildInfo;
 
     protected abstract TaskResult runTask(@NotNull TaskContext context) throws TaskException;
 

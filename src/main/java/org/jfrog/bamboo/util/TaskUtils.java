@@ -19,14 +19,11 @@ import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.version.VcsHelper;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.BuildInfoConfigProperties;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
-import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.ci.BuildInfoConfigProperties;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,36 +110,12 @@ public class TaskUtils {
         return new ServerConfig(serverConfig.getId(), serverUrl, username, password, serverConfig.getTimeout());
     }
 
-    public static ArtifactoryDependenciesClientBuilder getArtifactoryDependenciesClientBuilder(ServerConfig serverConfig, Log log) {
-        ArtifactoryDependenciesClientBuilder dependenciesClientBuilder = new ArtifactoryDependenciesClientBuilder();
-        dependenciesClientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
-                .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
-        ProxyUtils.setProxyConfig(serverConfig.getUrl(), dependenciesClientBuilder);
-        return dependenciesClientBuilder;
-    }
-
-    public static ArtifactoryDependenciesClient getArtifactoryDependenciesClient(ServerConfig serverConfig, Log log) {
-        ArtifactoryDependenciesClient dependenciesClient = new ArtifactoryDependenciesClient(serverConfig.getUrl(),
-                serverConfig.getUsername(), serverConfig.getPassword(), log);
-        dependenciesClient.setConnectionTimeout(serverConfig.getTimeout());
-        ProxyUtils.setProxyConfig(serverConfig.getUrl(), dependenciesClient);
-        return dependenciesClient;
-    }
-
-    public static ArtifactoryBuildInfoClientBuilder getArtifactoryBuildInfoClientBuilder(ServerConfig serverConfig, Log log) {
-        ArtifactoryBuildInfoClientBuilder clientBuilder = new ArtifactoryBuildInfoClientBuilder();
-        clientBuilder.setArtifactoryUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername())
-                .setPassword(serverConfig.getPassword()).setLog(log).setConnectionTimeout(serverConfig.getTimeout());
-        ProxyUtils.setProxyConfig(serverConfig.getUrl(), clientBuilder);
-        return clientBuilder;
-    }
-
-    public static ArtifactoryBuildInfoClient getArtifactoryBuildInfoClient(ServerConfig serverConfig, Log log) {
-        ArtifactoryBuildInfoClient buildInfoClient = new ArtifactoryBuildInfoClient(serverConfig.getUrl(),
-                serverConfig.getUsername(), serverConfig.getPassword(), log);
-        buildInfoClient.setConnectionTimeout(serverConfig.getTimeout());
-        ProxyUtils.setProxyConfig(serverConfig.getUrl(), buildInfoClient);
-        return buildInfoClient;
+    public static ArtifactoryManagerBuilder getArtifactoryManagerBuilderBuilder(ServerConfig serverConfig, Log log) {
+        ArtifactoryManagerBuilder artifactoryManagerBuilder = new ArtifactoryManagerBuilder();
+        artifactoryManagerBuilder.setServerUrl(serverConfig.getUrl()).setUsername(serverConfig.getUsername()).setPassword(serverConfig.getPassword())
+                .setLog(log).setConnectionTimeout(serverConfig.getTimeout());
+        ProxyUtils.setProxyConfig(serverConfig.getUrl(), artifactoryManagerBuilder);
+        return artifactoryManagerBuilder;
     }
 
     private static String overrideParam(String originalValue, String overrideKey, BuildParamsOverrideManager buildParamsOverrideManager) {
@@ -167,7 +140,7 @@ public class TaskUtils {
     /**
      * Add build info stored in a file to the build-info stored in plan's context.
      */
-    public static Build getBuildObjectFromBuildInfoFile(String buildInfoFilePath) throws IOException {
+    public static BuildInfo getBuildObjectFromBuildInfoFile(String buildInfoFilePath) throws IOException {
         if (StringUtils.isBlank(buildInfoFilePath)) {
             throw new IllegalArgumentException("Provided empty build-info file path.");
         }

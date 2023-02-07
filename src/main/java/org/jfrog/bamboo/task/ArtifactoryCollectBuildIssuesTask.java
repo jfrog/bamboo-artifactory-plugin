@@ -13,10 +13,10 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.CollectBuildIssuesContext;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.api.Build;
-import org.jfrog.build.api.Issues;
-import org.jfrog.build.api.Vcs;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.ci.Issues;
+import org.jfrog.build.extractor.ci.Vcs;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.issuesCollection.IssuesCollector;
 
 import java.io.File;
@@ -109,7 +109,7 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
     /**
      * When the source of the issues collection config is task configuration, the config json is provided via a text box
      * in the task.
-     * This function retreives the config from the task's text box.
+     * This function retrieves the config from the task's text box.
      *
      * @return the provided issues collection config.
      */
@@ -123,14 +123,14 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
 
     private Issues collectBuildIssues(BuildLogger logger, File projectRootDir) throws IOException, InterruptedException {
         String config = getIssuesCollectionConfig(taskContext, logger);
-        ArtifactoryBuildInfoClientBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
+        ArtifactoryManagerBuilder clientBuilder = buildInfoHelper.getClientBuilder(logger, log);
         String buildName = collectBuildIssuesContext.getBuildName(((TaskContext) taskContext).getBuildContext());
         Vcs vcs = extractVcs(projectRootDir, buildInfoLog);
         return new IssuesCollector().collectIssues(projectRootDir, buildInfoLog, config, clientBuilder, buildName, vcs, "");
     }
 
     private void addIssuesToBuildInfoInContext(@NotNull TaskContext taskContext, Issues issues) {
-        Build build = buildInfoHelper.getBuilder(taskContext).build();
+        BuildInfo build = buildInfoHelper.getBuilder(taskContext).build();
         build.setIssues(issues);
         taskBuildInfo = build;
     }

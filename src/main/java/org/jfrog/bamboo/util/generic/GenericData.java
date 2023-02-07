@@ -1,7 +1,7 @@
 package org.jfrog.bamboo.util.generic;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.jfrog.build.api.Build;
+import org.jfrog.build.extractor.ci.BuildInfo;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,17 +20,17 @@ import static org.jfrog.build.api.BuildBean.ROOT;
 public class GenericData implements Serializable {
 
     @XStreamAlias("build")
-    private List<Build> builds;
+    private List<BuildInfo> builds;
 
-    public List<Build> getBuilds() {
+    public List<BuildInfo> getBuilds() {
         return builds;
     }
 
-    public void setBuilds(List<Build> builds) {
+    public void setBuilds(List<BuildInfo> builds) {
         this.builds = builds;
     }
 
-    public void addBuild(Build build) {
+    public void addBuild(BuildInfo build) {
         if (this.builds == null) {
             this.builds = new ArrayList<>();
         }

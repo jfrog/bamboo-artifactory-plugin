@@ -14,10 +14,9 @@ import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.NpmBuildContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
 import org.jfrog.bamboo.util.TaskUtils;
-import org.jfrog.build.api.Build;
 import org.jfrog.build.api.util.Log;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryBuildInfoClientBuilder;
-import org.jfrog.build.extractor.clientConfiguration.ArtifactoryDependenciesClientBuilder;
+import org.jfrog.build.extractor.ci.BuildInfo;
+import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.npm.extractor.NpmInstallCi;
 import org.jfrog.build.extractor.npm.extractor.NpmPublish;
 
@@ -63,7 +62,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     @NotNull
     @Override
     public TaskResult runTask(@NotNull TaskContext taskContext) {
-        Build build;
+        BuildInfo build;
         if (npmBuildContext.isNpmCommandInstall()) {
             build = executeNpmInstall();
         } else {
@@ -113,13 +112,12 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      *
      * @return Build containing affected artifacts, null if execution failed.
      */
-    private Build executeNpmInstall() {
+    private BuildInfo executeNpmInstall() {
         ServerConfig serverConfig = buildInfoHelper.getServerConfig();
         Log buildInfoLogger = new BuildInfoLog(log, logger);
-        ArtifactoryDependenciesClientBuilder depsClientBuilder = TaskUtils.getArtifactoryDependenciesClientBuilder(serverConfig, buildInfoLogger);
-        ArtifactoryBuildInfoClientBuilder buildInfoClientBuilder = TaskUtils.getArtifactoryBuildInfoClientBuilder(serverConfig, buildInfoLogger);
+        ArtifactoryManagerBuilder artifactoryManagerBuilder = TaskUtils.getArtifactoryManagerBuilderBuilder(serverConfig, buildInfoLogger);
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getResolutionRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_RESOLVE_REPO);
-        return new NpmInstallCi(depsClientBuilder, buildInfoClientBuilder, repo, npmBuildContext.getArguments(), buildInfoLog, packagePath, environmentVariables, "", buildName, false, "").execute();
+        return new NpmInstallCi(artifactoryManagerBuilder, repo, npmBuildContext.getArguments(), buildInfoLog, packagePath, environmentVariables, "", buildName, false, "").execute();
     }
 
     /**
@@ -127,7 +125,7 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
      *
      * @return Build containing affected artifacts, null if execution failed.
      */
-    private Build executeNpmPublish() {
+    private BuildInfo executeNpmPublish() {
         String repo = buildInfoHelper.overrideParam(npmBuildContext.getPublishingRepo(), BuildParamsOverrideManager.OVERRIDE_ARTIFACTORY_DEPLOY_REPO);
         return new NpmPublish(buildInfoHelper.getClientBuilder(logger, log), TaskUtils.getCommonArtifactPropertiesMap(buildInfoHelper), packagePath, repo, buildInfoLog, environmentVariables, "").execute();
     }

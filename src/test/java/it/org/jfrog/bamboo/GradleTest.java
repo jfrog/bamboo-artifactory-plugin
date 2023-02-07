@@ -3,7 +3,7 @@ package it.org.jfrog.bamboo;
 import com.atlassian.bamboo.plan.PlanExecutionManager;
 import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.plugins.osgi.test.AtlassianPluginsTestRunner;
-import org.jfrog.build.api.Build;
+import org.jfrog.build.extractor.ci.BuildInfo;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -24,7 +24,7 @@ public class GradleTest extends IntegrationTestsBase {
 
     @Test
     public void checkPlanResults() {
-        Build buildInfo = getAndAssertPlanBuildInfo();
+        BuildInfo buildInfo = getAndAssertPlanBuildInfo();
         assertEquals(3, buildInfo.getModules().size());
 
         helper.assertModuleContainsArtifactsAndDependencies(buildInfo, "org.jfrog.example.gradle:api:1.0-SNAPSHOT");
