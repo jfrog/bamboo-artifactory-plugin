@@ -69,8 +69,8 @@ pipelines:
             - ./jf rt bp
 
             # Distribute release bundle
-            - ./jf ds rbc artifactory-bamboo-plugin $NEXT_VERSION --spec=./ci/release/specs/prod-rbc-filespec.json --spec-vars="version=$NEXT_VERSION" --sign
-            - ./jf ds rbd artifactory-bamboo-plugin $NEXT_VERSION --site="releases.jfrog.io" --sync
+            - ./jf ds rbc ecosystem-artifactory-bamboo-plugin $NEXT_VERSION --spec=./ci/release/specs/prod-rbc-filespec.json --spec-vars="version=$NEXT_VERSION" --sign
+            - ./jf ds rbd ecosystem-artifactory-bamboo-plugin $NEXT_VERSION --site="releases.jfrog.io" --sync
 
             # Update next development version
             - git checkout master
