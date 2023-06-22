@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jfrog.bamboo</groupId>
     <artifactId>bamboo-artifactory-plugin</artifactId>
-    <version>3.3.2</version>
+    <version>3.3.x-SNAPSHOT</version>
     <name>Bamboo Artifactory Plugin</name>
     <description>Artifactory Build Info plugin for Atlassian Bamboo.</description>
     <packaging>atlassian-plugin</packaging>
