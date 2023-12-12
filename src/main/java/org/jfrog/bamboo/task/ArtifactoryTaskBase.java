@@ -47,7 +47,7 @@ public abstract class ArtifactoryTaskBase {
         UsageReporter usageReporter = new UsageReporter("bamboo-artifactory-plugin/" + Utils.getPluginVersion(pluginAccessor), featureIdArray);
 
         try {
-            usageReporter.reportUsage(serverConfig.getUrl(), serverConfig.getUsername(), serverConfig.getPassword(), "", null, log);
+            usageReporter.reportUsage(serverConfig.getUrl(), serverConfig.getUsername(), serverConfig.getPassword(), "", null, null, log);
             log.info("Usage info sent successfully.");
         } catch (Exception ex) {
             log.info("Failed sending usage report to Artifactory: " + ex);
