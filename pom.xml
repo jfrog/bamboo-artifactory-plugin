@@ -28,7 +28,7 @@
     </scm>
 
     <properties>
-        <bamboo.version>9.3.0</bamboo.version>
+        <bamboo.version>9.3.3</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
@@ -40,8 +40,8 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--Skip integration tests unless explicitly requested with -DskipITs=false-->
         <skipITs>true</skipITs>
-        <buildinfo.version>2.39.9</buildinfo.version>
-        <buildinfo.gradle.version>4.31.9</buildinfo.gradle.version>
+        <buildinfo.version>2.41.8</buildinfo.version>
+        <buildinfo.gradle.version>4.33.7</buildinfo.gradle.version>
     </properties>
 
     <profiles>
