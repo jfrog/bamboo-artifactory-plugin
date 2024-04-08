@@ -2,7 +2,7 @@
 Before submitting a pull request, please make sure your code is covered by tests.
 
 ## Building the Code
-The code is built with Maven and JDK 8.
+The code is built with Maven and JDK 11.
 To build the plugin, please follow these steps:
 1. Clone the code from GitHub.
 2. Build and create the Bamboo Artifactory plugin jar by running the following Maven command:
