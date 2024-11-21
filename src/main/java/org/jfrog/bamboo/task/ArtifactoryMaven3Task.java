@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.io.FileInputStream;
 
 import static org.jfrog.bamboo.util.TaskUtils.getPlanKey;
 
@@ -253,6 +255,52 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         arguments.add(classPathBuilder.toString());
     }
 
+    /**
+     * Checks whether a specific configuration property in the Bamboo Agent's properties file
+     * is set to enable deployment and appends the deploy goal to the Maven arguments list if necessary.
+     * 
+     * The method searches for a file named "artifactory.bamboo.plugin.properties" in the Bamboo Agent Home directory.
+     * If the file exists, it reads the property "artifactory.maven3.deploy.always" and checks if it is set to "true".
+     * If the property is found and set to "true", the method appends the "deploy" goal to the provided arguments list.
+     * 
+     * @param arguments The list of Maven arguments to which the deploy goal may be appended.
+     */
+    void appendDeployGoalIfNeeded(List<String> arguments) {
+        // Check if the "deploy" phase already exists in the arguments list
+        if (arguments.contains("deploy")) {
+            return;
+        }
+
+        String agentHome = System.getProperty("bamboo.home");
+        if (agentHome == null || agentHome.isEmpty()) {
+            agentHome = System.getenv("BAMBOO_AGENT_HOME");
+        }
+        if (agentHome == null || agentHome.isEmpty()) {
+            log.info("appendDeployGoalIfNeeded: Bamboo Agent Home could not be detected using the 'bamboo.home' system property or the 'BAMBOO_AGENT_HOME' environment variable");
+            return;
+        }
+
+        File propertiesFile = new File(agentHome, "artifactory.bamboo.plugin.properties");
+        if (!propertiesFile.exists()) {
+            log.info("appendDeployGoalIfNeeded: Properties file not found in agent home directory.");
+            return;
+        }
+
+        Properties properties = new Properties();
+        try (FileInputStream fis = new FileInputStream(propertiesFile)) {
+            properties.load(fis);
+        } catch (IOException e) {
+            log.error("appendDeployGoalIfNeeded: Failed to read properties file: " + e.getMessage());
+            return;
+        }
+
+        String deployAlwaysValue = properties.getProperty("artifactory.maven3.deploy.always");
+        if ("true".equalsIgnoreCase(deployAlwaysValue)) {
+            log.info("appendDeployGoalIfNeeded: 'artifactory.maven3.deploy.always' is set to true. Appending deploy goal.");
+            arguments.add("deploy");
+        }
+    }
+
     private void appendGoals(List<String> arguments, Maven3BuildContext context) {
         String goals = context.getGoals();
         if (context.releaseManagementContext.isActivateReleaseManagement()) {
@@ -264,6 +312,7 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         goals = getStringWithoutNewLines(goals);
         String[] goalArray = StringUtils.split(goals, " ");
         arguments.addAll(Arrays.asList(goalArray));
+        appendDeployGoalIfNeeded(arguments);
     }
 
     private void addMavenPluginLib(List<String> command, String mavenDependenciesDir) {
