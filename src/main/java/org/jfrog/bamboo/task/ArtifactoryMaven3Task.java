@@ -256,13 +256,14 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     }
 
     /**
-     * Checks whether a specific configuration property in the Bamboo Agent's properties file
+     * Checks whether a specific configuration property in the Bamboo properties file
      * is set to enable deployment and appends the deploy goal to the Maven arguments list if necessary.
-     * 
-     * The method searches for a file named "artifactory.bamboo.plugin.properties" in the Bamboo Agent Home directory.
+     *
+     * The method first searches for a file named "artifactory.bamboo.plugin.properties" in the Bamboo Agent Home directory.
+     * If the file is not found, it searches for the same file directly under the Bamboo Home directory.
      * If the file exists, it reads the property "artifactory.maven3.deploy.always" and checks if it is set to "true".
      * If the property is found and set to "true", the method appends the "deploy" goal to the provided arguments list.
-     * 
+     *
      * @param arguments The list of Maven arguments to which the deploy goal may be appended.
      */
     void appendDeployGoalIfNeeded(List<String> arguments) {
@@ -271,18 +272,10 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
             return;
         }
 
-        String agentHome = System.getProperty("bamboo.home");
-        if (agentHome == null || agentHome.isEmpty()) {
-            agentHome = System.getenv("BAMBOO_AGENT_HOME");
-        }
-        if (agentHome == null || agentHome.isEmpty()) {
-            log.info("appendDeployGoalIfNeeded: Bamboo Agent Home could not be detected using the 'bamboo.home' system property or the 'BAMBOO_AGENT_HOME' environment variable");
-            return;
-        }
+        File propertiesFile = findPropertiesFile();
 
-        File propertiesFile = new File(agentHome, "artifactory.bamboo.plugin.properties");
-        if (!propertiesFile.exists()) {
-            log.info("appendDeployGoalIfNeeded: Properties file not found in agent home directory.");
+        if (propertiesFile == null || !propertiesFile.exists()) {
+            logger.addBuildLogEntry("appendDeployGoalIfNeeded: Properties file not found in agent or server home directory.");
             return;
         }
 
@@ -290,15 +283,48 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
         try (FileInputStream fis = new FileInputStream(propertiesFile)) {
             properties.load(fis);
         } catch (IOException e) {
-            log.error("appendDeployGoalIfNeeded: Failed to read properties file: " + e.getMessage());
+            logger.addBuildLogEntry("appendDeployGoalIfNeeded: Failed to read properties file: " + e.getMessage());
             return;
         }
 
         String deployAlwaysValue = properties.getProperty("artifactory.maven3.deploy.always");
         if ("true".equalsIgnoreCase(deployAlwaysValue)) {
-            log.info("appendDeployGoalIfNeeded: 'artifactory.maven3.deploy.always' is set to true. Appending deploy goal.");
+            logger.addBuildLogEntry("appendDeployGoalIfNeeded: 'artifactory.maven3.deploy.always' is set to true. Appending deploy goal.");
             arguments.add("deploy");
         }
+    }
+
+    /**
+     * Determines if the current build is running on a remote agent or the main Bamboo server
+     * and searches for the properties file accordingly.
+     *
+     * If the build is on a remote agent, it checks the agent's home directory.
+     * If the build is on the main server, it checks the Bamboo home directory using both the
+     * system property "bamboo.home" and the environment variable "BAMBOO_HOME".
+     *
+     * @return The File object pointing to the properties file, or null if not found.
+     */
+    private File findPropertiesFile() {
+        // Define possible locations for the properties file
+        String[] possibleLocations = {
+            // Bamboo Agent Home
+            System.getenv("BAMBOO_AGENT_HOME"),
+            // Bamboo Home from system property
+            System.getProperty("bamboo.home"),
+            // Bamboo Home from environment variable
+            System.getenv("BAMBOO_HOME")
+        };
+
+        for (String location : possibleLocations) {
+            if (location != null && !location.isEmpty()) {
+                File propertiesFile = new File(location, "artifactory.bamboo.plugin.properties");
+                if (propertiesFile.exists()) {
+                    return propertiesFile;
+                }
+            }
+        }
+
+        return null;
     }
 
     private void appendGoals(List<String> arguments, Maven3BuildContext context) {
@@ -355,7 +381,6 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
             TaskUtils.appendBuildInfoPropertiesArgument(arguments, buildInfoPropertiesFile);
         }
     }
-
 
     /**
      * Extracts the Artifactory Maven 3 recorder and all the needed to dependencies
