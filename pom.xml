@@ -59,8 +59,17 @@
                     <url>https://releases.jfrog.io/artifactory/oss-releases</url>
                 </repository>
                 <repository>
-                    <id>atlassian-public</id>
-                    <url>https://maven.atlassian.com/repository/public</url>
+                    <id>maven-atlassian-all</id>
+                    <url>https://packages.atlassian.com/mvn/maven-atlassian-all/</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                        <updatePolicy>never</updatePolicy>
+                        <checksumPolicy>warn</checksumPolicy>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                        <checksumPolicy>warn</checksumPolicy>
+                    </releases>
                 </repository>
             </repositories>
             <pluginRepositories>
