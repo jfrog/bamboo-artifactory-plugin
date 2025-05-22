@@ -32,8 +32,14 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
     private static final String PUBLISH_FORK_COUNT_OPTIONS_KEY = "publishForkCountList";
     private static final String PUBLISH_FORK_COUNT_KEY = "publishForkCount";
 
-    public ArtifactoryGradleConfiguration() {
-        super(GradleBuildContext.PREFIX, CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".gradle");
+    @Override
+    protected String getBuilderContextPrefix() {
+        return GradleBuildContext.PREFIX;
+    }
+
+    @Override
+    protected String getCapabilityPrefix() {
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".gradle";
     }
 
     @Override
@@ -43,8 +49,8 @@ public class ArtifactoryGradleConfiguration extends AbstractArtifactoryConfigura
         context.put("artifactoryGradleTask", this);
         context.put("builderType", this);
         context.put("builder", this);
-        context.put("adminConfig", administrationConfiguration);
-        context.put("baseUrl", administrationConfiguration.getBaseUrl());
+        context.put("adminConfig", getAdministrationConfiguration());
+        context.put("baseUrl", getAdministrationConfiguration().getBaseUrl());
         Plan plan = (Plan) context.get("plan");
         context.put("build", plan);
         context.put("dummyList", Lists.newArrayList());

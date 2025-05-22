@@ -8,6 +8,8 @@ import com.atlassian.bamboo.repository.NameValuePair;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
+import com.atlassian.plugin.spring.scanner.annotation.imports.BambooImport;
+import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.sal.api.message.I18nResolver;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableMap;
@@ -27,6 +29,7 @@ import org.jfrog.bamboo.release.vcs.VcsTypes;
 import org.jfrog.bamboo.release.vcs.git.GitAuthenticationType;
 import org.jfrog.bamboo.security.EncryptionHelper;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -46,6 +49,8 @@ import static org.jfrog.bamboo.context.PackageManagersContext.PUBLISH_BUILD_INFO
 public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfigurator implements
         TaskTestResultsSupport, BuildTaskRequirementSupport {
 
+    @Inject
+    @ComponentImport
     protected I18nResolver i18nResolver;
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_CUSTOM = "customTestDirectory";
     public static final String CFG_TEST_RESULTS_FILE_PATTERN_OPTION_STANDARD = "standardTestDirectory";
@@ -69,27 +74,32 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     public static final Map<String, String> CFG_SPEC_SOURCE = ImmutableMap.of(CFG_SPEC_SOURCE_JOB_CONFIGURATION, "Task configuration", CFG_SPEC_SOURCE_FILE, "File");
     public static final Map<String, String> SIGN_METHOD_MAP = ImmutableMap.of("false", "Don't Sign", "true", "Sign");
     public static final String SIGN_METHOD_MAP_KEY = "signMethods";
+    @Inject
     protected transient ServerConfigManager serverConfigManager;
+    @Inject
+    @ComponentImport
     protected transient CredentialsAccessor credentialsAccessor;
-    protected AdministrationConfiguration administrationConfiguration;
+    private AdministrationConfiguration administrationConfiguration;
+    @Inject
+    @BambooImport
     protected UIConfigSupport uiConfigSupport;
-    private final String builderContextPrefix;
-    private final String capabilityPrefix;
     private static final Logger log = LogManager.getLogger(AbstractArtifactoryConfiguration.class);
     protected TaskConfiguratorHelperImpl taskConfiguratorHelper = new TaskConfiguratorHelperImpl();
 
-    protected AbstractArtifactoryConfiguration() {
-        this(null, null);
-    }
-
-    protected AbstractArtifactoryConfiguration(String builderContextPrefix, @Nullable String capabilityPrefix) {
-        serverConfigManager = ServerConfigManager.getInstance();
+    protected AdministrationConfiguration getAdministrationConfiguration() {
         if (administrationConfiguration == null) {
             administrationConfiguration =
                     (AdministrationConfiguration) ContainerManager.getComponent("administrationConfiguration");
         }
-        this.builderContextPrefix = builderContextPrefix;
-        this.capabilityPrefix = capabilityPrefix;
+        return administrationConfiguration;
+    }
+
+    protected String getBuilderContextPrefix() {
+        return null;
+    }
+
+    protected String getCapabilityPrefix() {
+        return null;
     }
 
     public String getTestDirectory(PackageManagersContext buildContext) {
@@ -105,7 +115,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     @Override
     public void populateContextForEdit(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition) {
         super.populateContextForEdit(context, taskDefinition);
-        serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
     }
 
@@ -126,7 +135,6 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
-        serverConfigManager = ServerConfigManager.getInstance();
         populateContextForAllOperations(context);
     }
 
@@ -145,7 +153,7 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     public Map<String, String> generateTaskConfigMap(@NotNull ActionParametersMap params,
                                                      @Nullable TaskDefinition previousTaskDefinition) {
         Map<String, String> taskConfigMap = super.generateTaskConfigMap(params, previousTaskDefinition);
-        taskConfigMap.put("baseUrl", administrationConfiguration.getBaseUrl());
+        taskConfigMap.put("baseUrl", getAdministrationConfiguration().getBaseUrl());
 
         return taskConfigMap;
     }
@@ -154,13 +162,13 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
     @Override
     public Set<Requirement> calculateRequirements(@NotNull TaskDefinition taskDefinition, @NotNull Job job) {
         Set<Requirement> requirements = Sets.newHashSet();
-        if (StringUtils.isNotBlank(builderContextPrefix)) {
+        if (StringUtils.isNotBlank(getBuilderContextPrefix())) {
             taskConfiguratorHelper.addJdkRequirement(requirements, taskDefinition,
-                    builderContextPrefix + TaskConfigConstants.CFG_JDK_LABEL);
+                    getBuilderContextPrefix() + TaskConfigConstants.CFG_JDK_LABEL);
             if (!isUseWrapper(taskDefinition)) {
-                if (StringUtils.isNotBlank(capabilityPrefix)) {
+                if (StringUtils.isNotBlank(getCapabilityPrefix())) {
                     taskConfiguratorHelper.addSystemRequirementFromConfiguration(requirements, taskDefinition,
-                            builderContextPrefix + PackageManagersContext.EXECUTABLE, capabilityPrefix);
+                            getBuilderContextPrefix() + PackageManagersContext.EXECUTABLE, getCapabilityPrefix());
                 }
             }
         }
@@ -223,8 +231,8 @@ public abstract class AbstractArtifactoryConfiguration extends AbstractTaskConfi
         this.credentialsAccessor = credentialsAccessor;
     }
 
-    public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
-        this.administrationConfiguration = administrationConfiguration;
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
     }
 
     protected String readFileByKey(final ActionParametersMap params, String keyToRead) {

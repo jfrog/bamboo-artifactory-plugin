@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.DotNetBuildContext;
@@ -21,6 +22,7 @@ import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 import org.jfrog.build.extractor.nuget.extractor.NugetRun;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -32,8 +34,11 @@ import java.util.Map;
  */
 public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
 
-    protected final EnvironmentVariableAccessor environmentVariableAccessor;
-    protected final CapabilityContext capabilityContext;
+    @Inject
+    protected EnvironmentVariableAccessor environmentVariableAccessor;
+    @Inject
+    protected CapabilityContext capabilityContext;
+    @Inject
     protected CustomVariableContext customVariableContext;
     protected DotNetBuildContext dotNetBuildContext;
     protected BuildInfoHelper buildInfoHelper;
@@ -51,6 +56,8 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
             "    }\n" +
             "  ]\n" +
             "}";
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
     protected void initTask(CommonTaskContext context, String taskKey, String executable, String taskName, TaskType taskType) throws TaskException {
         super.initTask(context);
@@ -94,12 +101,6 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
         }
 
         return TaskResultBuilder.newBuilder(taskContext).success().build();
-    }
-
-    protected ArtifactoryDotNetTaskBase(EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext) {
-        this.environmentVariableAccessor = environmentVariableAccessor;
-        this.capabilityContext = capabilityContext;
-        ContainerManager.autowireComponent(this);
     }
 
     protected BuildInfo executeRestore() {
@@ -164,17 +165,29 @@ public abstract class ArtifactoryDotNetTaskBase extends ArtifactoryTaskType {
             buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(buildName, buildNumber, taskContext, buildContext,
                     environmentVariableAccessor, dotNetBuildContext.getResolutionArtifactoryServerId(),
                     dotNetBuildContext.getOverriddenUsername(runtimeContext, buildInfoLog, false),
-                    dotNetBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false), buildParamsOverrideManager);
+                    dotNetBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false), buildParamsOverrideManager, serverConfigManager);
         } else {
             buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(buildName, buildNumber, taskContext, buildContext,
                     environmentVariableAccessor, dotNetBuildContext.getArtifactoryServerId(),
                     dotNetBuildContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
-                    dotNetBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager);
+                    dotNetBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager, serverConfigManager);
         }
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setCapabilityContext(CapabilityContext capabilityContext) {
+        this.capabilityContext = capabilityContext;
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
+
+    public void setEnvironmentVariableAccessor(EnvironmentVariableAccessor environmentVariableAccessor) {
+        this.environmentVariableAccessor = environmentVariableAccessor;
     }
 
     @Override

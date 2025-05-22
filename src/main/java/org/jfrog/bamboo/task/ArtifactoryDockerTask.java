@@ -5,8 +5,10 @@ import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
+import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.DockerBuildContext;
@@ -16,14 +18,18 @@ import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.docker.extractor.DockerPull;
 import org.jfrog.build.extractor.docker.extractor.DockerPush;
 
+import javax.inject.Inject;
 import java.util.Map;
 
 /**
  * Created by Bar Belity on 09/10/2020.
  */
 public class ArtifactoryDockerTask extends ArtifactoryTaskType {
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
+    @Inject
+    @ComponentImport
+    private EnvironmentVariableAccessor environmentVariableAccessor;
     private BuildParamsOverrideManager buildParamsOverrideManager;
+    @Inject
     private CustomVariableContext customVariableContext;
     private Map<String, String> environmentVariables;
     private DockerBuildContext dockerBuildContext;
@@ -32,10 +38,8 @@ public class ArtifactoryDockerTask extends ArtifactoryTaskType {
     private String buildName;
     private ArtifactoryManagerBuilder artifactoryManagerBuilder;
 
-    public ArtifactoryDockerTask(EnvironmentVariableAccessor environmentVariableAccessor) {
-        this.environmentVariableAccessor = environmentVariableAccessor;
-        ContainerManager.autowireComponent(this);
-    }
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
     @Override
     protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
@@ -100,17 +104,25 @@ public class ArtifactoryDockerTask extends ArtifactoryTaskType {
             buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(buildName, buildNumber, taskContext, buildContext,
                     environmentVariableAccessor, dockerBuildContext.getResolutionArtifactoryServerId(),
                     dockerBuildContext.getOverriddenUsername(runtimeContext, buildInfoLog, false),
-                    dockerBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false), buildParamsOverrideManager);
+                    dockerBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false), buildParamsOverrideManager, serverConfigManager);
         } else {
             buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(buildName, buildNumber, taskContext, buildContext,
                     environmentVariableAccessor, dockerBuildContext.getArtifactoryServerId(),
                     dockerBuildContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
-                    dockerBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager);
+                    dockerBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager, serverConfigManager);
         }
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
+
+    public void setEnvironmentVariableAccessor(EnvironmentVariableAccessor environmentVariableAccessor) {
+        this.environmentVariableAccessor = environmentVariableAccessor;
     }
 
     @Override

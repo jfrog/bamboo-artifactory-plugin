@@ -7,9 +7,7 @@ import com.atlassian.bamboo.v2.build.agent.capability.Capability;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.ReadOnlyCapabilitySet;
 import com.atlassian.bamboo.variable.CustomVariableContext;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.types.Commandline;
@@ -19,6 +17,8 @@ import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.version.VcsHelper;
+import org.jfrog.build.api.multiMap.ListMultimap;
+import org.jfrog.build.api.multiMap.Multimap;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.ci.BuildInfo;
@@ -296,10 +296,10 @@ public class TaskUtils {
      *
      * @return Map containing all properties.
      */
-    public static ArrayListMultimap<String, String> getCommonArtifactPropertiesMap(BuildInfoHelper buildInfoHelper) {
+    public static Multimap<String, String> getCommonArtifactPropertiesMap(BuildInfoHelper buildInfoHelper) {
         Map<String, String> propertiesMap = new HashMap<>();
         buildInfoHelper.addCommonProperties(propertiesMap);
-        return ArrayListMultimap.create(Multimaps.forMap(propertiesMap));
+        return new ListMultimap(propertiesMap);
     }
 
     /**

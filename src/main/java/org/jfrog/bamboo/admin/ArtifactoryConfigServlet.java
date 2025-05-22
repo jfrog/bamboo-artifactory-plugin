@@ -16,6 +16,7 @@
 
 package org.jfrog.bamboo.admin;
 
+import com.atlassian.plugin.spring.scanner.annotation.imports.BambooImport;
 import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.sal.api.user.UserProfile;
 import org.apache.commons.httpclient.HttpStatus;
@@ -26,6 +27,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -44,9 +46,10 @@ public class ArtifactoryConfigServlet extends HttpServlet {
 
     private static final Logger log = LogManager.getLogger(ArtifactoryConfigServlet.class);
     private ServerConfigManager serverConfigManager;
-    private final UserManager userManager;
+    private UserManager userManager;
 
-    public ArtifactoryConfigServlet(ServerConfigManager serverConfigManager, UserManager userManager) {
+    @Inject    
+    public ArtifactoryConfigServlet(@BambooImport UserManager userManager, ServerConfigManager serverConfigManager) {
         this.userManager = userManager;
         this.serverConfigManager = serverConfigManager;
     }

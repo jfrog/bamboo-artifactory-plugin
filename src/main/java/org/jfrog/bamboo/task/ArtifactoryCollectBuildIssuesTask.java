@@ -6,8 +6,10 @@ import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
+import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.CollectBuildIssuesContext;
@@ -19,6 +21,7 @@ import org.jfrog.build.extractor.ci.Vcs;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.issuesCollection.IssuesCollector;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -26,14 +29,23 @@ import java.util.Map;
 import static org.jfrog.build.extractor.clientConfiguration.util.GitUtils.extractVcs;
 
 public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
+    @Inject
+    @ComponentImport
+    private EnvironmentVariableAccessor environmentVariableAccessor;
     private CollectBuildIssuesContext collectBuildIssuesContext;
+    @Inject
+    @ComponentImport
     private CustomVariableContext customVariableContext;
     private BuildInfoHelper buildInfoHelper;
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
-    public ArtifactoryCollectBuildIssuesTask(EnvironmentVariableAccessor environmentVariableAccessor) {
+    public void setEnvironmentVariableAccessor(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
-        ContainerManager.autowireComponent(this);
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
     }
 
     @Override
@@ -47,7 +59,7 @@ public class ArtifactoryCollectBuildIssuesTask extends ArtifactoryTaskType {
                 collectBuildIssuesContext.getBuildNumber(buildContext), taskContext, buildContext,
                 environmentVariableAccessor, collectBuildIssuesContext.getArtifactoryServerId(),
                 collectBuildIssuesContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
-                collectBuildIssuesContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager);
+                collectBuildIssuesContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager, serverConfigManager);
     }
 
     @NotNull

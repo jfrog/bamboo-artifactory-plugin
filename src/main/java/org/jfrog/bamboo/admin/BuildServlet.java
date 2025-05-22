@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jfrog.bamboo.util.ConstantValues;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -43,11 +44,16 @@ import java.io.PrintWriter;
 public class BuildServlet extends HttpServlet {
 
     private static final Logger log = LogManager.getLogger(BuildServlet.class);
+    @Inject
     private PlanManager planManager;
-    private final UserManager userManager;
+    @Inject
+    private UserManager userManager;
 
-    public BuildServlet(UserManager userManager) {
-        planManager = (PlanManager) ContainerManager.getComponent("planManager");
+    public void setPlanManager(PlanManager planManager) {
+        this.planManager = planManager;
+    }
+
+    public void setUserManager(UserManager userManager) {
         this.userManager = userManager;
     }
 

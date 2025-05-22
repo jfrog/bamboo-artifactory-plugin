@@ -15,8 +15,9 @@ public class ArtifactoryNugetConfiguration extends AbstractDotNetBuildConfigurat
 
     private static final String KEY = "artifactoryNugetBuilder";
 
-    public ArtifactoryNugetConfiguration() {
-        super(CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".nuget");
+    @Override
+    protected String getCapabilityPrefix() {
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".nuget";
     }
 
     @Override

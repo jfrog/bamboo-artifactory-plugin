@@ -22,8 +22,11 @@ import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.resultsummary.ResultsSummaryManager;
 import com.atlassian.plugin.PluginParseException;
 import com.atlassian.plugin.web.Condition;
+import com.atlassian.plugin.spring.scanner.annotation.imports.BambooImport;
 import org.apache.commons.lang3.StringUtils;
 import org.jfrog.bamboo.util.ConstantValues;
+
+import javax.inject.Inject;
 
 import java.util.Map;
 
@@ -53,7 +56,8 @@ public class BuildInfoActionCondition implements Condition {
                 Boolean.valueOf(resultsSummary.getCustomBuildData().get(ConstantValues.BUILD_RESULT_COLLECTION_ACTIVATED_PARAM));
     }
 
-    public void setResultsSummaryManager(ResultsSummaryManager resultsSummaryManager) {
+    @Inject
+    public BuildInfoActionCondition(@BambooImport ResultsSummaryManager resultsSummaryManager) {
         this.resultsSummaryManager = resultsSummaryManager;
     }
 }

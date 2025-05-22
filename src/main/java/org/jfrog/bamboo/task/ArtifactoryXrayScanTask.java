@@ -13,6 +13,7 @@ import org.jfrog.build.client.artifactoryXrayResponse.ArtifactoryXrayResponse;
 import org.jfrog.build.client.artifactoryXrayResponse.Summary;
 import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Map;
 
@@ -20,9 +21,12 @@ import java.util.Map;
  * Created by Bar Belity on 24/05/2018.
  */
 public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
+    @Inject
     private CustomVariableContext customVariableContext;
     private ServerConfig xrayServerConfig;
     private XrayScanContext xrayContext;
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
     @Override
     protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
@@ -52,6 +56,10 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
     }
 
     @Override
@@ -93,7 +101,6 @@ public class ArtifactoryXrayScanTask extends ArtifactoryTaskType {
     }
 
     private void setXrayServerConfigurations(XrayScanContext xrayContext) {
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         xrayServerConfig = serverConfigManager.getServerConfigById(xrayContext.getArtifactoryServerId());
         if (xrayServerConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");

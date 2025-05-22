@@ -28,6 +28,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
@@ -62,7 +63,8 @@ public abstract class MavenAndIvyBuildInfoDataHelperBase extends BaseBuildInfoHe
     public MavenAndIvyBuildInfoDataHelperBase(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
                                               PackageManagersContext abstractBuildContext,
                                               EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion,
-                                              boolean aggregateBuildInfo) {
+                                              boolean aggregateBuildInfo, ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
         BuildContext buildContext = context.getBuildContext();
         super.init(buildParamsOverrideManager, context.getBuildContext(), context.getBuildLogger());
         long selectedServerId = abstractBuildContext.getArtifactoryServerId();
