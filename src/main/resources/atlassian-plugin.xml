@@ -29,10 +29,6 @@
     <!-- i18n resource -->
     <resource type="i18n" name="i18n-jfrog" location="i18n-jfrog"/>
 
-    <!-- Admin Configurations -->
-    <component name="Artifactory Server Configuration Management Component" key="artifactoryServerConfigManager"
-               class="org.jfrog.bamboo.admin.ServerConfigManager"/>
-
     <web-item key="configureArtifactoryPlugin" name="Artifactory Plugin" section="system.admin/plugins">
         <label key="Artifactory Plugin"/>
         <link linkId="configureArtifactoryPlugin">/admin/jfrogConfig.action</link>
@@ -396,11 +392,5 @@
         <resource type="download" name="icon" location="images/artifactory-icon.png"/>
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
-
-    <component-import key="taskContextHelper" interface="com.atlassian.bamboo.task.TaskContextHelperService"/>
-    <component-import key="taskConfiguratorHelper" interface="com.atlassian.bamboo.task.TaskConfiguratorHelper"/>
-    <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties"/>
-    <component-import key="userManager" interface="com.atlassian.sal.api.user.UserManager"/>
-    <component-import key="i18nResolver" interface="com.atlassian.sal.api.message.I18nResolver"/>
 
 </atlassian-plugin>

@@ -28,6 +28,7 @@ import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -48,15 +49,17 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
     private String password;
     private int timeout;
     private String isSendTest;
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
-
-    private transient ServerConfigManager serverConfigManager;
-
-    public ArtifactoryServerConfigAction(ServerConfigManager serverConfigManager) {
-        this.serverConfigManager = serverConfigManager;
+    public ArtifactoryServerConfigAction() {
         mode = "add";
         timeout = 300;
-        }
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
 
     @Override
     public void validate() {
@@ -80,6 +83,10 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
         return INPUT;
     }
 
+    public String create() throws Exception {
+        return doCreate();
+    }
+
     public String doCreate() throws Exception {
         if (isTesting()) {
             testConnection();
@@ -91,15 +98,22 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
         return SUCCESS;
     }
 
-    public String doEdit() throws Exception {
+    public String edit() throws IllegalArgumentException {
+        return doEdit();
+    }
+
+    public String doEdit() throws IllegalArgumentException {
         ServerConfig serverConfig = serverConfigManager.getServerConfigById(serverId);
         if (serverConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server configuration by the ID " + serverId);
         }
         updateFieldsFromServerConfig(serverConfig);
         return INPUT;
-   }
+    }
 
+    public String update() throws Exception {
+        return doUpdate();
+    }
 
     public String doUpdate() throws Exception {
         // Decrypt password from UI, if encrypted.
@@ -112,6 +126,10 @@ public class ArtifactoryServerConfigAction extends BambooActionSupport implement
         }
         serverConfigManager.updateServerConfiguration(createServerConfig());
         return SUCCESS;
+    }
+
+    public String delete() throws Exception {
+        return doDelete();
     }
 
     public String doDelete() throws Exception {

@@ -2,8 +2,10 @@ package org.jfrog.bamboo.configuration;
 
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import org.jetbrains.annotations.NotNull;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.task.ArtifactoryDotNetCoreTask;
 
+import javax.inject.Inject;
 import java.util.Map;
 
 /**
@@ -15,8 +17,9 @@ public class ArtifactoryDotNetCoreConfiguration extends AbstractDotNetBuildConfi
 
     private static final String KEY = "artifactoryDotNetCoreBuilder";
 
-    public ArtifactoryDotNetCoreConfiguration() {
-        super(CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".dotnet");
+    @Override
+    protected String getCapabilityPrefix() {
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".dotnet";
     }
 
     @Override

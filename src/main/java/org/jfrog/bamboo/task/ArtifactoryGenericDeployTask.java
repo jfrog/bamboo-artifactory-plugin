@@ -7,19 +7,21 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
-import com.google.common.collect.HashMultimap;
+import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GenericContext;
 import org.jfrog.bamboo.util.FileSpecUtils;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 import org.jfrog.bamboo.util.Utils;
+import org.jfrog.build.api.multiMap.ListMultimap;
+import org.jfrog.build.api.multiMap.Multimap;
 import org.jfrog.build.api.util.FileChecksumCalculator;
 import org.jfrog.build.extractor.ci.Artifact;
 import org.jfrog.build.extractor.ci.BuildInfo;
@@ -29,6 +31,7 @@ import org.jfrog.build.extractor.clientConfiguration.deploy.DeployDetails;
 import org.jfrog.build.extractor.clientConfiguration.util.PublishedItemsHelper;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -45,23 +48,32 @@ import static org.jfrog.bamboo.util.ConstantValues.BUILD_RESULT_SELECTED_SERVER_
  */
 public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryGenericTask";
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
-    private final BuildParamsOverrideManager buildParamsOverrideManager;
+    @Inject
+    @ComponentImport
+    private EnvironmentVariableAccessor environmentVariableAccessor;
+    private BuildParamsOverrideManager buildParamsOverrideManager;
+    @Inject
+    @ComponentImport
     private CustomVariableContext customVariableContext;
     private BuildInfoHelper buildInfoHelper;
     private GenericContext genericContext;
     private BuildContext buildContext;
     private String fileSpec;
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
-    public ArtifactoryGenericDeployTask(EnvironmentVariableAccessor environmentVariableAccessor) {
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
+
+    public void setEnvironmentVariableAccessor(EnvironmentVariableAccessor environmentVariableAccessor) {
         this.environmentVariableAccessor = environmentVariableAccessor;
-        ContainerManager.autowireComponent(this);
-        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
     }
 
     @Override
     public void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
+        this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
         buildContext = ((TaskContext) taskContext).getBuildContext();
         genericContext = new GenericContext(taskContext.getConfigurationMap());
         Map<String, String> runtimeContext = context.getRuntimeTaskContext();
@@ -70,7 +82,8 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
                 genericContext.getSelectedServerId(),
                 genericContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
                 genericContext.getOverriddenPassword(runtimeContext, buildInfoLog, true),
-                buildParamsOverrideManager);
+                buildParamsOverrideManager,
+                serverConfigManager);
     }
 
     @Override
@@ -160,7 +173,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
 
     private Multimap<String, File> buildTargetPathToFiles(File directory, GenericContext context)
             throws IOException {
-        Multimap<String, File> result = HashMultimap.create();
+        Multimap<String, File> result = new ListMultimap<>();
         String deployPattern = context.getDeployPattern();
         deployPattern = StringUtils.replace(deployPattern, "\r\n", "\n");
         deployPattern = StringUtils.replace(deployPattern, ",", "\n");

@@ -16,6 +16,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.GradleDataHelper;
 import org.jfrog.bamboo.context.GradleBuildContext;
@@ -27,6 +28,7 @@ import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.extractor.ci.BuildInfoFields;
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,32 +52,28 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
     public static final String EXECUTABLE_WRAPPER_NAME = SystemUtils.IS_OS_WINDOWS ? "./gradlew.bat" : "./gradlew";
     public static final String EXECUTABLE_NAME = SystemUtils.IS_OS_WINDOWS ? "gradle.bat" : "gradle";
     private static final String GRADLE_KEY = "system.builder.gradle.";
+    @Inject
     private AdministrationConfiguration administrationConfiguration;
-    private final BuilderDependencyHelper dependencyHelper;
-    private final CapabilityContext capabilityContext;
+    private BuilderDependencyHelper dependencyHelper;
+    @Inject
+    private CapabilityContext capabilityContext;
     private GradleBuildContext gradleBuildContext;
     private GradleDataHelper gradleDataHelper;
     private String artifactoryPluginVersion;
     private String gradleDependenciesDir;
-
-    public ArtifactoryGradleTask(final ProcessService processService,
-                                 final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
-                                 TestCollationService testCollationService) {
-        super(testCollationService, environmentVariableAccessor, processService);
-        this.capabilityContext = capabilityContext;
-        dependencyHelper = new BuilderDependencyHelper("artifactoryGradleBuilder");
-        ContainerManager.autowireComponent(dependencyHelper);
-    }
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
     @Override
     protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         super.initTask(context);
+        dependencyHelper = new BuilderDependencyHelper("artifactoryGradleBuilder");
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         gradleBuildContext = createBuildContext(context);
         initEnvironmentVariables(gradleBuildContext);
         aggregateBuildInfo = gradleBuildContext.shouldAggregateBuildInfo(context);
         gradleDataHelper = new GradleDataHelper(buildParamsOverrideManager, context, gradleBuildContext,
-                administrationConfiguration, environmentVariableAccessor, artifactoryPluginVersion, aggregateBuildInfo);
+                administrationConfiguration, environmentVariableAccessor, artifactoryPluginVersion, aggregateBuildInfo, serverConfigManager);
     }
 
     @Override
@@ -239,5 +237,13 @@ public class ArtifactoryGradleTask extends BaseJavaBuildTask {
 
     public void setAdministrationConfiguration(AdministrationConfiguration administrationConfiguration) {
         this.administrationConfiguration = administrationConfiguration;
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
+
+    public void setCapabilityContext(CapabilityContext capabilityContext) {
+        this.capabilityContext = capabilityContext;
     }
 }

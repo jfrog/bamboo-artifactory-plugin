@@ -46,9 +46,10 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
     private final String buildNumber;
     private final String vcsRevision;
     private final String vcsUrl;
-    private ServerConfig serverConfig;
-
-    private BuildInfoHelper(String buildName, String buildNumber, Map<String, String> env, String vcsRevision, String vcsUrl) {
+    private ServerConfig serverConfig; 
+    
+    private BuildInfoHelper(String buildName, String buildNumber, Map<String, String> env, String vcsRevision, String vcsUrl, ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
         this.buildName = buildName;
         this.buildNumber = buildNumber;
         this.env = env;
@@ -212,7 +213,7 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return TaskUtils.getArtifactoryManagerBuilderBuilder(serverConfig, bambooBuildInfoLog);
     }
 
-    private static BuildInfoHelper createBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig) {
+    private static BuildInfoHelper createBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfig serverConfig, ServerConfigManager serverConfigManager) {
         Map<String, String> env = new HashMap<>();
         env.putAll(environmentVariableAccessor.getEnvironment(taskContext));
         env.putAll(environmentVariableAccessor.getEnvironment());
@@ -227,16 +228,15 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
             throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
         }
 
-        BuildInfoHelper buildInfoHelper = new BuildInfoHelper(buildName, buildNumber, env, vcsRevision, vcsUrl);
+        BuildInfoHelper buildInfoHelper = new BuildInfoHelper(buildName, buildNumber, env, vcsRevision, vcsUrl, serverConfigManager);
         buildInfoHelper.init(buildParamsOverrideManager, buildContext, taskContext.getBuildLogger());
         return buildInfoHelper;
     }
 
     public static BuildInfoHelper createDeployBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor,
-                                                              long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
+                                                              long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfigManager serverConfigManager) {
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
-        BuildInfoHelper buildInfoHelper = createBuildInfoHelper(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
+        BuildInfoHelper buildInfoHelper = createBuildInfoHelper(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig, serverConfigManager);
 
         buildInfoHelper.serverConfig = TaskUtils.getDeploymentServerConfig(username, password, serverConfigManager,
                 selectedServerConfig, buildParamsOverrideManager);
@@ -244,10 +244,9 @@ public class BuildInfoHelper extends BaseBuildInfoHelper {
         return buildInfoHelper;
     }
 
-    public static BuildInfoHelper createResolveBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager) {
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
+    public static BuildInfoHelper createResolveBuildInfoHelper(String buildName, String buildNumber, CommonTaskContext taskContext, BuildContext buildContext, EnvironmentVariableAccessor environmentVariableAccessor, long selectedServerId, String username, String password, BuildParamsOverrideManager buildParamsOverrideManager, ServerConfigManager serverConfigManager) {
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(selectedServerId);
-        BuildInfoHelper buildInfoHelper = createBuildInfoHelper(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig);
+        BuildInfoHelper buildInfoHelper = createBuildInfoHelper(buildName, buildNumber, taskContext, buildContext, environmentVariableAccessor, buildParamsOverrideManager, selectedServerConfig, serverConfigManager);
 
         buildInfoHelper.serverConfig = TaskUtils.getResolutionServerConfig(username, password, serverConfigManager,
                 selectedServerConfig, buildParamsOverrideManager);
