@@ -36,10 +36,9 @@ pipelines:
             - ./jf c rm --quiet
             - ./jf c add internal --url=$int_ecosys_entplus_deployer_url --user=$int_ecosys_entplus_deployer_user --password=$int_ecosys_entplus_deployer_apikey
             - ./jf mvnc --repo-resolve-releases ecosys-bamboo-repos --repo-resolve-snapshots ecosys-releases-snapshots --repo-deploy-snapshots ecosys-oss-snapshot-local --repo-deploy-releases ecosys-oss-release-local
-            - ./jf audit --fail=false
-            -
+
             # Run audit
-            # - ./jf am
+            - ./jf audit --fail=false
 
             # Delete former snapshots to make sure the release bundle will not contain the same artifacts
             - ./jf rt del "ecosys-oss-snapshot-local/org/jfrog/bamboo/bamboo-artifactory-plugin/*" --quiet
