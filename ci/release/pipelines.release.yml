@@ -48,6 +48,9 @@ pipelines:
             - ./jf c add internal --url=$int_ecosys_entplus_deployer_url --user=$int_ecosys_entplus_deployer_user --password=$int_ecosys_entplus_deployer_apikey
             - ./jf mvnc --repo-resolve-releases ecosys-bamboo-repos --repo-resolve-snapshots ecosys-releases-snapshots --repo-deploy-snapshots ecosys-oss-snapshot-local --repo-deploy-releases ecosys-oss-release-local
 
+            # Run audit
+            - ./jf audit
+
             # Sync changes with master
             - git merge origin/master
 
