@@ -7,9 +7,12 @@ import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.plan.branch.ChainBranch;
 import com.atlassian.bamboo.plugins.web.conditions.AbstractPlanPermissionCondition;
 import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
+import com.atlassian.bamboo.security.BambooPermissionManager;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.plugin.spring.scanner.annotation.imports.BambooImport;
 import org.jfrog.bamboo.context.PackageManagersContext;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +23,14 @@ import java.util.Map;
  * @author Tomer Cohen
  */
 public class ReleasePromotionActionCondition extends AbstractPlanPermissionCondition {
-
+    
+    @Inject
+    @BambooImport
     private PlanManager planManager;
+
+    @Inject
+    @BambooImport
+    private BambooPermissionManager bambooPermissionManager;
 
     @Override
     public boolean shouldDisplay(Map<String, Object> context) {
@@ -84,5 +93,9 @@ public class ReleasePromotionActionCondition extends AbstractPlanPermissionCondi
 
     public void setPlanManager(PlanManager planManager) {
         this.planManager = planManager;
+    }
+
+    public void setBambooPermissionManager(BambooPermissionManager bambooPermissionManager) {
+        this.bambooPermissionManager = bambooPermissionManager;
     }
 }

@@ -28,8 +28,14 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
     protected static final String DEFAULT_TEST_REPORTS_XML = "**/test-reports/*.xml";
     private static final Set<String> FIELDS_TO_COPY = IvyBuildContext.getFieldsToCopy();
 
-    public ArtifactoryIvyConfiguration() {
-        super(IvyBuildContext.PREFIX, CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".ivy");
+    @Override
+    protected String getBuilderContextPrefix() {
+        return IvyBuildContext.PREFIX;
+    }
+
+    @Override
+    protected String getCapabilityPrefix() {
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".ivy";
     }
 
     @Override
@@ -49,8 +55,8 @@ public class ArtifactoryIvyConfiguration extends AbstractArtifactoryConfiguratio
         context.put("artifactoryIvyTask", this);
         context.put("builderType", this);
         context.put("builder", this);
-        context.put("adminConfig", administrationConfiguration);
-        context.put("baseUrl", administrationConfiguration.getBaseUrl());
+        context.put("adminConfig", getAdministrationConfiguration());
+        context.put("baseUrl", getAdministrationConfiguration().getBaseUrl());
         context.put("build", context.get("plan"));
         context.put("dummyList", Lists.newArrayList());
         context.put("serverConfigManager", serverConfigManager);

@@ -29,9 +29,15 @@ public class ArtifactoryDockerConfiguration extends AbstractArtifactoryConfigura
     private static final String KEY = "artifactoryDockerBuilder";
     private static final Set<String> FIELDS_TO_COPY = DockerBuildContext.getFieldsToCopy();
     private static final Map<String, String> CFG_DOCKER_COMMAND_OPTIONS = ImmutableMap.of(CFG_DOCKER_COMMAND_PULL, "pull", CFG_DOCKER_COMMAND_PUSH, "push");
+    
+    @Override
+    protected String getBuilderContextPrefix() {
+        return DockerBuildContext.PREFIX;
+    }
 
-    public ArtifactoryDockerConfiguration() {
-        super(DockerBuildContext.PREFIX, CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".docker");
+    @Override
+    protected String getCapabilityPrefix() {
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".docker";
     }
 
     @Override
@@ -41,8 +47,8 @@ public class ArtifactoryDockerConfiguration extends AbstractArtifactoryConfigura
         context.put("artifactoryDockerTask", this);
         context.put("builderType", this);
         context.put("builder", this);
-        context.put("adminConfig", administrationConfiguration);
-        context.put("baseUrl", administrationConfiguration.getBaseUrl());
+        context.put("adminConfig", getAdministrationConfiguration());
+        context.put("baseUrl", getAdministrationConfiguration().getBaseUrl());
         Plan plan = (Plan) context.get("plan");
         context.put("build", plan);
         context.put("dummyList", Lists.newArrayList());

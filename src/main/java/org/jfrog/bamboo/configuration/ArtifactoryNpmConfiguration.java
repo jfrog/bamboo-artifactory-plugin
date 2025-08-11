@@ -31,8 +31,14 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
     private static final Set<String> FIELDS_TO_COPY = NpmBuildContext.getFieldsToCopy();
     private static final Map<String, String> CFG_NPM_COMMAND_OPTIONS = ImmutableMap.of(CFG_NPM_COMMAND_INSTALL, "install", CFG_NPM_COMMAND_PUBLISH, "pack and publish");
 
-    public ArtifactoryNpmConfiguration() {
-        super(NpmBuildContext.PREFIX, CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".npm");
+    @Override
+    protected String getBuilderContextPrefix() {
+        return NpmBuildContext.PREFIX;
+    }
+
+    @Override
+    protected String getCapabilityPrefix() {
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".npm";
     }
 
     @Override
@@ -42,8 +48,8 @@ public class ArtifactoryNpmConfiguration extends AbstractArtifactoryConfiguratio
         context.put("artifactoryNpmTask", this);
         context.put("builderType", this);
         context.put("builder", this);
-        context.put("adminConfig", administrationConfiguration);
-        context.put("baseUrl", administrationConfiguration.getBaseUrl());
+        context.put("adminConfig", getAdministrationConfiguration());
+        context.put("baseUrl", getAdministrationConfiguration().getBaseUrl());
         Plan plan = (Plan) context.get("plan");
         context.put("build", plan);
         context.put("dummyList", Lists.newArrayList());

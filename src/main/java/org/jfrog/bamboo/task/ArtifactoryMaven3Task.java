@@ -15,6 +15,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.tools.ant.types.Commandline;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuilderDependencyHelper;
 import org.jfrog.bamboo.builder.MavenDataHelper;
 import org.jfrog.bamboo.context.Maven3BuildContext;
@@ -22,6 +23,7 @@ import org.jfrog.bamboo.util.PluginProperties;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.bamboo.util.Utils;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,32 +46,24 @@ import static org.jfrog.bamboo.util.TaskUtils.getPlanKey;
 public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
     public static final String TASK_NAME = "maven3Task";
 
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
-    private final BuilderDependencyHelper dependencyHelper;
-    private final CapabilityContext capabilityContext;
+    private BuilderDependencyHelper dependencyHelper;
+    private CapabilityContext capabilityContext;
     private Maven3BuildContext mavenBuildContext;
     private MavenDataHelper mavenDataHelper;
     private String artifactoryPluginVersion;
-
-    public ArtifactoryMaven3Task(final ProcessService processService,
-                                 final EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext,
-                                 TestCollationService testCollationService) {
-        super(testCollationService, environmentVariableAccessor, processService);
-        this.environmentVariableAccessor = environmentVariableAccessor;
-        this.capabilityContext = capabilityContext;
-        this.dependencyHelper = new BuilderDependencyHelper("artifactoryMaven3Builder");
-        ContainerManager.autowireComponent(dependencyHelper);
-    }
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
     @Override
     protected void initTask(@NotNull CommonTaskContext taskContext) throws TaskException {
         super.initTask(taskContext);
+        this.dependencyHelper = new BuilderDependencyHelper("artifactoryMaven3Builder");
         artifactoryPluginVersion = Utils.getPluginVersion(pluginAccessor);
         mavenBuildContext = createBuildContext(taskContext);
         initEnvironmentVariables(mavenBuildContext);
         aggregateBuildInfo = mavenBuildContext.shouldAggregateBuildInfo(taskContext);
         mavenDataHelper = new MavenDataHelper(buildParamsOverrideManager, (TaskContext) taskContext,
-                mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion, aggregateBuildInfo);
+                mavenBuildContext, environmentVariableAccessor, artifactoryPluginVersion, aggregateBuildInfo, serverConfigManager);
     }
 
     @Override
@@ -417,5 +411,13 @@ public class ArtifactoryMaven3Task extends BaseJavaBuildTask {
 
     private String getStringWithoutNewLines(String stringToModify) {
         return StringUtils.replaceChars(stringToModify, "\r\n", "  ");
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
+
+    public void setCapabilityContext(CapabilityContext capabilityContext) {
+        this.capabilityContext = capabilityContext;
     }
 }

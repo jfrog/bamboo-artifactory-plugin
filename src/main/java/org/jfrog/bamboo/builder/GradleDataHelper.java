@@ -31,6 +31,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.GradleBuildContext;
 import org.jfrog.bamboo.util.BuildInfoLog;
@@ -66,7 +67,8 @@ public class GradleDataHelper extends BaseBuildInfoHelper {
     private String resolverUsername;
     private String resolverPassword;
 
-    public GradleDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, CommonTaskContext context, GradleBuildContext buildContext, AdministrationConfiguration administrationConfiguration, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion, boolean aggregateBuildInfo) {
+    public GradleDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, CommonTaskContext context, GradleBuildContext buildContext, AdministrationConfiguration administrationConfiguration, EnvironmentVariableAccessor envVarAccessor, String artifactoryPluginVersion, boolean aggregateBuildInfo, ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
         super.init(buildParamsOverrideManager, ((TaskContext) context).getBuildContext(), context.getBuildLogger());
         setAdministrationConfiguration(administrationConfiguration);
 
