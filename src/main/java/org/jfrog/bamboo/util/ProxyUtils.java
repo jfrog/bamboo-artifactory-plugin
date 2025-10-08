@@ -34,7 +34,7 @@ public class ProxyUtils {
             clientConf.proxy.setHost(proxyConfiguration.host);
             clientConf.proxy.setPort(proxyConfiguration.port);
             clientConf.proxy.setUsername(proxyConfiguration.username);
-            clientConf.proxy.setPassword(proxyConfiguration.host);
+            clientConf.proxy.setPassword(proxyConfiguration.password);
         }
     }
 
