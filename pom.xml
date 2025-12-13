@@ -71,15 +71,43 @@
                         <checksumPolicy>warn</checksumPolicy>
                     </releases>
                 </repository>
+                <repository>
+                    <id>central</id>
+                    <name>Maven Central</name>
+                    <url>https://repo.maven.apache.org/maven2</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
             </repositories>
             <pluginRepositories>
                 <pluginRepository>
                     <id>atlassian-public</id>
                     <url>https://maven.atlassian.com/repository/public</url>
                 </pluginRepository>
+                <pluginRepository>
+                    <id>central</id>
+                    <name>Maven Central</name>
+                    <url>https://repo.maven.apache.org/maven2</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
             </pluginRepositories>
         </profile>
     </profiles>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Manage ehcache version to resolve conflict between atlassian-cache-ehcache (2.10.9.4.10) 
+                 and hibernate-ehcache (2.10.6). Use 2.10.6 which is available in Maven Central. -->
+            <dependency>
+                <groupId>net.sf.ehcache</groupId>
+                <artifactId>ehcache</artifactId>
+                <version>2.10.6</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
