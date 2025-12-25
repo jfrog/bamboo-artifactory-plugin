@@ -4,6 +4,7 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.plugin.PluginAccessor;
+import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +14,7 @@ import org.jfrog.bamboo.util.Utils;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.usageReport.UsageReporter;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -21,6 +23,8 @@ import java.io.File;
 public abstract class ArtifactoryTaskBase {
 
     protected static final Logger log = LogManager.getLogger(ArtifactoryTaskBase.class);
+    @Inject
+    @ComponentImport
     protected PluginAccessor pluginAccessor;
     protected CommonTaskContext taskContext;
     // True if the task is attending to be run in a Docker container

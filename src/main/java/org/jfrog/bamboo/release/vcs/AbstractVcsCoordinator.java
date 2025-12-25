@@ -8,7 +8,6 @@ import com.google.common.collect.Maps;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jfrog.bamboo.release.vcs.git.GitCoordinator;
-import org.jfrog.bamboo.release.vcs.perforce.PerforceCoordinator;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,9 +55,6 @@ public abstract class AbstractVcsCoordinator implements VcsCoordinator {
         // Git is optional SCM so we cannot use the class here
         if (VcsTypes.GIT.name().equals(configuration.get("artifactory.vcs.type"))) {
             return new GitCoordinator(context, combined, buildLogger, customVariableContext, credentialsAccessor);
-        }
-        if (VcsTypes.PERFORCE.name().equals(configuration.get("artifactory.vcs.type"))) {
-            return new PerforceCoordinator(context, combined, buildLogger, customVariableContext, credentialsAccessor);
         }
         throw new UnsupportedOperationException("This VCS type is not supported");
     }

@@ -70,7 +70,6 @@ public abstract class BaseBuildInfoHelper {
         this.buildParamsOverrideManager = buildParamsOverrideManager;
         this.context = context;
         buildInfoLog = new BuildInfoLog(log, logger);
-        serverConfigManager = ServerConfigManager.getInstance();
         ContainerManager.autowireComponent(this);
         httpClient = new HttpClient();
         bambooBaseUrl = determineBambooBaseUrl();

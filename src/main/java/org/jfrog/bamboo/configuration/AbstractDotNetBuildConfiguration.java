@@ -28,16 +28,17 @@ public abstract class AbstractDotNetBuildConfiguration extends AbstractArtifacto
     private static final Map<String, String> CFG_COMMAND_OPTIONS = ImmutableMap.of(CFG_COMMAND_RESTORE, "restore",
             CFG_COMMAND_PUSH, "push");
 
-    public AbstractDotNetBuildConfiguration(String capability) {
-        super(DotNetBuildContext.PREFIX, capability);
+    @Override
+    protected String getBuilderContextPrefix() {
+        return DotNetBuildContext.PREFIX;
     }
 
     @Override
     public void populateContextForCreate(@NotNull Map<String, Object> context) {
         super.populateContextForCreate(context);
         populateCommandsContext(context);
-        context.put("adminConfig", administrationConfiguration);
-        context.put("baseUrl", administrationConfiguration.getBaseUrl());
+        context.put("adminConfig", getAdministrationConfiguration());
+        context.put("baseUrl", getAdministrationConfiguration().getBaseUrl());
         Plan plan = (Plan) context.get("plan");
         context.put("build", plan);
         context.put("dummyList", Lists.newArrayList());

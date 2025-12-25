@@ -7,6 +7,7 @@ import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
 import org.jfrog.bamboo.admin.ServerConfigManager;
@@ -18,6 +19,7 @@ import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 import org.jfrog.build.extractor.clientConfiguration.util.spec.SpecsHelper;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Map;
 
@@ -27,10 +29,14 @@ import java.util.Map;
  * @author Yahav Itzhak
  */
 public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTaskType {
+    @Inject
+    @ComponentImport
     private CustomVariableContext customVariableContext;
     private ServerConfig downloadServerConfig;
     private GenericContext genericContext;
     private String fileSpec;
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
     @Override
     protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
@@ -54,7 +60,6 @@ public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTask
     }
 
     private ServerConfig getArtifactoryServerConfig(BuildParamsOverrideManager buildParamsOverrideManager) {
-        ServerConfigManager serverConfigManager = ServerConfigManager.getInstance();
         ServerConfig selectedServerConfig = serverConfigManager.getServerConfigById(genericContext.getSelectedServerId());
         if (selectedServerConfig == null) {
             throw new IllegalArgumentException("Could not find Artifactory server. Please check the Artifactory server in the task configuration.");
@@ -77,6 +82,10 @@ public class ArtifactoryDeploymentDownloadTask extends ArtifactoryDeploymentTask
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
     }
 
     @Override

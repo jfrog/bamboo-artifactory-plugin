@@ -7,6 +7,7 @@ import com.atlassian.bamboo.credentials.CredentialsAccessor;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,7 @@ import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +31,12 @@ import java.util.Map;
 public class ArtifactoryPreBuildAction extends AbstractBuildAction implements CustomPreBuildAction {
     private static final Logger log = LogManager.getLogger(ArtifactoryPreBuildAction.class);
 
+    @Inject
+    @ComponentImport
     private BuildLoggerManager buildLoggerManager;
+    @Inject
     private CustomVariableContext customVariableContext;
+    @Inject
     private CredentialsAccessor credentialsAccessor;
 
     @Override

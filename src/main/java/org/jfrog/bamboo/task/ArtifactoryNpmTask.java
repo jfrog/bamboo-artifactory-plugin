@@ -9,6 +9,7 @@ import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.NpmBuildContext;
@@ -20,6 +21,7 @@ import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.npm.extractor.NpmInstallCi;
 import org.jfrog.build.extractor.npm.extractor.NpmPublish;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Map;
@@ -29,9 +31,12 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private static final String NPM_KEY = "system.builder.npm.";
     private static final String EXECUTABLE_NAME = "npm";
 
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
-    private final CapabilityContext capabilityContext;
+    @Inject
+    private EnvironmentVariableAccessor environmentVariableAccessor;
+    @Inject
+    private CapabilityContext capabilityContext;
     private BuildParamsOverrideManager buildParamsOverrideManager;
+    @Inject
     private CustomVariableContext customVariableContext;
     private Map<String, String> environmentVariables;
     private NpmBuildContext npmBuildContext;
@@ -39,12 +44,8 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
     private String buildNumber;
     private String buildName;
     private Path packagePath;
-
-    public ArtifactoryNpmTask(EnvironmentVariableAccessor environmentVariableAccessor, final CapabilityContext capabilityContext) {
-        this.environmentVariableAccessor = environmentVariableAccessor;
-        this.capabilityContext = capabilityContext;
-        ContainerManager.autowireComponent(this);
-    }
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
     @Override
     protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
@@ -98,12 +99,12 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
             buildInfoHelper = BuildInfoHelper.createResolveBuildInfoHelper(buildName, buildNumber, taskContext, buildContext,
                     environmentVariableAccessor, npmBuildContext.getResolutionArtifactoryServerId(),
                     npmBuildContext.getOverriddenUsername(runtimeContext, buildInfoLog, false),
-                    npmBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false), buildParamsOverrideManager);
+                    npmBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, false), buildParamsOverrideManager, serverConfigManager);
         } else {
             buildInfoHelper = BuildInfoHelper.createDeployBuildInfoHelper(buildName, buildNumber, taskContext, buildContext,
                     environmentVariableAccessor, npmBuildContext.getArtifactoryServerId(),
                     npmBuildContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
-                    npmBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager);
+                    npmBuildContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager, serverConfigManager);
         }
     }
 
@@ -146,6 +147,18 @@ public class ArtifactoryNpmTask extends ArtifactoryTaskType {
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setCapabilityContext(CapabilityContext capabilityContext) {
+        this.capabilityContext = capabilityContext;
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
+
+    public void setEnvironmentVariableAccessor(EnvironmentVariableAccessor environmentVariableAccessor) {
+        this.environmentVariableAccessor = environmentVariableAccessor;
     }
 
     public Map<String, String> getEnv() throws TaskException {

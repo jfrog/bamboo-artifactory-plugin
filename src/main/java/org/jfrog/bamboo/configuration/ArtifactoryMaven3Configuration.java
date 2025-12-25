@@ -30,8 +30,14 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
     private static final Set<String> FIELDS_TO_COPY = Maven3BuildContext.getFieldsToCopy();
     private static final String DEFAULT_TEST_RESULTS_FILE_PATTERN = "**/target/surefire-reports/*.xml";
 
-    public ArtifactoryMaven3Configuration() {
-        super(Maven3BuildContext.PREFIX, CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven");
+    @Override
+    protected String getBuilderContextPrefix() {
+        return Maven3BuildContext.PREFIX;
+    }
+
+    @Override
+    protected String getCapabilityPrefix() {
+        return CapabilityDefaultsHelper.CAPABILITY_BUILDER_PREFIX + ".maven";
     }
 
     @Override
@@ -41,7 +47,7 @@ public class ArtifactoryMaven3Configuration extends AbstractArtifactoryConfigura
         context.put("maven3Task", this);
         context.put("builderType", this);
         context.put("builder", this);
-        context.put("baseUrl", administrationConfiguration.getBaseUrl());
+        context.put("baseUrl", getAdministrationConfiguration().getBaseUrl());
         Plan plan = (Plan) context.get("plan");
         context.put("build", plan);
         context.put("dummyList", Lists.newArrayList());

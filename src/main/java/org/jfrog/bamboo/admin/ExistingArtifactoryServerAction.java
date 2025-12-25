@@ -20,6 +20,7 @@ import com.atlassian.bamboo.security.GlobalApplicationSecureObject;
 import com.atlassian.bamboo.ww2.actions.admin.user.AbstractEntityPagerSupport;
 import com.atlassian.bamboo.ww2.aware.permissions.GlobalAdminSecurityAware;
 
+import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -29,11 +30,12 @@ import java.util.List;
  */
 public class ExistingArtifactoryServerAction extends AbstractEntityPagerSupport implements GlobalAdminSecurityAware {
 
-	private ServerConfigManager serverConfigManager;
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
-	public ExistingArtifactoryServerAction(ServerConfigManager serverConfigManager) {
-		this.serverConfigManager = serverConfigManager;
-	}
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
 
 	public String doBrowse() throws Exception {
 		return super.execute();

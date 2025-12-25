@@ -17,6 +17,7 @@ import org.jfrog.bamboo.release.provider.AbstractReleaseProvider;
 import org.jfrog.bamboo.release.provider.ReleaseProvider;
 import org.jfrog.bamboo.util.TaskDefinitionHelper;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +30,11 @@ import java.util.Map;
 public class ArtifactoryPostBuildCompleteAction extends AbstractBuildAction implements CustomBuildProcessor {
     private static final Logger log = LogManager.getLogger(ArtifactoryPostBuildCompleteAction.class);
 
+    @Inject
     private BuildLoggerManager buildLoggerManager;
+    @Inject
     private CustomVariableContext customVariableContext;
+    @Inject
     private CredentialsAccessor credentialsAccessor;
 
     @Override

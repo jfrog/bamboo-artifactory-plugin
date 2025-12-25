@@ -10,6 +10,7 @@ import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plugin.RemoteAgentSupported;
 import com.atlassian.bamboo.repository.RepositoryException;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
+import com.atlassian.bamboo.resultsummary.ResultsSummaryManager;
 import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
@@ -43,6 +44,7 @@ import org.jfrog.build.extractor.BuildInfoExtractorUtils;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +76,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
     private boolean promoting = true;
     private String promotionRepo = "";
     private VariableDefinitionManager variableDefinitionManager;
+    private ResultsSummaryManager resultsSummaryManager;    
     private String comment = "";
     private String target = "";
     private boolean useCopy;
@@ -91,8 +94,10 @@ public class ReleasePromotionAction extends ViewBuildResults {
     private String releaseBranch;
     private List<ModuleVersionHolder> versions;
 
-    public ReleasePromotionAction() {
-        this.serverConfigManager = ServerConfigManager.getInstance();
+    @Inject
+    public ReleasePromotionAction(ServerConfigManager serverConfigManager, ResultsSummaryManager resultsSummaryManager) {
+        this.serverConfigManager = serverConfigManager;
+        this.resultsSummaryManager = resultsSummaryManager;
     }
 
     @Override
@@ -348,8 +353,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
         if (StringUtils.isBlank(serverId)) {
             return Lists.newArrayList();
         }
-        ServerConfigManager component = ServerConfigManager.getInstance();
-        return component.getDeployableRepos(Long.parseLong(serverId));
+        return serverConfigManager.getDeployableRepos(Long.parseLong(serverId));
     }
 
     public String getReleasePublishingRepo() {
@@ -501,7 +505,6 @@ public class ReleasePromotionAction extends ViewBuildResults {
             log.error("You are not permitted to execute build promotion.");
             return ERROR;
         }
-        ServerConfigManager component = ServerConfigManager.getInstance();
         TaskDefinition definition = getMavenOrGradleTaskDefinition(getImmutablePlan());
         if (definition == null) {
             return ERROR;
@@ -511,7 +514,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
             log.error("No selected Artifactory server Id");
             return ERROR;
         }
-        ServerConfig serverConfig = component.getServerConfigById(Long.parseLong(serverId));
+        ServerConfig serverConfig = serverConfigManager.getServerConfigById(Long.parseLong(serverId));
         if (serverConfig == null) {
             log.error("Error while retrieving target repository list: Could not find Artifactory server " +
                     "configuration by the ID " + serverId);
@@ -586,8 +589,7 @@ public class ReleasePromotionAction extends ViewBuildResults {
             log.warn("No Artifactory server Id found");
             return Lists.newArrayList();
         }
-        ServerConfigManager component = ServerConfigManager.getInstance();
-        return component.getDeployableRepos(Long.parseLong(selectedServerId));
+        return serverConfigManager.getDeployableRepos(Long.parseLong(selectedServerId));
     }
 
     /**

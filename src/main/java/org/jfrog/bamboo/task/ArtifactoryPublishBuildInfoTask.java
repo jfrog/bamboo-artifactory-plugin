@@ -8,6 +8,7 @@ import com.atlassian.spring.container.ContainerManager;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.builder.BuildInfoHelper;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.PublishBuildInfoContext;
@@ -20,6 +21,7 @@ import org.jfrog.build.extractor.ci.BuildInfo;
 import org.jfrog.build.extractor.clientConfiguration.ArtifactoryManagerBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.artifactory.ArtifactoryManager;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,17 +36,24 @@ import static org.jfrog.bamboo.util.ConstantValues.PUBLISHED_BUILDS_DETAILS;
 public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
     public static final String TASK_NAME = "artifactoryPublishBuildInfoTask";
 
-    private final EnvironmentVariableAccessor environmentVariableAccessor;
+    @Inject
+    private EnvironmentVariableAccessor environmentVariableAccessor;
+    @Inject
     private CustomVariableContext customVariableContext;
     private BuildInfoHelper buildInfoHelper;
-
-    public ArtifactoryPublishBuildInfoTask(EnvironmentVariableAccessor environmentVariableAccessor) {
-        this.environmentVariableAccessor = environmentVariableAccessor;
-        ContainerManager.autowireComponent(this);
-    }
+    @Inject
+    private ServerConfigManager serverConfigManager;
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setServerConfigManager(ServerConfigManager serverConfigManager) {
+        this.serverConfigManager = serverConfigManager;
+    }
+
+    public void setEnvironmentVariableAccessor(EnvironmentVariableAccessor environmentVariableAccessor) {
+        this.environmentVariableAccessor = environmentVariableAccessor;
     }
 
     @Override
@@ -58,7 +67,7 @@ public class ArtifactoryPublishBuildInfoTask extends ArtifactoryTaskType {
                 publishBuildInfoContext.getBuildNumber(buildContext), context, buildContext, environmentVariableAccessor,
                 publishBuildInfoContext.getArtifactoryServerId(),
                 publishBuildInfoContext.getOverriddenUsername(runtimeContext, buildInfoLog, true),
-                publishBuildInfoContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager);
+                publishBuildInfoContext.getOverriddenPassword(runtimeContext, buildInfoLog, true), buildParamsOverrideManager, serverConfigManager);
     }
 
     @NotNull

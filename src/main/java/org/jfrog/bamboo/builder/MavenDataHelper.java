@@ -5,6 +5,7 @@ import com.atlassian.bamboo.task.TaskContext;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
+import org.jfrog.bamboo.admin.ServerConfigManager;
 import org.jfrog.bamboo.configuration.BuildParamsOverrideManager;
 import org.jfrog.bamboo.context.Maven3BuildContext;
 import org.jfrog.bamboo.context.PackageManagersContext;
@@ -29,8 +30,8 @@ public class MavenDataHelper extends MavenAndIvyBuildInfoDataHelperBase {
 
     public MavenDataHelper(BuildParamsOverrideManager buildParamsOverrideManager, TaskContext context,
                            PackageManagersContext buildContext, EnvironmentVariableAccessor envVarAccessor,
-                           String artifactoryPluginVersion, boolean aggregateBuildInfo) {
-        super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion, aggregateBuildInfo);
+                           String artifactoryPluginVersion, boolean aggregateBuildInfo, ServerConfigManager serverConfigManager) {
+        super(buildParamsOverrideManager, context, buildContext, envVarAccessor, artifactoryPluginVersion, aggregateBuildInfo, serverConfigManager);
         long selectedServerId = buildContext.getArtifactoryServerId();
         if (selectedServerId == -1) {
             // No deployment server configured, configure resolution server if needed.

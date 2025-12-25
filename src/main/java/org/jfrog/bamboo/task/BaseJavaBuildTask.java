@@ -23,6 +23,7 @@ import org.jfrog.bamboo.context.PackageManagersContext;
 import org.jfrog.bamboo.util.TaskUtils;
 import org.jfrog.build.extractor.ci.BuildInfoFields;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -42,28 +43,40 @@ public abstract class BaseJavaBuildTask extends ArtifactoryTaskType {
     public static final String JAVA_HOME = "JAVA_HOME";
 
     protected Map<String, String> environmentVariables;
-    protected final EnvironmentVariableAccessor environmentVariableAccessor;
-    private final TestCollationService testCollationService;
+    @Inject
+    protected EnvironmentVariableAccessor environmentVariableAccessor;
+    @Inject
+    private TestCollationService testCollationService;
     protected BuildParamsOverrideManager buildParamsOverrideManager;
+    @Inject
     protected CustomVariableContext customVariableContext;
-    private final ProcessService processService;
+    @Inject
+    private ProcessService processService;
     String buildInfoPropertiesFile;
     boolean activateBuildInfoRecording;
     boolean aggregateBuildInfo;
-    final File bambooTmp;
+    File bambooTmp;
 
-    protected BaseJavaBuildTask(TestCollationService testCollationService,
-                                EnvironmentVariableAccessor environmentVariableAccessor, ProcessService processService) {
-        ContainerManager.autowireComponent(this);
-        this.testCollationService = testCollationService;
-        this.processService = processService;
-        this.environmentVariableAccessor = environmentVariableAccessor;
+    @Override
+    protected void initTask(@NotNull CommonTaskContext context) throws TaskException {
         this.buildParamsOverrideManager = new BuildParamsOverrideManager(customVariableContext);
-        this.bambooTmp = getBambooTmp(customVariableContext);
+        this.bambooTmp = getBambooTmp(customVariableContext);    
     }
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setTestCollationService(TestCollationService testCollationService) {
+        this.testCollationService = testCollationService;
+    }
+
+    public void setCProcessService(ProcessService processService) {
+        this.processService = processService;
+    }
+
+    public void setEnvironmentVariableAccessor(EnvironmentVariableAccessor environmentVariableAccessor) {
+        this.environmentVariableAccessor = environmentVariableAccessor;
     }
 
     void initEnvironmentVariables(PackageManagersContext buildContext) {
