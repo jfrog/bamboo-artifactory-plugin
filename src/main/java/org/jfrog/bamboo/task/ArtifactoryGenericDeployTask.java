@@ -7,10 +7,10 @@ import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.spring.container.ContainerManager;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import org.jfrog.build.api.multiMap.Multimap;
+import org.jfrog.build.api.multiMap.SetMultimap;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfrog.bamboo.admin.ServerConfig;
@@ -160,7 +160,7 @@ public class ArtifactoryGenericDeployTask extends ArtifactoryTaskType {
 
     private Multimap<String, File> buildTargetPathToFiles(File directory, GenericContext context)
             throws IOException {
-        Multimap<String, File> result = HashMultimap.create();
+        Multimap<String, File> result = new SetMultimap<>();
         String deployPattern = context.getDeployPattern();
         deployPattern = StringUtils.replace(deployPattern, "\r\n", "\n");
         deployPattern = StringUtils.replace(deployPattern, ",", "\n");
