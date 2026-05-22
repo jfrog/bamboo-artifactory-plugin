@@ -397,6 +397,50 @@
         <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
     </taskType>
 
+    <!-- Deployment-project variant of "Artifactory Publish Build Info".
+         Implements DeploymentTaskType so it is selectable from the Deployment Projects task picker. -->
+    <taskType key="artifactoryDeploymentPublishBuildInfoTask" name="Artifactory Publish Build Info (Deployment)"
+              class="org.jfrog.bamboo.task.ArtifactoryDeploymentPublishBuildInfoTask">
+        <description>Publish build-info to Artifactory from a Deployment Project task.</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryPublishBuildInfoConfiguration"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
+        <category name="deployment"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/task/editArtifactoryPublishBuildInfoAction.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
+    <!-- Deployment-project variant of "Artifactory Xray Scan".
+         Implements DeploymentTaskType so it is selectable from the Deployment Projects task picker. -->
+    <taskType key="artifactoryDeploymentXrayScanTask" name="Artifactory Xray Scan (Deployment)"
+              class="org.jfrog.bamboo.task.ArtifactoryDeploymentXrayScanTask">
+        <description>Scan a build with JFrog Xray from a Deployment Project task. The scanned build must be published to Artifactory prior to scanning.</description>
+        <configuration class="org.jfrog.bamboo.configuration.ArtifactoryXrayScanConfiguration"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
+        <category name="deployment"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/xray/editArtifactoryXrayScanAction.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
+    <!-- JFrog CLI task for Deployment Projects.
+         Implements DeploymentTaskType so it appears in the Deployment Project task picker.
+         The jf binary must be pre-installed on the build agent. Server credentials are
+         injected via JF_URL / JF_USER / JF_PASSWORD environment variables at runtime. -->
+    <taskType key="artifactoryDeploymentJfrogCliTask" name="JFrog CLI Task"
+              class="org.jfrog.bamboo.task.ArtifactoryDeploymentJfrogCliTask">
+        <description>Run any JFrog CLI (jf) command from a Deployment Project task. The jf binary must be available on the agent PATH.</description>
+        <configuration class="org.jfrog.bamboo.configuration.JfrogCliDeploymentConfiguration"/>
+        <runtimeTaskDataProvider class="org.jfrog.bamboo.security.provider.SharedCredentialsDataProvider"/>
+        <category name="deployment"/>
+        <resource type="freemarker" name="edit"
+                  location="templates/plugins/deployment/editJfrogCliDeploymentTask.ftl"/>
+        <resource type="download" name="icon" location="images/artifactory-icon.png"/>
+        <exporter class="org.jfrog.bamboo.exporter.ArtifactoryTaskExporter"/>
+    </taskType>
+
     <component-import key="taskContextHelper" interface="com.atlassian.bamboo.task.TaskContextHelperService"/>
     <component-import key="taskConfiguratorHelper" interface="com.atlassian.bamboo.task.TaskConfiguratorHelper"/>
     <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties"/>
