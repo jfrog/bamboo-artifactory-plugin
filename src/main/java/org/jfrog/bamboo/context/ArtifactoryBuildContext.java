@@ -113,6 +113,22 @@ public abstract class ArtifactoryBuildContext {
         return String.valueOf(buildContext.getBuildNumber());
     }
 
+    /**
+     * Get build name from context without falling back to a build plan.
+     * Used by deployment-project tasks where no {@link BuildContext} is available.
+     */
+    public String getBuildName() {
+        return env.get(BUILD_NAME);
+    }
+
+    /**
+     * Get build number from context without falling back to a build plan.
+     * Used by deployment-project tasks where no {@link BuildContext} is available.
+     */
+    public String getBuildNumber() {
+        return env.get(BUILD_NUMBER);
+    }
+
     public String getOverriddenUsername(Map<String, String> runtimeTaskContext, Log log, boolean deployer) {
         switch (StringUtils.defaultString(deployer ? getDeployerOverrideCredentialsChoice() : getResolverOverrideCredentialsChoice())) {
             case CVG_CRED_NO_OVERRIDE:
