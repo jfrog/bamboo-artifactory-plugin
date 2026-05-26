@@ -70,7 +70,12 @@ public class ArtifactoryDeploymentJfrogCliTask extends ArtifactoryDeploymentTask
                 return TaskResultBuilder.newBuilder(deploymentTaskContext).failed().build();
             }
             return TaskResultBuilder.newBuilder(deploymentTaskContext).success().build();
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            // Restore interrupt status so callers / Bamboo can react to the cancellation.
+            Thread.currentThread().interrupt();
+            buildInfoLog.error("JFrog CLI command was interrupted: " + e.getMessage(), e);
+            return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
+        } catch (IOException e) {
             buildInfoLog.error("Exception while running JFrog CLI command: " + e.getMessage(), e);
             return TaskResultBuilder.newBuilder(deploymentTaskContext).failedWithError().build();
         }

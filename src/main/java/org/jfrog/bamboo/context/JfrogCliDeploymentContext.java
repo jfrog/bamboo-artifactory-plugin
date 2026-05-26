@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 /**
  * Configuration context for the JFrog CLI Deployment task.
@@ -15,6 +14,8 @@ public class JfrogCliDeploymentContext {
     public static final String PREFIX = "artifactory.jfrogCli.";
     public static final String SERVER_ID = PREFIX + "serverId";
     public static final String JF_COMMAND = PREFIX + "command";
+
+    private static final Set<String> FIELDS_TO_COPY = Set.of(SERVER_ID, JF_COMMAND);
 
     private final Map<String, String> env;
 
@@ -39,9 +40,6 @@ public class JfrogCliDeploymentContext {
     }
 
     public static Set<String> getFieldsToCopy() {
-        Set<String> fields = new HashSet<>();
-        fields.add(SERVER_ID);
-        fields.add(JF_COMMAND);
-        return fields;
+        return FIELDS_TO_COPY;
     }
 }
