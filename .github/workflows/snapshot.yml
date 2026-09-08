@@ -48,29 +48,5 @@ jobs:
           JF_USER: ${{ secrets.ARTIFACTORY_USER }}
           JF_PASSWORD: ${{ secrets.ARTIFACTORY_APIKEY }}
 
-      - name: Configure JFrog CLI Maven config
-        run: |
-          jf mvnc \
-            --repo-resolve-releases ecosys-bamboo-repos --repo-resolve-snapshots ecosys-releases-snapshots \
-            --repo-deploy-snapshots ecosys-oss-snapshot-local --repo-deploy-releases ecosys-oss-release-local
-
-      - name: Run audit
-        run: jf audit
-
-      # Delete former snapshots to make sure the release bundle will not contain stale artifacts
-      - name: Delete previous snapshots
-        run: jf rt del "ecosys-oss-snapshot-local/org/jfrog/bamboo/bamboo-artifactory-plugin/*" --quiet
-
-      - name: Build and publish
-        run: jf mvn clean install -U -B javadoc:jar source:jar
-
-      - name: Publish build info
-        run: |
-          jf rt bag
-          jf rt bce
-          jf rt bp
-
-      - name: Distribute release bundle
-        run: |
-          jf ds rbc ecosystem-artifactory-bamboo-plugin-snapshot "${{ github.run_number }}" --spec=./ci/release/specs/dev-rbc-filespec.json --sign
-          jf ds rbd ecosystem-artifactory-bamboo-plugin-snapshot "${{ github.run_number }}" --site="releases.jfrog.io" --sync
+      - name: Run snapshot script
+        run: .github/scripts/snapshot.sh
