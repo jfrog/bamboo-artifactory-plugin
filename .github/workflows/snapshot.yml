@@ -1,0 +1,52 @@
+# Ported from ci/release/pipelines.snapshot.yml (JFrog Pipelines
+# "create_artifactory_bamboo_plugin_snapshot", now EOL).
+#
+# Deliberate behavior change: JFrog CLI is installed via the jfrog/setup-jfrog-cli@v4
+# action instead of `curl -fL https://install-cli.jfrog.io | sh`. All `env -i ...`
+# sanitization tricks from the original pipeline have been dropped as unnecessary
+# in a GitHub Actions runner.
+name: Snapshot
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch: {}
+
+env:
+  CI: true
+  JFROG_BUILD_STATUS: PASS
+  JFROG_CLI_BUILD_NAME: ecosystem-artifactory-bamboo-plugin-dev
+  JFROG_CLI_BUILD_NUMBER: ${{ github.run_number }}
+  JFROG_CLI_BUILD_PROJECT: ecosys
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "11"
+          distribution: "temurin"
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+          JF_URL: ${{ secrets.ARTIFACTORY_URL }}
+          JF_USER: ${{ secrets.ARTIFACTORY_USER }}
+          JF_PASSWORD: ${{ secrets.ARTIFACTORY_APIKEY }}
+
+      - name: Run snapshot script
+        run: .github/scripts/snapshot.sh

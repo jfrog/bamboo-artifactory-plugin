@@ -1,0 +1,61 @@
+# Ported from ci/release/pipelines.release.yml (JFrog Pipelines "release_bamboo", now EOL).
+#
+# Deliberate behavior change: JFrog CLI is installed via the jfrog/setup-jfrog-cli@v4
+# action instead of `curl -fL https://install-cli.jfrog.io | sh`. All `env -i ...`
+# sanitization tricks from the original pipeline have been dropped as unnecessary
+# in a GitHub Actions runner.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      next_version:
+        description: "Version to release (e.g. 3.4.0)"
+        required: true
+        type: string
+      next_development_version:
+        description: "Next development version (e.g. 3.4.x-SNAPSHOT)"
+        required: true
+        type: string
+
+env:
+  CI: true
+  JFROG_BUILD_STATUS: PASS
+  JFROG_CLI_BUILD_NAME: ecosystem-artifactory-bamboo-plugin-release
+  JFROG_CLI_BUILD_NUMBER: ${{ github.run_number }}
+  JFROG_CLI_BUILD_PROJECT: ecosys
+  NEXT_VERSION: ${{ inputs.next_version }}
+  NEXT_DEVELOPMENT_VERSION: ${{ inputs.next_development_version }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.IL_AUTOMATION_TOKEN }}
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "11"
+          distribution: "temurin"
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+          JF_URL: ${{ secrets.ARTIFACTORY_URL }}
+          JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_APIKEY }}
+
+      - name: Run release script
+        run: .github/scripts/release.sh
